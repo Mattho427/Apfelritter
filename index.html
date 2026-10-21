@@ -26,7 +26,7 @@ body{
     radial-gradient(ellipse 80% 340px at 50% -60px, rgba(155,28,34,.28), transparent 70%),
     repeating-linear-gradient(0deg, transparent 0 25px, rgba(255,255,255,.018) 25px 27px);
 }
-.wrap{max-width:860px; margin:0 auto; display:grid; gap:26px;}
+.wrap{max-width:1000px; margin:0 auto; display:grid; gap:26px;}
 
 .masthead{display:grid; grid-template-columns:auto 1fr; gap:6px 16px; align-items:center;}
 .masthead .seal{width:64px; height:64px; image-rendering:pixelated; grid-row:span 2;}
@@ -80,7 +80,7 @@ body{
 .zones{margin:0; padding:0; list-style:none; display:grid; gap:4px; font-size:18px;}
 .zones b{color:var(--blood); font-weight:400;}
 #game{
-  display:block; width:100%; max-width:100%; aspect-ratio:480/270; height:auto; margin-inline:auto;
+  display:block; width:100%; max-width:100%; aspect-ratio:16/9; height:auto; margin-inline:auto;
   image-rendering:pixelated; image-rendering:crisp-edges; touch-action:none;
 }
 .overlay{
@@ -474,7 +474,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     </div>
     <div class="field">
       <div class="stage" id="stage">
-        <canvas id="game" width="480" height="270" aria-label="Spielfeld: das Reichsland um die Reichsburg"></canvas>
+        <canvas id="game" width="960" height="540" aria-label="Spielfeld: das Reichsland um die Reichsburg"></canvas>
         <div class="boss" id="bossBar" hidden>
           <span id="bossName">Raubritter</span>
           <div class="bossbar" aria-hidden="true"><span id="bossFill"></span></div>
@@ -668,10 +668,23 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 <script>
 "use strict";
 /* ============ Grundlagen (gemeinsam für alle Module) ============ */
-const W = 480, H = 270;              // innere Auflösung des Spielfelds
-const WW = 4096, WH = 3072;          // Größe der Welt in Pixeln
+const WW = 4096, WH = 3072;          // Größe der Welt in Weltpixeln
+const WS = 2;                        // Feinpixel je Weltpixel: Weltbilder und Boden in doppelter Auflösung, Spielkoordinaten in Feinpixeln
 const TILE = 16;
 const cv = document.getElementById('game');
+/* innere Auflösung des Spielfelds in Feinpixeln: so breit wie die Bühne (640 bis 960), 16:9;
+   schmale Telefone 512 (sonst wird der Ritter zu klein), Telefone quer 640 */
+const [W, H] = (() => {
+  let w = 960;
+  try {
+    const st = document.getElementById('stage');
+    if (st && st.clientWidth) w = st.clientWidth;
+    if (matchMedia('(hover:none) and (pointer:coarse) and (orientation:landscape)').matches) w = 640;
+  } catch(e){}
+  w = w < 600 ? 512 : Math.max(640, Math.min(960, Math.round(w / 8) * 8));
+  return [w, Math.round(w * 9 / 32) * 2];
+})();
+cv.width = W; cv.height = H; cv.style.aspectRatio = W + ' / ' + H;
 const ctx = cv.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 const OUT = '#16120f';               // Konturfarbe für Figuren und Bauten
@@ -722,6 +735,20 @@ function addOutline(src, color){
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++)
     if (!a(x, y) && (a(x - 1, y) || a(x + 1, y) || a(x, y - 1) || a(x, y + 1))) g.fillRect(x, y, 1, 1);
   g.drawImage(src, 0, 0); return c;
+}
+/* Pixelbild verdoppeln (Scale2x/EPX): schräge Kanten werden geglättet, gerade bleiben scharf */
+function scale2x(src){
+  const w = src.width, h = src.height, sd = new Uint32Array(src.getContext('2d').getImageData(0, 0, w, h).data.buffer);
+  const c = canvasOf(w * 2, h * 2), g = c.getContext('2d'), id = g.createImageData(w * 2, h * 2), od = new Uint32Array(id.data.buffer), W2 = w * 2;
+  const at = (x, y) => x < 0 || y < 0 || x >= w || y >= h ? 0 : sd[y * w + x];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){
+    const P = sd[y * w + x], A = at(x, y - 1), B = at(x + 1, y), C = at(x - 1, y), D = at(x, y + 1), o = 2 * y * W2 + 2 * x;
+    od[o] = C === A && C !== D && A !== B ? A : P;
+    od[o + 1] = A === B && A !== C && B !== D ? B : P;
+    od[o + W2] = D === C && D !== B && C !== A ? C : P;
+    od[o + W2 + 1] = B === D && B !== A && D !== C ? D : P;
+  }
+  g.putImageData(id, 0, 0); return c;
 }
 /* Ein Bild (Frame): Grafik, optionale Leuchtebene, weiße Silhouette für Treffer */
 function spriteOf(img, glow){ return { img, glow: glow || null, white: whiteOf(img) }; }
@@ -1441,27 +1468,41 @@ const HORSES = {
     desc:'ein Hengst für die Schlacht, mit Rossstirn aus Stahl und Decke mit Eurem Wappen' }
 };
 const HORSE_IDS = Object.keys(HORSES);
-const HO_H = 44, HO_GY = 43, HO_SEAT = 12;
-const ho_grid = w => Array.from({ length: HO_H }, () => Array(w).fill('.'));
-function ho_px(g, x, y, ch){ x = Math.round(x); y = Math.round(y); if (ch && y >= 0 && y < g.length && x >= 0 && x < g[0].length) g[y][x] = ch; }
+/* Entwurf in 64 × 44, gezeichnet um HO_Z vergrößert (Pferd im rechten Maß zum Reiter) */
+const HO_Z = 1.2, hz = v => Math.round(v * HO_Z);
+const HO_H = hz(44), HO_GY = HO_H - 1, HO_SEAT = hz(12);
+const ho_grid = w => Array.from({ length: HO_H }, () => Array(hz(w)).fill('.'));
+/* ein Entwurfspixel: deckt alle Rasterzellen seines vergrößerten Felds */
+function ho_px(g, x, y, ch){
+  if (!ch) return;
+  x = Math.round(x); y = Math.round(y);
+  const X0 = Math.round(x * HO_Z), X1 = Math.max(X0, Math.round((x + 1) * HO_Z) - 1), Y0 = Math.round(y * HO_Z), Y1 = Math.max(Y0, Math.round((y + 1) * HO_Z) - 1);
+  for (let Y = Y0; Y <= Y1; Y++) for (let X = X0; X <= X1; X++) if (Y >= 0 && Y < g.length && X >= 0 && X < g[0].length) g[Y][X] = ch;
+}
+/* Rasterzellen eines Entwurfsrechtecks (einschließlich x1, y1); fn(X, Y, x, y) mit Entwurfskoordinaten x, y */
+function ho_scan(g, x0, y0, x1, y1, fn){
+  for (let Y = Math.max(0, Math.round(y0 * HO_Z)); Y < Math.min(g.length, Math.round((y1 + 1) * HO_Z)); Y++)
+    for (let X = Math.max(0, Math.round(x0 * HO_Z)); X < Math.min(g[0].length, Math.round((x1 + 1) * HO_Z)); X++) fn(X, Y, Math.floor(X / HO_Z), Math.floor(Y / HO_Z));
+}
 const ho_tone = v => 'dhik'[clamp(Math.floor(v * 4), 0, 3)];
 /* gefüllte Ellipse mit Licht von links oben */
 function ho_ell(g, cx, cy, rx, ry, lit){
-  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++){
-    const nx = (x + .5 - cx) / rx, ny = (y + .5 - cy) / ry, q = nx * nx + ny * ny;
-    if (q > 1) continue;
-    ho_px(g, x, y, ho_tone(.66 - ny * .34 - nx * .14 - q * .16 + (lit || 0)));
+  const Z = HO_Z;
+  for (let Y = Math.floor((cy - ry) * Z); Y <= Math.ceil((cy + ry) * Z); Y++) for (let X = Math.floor((cx - rx) * Z); X <= Math.ceil((cx + rx) * Z); X++){
+    const nx = ((X + .5) / Z - cx) / rx, ny = ((Y + .5) / Z - cy) / ry, q = nx * nx + ny * ny;
+    if (q > 1 || Y < 0 || Y >= g.length || X < 0 || X >= g[0].length) continue;
+    g[Y][X] = ho_tone(.66 - ny * .34 - nx * .14 - q * .16 + (lit || 0));
   }
 }
 /* dicke Strecke; chf(t entlang, qx, qy quer) liefert das Zeichen */
 function ho_thick(g, x0, y0, x1, y1, w0, w1, chf){
-  const L = Math.hypot(x1 - x0, y1 - y0) || 1, n = Math.ceil(L * 2);
+  const Z = HO_Z, L = Math.hypot(x1 - x0, y1 - y0) || 1, n = Math.ceil(L * 2 * Z);
   for (let i = 0; i <= n; i++){
-    const t = i / n, cx = x0 + (x1 - x0) * t, cy = y0 + (y1 - y0) * t, r = (w0 + (w1 - w0) * t) / 2;
-    for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++){
-      const dx = x + .5 - cx, dy = y + .5 - cy;
-      if (dx * dx + dy * dy > r * r) continue;
-      ho_px(g, x, y, chf(t, dx / r, dy / r));
+    const t = i / n, cx = (x0 + (x1 - x0) * t) * Z, cy = (y0 + (y1 - y0) * t) * Z, r = (w0 + (w1 - w0) * t) / 2 * Z;
+    for (let Y = Math.floor(cy - r); Y <= Math.ceil(cy + r); Y++) for (let X = Math.floor(cx - r); X <= Math.ceil(cx + r); X++){
+      const dx = X + .5 - cx, dy = Y + .5 - cy;
+      if (dx * dx + dy * dy > r * r || Y < 0 || Y >= g.length || X < 0 || X >= g[0].length) continue;
+      const ch = chf(t, dx / r, dy / r); if (ch) g[Y][X] = ch;
     }
   }
 }
@@ -1484,7 +1525,7 @@ const ho_cloth = ch => ({ d:'O', h:'o', i:'y', k:'Y' })[ch];
 const ho_steel = ch => ({ d:'K', h:'D', i:'M', k:'L' })[ch];
 /* Wappen auf der Pferdedecke (Seite) */
 function ho_arms(g, fid, cx, cy){
-  const red = (x, y) => { const i = 'OoyY'.indexOf(g[y] && g[y][x]); if (i >= 0) g[y][x] = '5678'[i]; };
+  const red = (x, y) => ho_scan(g, x, y, x, y, (X, Y) => { const i = 'OoyY'.indexOf(g[Y][X]); if (i >= 0) g[Y][X] = '5678'[i]; });
   if (fid === 'reich') kn_EAGLE9.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') ho_px(g, cx - 4 + i, cy - 4 + j, r[i]); });
   else if (fid === 'frankreich') for (const [x, y] of [[cx - 6, cy - 3], [cx + 6, cy - 3], [cx, cy + 4], [cx - 12, cy + 4], [cx + 12, cy + 4]]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(g, x - 1 + i, y - 1 + j, r[i]); });
   else if (fid === 'england'){ for (let y = 12; y <= 35; y++) for (let x = cx - 1; x <= cx + 1; x++) red(x, y); for (let x = 6; x <= 48; x++) for (let y = cy - 1; y <= cy + 1; y++) red(x, y); }
@@ -1514,21 +1555,18 @@ function ho_side(h, fid, f){
   ho_leg(g, 18, 25, S.nh[f][0], S.nh[f][1], S.nh[f][2], false, true);
   // Decke
   if (h.cloth === 'caparison'){
-    for (let y = 9; y <= 36; y++) for (let x = 6; x <= 50; x++){
-      const ch = g[y][x];
-      if ('dhik'.includes(ch) && !(x > 47 && y < 13)) g[y][x] = ho_cloth(ch);
-    }
-    for (let x = 9; x <= 46; x++){
-      const hem = 33 + ((x >> 1) & 1);
-      for (let y = 26; y <= hem; y++) if (g[y][x] === '.' || 'dhikx'.includes(g[y][x])) g[y][x] = y >= hem ? 'a' : ((x + y) % 4 === 0 ? 'o' : 'y');
-      for (let y = 22; y <= hem - 1; y++) if (x % 5 === 0 && 'OoyY'.includes(g[y][x])) g[y][x] = g[y][x] === 'Y' ? 'y' : g[y][x] === 'y' ? 'o' : 'O';
-    }
+    ho_scan(g, 6, 9, 50, 36, (X, Y, x, y) => { const ch = g[Y][X]; if ('dhik'.includes(ch) && !(x > 47 && y < 13)) g[Y][X] = ho_cloth(ch); });
+    ho_scan(g, 9, 22, 46, 34, (X, Y, x, y) => {
+      const hem = 33 + ((x >> 1) & 1), c = g[Y][X];
+      if (y >= 26 && y <= hem && (c === '.' || 'dhikx'.includes(c))) g[Y][X] = y >= hem ? 'a' : ((X + Y) % 4 === 0 ? 'o' : 'y');
+      else if (y <= hem - 1 && X % 6 === 0 && 'OoyY'.includes(c)) g[Y][X] = c === 'Y' ? 'y' : c === 'y' ? 'o' : 'O';
+    });
     ho_arms(g, fid, 27, 23);
     // Rossstirn aus Stahl
-    for (let y = 2; y <= 13; y++) for (let x = 48; x <= 59; x++){ const ch = g[y][x]; if ('dhik'.includes(ch) && x + y > 53) g[y][x] = ho_steel(ch); }
+    ho_scan(g, 48, 2, 59, 13, (X, Y, x, y) => { const ch = g[Y][X]; if ('dhik'.includes(ch) && x + y > 53) g[Y][X] = ho_steel(ch); });
     ho_px(g, 52, 7, 'K'); ho_px(g, 53, 4, 'G');
   } else if (h.cloth === 'blanket'){
-    for (let y = 12; y <= 23; y++) for (let x = 19; x <= 36; x++) if (g[y][x] !== '.') g[y][x] = y === 23 ? ((x & 1) ? 'a' : 'A') : 'OoyY'[clamp(Math.floor((.75 - (x - 19) * .02 - (y - 12) * .03) * 4), 0, 3)];
+    ho_scan(g, 19, 12, 36, 23, (X, Y, x, y) => { if (g[Y][X] !== '.') g[Y][X] = y === 23 ? ((X & 1) ? 'a' : 'A') : 'OoyY'[clamp(Math.floor((.75 - (x - 19) * .02 - (y - 12) * .03) * 4), 0, 3)]; });
   }
   // Sattel, Zaumzeug, Zügel
   for (let x = 22; x <= 33; x++){ ho_px(g, x, 11, 'n'); ho_px(g, x, 12, 'N'); }
@@ -1549,17 +1587,18 @@ function ho_front(h, fid, f){
     for (let i = -1; i <= 1; i++){ ho_px(under, x + i, 40 - lf, 'x'); ho_px(under, x + i, 41 - lf, 'x'); }
   }
   if (h.cloth === 'caparison'){
-    for (let y = 10; y <= 34; y++) for (let x = 4; x <= 30; x++){ const ch = under[y][x]; if ('dhik'.includes(ch)) under[y][x] = ho_cloth(ch); }
-    for (let x = 6; x <= 28; x++){ const hem = 33 + ((x >> 1) & 1); for (let y = 26; y <= hem; y++) under[y][x] = y >= hem ? 'a' : (x % 5 === 0 ? 'o' : 'y'); }
+    ho_scan(under, 4, 10, 30, 34, (X, Y) => { const ch = under[Y][X]; if ('dhik'.includes(ch)) under[Y][X] = ho_cloth(ch); });
+    ho_scan(under, 6, 26, 28, 34, (X, Y, x, y) => { const hem = 33 + ((x >> 1) & 1); if (y <= hem) under[Y][X] = y >= hem ? 'a' : (X % 6 === 0 ? 'o' : 'y'); });
     if (fid === 'reich') kn_EAGLE7.forEach((r, j) => { for (let i = 0; i < 7; i++) if (r[i] !== '.') ho_px(under, 14 + i, 22 + j, r[i]); });
     else if (fid === 'frankreich') for (const x of [12, 22]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(under, x - 1 + i, 26 + j, r[i]); });
-    else for (let y = 20; y <= 32; y++) for (let x = 6; x <= 28; x++){
-      const i = 'OoyY'.indexOf(under[y][x]); if (i < 0) continue;
-      const on = fid === 'england' ? (Math.abs(x - 17) <= 1 || Math.abs(y - 27) <= 1) : (Math.abs((x - 17) - (y - 27) * .9) <= 1 || Math.abs((x - 17) + (y - 27) * .9) <= 1);
-      if (on) under[y][x] = '5678'[i];
-    }
+    else ho_scan(under, 6, 20, 28, 32, (X, Y) => {
+      const i = 'OoyY'.indexOf(under[Y][X]); if (i < 0) return;
+      const x = X / HO_Z, y = Y / HO_Z;
+      const on = fid === 'england' ? (Math.abs(x - 17.4) <= 1.1 || Math.abs(y - 27.4) <= 1.1) : (Math.abs((x - 17.4) - (y - 27.4) * .9) <= 1.1 || Math.abs((x - 17.4) + (y - 27.4) * .9) <= 1.1);
+      if (on) under[Y][X] = '5678'[i];
+    });
   } else if (h.cloth === 'blanket'){
-    for (let y = 13; y <= 22; y++) for (let x = 5; x <= 29; x++) if (under[y][x] !== '.' && (x < 9 || x > 25)) under[y][x] = y === 22 ? 'a' : 'OoyY'[x < 17 ? 2 : 1];
+    ho_scan(under, 5, 13, 29, 22, (X, Y, x, y) => { if (under[Y][X] !== '.' && (x < 9 || x > 25)) under[Y][X] = y === 22 ? 'a' : 'OoyY'[x < 17 ? 2 : 1]; });
   }
   // Hals und Kopf (vor dem Reiter)
   const o = 9;   // der Kopf ragt nach vorn, also im Bild tiefer
@@ -1570,8 +1609,8 @@ function ho_front(h, fid, f){
   ho_px(over, 15, 8 + o, 'x'); ho_px(over, 19, 8 + o, 'x'); ho_px(over, 16, 16 + o, 'd'); ho_px(over, 18, 16 + o, 'd');
   for (const x of [14, 20]) for (const y of [7, 13]) ho_px(over, x, y + o, 'N');
   if (h.cloth === 'caparison'){
-    for (let y = 9 + o; y <= 19 + o; y++) for (let x = 12; x <= 22; x++){ const ch = over[y][x]; if ('dhik'.includes(ch) && y > 14 + o) over[y][x] = ho_cloth(ch); }
-    for (let y = 3 + o; y <= 15 + o; y++) for (let x = 14; x <= 20; x++){ const ch = over[y][x]; if ('dhik'.includes(ch)) over[y][x] = ho_steel(ch); }
+    ho_scan(over, 12, 15 + o, 22, 19 + o, (X, Y) => { const ch = over[Y][X]; if ('dhik'.includes(ch)) over[Y][X] = ho_cloth(ch); });
+    ho_scan(over, 14, 3 + o, 20, 15 + o, (X, Y) => { const ch = over[Y][X]; if ('dhik'.includes(ch)) over[Y][X] = ho_steel(ch); });
     ho_px(over, 17, 6 + o, 'G'); ho_px(over, 17, 7 + o, 'H'); ho_px(over, 15, 8 + o, 'K'); ho_px(over, 19, 8 + o, 'K');
   }
   return { under, over };
@@ -1587,17 +1626,18 @@ function ho_back(h, fid, f){
     for (let i = -1; i <= 1; i++){ ho_px(over, x + i, 40 - lf, 'x'); ho_px(over, x + i, 41 - lf, 'x'); }
   }
   if (h.cloth === 'caparison'){
-    for (let y = 12; y <= 35; y++) for (let x = 3; x <= 31; x++){ const ch = over[y][x]; if ('dhik'.includes(ch) && y < 35) over[y][x] = ho_cloth(ch); }
-    for (let x = 6; x <= 28; x++){ const hem = 34 + ((x >> 1) & 1); for (let y = 27; y <= hem; y++) over[y][x] = y >= hem ? 'a' : (x % 5 === 0 ? 'o' : 'y'); }
-    for (let y = 16; y <= 33; y++) for (let x = 6; x <= 28; x++){
-      const i = 'OoyY'.indexOf(over[y][x]); if (i < 0) continue;
-      const on = fid === 'england' ? (Math.abs(x - 17) <= 1 || Math.abs(y - 25) <= 1) : fid === 'spanien' ? (Math.abs((x - 17) - (y - 25) * .9) <= 1 || Math.abs((x - 17) + (y - 25) * .9) <= 1) : false;
-      if (on) over[y][x] = '5678'[i];
-    }
+    ho_scan(over, 3, 12, 31, 34, (X, Y) => { const ch = over[Y][X]; if ('dhik'.includes(ch)) over[Y][X] = ho_cloth(ch); });
+    ho_scan(over, 6, 27, 28, 35, (X, Y, x, y) => { const hem = 34 + ((x >> 1) & 1); if (y <= hem) over[Y][X] = y >= hem ? 'a' : (X % 6 === 0 ? 'o' : 'y'); });
+    ho_scan(over, 6, 16, 28, 33, (X, Y) => {
+      const i = 'OoyY'.indexOf(over[Y][X]); if (i < 0) return;
+      const x = X / HO_Z, y = Y / HO_Z;
+      const on = fid === 'england' ? (Math.abs(x - 17.4) <= 1.1 || Math.abs(y - 25.4) <= 1.1) : fid === 'spanien' ? (Math.abs((x - 17.4) - (y - 25.4) * .9) <= 1.1 || Math.abs((x - 17.4) + (y - 25.4) * .9) <= 1.1) : false;
+      if (on) over[Y][X] = '5678'[i];
+    });
     if (fid === 'reich') kn_EAGLE9.forEach((r, j) => { for (let i = 0; i < 9; i++) if (r[i] !== '.') ho_px(over, 13 + i, 20 + j, r[i]); });
     if (fid === 'frankreich') for (const [x, y] of [[11, 21], [23, 21], [17, 28]]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(over, x - 1 + i, y - 1 + j, r[i]); });
   } else if (h.cloth === 'blanket'){
-    for (let y = 14; y <= 20; y++) for (let x = 4; x <= 30; x++) if (over[y][x] !== '.' && y < 19) over[y][x] = y === 18 ? 'a' : 'OoyY'[x < 17 ? 2 : 1];
+    ho_scan(over, 4, 14, 30, 18, (X, Y, x, y) => { if (over[Y][X] !== '.') over[Y][X] = y === 18 ? 'a' : 'OoyY'[x < 17 ? 2 : 1]; });
   }
   ho_thick(over, 17, 19, 17, 27, 5, 4.2, (t, qx) => qx < 0 ? 'm' : 'l');
   ho_thick(over, 17, 27, 17 + (f & 1 ? 1 : -1), 37, 4.2, 2.4, (t, qx) => qx < -.2 ? 'm' : 'l');
@@ -1638,11 +1678,11 @@ function horseSet(hid, fid){
   const set = { right: [], left: [], down: [], up: [], rider: {} };
   for (let f = 0; f < 5; f++){
     const side = mk(ho_side(h, fid, f));
-    set.right.push({ under: side, over: null, ax: 28, w: 64 });
-    set.left.push({ under: flipped(side), over: null, ax: 64 + 2 - 1 - 28, w: 64 });
+    set.right.push({ under: side, over: null, ax: hz(28), w: hz(64) });
+    set.left.push({ under: flipped(side), over: null, ax: hz(64) + 2 - 1 - hz(28), w: hz(64) });
     const fr = ho_front(h, fid, f), bk = ho_back(h, fid, f);
-    set.down.push({ under: mk(fr.under), over: mk(fr.over), ax: 18, w: 34 });
-    set.up.push({ under: null, over: mk(bk.over), ax: 18, w: 34 });
+    set.down.push({ under: mk(fr.under), over: mk(fr.over), ax: hz(17) + 1, w: hz(34) });
+    set.up.push({ under: null, over: mk(bk.over), ax: hz(17) + 1, w: hz(34) });
   }
   for (const v of ['down', 'up', 'right', 'left']) set.rider[v] = makeSprite(ho_rider(v).map(r => r.join('')), F.pal, OUT);
   kn_F = prev;
@@ -4003,6 +4043,7 @@ function wp_mix(c1, c2, t){
 const wp_rmp = list => list.map(wp_c);
 /* Rampenfarbe mit Bayer-Raster, v 0..1 */
 function wp_tone(R, v, x, y){
+  if (wp_FINE){ x *= wp_S; y *= wp_S; }
   const n = R.length, i = Math.floor(v * (n - 1) + BAYER4[(y & 3) * 4 + (x & 3)] / 16);
   return R[i < 0 ? 0 : i >= n ? n - 1 : i];
 }
@@ -4012,7 +4053,13 @@ const wp_OUT = wp_c(OUT);
 
 /* ---------- Zufall und Rauschen (deterministisch) ---------- */
 function wp_h(x, y, s){
+  if (wp_FINE && (x !== (x | 0) || y !== (y | 0))){ x = Math.floor(x * wp_S) + 7919; y = Math.floor(y * wp_S) + 104729; }   // Feinpixel: eigenes Rauschen
   let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1, 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function wp_hi(x, y, s){   // ganzzahlige Gitterpunkte
+  let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul((s | 0) + 1, 1442695041);
   h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
   return (h >>> 0) / 4294967296;
 }
@@ -4022,7 +4069,7 @@ function wp_vn(x, y, s, px){
   let x0 = xi, x1 = xi + 1;
   if (px){ x0 = ((x0 % px) + px) % px; x1 = ((x1 % px) + px) % px; }
   const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-  const a = wp_h(x0, yi, s), b = wp_h(x1, yi, s), c = wp_h(x0, yi + 1, s), d = wp_h(x1, yi + 1, s);
+  const a = wp_hi(x0, yi, s), b = wp_hi(x1, yi, s), c = wp_hi(x0, yi + 1, s), d = wp_hi(x1, yi + 1, s);
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
 function wp_fbm(x, y, s, oct, px){
@@ -4031,74 +4078,95 @@ function wp_fbm(x, y, s, oct, px){
   return t / n;
 }
 
-/* ---------- Pixelpuffer ---------- */
-function wp_buf(w, h, wrap){ return { w, h, d: new Uint32Array(w * h), wrap: !!wrap }; }
+/* ---------- Pixelpuffer ----------
+   Ein Bild hat w × h Bildpunkte; jeder Bildpunkt besteht aus S × S Feinpixeln (S = wp_S beim Anlegen).
+   Füllende Grundformen (Rechteck, Vieleck, Ellipse, Strecke) rastern im Feinraster und rufen
+   f(x, y) mit Bildkoordinaten in Schritten von 1/S auf; wp_set, wp_dk und wp_tint wirken auf ganze Bildpunkte. */
+let wp_S = 1, wp_FINE = 0;
+function wp_buf(w, h, wrap){ const S = wp_S; return { w, h, S, W: w * S, H: h * S, d: new Uint32Array(w * h * S * S), wrap: !!wrap }; }
+/* ein Feinpixel */
+function wp_sf(B, X, Y, c){
+  if (Y < 0 || Y >= B.H) return;
+  if (X < 0 || X >= B.W){ if (!B.wrap) return; X = ((X % B.W) + B.W) % B.W; }
+  B.d[Y * B.W + X] = c;
+}
+function wp_gf(B, X, Y){
+  if (Y < 0 || Y >= B.H) return 0;
+  if (X < 0 || X >= B.W){ if (!B.wrap) return 0; X = ((X % B.W) + B.W) % B.W; }
+  return B.d[Y * B.W + X];
+}
+/* Feinpixel mit Farbe oder Funktion f(x, y) (Bildkoordinaten) */
+function wp_pf(B, X, Y, f){
+  let c = f;
+  if (typeof f === 'function'){ const o = wp_FINE; wp_FINE = 1; c = f(X / B.S, Y / B.S); wp_FINE = o; }
+  if (c) wp_sf(B, X, Y, c);
+}
 function wp_set(B, x, y, c){
-  x = Math.floor(x); y = Math.floor(y);
-  if (y < 0 || y >= B.h) return;
-  if (x < 0 || x >= B.w){ if (!B.wrap) return; x = ((x % B.w) + B.w) % B.w; }
-  B.d[y * B.w + x] = c;
+  const S = B.S, X = Math.floor(x) * S, Y = Math.floor(y) * S;
+  for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) wp_sf(B, X + i, Y + j, c);
 }
-function wp_get(B, x, y){
-  x = Math.floor(x); y = Math.floor(y);
-  if (y < 0 || y >= B.h) return 0;
-  if (x < 0 || x >= B.w){ if (!B.wrap) return 0; x = ((x % B.w) + B.w) % B.w; }
-  return B.d[y * B.w + x];
-}
+function wp_get(B, x, y){ return wp_gf(B, Math.floor(x * B.S), Math.floor(y * B.S)); }
 const wp_op = (B, x, y) => (wp_get(B, x, y) >>> 24) === 255;
 /* f: Farbe oder Funktion (x,y) -> Farbe | 0 (0 = nichts zeichnen) */
 function wp_put(B, x, y, f){
-  const c = typeof f === 'function' ? f(x, y) : f;
-  if (c) wp_set(B, x, y, c);
+  const S = B.S, X = Math.floor(x) * S, Y = Math.floor(y) * S;
+  for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) wp_pf(B, X + i, Y + j, f);
 }
 function wp_rect(B, x0, y0, x1, y1, f){
-  for (let y = Math.floor(y0); y < y1; y++) for (let x = Math.floor(x0); x < x1; x++) wp_put(B, x, y, f);
+  const S = B.S, Y1 = y1 * S, X1 = x1 * S;
+  for (let Y = Math.max(0, Math.floor(y0 * S)); Y < Y1 && Y < B.H; Y++) for (let X = Math.floor(x0 * S); X < X1; X++) wp_pf(B, X, Y, f);
 }
-/* Vieleck füllen (Pixelmitten) */
+/* Vieleck füllen (Feinpixelmitten) */
 function wp_poly(B, pts, f){
-  let y0 = 1e9, y1 = -1e9;
+  const S = B.S; let y0 = 1e9, y1 = -1e9;
   for (const p of pts){ if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1]; }
   const n = pts.length, xs = [];
-  for (let y = Math.max(0, Math.floor(y0)); y <= Math.min(B.h - 1, Math.ceil(y1)); y++){
-    const yc = y + .5; xs.length = 0;
+  for (let Y = Math.max(0, Math.floor(y0 * S)); Y <= Math.min(B.H - 1, Math.ceil(y1 * S)); Y++){
+    const yc = (Y + .5) / S; xs.length = 0;
     for (let i = 0; i < n; i++){
       const a = pts[i], b = pts[(i + 1) % n];
       if ((a[1] <= yc && b[1] > yc) || (b[1] <= yc && a[1] > yc)) xs.push(a[0] + (yc - a[1]) / (b[1] - a[1]) * (b[0] - a[0]));
     }
     xs.sort((p, q) => p - q);
     for (let k = 0; k + 1 < xs.length; k += 2){
-      for (let x = Math.ceil(xs[k] - .5); x <= Math.floor(xs[k + 1] - .5); x++) wp_put(B, x, y, f);
+      for (let X = Math.ceil(xs[k] * S - .5); X <= Math.floor(xs[k + 1] * S - .5); X++) wp_pf(B, X, Y, f);
     }
   }
 }
 function wp_ell(B, cx, cy, rx, ry, f){
-  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++){
-    const t = (y + .5 - cy) / ry; if (t * t > 1) continue;
+  const S = B.S;
+  for (let Y = Math.floor((cy - ry) * S); Y <= Math.ceil((cy + ry) * S); Y++){
+    const t = ((Y + .5) / S - cy) / ry; if (t * t > 1) continue;
     const dx = rx * Math.sqrt(1 - t * t);
-    for (let x = Math.ceil(cx - dx - .5); x <= Math.floor(cx + dx - .5); x++) wp_put(B, x, y, f);
+    for (let X = Math.ceil((cx - dx) * S - .5); X <= Math.floor((cx + dx) * S - .5); X++) wp_pf(B, X, Y, f);
   }
 }
-/* Linie (Bresenham); f darf Funktion (x,y,t) sein */
+/* Linie (Bresenham im Feinraster, Pinsel ein Bildpunkt); f darf Funktion (x,y,t) sein */
 function wp_line(B, x0, y0, x1, y1, f){
-  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+  const S = B.S;
+  x0 = Math.round(x0) * S; y0 = Math.round(y0) * S; x1 = Math.round(x1) * S; y1 = Math.round(y1) * S;
   const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
   const n = Math.max(dx, -dy) || 1; let e = dx + dy, k = 0;
   for (;;){
-    const c = typeof f === 'function' ? f(x0, y0, k / n) : f; if (c) wp_set(B, x0, y0, c);
+    let c = f;
+    if (typeof f === 'function'){ const o = wp_FINE; wp_FINE = 1; c = f(x0 / S, y0 / S, k / n); wp_FINE = o; }
+    if (c) for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) wp_sf(B, x0 + i, y0 + j, c);
     if (x0 === x1 && y0 === y1) break;
     const e2 = 2 * e; if (e2 >= dy){ e += dy; x0 += sx; } if (e2 <= dx){ e += dx; y0 += sy; } k++;
   }
 }
 /* dicke Strecke: f(x, y, t entlang 0..1, q quer -1..1, nx Normale x) */
 function wp_seg(B, x0, y0, x1, y1, wd, f){
-  const dx = x1 - x0, dy = y1 - y0, L2 = dx * dx + dy * dy || 1, L = Math.sqrt(L2), r = wd / 2;
-  const nx = -dy / L, ny = dx / L;
-  for (let y = Math.floor(Math.min(y0, y1) - r - 1); y <= Math.ceil(Math.max(y0, y1) + r + 1); y++)
-    for (let x = Math.floor(Math.min(x0, x1) - r - 1); x <= Math.ceil(Math.max(x0, x1) + r + 1); x++){
-      const px = x + .5 - x0, py = y + .5 - y0, t = (px * dx + py * dy) / L2;
+  const S = B.S, dx = x1 - x0, dy = y1 - y0, L2 = dx * dx + dy * dy || 1, L = Math.sqrt(L2), r = wd / 2;
+  const nx = -dy / L, ny = dx / L, fn = typeof f === 'function';
+  for (let Y = Math.floor((Math.min(y0, y1) - r - 1) * S); Y <= Math.ceil((Math.max(y0, y1) + r + 1) * S); Y++)
+    for (let X = Math.floor((Math.min(x0, x1) - r - 1) * S); X <= Math.ceil((Math.max(x0, x1) + r + 1) * S); X++){
+      const px = (X + .5) / S - x0, py = (Y + .5) / S - y0, t = (px * dx + py * dy) / L2;
       if (t < 0 || t > 1) continue;
       const q = px * nx + py * ny; if (Math.abs(q) > r) continue;
-      wp_put(B, x, y, typeof f === 'function' ? f(x, y, t, q / (r || 1), nx) : f);
+      let c = f;
+      if (fn){ const o = wp_FINE; wp_FINE = 1; c = f(X / S, Y / S, t, q / (r || 1), nx); wp_FINE = o; }
+      if (c) wp_sf(B, X, Y, c);
     }
 }
 /* quadratische Kurve als Folge dicker Strecken (Äste, Kopfbänder) */
@@ -4110,30 +4178,39 @@ function wp_curve(B, x0, y0, cx, cy, x1, y1, w0, w1, f, steps){
     wp_seg(B, px, py, nx, ny, w0 + (w1 - w0) * t, f); px = nx; py = ny;
   }
 }
-/* vorhandenes deckendes Pixel abdunkeln (k<1) oder aufhellen (k>1) */
+/* vorhandenes deckendes Pixel abdunkeln (k<1) oder aufhellen (k>1); wirkt auf jedes Feinpixel des Bildpunkts */
+function wp_dkf(B, X, Y, k){
+  const c = wp_gf(B, X, Y); if ((c >>> 24) !== 255) return;
+  wp_sf(B, X, Y, k < 1 ? wp_mix(c, wp_OUT, 1 - k) : wp_mix(c, 0xffe8f0f4, Math.min(1, k - 1)));
+}
 function wp_dk(B, x, y, k){
-  const c = wp_get(B, x, y); if ((c >>> 24) !== 255) return;
-  wp_set(B, x, y, k < 1 ? wp_mix(c, wp_OUT, 1 - k) : wp_mix(c, 0xffe8f0f4, Math.min(1, k - 1)));
+  const S = B.S, X = Math.floor(x) * S, Y = Math.floor(y) * S;
+  for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) wp_dkf(B, X + i, Y + j, k);
 }
 /* Farbe über vorhandenes deckendes Pixel mischen */
+function wp_tintf(B, X, Y, c, a){
+  const o = wp_gf(B, X, Y); if ((o >>> 24) !== 255) return;
+  wp_sf(B, X, Y, wp_mix(o, c, a));
+}
 function wp_tint(B, x, y, c, a){
-  const o = wp_get(B, x, y); if ((o >>> 24) !== 255) return;
-  wp_set(B, x, y, wp_mix(o, c, a));
+  const S = B.S, X = Math.floor(x) * S, Y = Math.floor(y) * S;
+  for (let j = 0; j < S; j++) for (let i = 0; i < S; i++) wp_tintf(B, X + i, Y + j, c, a);
 }
 /* Schatten auf den Boden: nur auf leere Pixel */
 function wp_shadowEll(B, cx, cy, rx, ry, core){
+  const S = B.S;
   wp_ell(B, cx, cy, rx, ry, (x, y) => {
     if (wp_get(B, x, y)) return 0;
-    const t = ((x + .5 - cx) / rx) ** 2 + ((y + .5 - cy) / ry) ** 2;
-    if (t > .72 && dither(x, y) < (t - .72) * 3) return 0;
+    const t = ((x + .5 / S - cx) / rx) ** 2 + ((y + .5 / S - cy) / ry) ** 2;
+    if (t > .72 && dither(x * S, y * S) < (t - .72) * 3) return 0;
     return core && t < .35 ? wp_SH2 : wp_SH;
   });
 }
 function wp_shadowPoly(B, pts){ wp_poly(B, pts, (x, y) => wp_get(B, x, y) ? 0 : wp_SH); }
 
-/* Kontur: leere Nachbarpixel; oben/links (Lichtseite) dunkler Materialton, sonst OUT */
+/* Kontur (im Feinraster, ein Feinpixel breit): leere Nachbarpixel; oben/links (Lichtseite) dunkler Materialton, sonst OUT */
 function wp_outline(B, soft){
-  const { w, h, d } = B, o = new Uint32Array(d);
+  const w = B.W, h = B.H, d = B.d, o = new Uint32Array(d);
   const op = (x, y) => {
     if (y < 0 || y >= h) return 0;
     if (x < 0 || x >= w){ if (!B.wrap) return 0; x = (x + w) % w; }
@@ -4147,17 +4224,17 @@ function wp_outline(B, soft){
   }
   B.d = o;
 }
-/* nur innen: deckende Pixel an der Grenze zu Maske m (Funktion) abdunkeln */
 function wp_canvas(B){
-  const c = canvasOf(B.w, B.h), g = c.getContext('2d');
-  const id = g.createImageData(B.w, B.h);
+  const c = canvasOf(B.W, B.H), g = c.getContext('2d');
+  const id = g.createImageData(B.W, B.H);
   id.data.set(new Uint8ClampedArray(B.d.buffer, B.d.byteOffset, B.d.length * 4));
   g.putImageData(id, 0, 0); return c;
 }
-/* Puffer in Puffer kopieren (nur deckende/teilweise Pixel) */
+/* Puffer in Puffer kopieren (nur deckende/teilweise Pixel); beide mit gleichem S */
 function wp_blit(D, S2, ox, oy){
-  for (let y = 0; y < S2.h; y++) for (let x = 0; x < S2.w; x++){
-    const c = S2.d[y * S2.w + x]; if (c) wp_set(D, x + ox, y + oy, c);
+  const OX = Math.round(ox * D.S), OY = Math.round(oy * D.S);
+  for (let Y = 0; Y < S2.H; Y++) for (let X = 0; X < S2.W; X++){
+    const c = S2.d[Y * S2.W + X]; if (c) wp_sf(D, X + OX, Y + OY, c);
   }
 }
 
@@ -4433,11 +4510,15 @@ function wp_window(B, x, y, w, h, o){
     if (i === 0 || j === 0 || i === w - 1 || j === h - 1){ wp_set(B, X, Y, wp_tone(Rf, i === 0 || j === 0 ? .15 : .3, X, Y)); continue; }
     if (o.kreuz && (i === (w >> 1) || (h > 7 && j === Math.round(h * .4)))){ wp_set(B, X, Y, wp_tone(Rf, i === (w >> 1) ? .45 : .6, X, Y)); continue; }
     if (o.dark){ wp_set(B, X, Y, wp_P.dark[j < 2 ? 0 : 1]); continue; }
-    // Glasbild: Scheiben im Versatz, Spiegelung von oben links
-    const p = (i + (j & 1)) & 1, refl = 1 - (i / w + j / h) * .9 + (wp_h(i, j, s) - .5) * .2;
-    let t = p ? .12 : .3 + refl * .35;
-    if (!p && wp_h(i, j, s + 3) > .82 && refl > .55) t = .9;
-    wp_set(B, X, Y, wp_tone(G, t, X, Y));
+    // Glasbild: Butzenscheiben in Blei (im Feinraster), Spiegelung von oben links
+    wp_put(B, X, Y, (fx, fy) => {
+      const u = Math.round((fx - x) * B.S), v = Math.round((fy - y) * B.S), S3 = B.S + 1, pu = Math.floor(u / S3), pv = Math.floor(v / S3), lu = u - pu * S3, lv = v - pv * S3;
+      const refl = 1 - ((fx - x) / w + (fy - y) / h) * .9 + (wp_h(pu, pv, s) - .5) * .2;
+      if (lu === 0 || lv === 0) return wp_tone(G, .08, fx, fy);                       // Bleisprosse
+      let t = .3 + refl * .35 + (lu === 1 && lv === 1 ? .22 : 0) - (lu === S3 - 1 && lv === S3 - 1 ? .12 : 0);
+      if (lu === 1 && lv === 1 && wp_h(pu, pv, s + 3) > .7 && refl > .5) t = .92;
+      return wp_tone(G, t, fx, fy);
+    });
   }
   if (o.sill){ for (let i = -1; i <= w; i++) wp_set(B, x + i, y + h, wp_tone(o.sill, i < w / 2 ? .7 : .5, x + i, y + h)); }
 }
@@ -4463,9 +4544,8 @@ function wp_door(B, x, y, w, h, o){
     if (!inside(i, j)) continue;
     const X = x + i, Y = y + j;
     if (o.open){ wp_set(B, X, Y, wp_P.dark[j < 3 ? 0 : (i < 2 ? 0 : 1)]); continue; }
-    let c = pl(X, Y);
-    if (!inside(i, j - 1) || !inside(i - 1, j) || !inside(i + 1, j)) c = wp_tone(Rw, .05, X, Y);
-    wp_set(B, X, Y, c);
+    if (!inside(i, j - 1) || !inside(i - 1, j) || !inside(i + 1, j)) wp_set(B, X, Y, wp_tone(Rw, .05, X, Y));
+    else wp_put(B, X, Y, pl);
   }
   if (o.open) return;
   // Langbänder mit Nieten
@@ -4516,16 +4596,16 @@ function wp_plane(B, P0, U, V, poly2, f){
 }
 /* deckende Pixel im Rechteck abdunkeln; a Stärke, fade: Zeilen mit Raster-Auslauf nach unten */
 function wp_shade(B, x0, y0, x1, y1, a, fade, col){
-  col = col || wp_OUT;
-  for (let y = Math.floor(y0); y < y1; y++) for (let x = Math.floor(x0); x < x1; x++){
-    let k = a;
-    if (fade){ const t = (y - y0) / fade; if (t > 1) continue; if (dither(x, y) < t) continue; }
-    wp_tint(B, x, y, col, k);
+  col = col || wp_OUT; const S = B.S;
+  for (let Y = Math.floor(y0 * S); Y < y1 * S; Y++) for (let X = Math.floor(x0 * S); X < x1 * S; X++){
+    if (fade){ const t = (Y / S - y0) / fade; if (t > 1) continue; if (dither(X, Y) < t) continue; }
+    wp_tintf(B, X, Y, col, a);
   }
 }
 /* deckende Pixel per Maske abdunkeln */
 function wp_shadeIf(B, x0, y0, x1, y1, m, a){
-  for (let y = Math.floor(y0); y < y1; y++) for (let x = Math.floor(x0); x < x1; x++) if (m(x, y)) wp_tint(B, x, y, wp_OUT, a);
+  const S = B.S;
+  for (let Y = Math.floor(y0 * S); Y < y1 * S; Y++) for (let X = Math.floor(x0 * S); X < x1 * S; X++) if (m(X / S, Y / S)) wp_tintf(B, X, Y, wp_OUT, a);
 }
 /* Bodenschatten als Vieleck (nur leere Pixel), weicher Rand */
 function wp_groundShadow(B, cx, cy, rx, ry){ wp_shadowEll(B, cx, cy, rx, ry, true); }
@@ -5441,11 +5521,11 @@ function wp_innSign(B, hx, hy, dir, emblem){
 
 /* ---------- Dorfhaus (Wohnstallhaus, traufständig) ---------- */
 function wp_bHaus(s, v, inn){
-  const B = wp_img(104, 104, 101), R = rng(s), ax = B.ax, ay = B.ay;
+  const B = wp_img(104, 118, 115), R = rng(s), ax = B.ax, ay = B.ay;
   const mat = ['thatch', 'tile', 'thatch', 'shingle'][(v || 0) % 4];
   const end = mat === 'thatch' ? (R() < .5 ? 'half' : 'hip') : (R() < .55 ? 'gable' : 'half');
   const PL = wp_PLA()[R() * 4 | 0], T = R() < .55 ? wp_P.oak : wp_P.oakred, pat = ['mann', 'kreuz', 'alem'][R() * 3 | 0];
-  const X0 = -46, X1 = 46, D = 30, Hw = 40, plinth = 6, g1 = 23;
+  const X0 = -46, X1 = 46, D = 30, Hw = 53, plinth = 5, g1 = 31;
   const xL = ax + X0, xR = ax + X1, yG = ay - plinth, yU = ay - g1, yT = ay - Hw;
   const flip = R() < .5, stoneGF = R() < .55;
   // Bodenschatten rechts
@@ -5454,14 +5534,14 @@ function wp_bHaus(s, v, inn){
   wp_rect(B, xL, yG, xR, ay, wp_rubble({ R: wp_P.grey, s, cw: 5, chh: 3, moss: (x, y) => (y - yG) / plinth * .55 }));
   // Grundriss: Stall auf einer Seite
   const sx = flip ? xL + 4 : xR - 24, dx = flip ? xL + 34 : xR - 36;
-  const gfWins = flip ? [{ x: xL + 54, w: 6, h: 6, shut: true, glass: R() < .5 }, { x: xL + 70, w: 6, h: 6, shut: R() < .6, glass: true }]
-                      : [{ x: xL + 12, w: 6, h: 6, shut: R() < .6, glass: true }, { x: xL + 28, w: 6, h: 6, shut: true, glass: R() < .5 }];
+  const gfWins = flip ? [{ x: xL + 54, w: 7, h: 9, shut: true, glass: R() < .5 }, { x: xL + 70, w: 7, h: 9, shut: R() < .6, glass: true }]
+                      : [{ x: xL + 12, w: 7, h: 9, shut: R() < .6, glass: true }, { x: xL + 28, w: 7, h: 9, shut: true, glass: R() < .5 }];
   if (stoneGF){
     // Erdgeschoss massiv, verputzt, mit abgeplatztem Putz
     const pl = wp_plaster({ R: PL, s: s + 2, flake: .8, base: yG + 2, under: wp_rubble({ R: wp_P.grey, s: s + 3, cw: 5, chh: 3 }) });
     wp_rect(B, xL, yU, xR, yG, pl);
     for (const w of gfWins){
-      const wy = yG - 11;
+      const wy = yG - 16;
       wp_rect(B, w.x - 1, wy - 1, w.x + w.w + 1, wy + w.h + 1, (x, y) => wp_tone(wp_P.grey, (x < w.x || y < wy) ? .75 : .45, x, y));
       wp_window(B, w.x, wy, w.w, w.h, { frame: wp_P.oak, kreuz: true, s: s + w.x, dark: !w.glass });
       if (w.shut){ wp_shutter(B, w.x - 4, wy, 3, w.h, wp_P.gwood, s + w.x); wp_shutter(B, w.x + w.w + 1, wy, 3, w.h, wp_P.gwood, s + w.x + 1); }
@@ -5470,26 +5550,26 @@ function wp_bHaus(s, v, inn){
     for (const cx of [xL, xR - 3]) for (let y = yU; y < yG; y += 3){ const w2 = ((y - yU) / 3) & 1 ? 3 : 4, x0 = cx === xL ? xL : xR - w2; wp_rect(B, x0, y, x0 + w2, y + 3, (x, yy) => wp_tone(wp_P.grey, (yy === y ? .8 : .55) - (x - x0) * .05, x, yy)); wp_line(B, x0, y + 2, x0 + w2 - 1, y + 2, wp_P.dark[2]); }
     wp_beam(B, xL - 1, yU, xR + 1, yU, 2, T, s + 1);
   } else {
-    wp_fachwerk(B, { x0: xL, x1: xR, yT: yU, yB: yG, R: T, P: PL, s: s + 4, wins: gfWins, door: { x: dx, w: 8 }, pat, flake: .5, gap: 14, par: 4, dirt: true });
+    wp_fachwerk(B, { x0: xL, x1: xR, yT: yU, yB: yG, R: T, P: PL, s: s + 4, wins: gfWins, door: { x: dx, w: 10 }, pat, flake: .5, gap: 14, par: 5, dirt: true });
   }
   // Tür (Brettertür mit Bändern) in Steingewände oder Holzrahmen
-  const dH = 13;
-  if (R() < .5) wp_door(B, dx, yG - dH, 8, dH, { R: wp_P.wood, s: s + 7, frame: stoneGF ? wp_P.grey : T });
+  const dH = 21;
+  if (R() < .5) wp_door(B, dx, yG - dH, 10, dH, { R: wp_P.wood, s: s + 7, frame: stoneGF ? wp_P.grey : T });
   else {
     // geteilte Stalltür, oberer Flügel offen
-    wp_door(B, dx, yG - dH, 8, dH, { R: wp_P.wood, s: s + 7, frame: stoneGF ? wp_P.grey : T });
-    wp_rect(B, dx + 1, yG - dH + 1, dx + 7, yG - dH + 6, (x, y) => wp_P.dark[y < yG - dH + 3 ? 0 : 1]);
-    wp_line(B, dx + 1, yG - dH + 6, dx + 6, yG - dH + 6, wp_P.wood[4]);
+    wp_door(B, dx, yG - dH, 10, dH, { R: wp_P.wood, s: s + 7, frame: stoneGF ? wp_P.grey : T });
+    wp_rect(B, dx + 1, yG - dH + 1, dx + 9, yG - dH + 9, (x, y) => wp_P.dark[y < yG - dH + 4 ? 0 : 1]);
+    wp_line(B, dx + 1, yG - dH + 9, dx + 8, yG - dH + 9, wp_P.wood[4]);
   }
   // Stufe vor der Tür
-  wp_rect(B, dx - 1, yG, dx + 9, yG + 2, (x, y) => wp_tone(wp_P.grey, y === yG ? .8 : .45, x, y));
+  wp_rect(B, dx - 1, yG, dx + 11, yG + 2, (x, y) => wp_tone(wp_P.grey, y === yG ? .8 : .45, x, y));
   // Scheunentor
-  wp_barnDoor(B, sx, yG - 14, 20, 14, s + 11, R() < .45);
+  wp_barnDoor(B, sx, yG - 22, 20, 22, s + 11, R() < .45);
   // Obergeschoss: Fachwerk mit Fenstern und Heuluke
   const upW = [];
   const living = flip ? [xL + 34, xL + 50, xL + 66, xL + 80] : [xL + 8, xL + 22, xL + 38, xL + 54];
-  for (const wx of living) if (R() < .82) upW.push({ x: wx, w: 6, h: 6, shut: R() < .4, glass: R() < .7 });
-  wp_fachwerk(B, { x0: xL, x1: xR, yT, yB: yU, R: T, P: PL, s: s + 5, wins: upW, pat, flake: .35, gap: 14, par: 2, sill: 3 });
+  for (const wx of living) if (R() < .82) upW.push({ x: wx, w: 7, h: 8, shut: R() < .4, glass: R() < .7 });
+  wp_fachwerk(B, { x0: xL, x1: xR, yT, yB: yU, R: T, P: PL, s: s + 5, wins: upW, pat, flake: .35, gap: 14, par: 3, sill: 3 });
   // Heuluke über dem Stall
   const hx = flip ? xL + 9 : xR - 19;
   wp_rect(B, hx, yU - 9, hx + 9, yU - 3, (x, y) => wp_P.dark[y < yU - 7 ? 0 : 1]);
@@ -5518,9 +5598,9 @@ function wp_bHaus(s, v, inn){
   if (R() < .5) wp_wheel(B, flip ? xL + 30 : xR - 32, ay - 6, 6, wp_P.gwood, s + 4, { spokes: 6 });
   if (R() < .5) wp_barrel(B, flip ? xL + 47 : xL + 58, ay + 1, 7, 9, s + 9, { R: wp_P.wood });
   for (let i = 0; i < 6; i++) wp_grass(B, xL + 4 + R() * 88, ay + 1, 3, s + i, wp_LEAF.busch);
-  extra.door = { x: dx + 4 - ax };
-  if (inn){ const dir = flip ? -1 : 1; wp_innSign(B, dir > 0 ? dx + 9 : dx - 2, yG - 15, dir, inn); }
-  return wp_res(B, [[-48, -40, 48, 2]], [-48, -98, 48, -6], extra);
+  extra.door = { x: dx + 5 - ax };
+  if (inn){ const dir = flip ? -1 : 1; wp_innSign(B, dir > 0 ? dx + 11 : dx - 2, yG - 23, dir, inn); }
+  return wp_res(B, [[-48, -40, 48, 2]], [-48, -112, 48, -6], extra);
 }
 
 /* Verbrannte Fachwerkwand: Ständer verkohlt, Gefache teils herausgefallen.
@@ -5615,10 +5695,10 @@ function wp_bRuine(s, v){
 
 /* ---------- Stadthaus (giebelständig, Vorkragungen, Laden) ---------- */
 function wp_bStadthaus(s, v, inn){
-  const B = wp_img(88, 118, 114), R = rng(s), ax = B.ax, ay = B.ay;
+  const B = wp_img(88, 134, 130), R = rng(s), ax = B.ax, ay = B.ay;
   const PL = [wp_P.plaster, wp_P.ochre, wp_P.pink, wp_P.plaster][R() * 4 | 0], T = R() < .6 ? wp_P.oakred : wp_P.oak;
   const pat = R() < .5 ? 'mann' : 'kreuz';
-  const X0 = -37, X1 = 37, D = 26, g0 = 16, st = 13, jet = 2;
+  const X0 = -37, X1 = 37, D = 26, g0 = 24, st = 16, jet = 2;
   const xL = ax + X0, xR = ax + X1;
   wp_shadowPoly(B, [[xL + 3, ay - 1], [xR + 6, ay - 1], [xR + 6, ay + 2], [xL + 3, ay + 2]]);
   // Erdgeschoss: Bruchstein verputzt, Eckquader, Kielbogenportal, Laden mit Klappläden
@@ -5627,11 +5707,11 @@ function wp_bStadthaus(s, v, inn){
   for (const cx of [xL, xR]) for (let y = yG; y < ay; y += 4){ const w2 = ((y - yG) / 4) & 1 ? 4 : 6, x0 = cx === xL ? xL : xR - w2; wp_rect(B, x0, y, x0 + w2, y + 4, (x, yy) => wp_tone(wp_P.red, (yy === y ? .8 : .55) - (x - x0) * .04 + (wp_h(x, yy, s) - .5) * .15, x, yy)); wp_line(B, x0, y + 3, x0 + w2 - 1, y + 3, wp_P.dark[2]); }
   const flip = R() < .5, px = flip ? xR - 21 : xL + 9, sx = flip ? xL + 8 : xR - 32;
   // Portal mit Kielbogen (Spätgotik) und profiliertem Gewände
-  wp_door(B, px, yG + 2, 10, 14, { R: wp_P.oak, s: s + 5, arch: 'korb', frame: wp_P.red });
-  for (let j = 0; j < 4; j++){ wp_set(B, px + 4 - j, yG + 1 - j + 3, wp_P.red[4]); wp_set(B, px + 5 + j, yG + 1 - j + 3, wp_P.red[2]); }
-  wp_set(B, px + 4, yG, wp_P.red[5]); wp_set(B, px + 5, yG - 1, wp_P.red[4]);
+  wp_door(B, px, yG + 3, 11, 21, { R: wp_P.oak, s: s + 5, arch: 'korb', frame: wp_P.red });
+  for (let j = 0; j < 4; j++){ wp_set(B, px + 4 - j, yG + 2 - j + 3, wp_P.red[4]); wp_set(B, px + 6 + j, yG + 2 - j + 3, wp_P.red[2]); }
+  wp_set(B, px + 5, yG + 1, wp_P.red[5]); wp_set(B, px + 5, yG, wp_P.red[4]);
   // Ladenöffnung: oberer Laden hochgeklappt, unterer als Auslage
-  const sw = 22, sy = yG + 3;
+  const sw = 22, sy = yG + 8;
   wp_rect(B, sx, sy, sx + sw, sy + 8, (x, y) => wp_P.dark[y < sy + 3 ? 0 : 1]);
   wp_rect(B, sx - 1, sy - 1, sx + sw + 1, sy, wp_tone(wp_P.red, .7, 0, 0));
   wp_rect(B, sx, sy - 4, sx + sw, sy - 1, wp_planks(wp_P.wood, s + 8, 3, { ox: sx }));
@@ -5647,7 +5727,7 @@ function wp_bStadthaus(s, v, inn){
   }
   // Obergeschosse mit Vorkragung
   let yb = yG;
-  const wins = n => { const a = []; const span = (xR - xL - 8) / n; for (let i = 0; i < n; i++) a.push({ x: Math.round(xL + 4 + span * (i + .5) - 4), w: 8, h: 7, glass: true, shut: R() < .2 }); return a; };
+  const wins = n => { const a = []; const span = (xR - xL - 8) / n; for (let i = 0; i < n; i++) a.push({ x: Math.round(xL + 4 + span * (i + .5) - 4), w: 8, h: 9, glass: true, shut: R() < .2 }); return a; };
   for (let k = 0; k < 2; k++){
     const e = (k + 1);                           // seitliche Vorkragung
     const x0 = xL - e, x1 = xR + e, yB2 = yb + jet, yT2 = yB2 - st;
@@ -5699,7 +5779,7 @@ function wp_bStadthaus(s, v, inn){
   if (inn){
     wp_innSign(B, flip ? xL + 1 : xR - 1, yG - 12, dir, inn);
     for (let i = 0; i < 4; i++) wp_grass(B, xL + 2 + R() * 70, ay + 1, 2, s + i, wp_LEAF.busch);
-    return wp_res(B, [[-40, -46, 40, 2]], [-42, -110, 42, -8], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }], door: { x: px + 5 - ax } });
+    return wp_res(B, [[-40, -46, 40, 2]], [-42, -126, 42, -8], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }], door: { x: px + 5 - ax } });
   }
   for (let i = 0; i < 7; i++) wp_set(B, hx + dir * i, hy, wp_P.iron[i & 1 ? 2 : 3]);
   wp_line(B, hx, hy + 3, hx + dir * 4, hy, wp_P.iron[2]);
@@ -5713,13 +5793,13 @@ function wp_bStadthaus(s, v, inn){
   ][sign];
   for (let j = 0; j < 5; j++) for (let i = 0; i < 5; i++) if (icons[j][i] === 'g') wp_set(B, sgx + i, sgy + j, G[i + j < 4 ? 4 : 2]);
   for (let i = 0; i < 4; i++) wp_grass(B, xL + 2 + R() * 70, ay + 1, 2, s + i, wp_LEAF.busch);
-  return wp_res(B, [[-40, -46, 40, 2]], [-42, -110, 42, -8], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }] });
+  return wp_res(B, [[-40, -46, 40, 2]], [-42, -126, 42, -8], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }] });
 }
 
 /* ---------- Wassermühle (Rad rechts an der Wasserseite) ---------- */
 function wp_bMuehle(s, v){
-  const B = wp_img(124, 116, 112), R = rng(s), ax = B.ax, ay = B.ay;
-  const X0 = -54, X1 = 22, D = 34, Hw = 38, g1 = 20;
+  const B = wp_img(124, 126, 122), R = rng(s), ax = B.ax, ay = B.ay;
+  const X0 = -54, X1 = 22, D = 34, Hw = 47, g1 = 27;
   const xL = ax + X0, xR = ax + X1, yU = ay - g1, yT = ay - Hw, T = wp_P.oak;
   // Mühlgraben (Wasser) rechts unten mit Ufermauer
   const wx0 = xR - 2, wx1 = B.w;
@@ -5765,9 +5845,9 @@ function wp_bMuehle(s, v){
   wp_rect(B, xL, yU, xR, ay, wp_rubble({ R: wp_P.grey, s: s + 7, cw: 6, chh: 4, moss: (x, y) => (y - (ay - 8)) / 8 }));
   for (const cx of [xL, xR]) for (let y = yU; y < ay; y += 4){ const w2 = ((y - yU) / 4) & 1 ? 4 : 6, x0 = cx === xL ? xL : xR - w2; wp_rect(B, x0, y, x0 + w2, y + 4, (x, yy) => wp_tone(wp_P.stone, (yy === y ? .8 : .55) - (x - x0) * .04, x, yy)); wp_line(B, x0, y + 3, x0 + w2 - 1, y + 3, wp_P.dark[2]); }
   // Rundbogentor und Fenster unten
-  wp_door(B, xL + 30, ay - 15, 10, 15, { R: wp_P.wood, s: s + 8, arch: 'round', frame: wp_P.stone });
+  wp_door(B, xL + 30, ay - 21, 11, 21, { R: wp_P.wood, s: s + 8, arch: 'round', frame: wp_P.stone });
   wp_rect(B, xL + 29, ay, xL + 41, ay + 2, (x, y) => wp_tone(wp_P.grey, y === ay ? .8 : .45, x, y));
-  for (const wx of [xL + 10, xL + 55]){ wp_window(B, wx, ay - 13, 5, 6, { frame: wp_P.stone, kreuz: false, s: s + wx, dark: true }); for (let i = 0; i < 5; i += 2) for (let j = 1; j < 5; j++) wp_set(B, wx + i, ay - 13 + j, wp_P.iron[2]); }
+  for (const wx of [xL + 10, xL + 55]){ wp_window(B, wx, ay - 19, 5, 9, { frame: wp_P.stone, kreuz: false, s: s + wx, dark: true }); for (let i = 0; i < 5; i += 2) for (let j = 1; j < 8; j++) wp_set(B, wx + i, ay - 19 + j, wp_P.iron[2]); }
   wp_fachwerk(B, { x0: xL, x1: xR, yT, yB: yU, R: T, P: wp_P.plaster, s: s + 9, wins: [{ x: xL + 8, w: 6, h: 6, glass: true }, { x: xL + 50, w: 6, h: 6, shut: true, glass: true }], door: { x: xL + 28, w: 9 }, pat: 'mann', flake: .45, gap: 14, par: 3, sill: 3 });
   // Ladeluke oben mit Aufzug
   wp_rect(B, xL + 28, yU - 12, xL + 37, yU - 1, (x, y) => wp_P.dark[y < yU - 10 ? 0 : 1]);
@@ -5795,7 +5875,7 @@ function wp_bMuehle(s, v){
   ms(xL + 47, ay - 7, 7); ms(xL + 53, ay - 6, 6);
   wp_sack(B, xL + 22, ay + 1, 7, 8, s + 4); wp_sack(B, xL + 17, ay + 1, 6, 7, s + 5); wp_sack(B, xL + 20, ay - 5, 6, 6, s + 6);
   for (let i = 0; i < 5; i++) wp_grass(B, xL + 2 + R() * 60, ay + 1, 3, s + i, wp_LEAF.busch);
-  return wp_res(B, [[-52, -50, 52, 2]], [-56, -108, 62, -6], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }] });
+  return wp_res(B, [[-52, -50, 52, 2]], [-56, -118, 62, -6], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }] });
 }
 
 
@@ -6177,7 +6257,8 @@ const wp_K = {
 };
 const WP_KINDS = Object.keys(wp_K);
 const wp_cache = new Map();
-/* makeProp(kind, seed) -> { img, ax, ay, foot, occl, extra }; gleicher seed = gleiches Bild */
+/* makeProp(kind, seed) -> { img, ax, ay, foot, occl, extra }; gleicher seed = gleiches Bild.
+   img hat WS-fache Größe (Feinpixel), ax, ay, foot, occl und extra sind in Weltpixeln. */
 function makeProp(kind, seed){
   const e = wp_K[kind];
   if (!e){ console.warn('makeProp: unbekannte Art', kind); return null; }
@@ -6185,7 +6266,11 @@ function makeProp(kind, seed){
   const v = Math.floor(wp_h(sv, 11, 4049) * n);
   let arr = wp_cache.get(kind); if (!arr){ arr = new Array(n); wp_cache.set(kind, arr); }
   let p = arr[v];
-  if (!p){ let kh = 0; for (let i = 0; i < kind.length; i++) kh = (kh * 31 + kind.charCodeAt(i)) | 0; p = arr[v] = e[0]((kh & 0xffff) + v * 7919 + 101, v); }
+  if (!p){
+    let kh = 0; for (let i = 0; i < kind.length; i++) kh = (kh * 31 + kind.charCodeAt(i)) | 0;
+    const s0 = wp_S; wp_S = WS;
+    try { p = arr[v] = e[0]((kh & 0xffff) + v * 7919 + 101, v); } finally { wp_S = s0; }
+  }
   const ex = {};
   for (const k in p.extra){ const val = p.extra[k]; ex[k] = Array.isArray(val) ? val.map(q => Object.assign({}, q)) : (val && typeof val === 'object') ? Object.assign({}, val) : val; }
   return { img: p.img, ax: p.ax, ay: p.ay, foot: p.foot.map(r => r.slice()), occl: p.occl ? p.occl.slice() : null, extra: ex };
@@ -6658,7 +6743,9 @@ const wo_GW = (WW >> 2) + 2, wo_GH = (WH >> 2) + 2;     // Feldraster, 4 px (Was
 const wo_ZW = WW >> 4, wo_ZH = WH >> 4;                // Gebietsraster, 16 px
 
 /* ---------- Zufall, Farben, Rauschen ---------- */
+let wo_FINE = 0;   // beim Bodenrechnen im Feinraster: Bruchteil-Koordinaten bekommen eigenes Rauschen
 function wo_h(x, y, s){
+  if (wo_FINE && (x !== (x | 0) || y !== (y | 0))){ x = Math.floor(x * WS) + 7919; y = Math.floor(y * WS) + 104729; }
   let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1, 1442695041);
   h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
   return (h >>> 0) / 4294967296;
@@ -7066,7 +7153,7 @@ function wo_wallNS(xc, yN, yS, t, hgt, R, outerLeft, seed, endFace){
     }
     B.d[y * w + x] = c;
   }
-  return { img: wo_cv(B), ax: w >> 1, ay: h - 1, foot: [[-(t >> 1), -len, t - (t >> 1), 1]], occl: [-(t >> 1) - 12, -len - hgt, t - (t >> 1) + 12, -len + 4], extra: {} };
+  return { img: scale2x(wo_cv(B)), ax: w >> 1, ay: h - 1, foot: [[-(t >> 1), -len, t - (t >> 1), 1]], occl: [-(t >> 1) - 12, -len - hgt, t - (t >> 1) + 12, -len + 4], extra: {} };
 }
 /* Kohlenmeiler: Erdkuppel mit Rasenstücken, Rauchloch */
 function wo_meilerImg(seed){
@@ -7087,7 +7174,7 @@ function wo_meilerImg(seed){
   for (let x = 2; x < w - 2; x++){ const y = cy + 1, dx = (x - cx) / rx; if (Math.abs(dx) < 1) B.d[y * w + x] = wo_pk(20, 18, 24); }
   for (const [x, y] of [[cx - 1, 7], [cx, 7], [cx + 1, 7], [cx, 8], [cx - 1, 8]]) B.d[y * w + x] = E[0];
   for (let k = 0; k < 6; k++){ const x = (cx - 18 + R() * 36) | 0, y = (cy - 3 - R() * 5) | 0; B.d[y * w + x] = wo_c('#7a5a2a'); }
-  const c = addOutline(wo_cv(B), OUT);
+  const c = addOutline(scale2x(wo_cv(B)), OUT);
   return { img: c, ax: cx, ay: cy + 1, foot: [[-19, -10, 19, 2]], occl: null, extra: { smoke: [{ x: 0, y: -19 }, { x: -7, y: -14 }] } };
 }
 /* Köhlerhütte: Kegel aus Stangen mit Rinde und Grassoden */
@@ -7107,7 +7194,7 @@ function wo_huetteImg(seed){
   }
   for (let y = base - 15; y <= base; y++) for (let x = cx - 4; x <= cx + 4; x++){ const yy = y - (base - 15); if (Math.abs(x - cx) <= Math.min(4, 1 + yy / 2)) B.d[y * w + x] = wo_c('#0f0c0a'); }
   for (let k = 0; k < 4; k++){ wo_px(B, cx - 2 + k, 2 + (k & 1), BK[4]); wo_px(B, cx - 1 + k, 3, BK[3]); }
-  const c = addOutline(wo_cv(B), OUT);
+  const c = addOutline(scale2x(wo_cv(B)), OUT);
   return { img: c, ax: cx, ay: base, foot: [[-17, -12, 17, 2]], occl: [-22, -48, 22, -14], extra: { smoke: [{ x: 1, y: -46 }] } };
 }
 /* Holzstoß: gespaltene Scheite, Stirnseiten sichtbar */
@@ -7126,7 +7213,7 @@ function wo_holzImg(seed){
     wo_px(B, cx, cy, END[1]); if (R() < .5) wo_px(B, cx + 1, cy - 1, END[0]);
   }
   for (let x = 2; x < w - 2; x++) wo_px(B, x, h - 1, wo_pk(20, 18, 24));
-  const c = addOutline(wo_cv(B), OUT);
+  const c = addOutline(scale2x(wo_cv(B)), OUT);
   return { img: c, ax: w >> 1, ay: h - 2, foot: [[-17, -8, 17, 1]], occl: null, extra: {} };
 }
 
@@ -7592,89 +7679,89 @@ const wo_PAL = [
 ].map(chs => chs.map(k => wo_ramp(k, 12)));
 const wo_ZB = ZONES.map(z => ({ obstgarten: 0, burg: 0, stadt: 0, dorf: 6, wald: 1, moor: 2, friedhof: 5, galgen: 3, schlachtfeld: 4, lager: 0, ruine: 3, fluss: 0 })[z.id]);
 
-/* Bodentexturen 128 × 128: Kanal << 4 | Ton */
+/* Bodentexturen 256 × 256 Feinpixel (Periode 128 Weltpixel): Kanal << 4 | Ton */
 function wo_tex(kind, seed){
-  const T = new Uint8Array(16384), R = rng(seed), P = (x, y, ch, t) => { T[((y & 127) << 7) | (x & 127)] = (ch << 4) | clamp(t, 0, 11); };
-  const nz = (x, y, s) => wo_NB[((y * 2 + s * 37) & 255) * 256 + ((x * 2 + s * 59) & 255)];
+  const N = 256, T = new Uint8Array(N * N), R = rng(seed), P = (x, y, ch, t) => { T[((y & 255) << 8) | (x & 255)] = (ch << 4) | clamp(t, 0, 11); };
+  const nz = (x, y, s) => wo_NB[((y + s * 37) & 255) * 256 + ((x + s * 59) & 255)];
+  // Halme: ein Feinpixel breit, unten Schattenpunkt, nach oben heller, Spitze geneigt
   const blades = (n, len, dryP, ch0, tb, lean) => {
     const L = [];
-    for (let k = 0; k < n; k++) L.push([R() * 128 | 0, R() * 128 | 0, 1 + (R() * len | 0), R() < dryP ? 1 : ch0, R() < lean ? (R() < .5 ? -1 : 1) : 0, R()]);
+    for (let k = 0; k < n; k++) L.push([R() * N | 0, R() * N | 0, 2 + (R() * len * 2 | 0), R() < dryP ? 1 : ch0, R() < lean ? (R() < .5 ? -1 : 1) : 0, R()]);
     L.sort((a, b) => a[1] - b[1]);
     for (const [x, y, l, ch, ln, r] of L){
       P(x, y + 1, ch === 1 ? 1 : ch0, tb - 2);
-      for (let j = 0; j <= l; j++){ const t = tb + Math.round(j / Math.max(1, l) * 3 + r * 1.5); P(x + (j === l && l > 1 ? ln : 0), y - j, ch, t); }
+      for (let j = 0; j <= l; j++){ const t = tb + Math.round(j / Math.max(1, l) * 3 + r * 1.5); P(x + (j >= l - 1 && l > 2 ? ln : 0) + (j === l && l > 5 ? ln : 0), y - j, ch, t); }
     }
   };
   const leaves = (n, chs, tb) => {
     for (let k = 0; k < n; k++){
-      const x = R() * 128 | 0, y = R() * 128 | 0, ch = chs[R() * chs.length | 0], t = tb + (R() * 4 | 0), sh = R() * 4 | 0;
-      const pts = sh === 0 ? [[0, 0], [1, 0]] : sh === 1 ? [[0, 0], [0, 1]] : sh === 2 ? [[0, 0], [1, 0], [0, 1], [1, 1]] : [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]];
+      const x = R() * N | 0, y = R() * N | 0, ch = chs[R() * chs.length | 0], t = tb + (R() * 4 | 0), sh = R() * 5 | 0;
+      const pts = sh === 0 ? [[0, 0], [1, 0]] : sh === 1 ? [[0, 0], [0, 1]] : sh === 2 ? [[0, 0], [1, 0], [0, 1], [1, 1]] : sh === 3 ? [[1, 0], [0, 1], [1, 1], [2, 1], [1, 2]] : [[0, 0], [1, 0], [2, 1], [1, 1], [2, 2], [3, 2]];
       for (const [dx, dy] of pts) P(x + dx, y + dy, ch, t - (dx + dy > 1 ? 1 : 0));
       P(x, y, ch, t + 1);
-      P(x + 1, y + (sh === 3 ? 3 : 2), 0, 1);
+      P(x + 1, y + (sh === 3 ? 3 : sh === 4 ? 3 : 2), 0, 1);
     }
   };
   const blobs = (n, rmin, rmax, ch, tb, spikes) => {
     for (let k = 0; k < n; k++){
-      const cx = R() * 128, cy = R() * 128, r = rmin + R() * (rmax - rmin), c = ch[R() * ch.length | 0];
+      const cx = R() * N, cy = R() * N, r = rmin + R() * (rmax - rmin), c = ch[R() * ch.length | 0];
       for (let dy = -r - 1; dy <= r + 1; dy++) for (let dx = -r - 1; dx <= r + 1; dx++){
         const q = (dx * dx + dy * dy * 1.6) / (r * r);
         if (q > 1) continue;
         P(Math.round(cx + dx), Math.round(cy + dy), c, Math.round(tb + (-dx - dy) / r * 1.6 + (1 - q) * 1.2 + (R() - .5)));
       }
-      P(Math.round(cx), Math.round(cy + r * .8 + 1), 0, 0);
-      if (spikes) for (let s = 0; s < r * 2; s++){ const x = Math.round(cx - r + R() * r * 2), y = Math.round(cy - R() * r * .6); P(x, y, c, tb + 3); P(x, y - 1, c, tb + 4); }
+      for (let dx = -2; dx <= 2; dx++) P(Math.round(cx + dx * r * .3), Math.round(cy + r * .8 + 1), 0, 0);
+      if (spikes) for (let s = 0; s < r * 3; s++){ const x = Math.round(cx - r + R() * r * 2), y = Math.round(cy - R() * r * .6), l = 2 + (R() * 3 | 0); for (let j = 0; j < l; j++) P(x, y - j, c, tb + 3 + (j > 0 ? 1 : 0)); }
     }
   };
-  for (let y = 0; y < 128; y++) for (let x = 0; x < 128; x++){
-    const v = nz(x, y, seed);
-    let ch = 0, t = 3 + (v * 3.4 | 0);
-    if (kind === 'heath' && v > .62){ ch = 1; t = 3 + ((v - .6) * 8 | 0); }
-    if (kind === 'battle' && v < .35){ ch = 1; t = 3 + (v * 5 | 0); }
-    if (kind === 'camp' && v > .55){ ch = 1; t = 3 + ((v - .5) * 6 | 0); }
-    if (kind === 'forest') t = 2 + (v * 3 | 0);
-    if (kind === 'moor') t = 2 + (v * 3 | 0);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+    const v = nz(x, y, seed), f = (wo_h(x, y, seed + 7) - .5) * .9;   // Feinkorn
+    let ch = 0, t = 3 + (v * 3.4 + f | 0);
+    if (kind === 'heath' && v > .62){ ch = 1; t = 3 + ((v - .6) * 8 + f | 0); }
+    if (kind === 'battle' && v < .35){ ch = 1; t = 3 + (v * 5 + f | 0); }
+    if (kind === 'camp' && v > .55){ ch = 1; t = 3 + ((v - .5) * 6 + f | 0); }
+    if (kind === 'forest') t = 2 + (v * 3 + f | 0);
+    if (kind === 'moor') t = 2 + (v * 3 + f | 0);
     P(x, y, ch, t);
   }
-  if (kind === 'meadow'){ blades(2600, 4, .12, 0, 4, .3); blades(500, 2, 0, 2, 3, .2); }
-  if (kind === 'farm'){ blades(2400, 4, .35, 0, 4, .3); }
-  if (kind === 'church'){ blades(2400, 2, .05, 0, 3, .2); blades(300, 1, 0, 1, 3, 0); }
-  if (kind === 'clear'){ blades(1600, 3, .1, 0, 4, .3); leaves(500, [2, 3], 2); blades(200, 2, 0, 1, 3, 0); }
-  if (kind === 'forest'){ leaves(2200, [0, 0, 2, 2, 0, 1], 4); for (let k = 0; k < 70; k++){ let x = R() * 128, y = R() * 128; const a = R() * 6.28, l = 3 + R() * 7; for (let j = 0; j < l; j++){ P(Math.round(x), Math.round(y), 3, 1 + (j & 1)); x += Math.cos(a); y += Math.sin(a) * .6; } } }
-  if (kind === 'moor'){ blobs(140, 2.5, 5.5, [0, 0, 0, 1, 2], 3, true); for (let k = 0; k < 900; k++) P(R() * 128 | 0, R() * 128 | 0, 3, 1 + (R() * 2 | 0)); blades(900, 3, 0, 0, 5, .4); }
-  if (kind === 'heath'){ blades(1300, 3, .5, 0, 4, .3); for (let k = 0; k < 160; k++){ const x = R() * 128 | 0, y = R() * 128 | 0; P(x, y, 2, 5); P(x + 1, y, 2, 4); P(x, y + 1, 2, 3); P(x + 1, y + 1, 2, 2); P(x + 1, y + 2, 1, 0); } }
-  if (kind === 'battle'){ for (let k = 0; k < 220; k++){ const x = R() * 128 | 0, y = R() * 128 | 0, l = 2 + (R() * 4 | 0); for (let j = 0; j < l; j++){ P(x + j, y, 0, 1); P(x + j, y - 1, 0, 5); } } blades(500, 2, 0, 1, 3, .5); }
-  if (kind === 'camp'){ for (let k = 0; k < 500; k++){ const x = R() * 128 | 0, y = R() * 128 | 0, l = 2 + (R() * 4 | 0), ch = R() < .3 ? 2 : 1; for (let j = 0; j < l; j++) P(x + j, y + (j > 2 ? 1 : 0), ch, ch === 2 ? 2 + (R() * 3 | 0) : 4); } }
+  if (kind === 'meadow'){ blades(7800, 4, .12, 0, 4, .35); blades(1500, 2, 0, 2, 3, .25); }
+  if (kind === 'farm'){ blades(7200, 4, .35, 0, 4, .35); }
+  if (kind === 'church'){ blades(7200, 2, .05, 0, 3, .25); blades(900, 1, 0, 1, 3, 0); }
+  if (kind === 'clear'){ blades(4800, 3, .1, 0, 4, .35); leaves(1500, [2, 3], 2); blades(600, 2, 0, 1, 3, 0); }
+  if (kind === 'forest'){ leaves(9000, [0, 0, 2, 2, 0, 1], 4); for (let k = 0; k < 120; k++){ let x = R() * N, y = R() * N; const a = R() * 6.28, l = 6 + R() * 14; for (let j = 0; j < l; j++){ P(Math.round(x), Math.round(y), 3, 1 + ((j >> 1) & 1)); P(Math.round(x), Math.round(y) + 1, 0, 0); x += Math.cos(a); y += Math.sin(a) * .6; } } }
+  if (kind === 'moor'){ blobs(140, 5, 11, [0, 0, 0, 1, 2], 3, true); for (let k = 0; k < 2700; k++) P(R() * N | 0, R() * N | 0, 3, 1 + (R() * 2 | 0)); blades(2700, 3, 0, 0, 5, .45); }
+  if (kind === 'heath'){ blades(3900, 3, .5, 0, 4, .35); for (let k = 0; k < 420; k++){ const x = R() * N | 0, y = R() * N | 0; P(x, y, 2, 5); P(x + 1, y, 2, 4); P(x, y + 1, 2, 3); P(x + 1, y + 1, 2, 2); P(x + 2, y + 1, 2, 3); P(x + 1, y + 2, 2, 1); P(x + 1, y + 3, 1, 0); } }
+  if (kind === 'battle'){ for (let k = 0; k < 440; k++){ const x = R() * N | 0, y = R() * N | 0, l = 4 + (R() * 8 | 0); for (let j = 0; j < l; j++){ P(x + j, y, 0, 1); P(x + j, y - 1, 0, 5); } } blades(1500, 2, 0, 1, 3, .5); }
+  if (kind === 'camp'){ for (let k = 0; k < 1000; k++){ const x = R() * N | 0, y = R() * N | 0, l = 4 + (R() * 8 | 0), ch = R() < .3 ? 2 : 1; for (let j = 0; j < l; j++) P(x + j, y + (j > 4 ? 1 : 0), ch, ch === 2 ? 2 + (R() * 3 | 0) : 4); } }
   return T;
 }
 const wo_TEX = [wo_tex('meadow', 1), wo_tex('forest', 2), wo_tex('moor', 3), wo_tex('heath', 4), wo_tex('battle', 5), wo_tex('church', 6), wo_tex('farm', 7), wo_tex('camp', 8), wo_tex('clear', 9)];
 
-/* Pflastertextur 64 × 64: 0 Fuge, sonst Ton 1..7 */
+/* Pflastertextur 128 × 128 Feinpixel (Periode 64 Weltpixel): 0 Fuge, sonst Ton 1..7; Steine mit abgerundeten Ecken */
 function wo_paveTex(sizeX, sizeY, seed){
-  const T = new Uint8Array(4096), R = rng(seed);
+  const N = 128, T = new Uint8Array(N * N), R = rng(seed);
   let y = 0;
   const rows = [];
-  while (y < 64){ const h = Math.min(64 - y, sizeY + (R() * 2 | 0)); rows.push([y, h]); y += h; }
-  if (rows[rows.length - 1][1] < 3){ const l = rows.pop(); rows[rows.length - 1][1] += l[1]; }
+  while (y < N){ const h = Math.min(N - y, sizeY + (R() * 3 | 0)); rows.push([y, h]); y += h; }
+  if (rows[rows.length - 1][1] < 5){ const l = rows.pop(); rows[rows.length - 1][1] += l[1]; }
   for (const [y0, h] of rows){
-    const off = R() * 64 | 0;
+    const off = R() * N | 0;
     let x = 0;
-    while (x < 64){
-      const w = Math.min(64 - x, sizeX + (R() * sizeX * .8 | 0)), b = 2 + (R() * 3.6 | 0);
+    while (x < N){
+      const w = Math.min(N - x, sizeX + (R() * sizeX * .8 | 0)), b = 2 + (R() * 3.6 | 0);
       for (let dy = 0; dy < h; dy++) for (let dx = 0; dx < w; dx++){
-        const px = (x + dx + off) & 63, py = y0 + dy;
+        const px = (x + dx + off) & (N - 1), py = y0 + dy;
         let t;
-        if (dx === w - 1 || dy === h - 1) t = 0;
-        else if ((dx === 0 && dy === 0) || (dx === w - 2 && dy === h - 2)) t = dx === 0 ? b + 1 : b - 1;
-        else t = b + (dy === 0 ? 1 : 0) + (dx === 0 ? 1 : 0) - (dy === h - 2 ? 1 : 0) - (dx === w - 2 ? 1 : 0);
-        T[py * 64 + px] = clamp(t, 0, 7);
+        if (dx === w - 1 || dy === h - 1 || ((dx === 0 || dx === w - 2) && (dy === 0 || dy === h - 2))) t = 0;
+        else t = b + (dy === 0 || (dy === 1 && (dx === 0 || dx === w - 3)) ? 1 : 0) + (dx === 0 ? 1 : 0) - (dy === h - 2 ? 1 : 0) - (dx === w - 2 ? 1 : 0) - (dy === h - 3 && dx > w * .5 ? 1 : 0);
+        T[py * N + px] = clamp(t, 0, 7);
       }
       x += w;
     }
   }
   return T;
 }
-const wo_COBT = wo_paveTex(4, 4, 31), wo_FLAGT = wo_paveTex(10, 7, 37);
+const wo_COBT = wo_paveTex(8, 8, 31), wo_FLAGT = wo_paveTex(20, 14, 37);
 const wo_COBP = wo_ramp(['#211e1a', '#3a3631', '#4b463f', '#59534a', '#666056', '#746d62', '#827a6e', '#90887b'], 8);
 const wo_COBM = wo_ramp(['#1f251a', '#2c3620', '#3a4627', '#46532e'], 4);
 const wo_DIRT = wo_ramp(['#1a150f', '#251e16', '#30271d', '#3b3124', '#463a2b', '#524433', '#5e4e3b', '#6b5944', '#78654e'], 12);
@@ -7768,37 +7855,45 @@ for (let j = 0; j < wo_CH; j++) for (let i = 0; i < wo_CW; i++){
   for (let dy = 0; dy <= 2; dy++) for (let dx = 0; dx <= 2; dx++){ const g = (2 * j + dy) * wo_GW + 2 * i + dx; w = Math.min(w, wo_WSD[g]); r = Math.min(r, wo_RSD[g]); }
   wo_NEAR[j * wo_CW + i] = (w < 16 ? 1 : 0) | (r < 6 ? 2 : 0);
 }
-const wo_FID = new Uint8Array(65536), wo_BUF = new Uint32Array(65536);
-const wo_IMGD = (() => { try { return new ImageData(256, 256); } catch (e){ return ctx.createImageData(256, 256); } })();
+/* Chunks: 256 Weltpixel = 512 Feinpixel je Seite. Flächenmaske und Bild im Feinraster,
+   dazu ein Grobpuffer (ein Weltpixel) für Wurzeln, Stümpfe, Bohlen und große Streudetails. */
+const wo_CP = 256 * WS;
+const wo_FID = new Uint8Array(wo_CP * wo_CP), wo_BUF = new Uint32Array(wo_CP * wo_CP), wo_BUF1 = new Uint32Array(65536), wo_BUF0 = new Uint32Array(65536);
+const wo_IMGD = (() => { try { return new ImageData(wo_CP, wo_CP); } catch (e){ return ctx.createImageData(wo_CP, wo_CP); } })();
+let wo_FX = 0, wo_FY = 0;   // aktuelles Feinpixel (Weltkoordinaten × WS) für Texturen
 
-/* Bodenfläche in die Chunkmaske malen */
+/* Bodenfläche in die Chunkmaske malen (Feinraster) */
 function wo_paint(f, id, X0, Y0){
-  const x0 = Math.max(0, Math.floor(f.x0) - X0), x1 = Math.min(256, Math.ceil(f.x1) - X0), y0 = Math.max(0, Math.floor(f.y0) - Y0), y1 = Math.min(256, Math.ceil(f.y1) - Y0);
+  const x0 = Math.max(0, Math.floor(f.x0 * 2) - X0 * 2), x1 = Math.min(wo_CP, Math.ceil(f.x1 * 2) - X0 * 2), y0 = Math.max(0, Math.floor(f.y0 * 2) - Y0 * 2), y1 = Math.min(wo_CP, Math.ceil(f.y1 * 2) - Y0 * 2);
   if (f.e){
     const [cx, cy, rx, ry] = f.e;
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){
-      const dx = (X0 + x - cx) / rx, dy = (Y0 + y - cy) / ry, q = dx * dx + dy * dy + (wo_fin(X0 + x, Y0 + y) - .5) * (f.soft ? .6 : .25);
-      if (q < 1) wo_FID[(y << 8) | x] = id;
+      const wx = X0 + x * .5, wy = Y0 + y * .5, dx = (wx - cx) / rx, dy = (wy - cy) / ry, q = dx * dx + dy * dy + (wo_fin(wx, wy) - .5) * (f.soft ? .6 : .25);
+      if (q < 1) wo_FID[(y << 9) | x] = id;
     }
-  } else for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) wo_FID[(y << 8) | x] = id;
+  } else for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) wo_FID[(y << 9) | x] = id;
 }
+/* Fläche an einem Weltpunkt dieses Chunks (0 = keine) */
+const wo_fidAt = (x, y, X0, Y0) => { const lx = Math.floor((x - X0) * 2), ly = Math.floor((y - Y0) * 2); return lx >= 0 && ly >= 0 && lx < wo_CP && ly < wo_CP ? wo_FID[(ly << 9) | lx] : 0; };
 
-/* Hauptschleife: ein Chunk 256 × 256 */
+/* Hauptschleife: ein Chunk */
 function wo_rcBegin(ci, cj){
   const X0 = ci << 8, Y0 = cj << 8, F = wo_FID, fl = wo_FBC[cj * wo_NCX + ci];
   F.fill(0);
   for (let k = 0; k < fl.length; k++) if (!fl[k].hi) wo_paint(fl[k], k + 1, X0, Y0);
   for (let k = 0; k < fl.length; k++) if (fl[k].hi) wo_paint(fl[k], k + 1, X0, Y0);
 }
-/* Bildzeilen ya..yb eines Chunks berechnen */
+/* Feinzeilen ya..yb eines Chunks berechnen (0..wo_CP) */
 function wo_rcRows(ci, cj, ya, yb){
   const X0 = ci << 8, Y0 = cj << 8, B = wo_BUF, F = wo_FID, fl = wo_FBC[cj * wo_NCX + ci];
+  wo_FINE = 1;
   for (let y = ya; y < yb; y++){
-    const wy = Y0 + y, dy0 = BAYER4[(wy & 3) * 4];
-    for (let x = 0; x < 256; x++){
-      const wx = X0 + x, i = (y << 8) | x, cell = wo_NEAR[(wy >> 3) * wo_CW + (wx >> 3)];
+    const FY = (Y0 << 1) + y, wy = FY * .5;
+    for (let x = 0; x < wo_CP; x++){
+      const FX = (X0 << 1) + x, wx = FX * .5, i = (y << 9) | x, cell = wo_NEAR[(wy >> 3) * wo_CW + (wx >> 3)];
+      wo_FX = FX; wo_FY = FY;
       const fd = F[i], fe = fd ? fl[fd - 1] : null, fm = fe ? fe.m : 0;
-      const dth = BAYER4[(wy & 3) * 4 + (wx & 3)] / 16;
+      const dth = BAYER4[(FY & 3) * 4 + (FX & 3)] / 16;
       let wsd = 99, rsd = 99, col = 0;
       if (cell & 1) wsd = wo_bil(wo_WSD, wx, wy);
       if (cell & 2) rsd = wo_bil(wo_RSD, wx, wy);
@@ -7810,18 +7905,34 @@ function wo_rcRows(ci, cj, ya, yb){
       else if (rsd < 0 && fm !== WM.FIELD) col = wo_pxRoad(wx, wy, rsd, dth, sh, fe);
       else if (fe && fm !== WM.SHADOW) col = wo_pxFeat(fe, wx, wy, dth, sh);
       else col = wo_pxGround(wx, wy, dth, sh);
-      if (fm === WM.SHADOW && (wx + wy) % 2 === 0) col = wo_mix(col, 0xff120e0c, .38);
+      if (fm === WM.SHADOW && (FX + FY) % 2 === 0) col = wo_mix(col, 0xff120e0c, .38);
       else if (fm === WM.SHADOW) col = wo_mix(col, 0xff120e0c, .2);
       B[i] = col;
     }
   }
+  wo_FINE = 0;
+}
+/* Grobdetails (Weltpixel) einrechnen: geänderte Weltpixel geglättet verdoppeln (Scale2x) */
+function wo_rcDetails(ci, cj){
+  const B = wo_BUF, B1 = wo_BUF1, B0 = wo_BUF0;
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) B1[(y << 8) | x] = B[(y << 10) | (x << 1)];
+  B0.set(B1);
+  wo_details(ci << 8, cj << 8, ci, cj);
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++){
+    const i = (y << 8) | x, P = B1[i]; if (P === B0[i]) continue;
+    const A = y > 0 ? B1[i - 256] : P, Q = x < 255 ? B1[i + 1] : P, C = x > 0 ? B1[i - 1] : P, D = y < 255 ? B1[i + 256] : P, o = (y << 10) | (x << 1);
+    B[o] = C === A && C !== D && A !== Q ? A : P;
+    B[o + 1] = A === Q && A !== C && Q !== D ? Q : P;
+    B[o + wo_CP] = D === C && D !== Q && C !== A ? C : P;
+    B[o + wo_CP + 1] = Q === D && Q !== A && D !== C ? D : P;
+  }
 }
 function wo_rcEnd(ci, cj){
-  wo_details(ci << 8, cj << 8, ci, cj);
+  wo_fineDetails(ci << 8, cj << 8, ci, cj);
   wo_IMGD.data.set(new Uint8Array(wo_BUF.buffer));
   return wo_IMGD;
 }
-function wo_renderChunk(ci, cj){ wo_rcBegin(ci, cj); wo_rcRows(ci, cj, 0, 256); return wo_rcEnd(ci, cj); }
+function wo_renderChunk(ci, cj){ wo_rcBegin(ci, cj); wo_rcRows(ci, cj, 0, wo_CP); wo_rcDetails(ci, cj); return wo_rcEnd(ci, cj); }
 /* Gebiet → Bodenart mit verwischten Grenzen */
 function wo_biome(wx, wy){
   const ox = (wo_NB[((wy >> 1) & 255) * 256 + ((wx >> 1) & 255)] - .5) * 56 + (wo_h(wx, wy, 3) - .5) * 10;
@@ -7832,7 +7943,7 @@ function wo_inClear(wx, wy){ for (const [cx, cy, rx, ry] of wo_CLEAR) if (((wx -
 function wo_pxGround(wx, wy, dth, sh){
   let b = wo_biome(wx, wy);
   if (b === 1 && wo_inClear(wx, wy)) b = 8;
-  const e = wo_TEX[b][((wy & 127) << 7) | (wx & 127)], P = wo_PAL[b];
+  const e = wo_TEX[b][((wo_FY & 255) << 8) | (wo_FX & 255)], P = wo_PAL[b];
   const lo = wo_mid(wx, wy), s = sh * 1.5 + (lo - .5) * 3 + (b === 1 ? -.5 : 0);
   let ch = e >> 4, t = (e & 15) + Math.floor(s + dth);
   // Wiese: trockene und satte Flecken
@@ -7862,7 +7973,7 @@ function wo_pxWater(wx, wy, wsd, dth){
   let v = 8.2 - depthT * 5.6 + (st - .5) * 2.6 + (st2 - .5) * 1.2 + (dep < 3 ? 1.2 : 0);
   let c = wo_WATR[clamp(Math.floor(v + dth), 0, 11)];
   if (st > .78 && st2 > .5) c = wo_mix(c, wo_SKY, .45);
-  if (st > .86 && st2 > .62 && (wx & 1)) c = wo_mix(c, wo_SKY2, .6);
+  if (st > .86 && st2 > .62 && (wo_FX & 1)) c = wo_mix(c, wo_SKY2, .6);
   return c;
 }
 function wo_pxBank(wx, wy, wsd, dth, sh){
@@ -7887,7 +7998,7 @@ function wo_pxBank(wx, wy, wsd, dth, sh){
 function wo_pxRoad(wx, wy, rsd, dth, sh, fe){
   const g = wo_gidx(wx, wy), t = wo_RT[g], d = wo_bil(wo_RD, wx, wy), hw = d - rsd;
   if (t === 3 || (fe && fe.m === WM.YARD && fe.sub !== 3)){
-    const cv = wo_COBT[((wy & 63) << 6) | (wx & 63)];
+    const cv = wo_COBT[((wo_FY & 127) << 7) | (wo_FX & 127)];
     if (cv === 0) return wo_mix(wo_COBP[0], wo_COBM[1], wo_fin(wx * 3, wy * 3) > .6 ? .6 : 0);
     let v = cv + Math.floor(sh * .8 + (wo_mid(wx * 3, wy * 3) - .5) * 2.4 + dth);
     if (t === 3 && d < 2.5) v -= 2;                          // Rinnstein
@@ -7908,7 +8019,7 @@ function wo_pxRoad(wx, wy, rsd, dth, sh, fe){
   if (t === 0){
     const r = Math.abs(d - hw * .5);
     if (r < 1.4) v -= 2.6; else if (r < 2.4) v -= 1.2; else if (r < 3.2) v += .6;
-    if (r < 1.6 && wo_mid(wx * 5, wy * 5) > .72) return (wy + wx) & 3 ? wo_mix(wo_WATR[7], wo_SKY, .25) : wo_WATR[9];   // Pfütze in der Spur
+    if (r < 1.6 && wo_mid(wx * 5, wy * 5) > .72) return (wo_FY + wo_FX) & 3 ? wo_mix(wo_WATR[7], wo_SKY, .25) : wo_WATR[9];   // Pfütze in der Spur
     if (d < hw * .2 && wo_h(wx, wy, 12) < .55){ const P = wo_PAL[0][0]; return P[clamp(4 + Math.floor(sh + dth + n * 2), 0, 11)]; }
   } else v += (1 - d / hw) * .8;
   const pb = wo_h(wx, wy, 13);
@@ -7934,7 +8045,7 @@ function wo_pxFeat(f, wx, wy, dth, sh){
   }
   if (m === WM.YARD){
     if (f.sub === 3){   // Lagerplatz: zertrampelt
-      const e = wo_TEX[7][((wy & 127) << 7) | (wx & 127)];
+      const e = wo_TEX[7][((wo_FY & 255) << 8) | (wo_FX & 255)];
       return wo_PAL[7][e >> 4][clamp((e & 15) + Math.floor(sh + (wo_mid(wx * 4, wy * 4) - .5) * 3 + dth), 0, 11)];
     }
     if (f.sub === 2) return wo_pxRoad(wx, wy, -10, dth, sh, f);     // Markt: Pflaster
@@ -7948,7 +8059,7 @@ function wo_pxFeat(f, wx, wy, dth, sh){
     }
     if (hh < .05) return wo_FIELDP.stub[4];                           // Stroh
     if (hh < .08) return wo_DIRT[1];
-    if (f.sub === 1 && wo_FLAGT[((wy & 63) << 6) | (wx & 63)] === 0 && lo > .5) return wo_COBP[1];
+    if (f.sub === 1 && wo_FLAGT[((wo_FY & 127) << 7) | (wo_FX & 127)] === 0 && lo > .5) return wo_COBP[1];
     return wo_DIRT[clamp(Math.floor(v + dth), 0, 11)];
   }
   if (m === WM.MOUND){
@@ -7974,7 +8085,7 @@ function wo_pxFeat(f, wx, wy, dth, sh){
   if (m === WM.RABEN){
     const [cx, cy, rx, ry] = f.e, dx = (wx - cx) / rx, dy = (wy - cy) / ry, q = dx * dx + dy * dy;
     if (q > .82){ const v = 2 + (dy > 0 ? 2 : 0) - dx; return wo_GREY[clamp(Math.floor(v + dth), 0, 5)]; }
-    const cv = wo_FLAGT[((wy & 63) << 6) | (wx & 63)];
+    const cv = wo_FLAGT[((wo_FY & 127) << 7) | (wo_FX & 127)];
     if (cv === 0) return wo_GREY[0];
     return wo_GREY[clamp(cv - 1 + Math.floor(sh * .5 + dth), 1, 5)];
   }
@@ -8027,7 +8138,7 @@ function wo_pxBridge(f, wx, wy, dth, wsd){
       if (j) return wo_GREY[1];
       return wo_GREY[clamp((e === 1 ? 2 : e > 5 ? 3 : 4) + (wo_h(blk, u < 8 ? 1 : 2, 5) * 2 | 0) - (e === 7 ? 2 : 0), 0, 5)];
     }
-    const cv = wo_FLAGT[((wy & 63) << 6) | ((wx + 7) & 63)];
+    const cv = wo_FLAGT[((wo_FY & 127) << 7) | ((wo_FX + 14) & 127)];
     if (cv === 0) return wo_GREY[1];
     return wo_GREY[clamp(cv - 2 + Math.floor((wo_fin(wx * 3, wy * 3) - .5) * 2 + dth), 1, 5)];
   }
@@ -8061,10 +8172,9 @@ function wo_pxFord(f, wx, wy, wsd, dth){
 
 /* Streudetails, Wurzeln, Stümpfe, Gräber usw. in den Chunk stempeln */
 function wo_details(X0, Y0, ci, cj){
-  const B = wo_BUF;
+  const B = wo_BUF1, BF = wo_BUF;   // Weltpixel / Feinpixel
   const surf = (x, y) => {   // was liegt hier? 0 Boden, 1 Weg, 2 Wasser, 3 Ufer, 4 Fläche
-    const lx = x - X0, ly = y - Y0;
-    if (lx >= 0 && ly >= 0 && lx < 256 && ly < 256 && wo_FID[(ly << 8) | lx]) return 4;
+    if (wo_fidAt(x, y, X0, Y0)) return 4;
     const w = wo_wsd(x, y); if (w < 0) return 2; if (w < 7) return 3;
     if (wo_rsd(x, y) < 1) return 1;
     return 0;
@@ -8097,11 +8207,11 @@ function wo_details(X0, Y0, ci, cj){
     } else if (k === 'fachwerkhaus' || k === 'fachwerkhaus_ruine' || k === 'stadthaus' || k === 'zelt' || k === 'kapelle' || k === 'muehle'){
       // ausgetretene Erde vor dem Eingang
       const R = rng(p.x + p.y * 3);
-      for (let y = 0; y < 14; y++) for (let x = -12 + (y >> 1); x <= 12 - (y >> 1); x++){
-        const wx = p.x + x, wy = p.y + 3 + y, lx = wx - X0, ly = wy - Y0;
-        if (lx < 0 || ly < 0 || lx > 255 || ly > 255 || surf(wx, wy) === 2) continue;
-        if (R() < .25 + y * .04) continue;
-        B[(ly << 8) | lx] = wo_DIRT[clamp(3 + (wo_fin(wx * 3, wy * 3) * 3 | 0), 0, 11)];
+      for (let y = 0; y < 28; y++) for (let x = -24 + (y >> 1); x <= 24 - (y >> 1); x++){
+        const wx = p.x + x * .5, wy = p.y + 3 + y * .5, lx = (p.x - X0) * 2 + x, ly = (p.y + 3 - Y0) * 2 + y;
+        if (lx < 0 || ly < 0 || lx >= wo_CP || ly >= wo_CP || surf(wx, wy) === 2) continue;
+        if (R() < .25 + y * .02) continue;
+        BF[(ly << 9) | lx] = wo_DIRT[clamp(3 + (wo_fin(wx * 3, wy * 3) * 3 + (R() - .5) * .8 | 0), 0, 11)];
       }
     }
   }
@@ -8161,7 +8271,7 @@ function wo_details(X0, Y0, ci, cj){
         if (h1 < .1) D = v(wo_D.tuft); else if (h1 < .2) D = v(wo_D.daisy); else if (h1 < .26) D = v(wo_D.moss); else if (h1 < .3) D = v(wo_D.stone);
       }
     } else if (s === 4){
-      const lx = x - X0, ly = y - Y0, fd = lx >= 0 && ly >= 0 && lx < 256 && ly < 256 ? wo_FID[(ly << 8) | lx] : 0;
+      const fd = wo_fidAt(x, y, X0, Y0);
       const fe = fd ? wo_FBC[cj * wo_NCX + ci][fd - 1] : null;
       if (fe && fe.m === WM.FIELD){
         const u = fe.vert ? x - fe.x0 : y - fe.y0, wdt = fe.vert ? fe.x1 - fe.x0 : fe.y1 - fe.y0;
@@ -8209,8 +8319,51 @@ function wo_drawGobj(B, X0, Y0, o){
   if (R() < .7){ const bx = x0 + 4 + (R() * (L - 8) | 0); put(bx, o.y - 7, BK[2]); put(bx + 1, o.y - 8, BK[2]); put(bx + 2, o.y - 9, BK[1]); }
 }
 
-/* ---------- Chunk-Cache (LRU) und Zeichnen ---------- */
-const wo_CACHE = new Map(), wo_CMAX = 48;
+/* kleine Streudetails im Feinraster: Halmbüschel, Blüten, Kiesel, Laub (je 4-px-Zelle) */
+function wo_stampF(X0, Y0, FX, FY, L, pal){
+  const B = wo_BUF, ox = X0 * 2, oy = Y0 * 2;
+  for (let k = 0; k < L.length; k += 3){
+    const px = FX + L[k] - ox, py = FY + L[k + 1] - oy;
+    if (px < 0 || py < 0 || px >= wo_CP || py >= wo_CP) continue;
+    let c = L[k + 2];
+    if (c < 0){ const q = -c - 1; c = pal[q >> 4][clamp(q & 15, 0, 11)]; }
+    else if (c === wo_DC['_']){ const o = B[(py << 9) | px]; c = wo_mix(o, 0xff141018, .4); }
+    B[(py << 9) | px] = c;
+  }
+}
+function wo_fineDetails(X0, Y0, ci, cj){
+  for (let cy = (Y0 >> 2) - 1; cy <= (Y0 >> 2) + 64; cy++) for (let cx = (X0 >> 2) - 1; cx <= (X0 >> 2) + 64; cx++){
+    const h1 = wo_h(cx, cy, 201); if (h1 > .34) continue;
+    const FX = cx * 8 + (wo_h(cx, cy, 202) * 8 | 0), FY = cy * 8 + (wo_h(cx, cy, 203) * 8 | 0), x = FX >> 1, y = FY >> 1;
+    if (x < 0 || y < 0 || x >= WW || y >= WH) continue;
+    let s = 0;
+    if (wo_fidAt(x, y, X0, Y0)) s = 4;
+    else { const w = wo_wsd(x, y); if (w < 0) s = 2; else if (w < 7) s = 3; else if (wo_rsd(x, y) < 1.5) s = 1; }
+    if (s === 2 || s === 4) continue;
+    const b = wo_biome(x, y), P = wo_PAL[b], h2 = wo_h(cx, cy, 204), h3 = wo_h(cx, cy, 205);
+    const v = arr => arr[(h3 * arr.length) | 0];
+    let D = null;
+    if (s === 1 || s === 3){ if (h1 < .06) D = v(wo_D.pebbles); }
+    else if (b === 0 || b === 6 || b === 8 || b === 5){
+      if (h1 < .17) D = v(h2 < .2 ? wo_D.tuftDry : wo_D.tuft);
+      else if (h1 < .21 + wo_lo(x * 4, y * 4) * .08) D = v(h2 < .4 ? wo_D.daisy : h2 < .6 ? wo_D.butter : h2 < .8 ? wo_D.clover : b === 6 ? wo_D.poppy : wo_D.blue);
+      else if (h1 < .25) D = v(wo_D.pebbles);
+      else if (b === 8 && h1 < .3) D = v(wo_D.moss);
+    } else if (b === 1){
+      if (h1 < .14) D = v(wo_D.leafs); else if (h1 < .22) D = v(wo_D.moss); else if (h1 < .27) D = v(wo_D.twig);
+    } else if (b === 2){
+      if (h1 < .1) D = v(wo_D.tuft); else if (h1 < .18) D = v(wo_D.heather); else if (h1 < .23) D = v(wo_D.cotton);
+    } else if (b === 3){
+      if (h1 < .12) D = v(wo_D.tuftDry); else if (h1 < .2) D = v(wo_D.heather); else if (h1 < .26) D = v(wo_D.pebbles);
+    } else if (b === 4){
+      if (h1 < .14) D = v(wo_D.tuftDry); else if (h1 < .18) D = v(wo_D.rust); else if (h1 < .24) D = v(wo_D.pebbles);
+    }
+    if (D) wo_stampF(X0, Y0, FX, FY, D, P);
+  }
+}
+
+/* ---------- Chunk-Cache (LRU) und Zeichnen; Kamera und Leinwand in Feinpixeln ---------- */
+const wo_CACHE = new Map(), wo_CMAX = 30;
 let wo_tick = 0;
 const wo_WFX = new Map();   // Glanzpunkte je Chunk
 function wo_chunk(ci, cj){
@@ -8226,31 +8379,33 @@ function wo_store(ci, cj, id){
     let ok = -1, ot = 1e18;
     for (const [k, v] of wo_CACHE) if (v.t < ot){ ot = v.t; ok = k; }
     c = wo_CACHE.get(ok).c; wo_CACHE.delete(ok);
-  } else c = canvasOf(256, 256);
+  } else c = canvasOf(wo_CP, wo_CP);
   c.getContext('2d').putImageData(id, 0, 0);
   e = { c, t: ++wo_tick }; wo_CACHE.set(key, e);
   if (!wo_WFX.has(key)) wo_WFX.set(key, wo_glints(ci, cj));
   return e;
 }
+const wo_JOBROWS = 16;   // Feinzeilen je Bild beim Vorausrechnen
 function drawGround(g, camX, camY){
   camX = Math.round(camX); camY = Math.round(camY);
-  const c0 = Math.max(0, camX >> 8), c1 = Math.min(wo_NCX - 1, (camX + W - 1) >> 8), r0 = Math.max(0, camY >> 8), r1 = Math.min(wo_NCY - 1, (camY + H - 1) >> 8);
+  const c0 = Math.max(0, Math.floor(camX / wo_CP)), c1 = Math.min(wo_NCX - 1, Math.floor((camX + W - 1) / wo_CP)), r0 = Math.max(0, Math.floor(camY / wo_CP)), r1 = Math.min(wo_NCY - 1, Math.floor((camY + H - 1) / wo_CP));
   let made = 0;
   for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++){
     const had = wo_CACHE.has(r * wo_NCX + c), e = wo_chunk(c, r);
     if (!had) made++;
-    g.drawImage(e.c, (c << 8) - camX, (r << 8) - camY);
+    g.drawImage(e.c, c * wo_CP - camX, r * wo_CP - camY);
   }
-  // vorausschauend höchstens einen Nachbarchunk je Bild vorbereiten
+  // vorausschauend höchstens einen Nachbarchunk je Bild vorbereiten, in Streifen
   if (!made){
-    const cx = (camX + W / 2) >> 8, cy = (camY + H / 2) >> 8;
+    const cx = Math.floor((camX + W / 2) / wo_CP), cy = Math.floor((camY + H / 2) / wo_CP), n = wo_CP / wo_JOBROWS;
     for (let d = 1; d <= 2; d++) for (let r = cy - d; r <= cy + d; r++) for (let c = cx - d; c <= cx + d; c++){
       if (c < 0 || r < 0 || c >= wo_NCX || r >= wo_NCY || wo_CACHE.has(r * wo_NCX + c)) continue;
       if (Math.abs(c - cx) < d && Math.abs(r - cy) < d) continue;
       if (!wo_JOB || wo_JOB.c !== c || wo_JOB.r !== r) wo_JOB = { c, r, step: 0 };
       const J = wo_JOB;
       if (J.step === 0) wo_rcBegin(c, r);
-      else if (J.step <= 8) wo_rcRows(c, r, (J.step - 1) * 32, J.step * 32);
+      else if (J.step <= n) wo_rcRows(c, r, (J.step - 1) * wo_JOBROWS, J.step * wo_JOBROWS);
+      else if (J.step === n + 1) wo_rcDetails(c, r);
       else { wo_store(c, r, wo_rcEnd(c, r)); wo_JOB = null; return; }
       J.step++; return;
     }
@@ -8272,7 +8427,7 @@ function wo_glints(ci, cj){
 }
 function drawWaterFx(g, camX, camY, t){
   camX = Math.round(camX); camY = Math.round(camY);
-  const c0 = Math.max(0, camX >> 8), c1 = Math.min(wo_NCX - 1, (camX + W - 1) >> 8), r0 = Math.max(0, camY >> 8), r1 = Math.min(wo_NCY - 1, (camY + H - 1) >> 8);
+  const c0 = Math.max(0, Math.floor(camX / wo_CP)), c1 = Math.min(wo_NCX - 1, Math.floor((camX + W - 1) / wo_CP)), r0 = Math.max(0, Math.floor(camY / wo_CP)), r1 = Math.min(wo_NCY - 1, Math.floor((camY + H - 1) / wo_CP));
   const tt = RM ? 0 : t;
   for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++){
     const L = wo_WFX.get(r * wo_NCX + c); if (!L) continue;
@@ -8280,18 +8435,18 @@ function drawWaterFx(g, camX, camY, t){
       const wt = L[k + 2], ph = (tt * (wt === 1 ? .55 : wt === 4 ? .8 : .25) + L[k + 3]) % 1;
       if (ph > .45) continue;
       const fl = wt === 1 ? -ph * 14 : 0, fv = wt === 4 ? ph * 14 : 0;
-      const x = Math.round(L[k] + fl - camX), y = Math.round(L[k + 1] + fv - camY);
-      if (x < -4 || y < -2 || x > W + 4 || y > H + 2) continue;
+      const x = Math.round((L[k] + fl) * WS - camX), y = Math.round((L[k + 1] + fv) * WS - camY);
+      if (x < -8 || y < -4 || x > W + 8 || y > H + 4) continue;
       const a = ph < .1 ? ph * 10 : ph > .35 ? (.45 - ph) * 10 : 1;
       g.fillStyle = wt === 3 ? 'rgba(150,160,150,' + (a * .35).toFixed(2) + ')' : 'rgba(186,198,194,' + (a * .55).toFixed(2) + ')';
-      g.fillRect(x, y, wt === 4 ? 1 : L[k + 4], wt === 4 ? L[k + 4] : 1);
+      g.fillRect(x, y, wt === 4 ? 1 : L[k + 4] * WS - 1, wt === 4 ? L[k + 4] * WS - 1 : 1);
     }
   }
   // Mühlrad: Gischt
-  const mx = 2534 - camX, my = 1532 - camY;
-  if (mx > -20 && my > -20 && mx < W + 20 && my < H + 20){
+  const mx = 2534 * WS - camX, my = 1532 * WS - camY;
+  if (mx > -40 && my > -40 && mx < W + 40 && my < H + 40){
     g.fillStyle = 'rgba(205,214,210,.7)';
-    for (let k = 0; k < 6; k++){ const p = ((tt * 3 + k * .37) % 1); g.fillRect(Math.round(mx - 6 + k * 2 + Math.sin(tt * 9 + k) * 2), Math.round(my + 4 + p * 8), 1, 1); }
+    for (let k = 0; k < 14; k++){ const p = ((tt * 3 + k * .37) % 1); g.fillRect(Math.round(mx - 12 + k * 2 + Math.sin(tt * 9 + k) * 4), Math.round(my + 8 + p * 16), 1, 1 + (k & 1)); }
   }
 }
 
@@ -8506,6 +8661,21 @@ const Sound = {
 
 
 
+/* ============ Spielwelt in Feinpixeln: Spielkoordinaten = Weltpixel × WS ============ */
+const GW = WW * WS, GH = WH * WS;
+const gPt = p => ({ x: p.x * WS, y: p.y * WS });
+const gBlocked = (x0, y0, x1, y1, wade) => boxBlocked(x0 / WS, y0 / WS, x1 / WS, y1 / WS, wade);
+const gOk = (x, y) => wo_ok(Math.floor(x / WS), Math.floor(y / WS));
+const gNear = (x, y) => gPt(wo_near(x, y));     // Weltpixel herein, Feinpixel heraus
+function gRandWalk(x, y, rMin, rMax){ const p = randomWalkable(x / WS, y / WS, rMin / WS, rMax / WS); return p && { x: p.x * WS + (Math.random() < .5 ? 1 : 0), y: p.y * WS }; }
+const gZone = (x, y) => zoneAt(Math.floor(x / WS), Math.floor(y / WS));
+const gZid = (x, y) => wo_zid(Math.floor(x / WS), Math.floor(y / WS));
+const GSTART = gPt(START);
+/* Objekte, Feuer und Rauch für das Spiel in Feinpixeln (die Welt behält ihre eigenen Daten für den Boden) */
+const GPROPS = PROPS.map(p => ({ kind: p.kind, x: p.x * WS, y: p.y * WS, img: p.img, ax: p.ax * WS, ay: p.ay * WS,
+  occl: p.occl ? p.occl.map(v => v * WS) : null, apple: p.apple, crown: p.crown ? gPt(p.crown) : null, shake: 0, door: p.door == null ? null : p.door * WS }));
+const GFIRES = FIRES.map(f => ({ x: f.x * WS, y: f.y * WS, big: f.big })), GSMOKES = SMOKES.map(gPt);
+
 /* ============ Regeln: Stufen, Gebiete, Monsterwerte ============ */
 const store = {
   get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
@@ -8595,13 +8765,14 @@ const xpMul = d => d >= 0 ? 1 + Math.min(4, d) * .08 : d >= -4 ? 1 + d * .15 : 0
 const conOf = d => d >= 3 ? 0 : d >= 1 ? 1 : d >= -1 ? 2 : d >= -4 ? 3 : 4;
 const CON_COL = ['#ff5a4a', '#ffa040', '#f2e05a', '#72dc6a', '#a8a8a8'];
 LAIRS.tod = wo_near(3640, 2700);
+for (const k in LAIRS) LAIRS[k] = gPt(LAIRS[k]);
 const BOSSES = {
   raubritter: { lvl:19, zone:'ruine' },
   lindwurm:   { lvl:16, zone:'moor' },
   tod:        { lvl:14, zone:'schlachtfeld' }
 };
 const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder' };
-const BIND = { burg: wo_near(1900, 456), stadt: wo_near(2972, 2380) };
+const BIND = { burg: gNear(1900, 456), stadt: gNear(2972, 2380) };
 const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt' };
 
 /* ============ Beute: Seltenheit, Grundformen, Zusätze ============ */
@@ -8704,7 +8875,9 @@ function textImg(str, color, plain){
     }
     x += 4;
   }
-  c = makeSprite(rows.map(r => r.join('')), { a: color }, plain ? null : OUT, plain ? 0 : 1);
+  // Glyphen verdoppelt (Feinpixel), Kontur ein Feinpixel
+  const r2 = []; for (const r of rows){ const l = r.map(ch => ch + ch).join(''); r2.push(l, l); }
+  c = makeSprite(r2, { a: color }, plain ? null : OUT, plain ? 0 : 1);
   textCache.set(key, c);
   return c;
 }
@@ -8939,13 +9112,13 @@ const qReward = d => ({ xp: Math.round(xpNeed(d.lvl) * (d.boss ? .8 : d.id === '
 /* ============ Der Held (wird gespeichert) ============ */
 const SAVE_KEY = 'apfelritter-held-v5';
 function freshHero(name, f){
-  return { v:5, name, f: KN_FACTIONS[f] ? f : 'reich', food:null, drink:null, horse:null, riding:false, lvl:1, xp:0, gold:10, potions:3, inv: Array(24).fill(null),
+  return { v:6, name, f: KN_FACTIONS[f] ? f : 'reich', food:null, drink:null, horse:null, riding:false, lvl:1, xp:0, gold:10, potions:3, inv: Array(24).fill(null),
     eq: { waffe: makeItem('waffe', 1, 0, { name:'Rostiges Kurzschwert' }), helm:null, ruestung: makeItem('ruestung', 1, 0, { name:'Wattierter Gambeson' }),
       schild: makeItem('schild', 1, 0, { name:'Holzschild' }), beine:null, kleinod:null },
     quests:[], done:[], kills:0, bosses:{}, bind:'burg', x: BIND.burg.x, y: BIND.burg.y, played:0, savedAt:0, made: Date.now() };
 }
 function validHero(h){
-  return h && h.v === 5 && typeof h.name === 'string' && h.lvl >= 1 && Array.isArray(h.inv) && h.eq && typeof h.eq === 'object';
+  return h && (h.v === 5 || h.v === 6) && typeof h.name === 'string' && h.lvl >= 1 && Array.isArray(h.inv) && h.eq && typeof h.eq === 'object';
 }
 function cleanHero(h){
   h.lvl = clamp(h.lvl | 0, 1, MAX_LVL); h.xp = Math.max(0, h.xp | 0); h.gold = Math.max(0, h.gold | 0); h.potions = clamp(h.potions | 0, 0, 20);
@@ -8954,7 +9127,8 @@ function cleanHero(h){
   h.quests = (h.quests || []).filter(q => q && (q.id === 'kg' ? ZONE_LV[q.zone] : QDEF[q.id])).slice(0, 4);
   h.done = h.done || []; h.bosses = h.bosses || {}; h.kills = h.kills | 0;
   if (!BIND[h.bind]) h.bind = 'burg';
-  if (!wo_ok(h.x, h.y)){ h.x = BIND[h.bind].x; h.y = BIND[h.bind].y; }
+  if (h.v === 5){ h.x *= WS; h.y *= WS; h.v = 6; }   // Spielstand aus der Zeit vor den Feinpixeln
+  if (!gOk(h.x, h.y)){ h.x = BIND[h.bind].x; h.y = BIND[h.bind].y; }
   if (!KN_FACTIONS[h.f]) h.f = 'reich';
   for (const key of ['food', 'drink']){ const b = h[key]; h[key] = b && FARE_BY[b.id] && b.t > 0 ? { id: b.id, t: Math.min(+b.t || 0, FARE_MIN * 60) } : null; }
   if (h.inn && !INN_BY[h.inn]) h.inn = null;
@@ -8991,23 +9165,23 @@ function refreshStats(){ ST = heroStats(HERO); if (G && G.knight) G.knight.hp = 
 const SPAWN_SLOTS = (() => {
   const R = rng(2024), out = [];
   const TARGET = { obstgarten:22, fluss:16, dorf:20, friedhof:18, lager:18, galgen:16, wald:30, schlachtfeld:24, moor:24, ruine:20 };
-  const zid = (x, y) => ZONES[wo_zid(x | 0, y | 0)].id;
-  const nearSafe = (x, y) => [[0, 0], [110, 0], [-110, 0], [0, 110], [0, -110], [80, 80], [-80, 80], [80, -80], [-80, -80]].some(([dx, dy]) => SAFE[zid(clamp(x + dx, 0, WW - 1), clamp(y + dy, 0, WH - 1))]);
-  const lairs = Object.values(LAIRS);
-  const free = (x, y) => !out.some(s => Math.abs(s.x - x) < 72 && Math.abs(s.y - y) < 58) && !lairs.some(p => Math.hypot(p.x - x, p.y - y) < 150) && !nearSafe(x, y)
-    && !Object.values(wo_INNP).some(e => Math.hypot(e.x - x, e.y - y) < 240);
+  const zid = (x, y) => ZONES[gZid(x, y)].id;
+  const nearSafe = (x, y) => [[0, 0], [220, 0], [-220, 0], [0, 220], [0, -220], [160, 160], [-160, 160], [160, -160], [-160, -160]].some(([dx, dy]) => SAFE[zid(clamp(x + dx, 0, GW - 1), clamp(y + dy, 0, GH - 1))]);
+  const lairs = Object.values(LAIRS), inns = Object.values(wo_INNP).map(gPt);
+  const free = (x, y) => !out.some(s => Math.abs(s.x - x) < 144 && Math.abs(s.y - y) < 116) && !lairs.some(p => Math.hypot(p.x - x, p.y - y) < 300) && !nearSafe(x, y)
+    && !inns.some(e => Math.hypot(e.x - x, e.y - y) < 480);
   for (const [zone, kinds] of Object.entries(ZONE_MOBS)){
     const [lo, hi] = ZONE_LV[zone];
     const first = out.length;
     const add = (kind, x, y) => out.push({ kind, x: Math.round(x), y: Math.round(y), zone, lvl: lo, mon:null, t:0 });
     let n = 0;
     const pts = [];
-    for (const kind of kinds) for (const p of (SPAWNS[kind] || [])) if (zid(p.x, p.y) === zone) pts.push([kind, p]);
+    for (const kind of kinds) for (const q of (SPAWNS[kind] || [])){ const p = gPt(q); if (zid(p.x, p.y) === zone) pts.push([kind, p]); }
     for (let i = pts.length - 1; i > 0; i--){ const j = R() * (i + 1) | 0; [pts[i], pts[j]] = [pts[j], pts[i]]; }
     for (const [kind, p] of pts){ if (n >= TARGET[zone] * .7) break; if (!free(p.x, p.y)) continue; add(kind, p.x, p.y); n++; }
     for (let t = 0; t < 6000 && n < TARGET[zone]; t++){
-      const x = R() * WW, y = R() * WH;
-      if (zid(x, y) !== zone || !wo_ok(x | 0, y | 0) || !free(x, y)) continue;
+      const x = R() * GW, y = R() * GH;
+      if (zid(x, y) !== zone || !gOk(x, y) || !free(x, y)) continue;
       add(kinds[R() * kinds.length | 0], x, y); n++;
     }
     // je weiter von Burg und Stadt entfernt, desto stärker
@@ -9025,13 +9199,13 @@ NPC_ART.stall = np_frames({ robe:'short', hat:'filz', belt:true, beard:true, hai
 NPC_ART.schmied = np_frames({ robe:'short', apron:'leather', belt:true, beard:true, hairSide:true, hair:['h', 'j'], sleeve:['s', 't', 'u', 'v'] },
   { 1:'#2a2420', 2:'#3a322c', 3:'#4a4038', 4:'#5c5048', 5:'#2a2420', 6:'#3a322c', 7:'#4a4038', 8:'#5c5048' });
 const NPCS = [
-  { id:'vogt', name:'Vogt Heinrich', role:'Aufträge', hub:'burg', at: wo_near(1954, 530), quest:true },
-  { id:'kraemerin', name:'Krämerin Gertrud', role:'Händlerin', hub:'burg', at: wo_near(2074, 536), shop:true },
-  { id:'buerger', name:'Bürgermeister Ulman', role:'Aufträge', hub:'stadt', at: wo_near(2926, 2352), quest:true },
-  { id:'kraemer', name:'Krämer Jörg', role:'Händler', hub:'stadt', at: wo_near(3052, 2318), shop:true },
-  { id:'stall', name:'Stallmeister Lienhard', role:'Pferde', hub:'burg', at: wo_near(1760, 548), stable:true,
+  { id:'vogt', name:'Vogt Heinrich', role:'Aufträge', hub:'burg', at: gNear(1954, 530), quest:true },
+  { id:'kraemerin', name:'Krämerin Gertrud', role:'Händlerin', hub:'burg', at: gNear(2074, 536), shop:true },
+  { id:'buerger', name:'Bürgermeister Ulman', role:'Aufträge', hub:'stadt', at: gNear(2926, 2352), quest:true },
+  { id:'kraemer', name:'Krämer Jörg', role:'Händler', hub:'stadt', at: gNear(3052, 2318), shop:true },
+  { id:'stall', name:'Stallmeister Lienhard', role:'Pferde', hub:'burg', at: gNear(1760, 548), stable:true,
     greet:['Ein Ritter ohne Pferd ist nur ein Mann in Blech.', 'Gute Pferde, ehrlicher Preis. Fast immer.', 'Wollt Ihr reiten oder laufen, Herr Ritter?'] },
-  { id:'schmied', name:'Schmied Wolf', role:'Schmied', hub:'stadt', at: wo_near(3000, 2372), smith:true,
+  { id:'schmied', name:'Schmied Wolf', role:'Schmied', hub:'stadt', at: gNear(3000, 2372), smith:true,
     greet:['Gebt her, ich schlage Euch das Eisen härter.', 'Gute Klingen brauchen gute Hämmer.', 'Wer bei mir arbeiten lässt, kehrt öfter heim.'] }
 ];
 NPCS.forEach(n => { n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; });
@@ -9116,87 +9290,103 @@ const INN_LORE = {
 };
 
 /* ---------- Gasthäuser in der Welt ---------- */
-const INNS = Object.entries(wo_INNP).map(([id, p]) => Object.assign({ id, x: p.x, y: p.y, dx: p.door, dy: p.y + 12 }, INN_INFO[id]));
+const INNS = Object.entries(wo_INNP).map(([id, p]) => {
+  const pr = GPROPS.find(q => q.kind === 'gasthaus_' + id);
+  return Object.assign({ id, x: p.x * WS, y: p.y * WS, dx: p.door * WS, dy: p.y * WS + 12, top: pr ? pr.y - pr.ay : p.y * WS - 200 }, INN_INFO[id]);
+});
 const INN_BY = Object.fromEntries(INNS.map(i => [i.id, i]));
 const HUB_IN = { burg:'in der Reichsburg', stadt:'in der Reichsstadt' };
 for (const inn of INNS){
   BIND[inn.id] = { x: inn.dx, y: inn.dy + 2 };
   HUB_NAME[inn.id] = 'Gasthaus ' + inn.name;
   HUB_IN[inn.id] = 'im Gasthaus ' + inn.name;
-  MAP_LABELS.push({ x: inn.dx, y: inn.y - 70, name: inn.name, inn: true });
+  MAP_LABELS.push({ x: inn.dx / WS, y: inn.y / WS - 70, name: inn.name, inn: true });
 }
-const nearInn = (x, y) => INNS.some(i => Math.hypot(i.dx - x, i.dy - y) < 130);
+const nearInn = (x, y) => INNS.some(i => Math.hypot(i.dx - x, i.dy - y) < 220);
 
-/* ---------- Innenraum: Herd, Schanktisch, Tische und Bänke (Bildschirmkoordinaten) ---------- */
-const ROOM_DOOR = { x: 240, y: 252 };
+/* ---------- Innenraum: Herd, Schanktisch, Tische und Bänke (Raumkoordinaten, Figuren in Feinpixeln) ---------- */
+const RW = 960, RH = 540;                  // Gaststube; ist die Leinwand kleiner, folgt der Blick dem Ritter
+const ROOM_DOOR = { x: 480, y: 522 };
+const roomCam = k => ({ x: Math.round(clamp(k.x - W / 2, 0, Math.max(0, RW - W))), y: Math.round(clamp(k.y - 22 - H / 2, 0, Math.max(0, RH - H))) });
 function innRoom(inn){
   if (inn.room) return inn.room;
-  const s = inn.seed, B = wp_buf(W, H), R = rng(s), items = [], rects = [], candles = [];
-  const C = (h) => wp_c(h);
-  wp_rect(B, 0, 0, W, H, C('#100d0b'));
+  const s = inn.seed, B = wp_buf(RW, RH), R = rng(s), items = [], rects = [], candles = [];
+  const C = (h) => wp_c(h), FL = 130;     // Oberkante des Dielenbodens
+  wp_rect(B, 0, 0, RW, RH, C('#100d0b'));
   // Rückwand: Fachwerk mit Butzenscheiben
-  wp_fachwerk(B, { x0: 22, x1: 458, yT: 8, yB: 86, R: wp_P.oak, P: inn.wall, s, pat: 'kreuz', flake: .35, gap: 22, par: 3,
-    wins: [{ x: 152, w: 14, h: 12, glass: true }, { x: 214, w: 14, h: 12, glass: true }, { x: 262, w: 14, h: 12, glass: true }] });
-  wp_beam(B, 22, 86, 458, 86, 3, wp_P.oak, s + 3);
+  wp_fachwerk(B, { x0: 22, x1: RW - 22, yT: 8, yB: FL - 4, R: wp_P.oak, P: inn.wall, s, pat: 'kreuz', flake: .35, gap: 24, par: 8,
+    wins: [{ x: 212, w: 18, h: 18, glass: true }, { x: 300, w: 18, h: 18, glass: true }, { x: 446, w: 18, h: 18, glass: true }, { x: 520, w: 18, h: 18, glass: true }, { x: 620, w: 18, h: 18, glass: true }] });
+  wp_beam(B, 22, FL - 4, RW - 22, FL - 4, 3, wp_P.oak, s + 3);
   // Seitenwände in Schräge
-  wp_poly(B, [[0, 0], [22, 8], [22, 92], [0, 112]], (x, y) => wp_tone(wp_P.oak, .18 + (wp_h(x, y, s) - .5) * .1, x, y));
-  wp_poly(B, [[W, 0], [458, 8], [458, 92], [W, 112]], (x, y) => wp_tone(wp_P.oak, .1 + (wp_h(x, y, s) - .5) * .1, x, y));
+  wp_poly(B, [[0, 0], [22, 8], [22, FL + 2], [0, FL + 30]], (x, y) => wp_tone(wp_P.oak, .18 + (wp_h(x, y, s) - .5) * .1, x, y));
+  wp_poly(B, [[RW, 0], [RW - 22, 8], [RW - 22, FL + 2], [RW, FL + 30]], (x, y) => wp_tone(wp_P.oak, .1 + (wp_h(x, y, s) - .5) * .1, x, y));
   // Dielenboden
-  for (let y = 88; y < H; y++){
-    const row = Math.floor((y - 88) / 7), off = (row * 37) % 60;
-    for (let x = 0; x < W; x++){
-      const k = Math.floor((x + off) / 60), seam = (y - 88) % 7 === 0 || (x + off) % 60 === 0;
-      let v = .42 + (wp_h(k, row, s) - .5) * .22 + (wp_vn(x * .08, y * .5, s + 2) - .5) * .25 - (y < 96 ? .15 : 0);
+  for (let y = FL - 2; y < RH; y++){
+    const row = Math.floor((y - FL + 2) / 8), off = (row * 37) % 72;
+    for (let x = 0; x < RW; x++){
+      const k = Math.floor((x + off) / 72), seam = (y - FL + 2) % 8 === 0 || (x + off) % 72 === 0;
+      let v = .42 + (wp_h(k, row, s) - .5) * .22 + (wp_vn(x * .07, y * .45, s + 2) - .5) * .25 - (y < FL + 6 ? .15 : 0);
       if (seam) v -= .28;
+      if (!seam && (x + off) % 72 === 3 && (y - FL + 2) % 8 === 4) v -= .2;     // Holznagel
       wp_set(B, x, y, wp_tone(wp_P.wood, v, x, y));
-      if (wp_h(x, y, s + 9) > .985) wp_set(B, x, y, wp_P.straw[3]);        // Binsenhalme auf dem Boden
+      if (wp_h(x, y, s + 9) > .986) wp_set(B, x, y, wp_P.straw[3]);        // Binsenhalme auf dem Boden
     }
   }
-  for (let y = 88; y < 112; y++){ const w2 = Math.round(22 - (y - 88) * .9); wp_rect(B, 0, y, Math.max(0, w2), y + 1, C('#100d0b')); wp_rect(B, W - Math.max(0, w2), y, W, y + 1, C('#100d0b')); }
+  for (let y = FL - 2; y < FL + 30; y++){ const w2 = Math.round(22 - (y - FL + 2) * .72); wp_rect(B, 0, y, Math.max(0, w2), y + 1, C('#100d0b')); wp_rect(B, RW - Math.max(0, w2), y, RW, y + 1, C('#100d0b')); }
   // Herd: Steinmantel, Feueröffnung, Kesselhaken
-  wp_rect(B, 30, 10, 126, 100, wp_rubble({ R: wp_P.grey, s: s + 5, cw: 7, chh: 4 }));
-  wp_rect(B, 26, 40, 130, 46, (x, y) => wp_tone(wp_P.oak, y === 40 ? .75 : .4, x, y));
-  wp_rect(B, 50, 58, 106, 98, (x, y) => wp_P.dark[y < 64 ? 0 : 1]);
-  wp_rect(B, 50, 92, 106, 98, (x, y) => wp_tone(wp_P.char, .3 + wp_h(x, y, s) * .5, x, y));
-  wp_line(B, 78, 58, 78, 72, wp_P.iron[2]);
-  wp_ell(B, 78, 78, 8, 6, (x, y) => wp_tone(wp_P.iron, .25 + (78 - x) * .04 - (y - 78) * .03, x, y));
-  for (let i = 0; i < 6; i++){ const jx = 36 + i * 15; wp_rect(B, jx, 33, jx + 5, 40, (x, y) => wp_tone(i & 1 ? wp_P.ochre : wp_P.grey, .3 + (jx + 5 - x) * .1, x, y)); }
-  rects.push([28, 0, 128, 102]);
+  const hx0 = 40, hx1 = 168;
+  wp_rect(B, hx0, 10, hx1, FL + 12, wp_rubble({ R: wp_P.grey, s: s + 5, cw: 7, chh: 4 }));
+  wp_rect(B, hx0 - 4, 50, hx1 + 4, 57, (x, y) => wp_tone(wp_P.oak, y === 50 ? .75 : .4, x, y));
+  wp_rect(B, hx0 + 22, 72, hx1 - 22, FL + 10, (x, y) => wp_P.dark[y < 80 ? 0 : 1]);
+  wp_rect(B, hx0 + 22, FL + 4, hx1 - 22, FL + 10, (x, y) => wp_tone(wp_P.char, .3 + wp_h(x, y, s) * .5, x, y));
+  const kx = (hx0 + hx1) / 2;
+  wp_line(B, kx, 72, kx, 92, wp_P.iron[2]);
+  wp_ell(B, kx, 100, 11, 8, (x, y) => wp_tone(wp_P.iron, .25 + (kx - x) * .03 - (y - 100) * .03, x, y));
+  for (let i = 0; i < 8; i++){ const jx = hx0 + 6 + i * 15; wp_rect(B, jx, 42, jx + 6, 50, (x, y) => wp_tone(i & 1 ? wp_P.ochre : wp_P.grey, .3 + (jx + 6 - x) * .09, x, y)); }
+  rects.push([hx0 - 2, 0, hx1 + 2, FL + 14]);
+  // Holzstapel neben dem Herd
+  wp_woodpile(B, hx1 + 6, FL + 12, 26, 16, s + 21);
+  rects.push([hx1 + 4, FL - 6, hx1 + 34, FL + 13]);
   // Regal mit Krügen und Zinntellern, Hirschgeweih, Wappen des Hauses
-  for (const sy of [36, 58]) wp_rect(B, 300, sy, 446, sy + 3, (x, y) => wp_tone(wp_P.oak, y === sy ? .75 : .35, x, y));
-  for (let i = 0; i < 12; i++){
-    const jx = 304 + i * 12, sy = i & 1 ? 58 : 36;
+  const sx0 = 700, sx1 = 914;
+  for (const sy of [46, 74]) wp_rect(B, sx0, sy, sx1, sy + 3, (x, y) => wp_tone(wp_P.oak, y === sy ? .75 : .35, x, y));
+  for (let i = 0; i < 17; i++){
+    const jx = sx0 + 6 + i * 12, sy = i & 1 ? 74 : 46;
     if (i % 3 === 0) wp_ell(B, jx + 3, sy - 4, 4, 4, (x, y) => wp_tone(wp_P.iron, .75 - Math.hypot(x - jx - 2, y - sy + 5) * .1, x, y));
-    else wp_rect(B, jx, sy - 7, jx + 6, sy, (x, y) => wp_tone(i % 3 === 1 ? wp_P.grey : wp_P.ochre, .3 + (jx + 6 - x) * .08, x, y));
+    else wp_rect(B, jx, sy - 8, jx + 6, sy, (x, y) => wp_tone(i % 3 === 1 ? wp_P.grey : wp_P.ochre, .3 + (jx + 6 - x) * .08, x, y));
   }
-  wp_rect(B, 362, 12, 384, 30, (x, y) => wp_tone(wp_P.oak, .35, x, y));
-  for (const [ax, ay] of [[356, 14], [352, 10], [390, 14], [394, 10]]) wp_line(B, 373, 20, ax, ay, wp_P.bark[4]);
+  wp_rect(B, 400, 18, 424, 38, (x, y) => wp_tone(wp_P.oak, .35, x, y));
+  for (const [ax, ay] of [[394, 20], [390, 15], [430, 20], [434, 15], [388, 26], [436, 26]]) wp_line(B, 412, 27, ax, ay, wp_P.bark[4]);
   // Fässer an der Wand hinter dem Schanktisch
-  for (let i = 0; i < 6; i++) wp_barrel(B, 312 + i * 24, 92, 18, 20, s + i, { R: wp_P.wood });
+  for (let i = 0; i < 8; i++) wp_barrel(B, 716 + i * 26, FL + 2, 18, 22, s + i, { R: wp_P.wood });
   // Ausgang unten: Tür ins Freie
-  wp_rect(B, 0, 254, W, H, (x, y) => wp_tone(wp_P.oak, .22 + (wp_h(x, y, s) - .5) * .1, x, y));
-  wp_rect(B, 224, 254, 256, H, (x, y) => wp_tone(wp_P.moss, .55 + (y - 254) * .02, x, y));
-  wp_rect(B, 222, 252, 224, H, wp_P.oak[4]); wp_rect(B, 256, 252, 258, H, wp_P.oak[1]);
-  rects.push([0, 0, 22, H], [458, 0, W, H], [0, 0, W, 94], [0, 254, 226, H], [254, 254, W, H]);
+  const dx0 = ROOM_DOOR.x - 18, dx1 = ROOM_DOOR.x + 18;
+  wp_rect(B, 0, RH - 16, RW, RH, (x, y) => wp_tone(wp_P.oak, .22 + (wp_h(x, y, s) - .5) * .1, x, y));
+  wp_rect(B, dx0, RH - 16, dx1, RH, (x, y) => wp_tone(wp_P.moss, .55 + (y - RH + 16) * .02, x, y));
+  wp_rect(B, dx0 - 2, RH - 18, dx0, RH, wp_P.oak[4]); wp_rect(B, dx1, RH - 18, dx1 + 2, RH, wp_P.oak[1]);
+  rects.push([0, 0, 22, RH], [RW - 22, 0, RW, RH], [0, 0, RW, FL + 4], [0, RH - 16, dx0 - 2, RH], [dx1 + 2, RH - 16, RW, RH]);
   // Radleuchter mit Kerzen an Ketten
-  wp_line(B, 240, 0, 240, 22, wp_P.iron[2]);
-  wp_ell(B, 240, 26, 22, 3, (x, y) => (Math.abs((x - 240) / 22) ** 2 + ((y - 26) / 3) ** 2 > .45) ? wp_tone(wp_P.oak, .45 - (y - 26) * .1, x, y) : 0);
-  for (const cx of [222, 234, 246, 258]){ wp_rect(B, cx, 18, cx + 2, 24, C('#e8e0c8')); wp_set(B, cx, 16, C('#ffd36a')); wp_set(B, cx, 17, C('#fff3c0')); }
+  const chand = [330, 630];
+  for (const lx of chand){
+    wp_line(B, lx, 0, lx, 30, wp_P.iron[2]);
+    wp_ell(B, lx, 34, 24, 3, (x, y) => (Math.abs((x - lx) / 24) ** 2 + ((y - 34) / 3) ** 2 > .45) ? wp_tone(wp_P.oak, .45 - (y - 34) * .1, x, y) : 0);
+    for (const cx of [lx - 18, lx - 6, lx + 6, lx + 18]){ wp_rect(B, cx, 26, cx + 2, 32, C('#e8e0c8')); wp_set(B, cx, 24, C('#ffd36a')); wp_set(B, cx, 25, C('#fff3c0')); }
+  }
   const bg = wp_canvas(B);
   // Wirtshausschild an der Rückwand
   const sign = wp_img(16, 14, 13); wp_innSign(sign, 0, -2, 1, inn.id); wp_outline(sign, true);
-  bg.getContext('2d').drawImage(wp_canvas(sign), 404, 12);
+  bg.getContext('2d').drawImage(wp_canvas(sign), 860, 14);
 
   // Schanktisch (vor dem Wirt)
-  const ct = wp_img(156, 24, 22);
-  wp_rect(ct, 2, 2, 154, 7, (x, y) => wp_tone(wp_P.oak, y < 4 ? .8 : .5, x, y));
-  wp_rect(ct, 4, 7, 152, 22, wp_planks(wp_P.wood, s + 11, 6, {}));
-  for (const kx of [30, 60, 112]){ wp_rect(ct, kx, -1, kx + 5, 2, (x, y) => wp_tone(wp_P.wood, .6, x, y)); wp_rect(ct, kx, -2, kx + 5, 0, C('#e8e2d0')); }
+  const cw = 220, ct = wp_img(cw, 26, 24);
+  wp_rect(ct, 2, 2, cw - 2, 8, (x, y) => wp_tone(wp_P.oak, y < 4 ? .8 : .5, x, y));
+  wp_rect(ct, 4, 8, cw - 4, 24, wp_planks(wp_P.wood, s + 11, 6, {}));
+  for (const kx2 of [34, 70, 150, 186]){ wp_rect(ct, kx2, -1, kx2 + 5, 2, (x, y) => wp_tone(wp_P.wood, .6, x, y)); wp_rect(ct, kx2, -2, kx2 + 5, 0, C('#e8e2d0')); }
   wp_outline(ct, true);
-  items.push({ img: wp_canvas(ct), x: 370, y: 120, ax: 78, ay: 22 });
-  rects.push([292, 0, 450, 122]);
-  // Tische mit Bänken
-  const tables = [[62, 172, 152], [210, 300, 204], [330, 440, 178]];
+  items.push({ img: wp_canvas(ct), x: 806, y: 190, ax: cw >> 1, ay: 24 });
+  rects.push([690, 0, 920, 192]);
+  // Tische mit Bänken in zwei Reihen
+  const tables = [[72, 196, 262], [300, 430, 250], [560, 690, 266], [150, 280, 392], [420, 552, 404], [690, 820, 386]];
   for (const [x0, x1, ty] of tables){
     const w2 = x1 - x0, T = wp_img(w2 + 4, 22, 20);
     wp_rect(T, 2, 2, w2 + 2, 11, (x, y) => wp_tone(wp_P.oak, .55 + (wp_vn(x * .2, y, s) - .5) * .3 - (y > 8 ? .2 : 0), x, y));
@@ -9219,14 +9409,14 @@ function innRoom(inn){
       items.push({ img: wp_canvas(Bn), x: Math.round((x0 + x1) / 2), y: by, ax: (w2 - 6) >> 1, ay: 7 });
     }
   }
-  // Licht: Herdfeuer, Kerzen, Laterne über dem Schanktisch, Tageslicht durch die Tür
-  const lights = [[78, 84, 210, 1, 1], [372, 52, 120, .7, .4], [240, 130, 190, .5, .35], [240, 268, 90, .55, 0]].concat(candles.map(c => [c.x, c.y, 75, .55, .5]));
-  const light = canvasOf(W, H), lg = light.getContext('2d'), id = lg.createImageData(W, H);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){
+  // Licht: Herdfeuer, Kerzen, Laterne über dem Schanktisch, Radleuchter, Tageslicht durch die Tür
+  const lights = [[kx, 112, 270, 1, 1], [806, 70, 170, .7, .4], [chand[0], 200, 220, .5, .35], [chand[1], 200, 220, .5, .35], [ROOM_DOOR.x, RH + 16, 130, .55, 0]].concat(candles.map(c => [c.x, c.y, 80, .55, .5]));
+  const light = canvasOf(RW, RH), lg = light.getContext('2d'), id = lg.createImageData(RW, RH);
+  for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++){
     let L = 0, warm = 0;
-    for (const [lx, ly, r, k, wm] of lights){ const d = Math.hypot(x - lx, (y - ly) * 1.2); if (d < r){ const v = Math.pow(1 - d / r, 1.4) * k; L += v; warm += v * wm; } }
+    for (const [lx, ly, r, k, wm] of lights){ const dx = x - lx, dy = (y - ly) * 1.2; if (Math.abs(dx) >= r || Math.abs(dy) >= r) continue; const d = Math.hypot(dx, dy); if (d < r){ const v = Math.pow(1 - d / r, 1.4) * k; L += v; warm += v * wm; } }
     L = Math.min(1, L); warm = Math.min(1, warm);
-    const q = .07, a = Math.floor((.52 * (1 - L) + .1 * warm) / q + dither(x, y)) * q, i = (y * W + x) * 4;
+    const q = .07, a = Math.floor((.52 * (1 - L) + .1 * warm) / q + dither(x, y)) * q, i = (y * RW + x) * 4;
     const t = clamp(warm * 1.4, 0, 1);
     id.data[i] = Math.round(14 + (255 - 14) * t); id.data[i + 1] = Math.round(10 + (160 - 10) * t); id.data[i + 2] = Math.round(8 + (70 - 8) * t);
     id.data[i + 3] = Math.round(clamp(a, 0, .85) * 255);
@@ -9234,12 +9424,12 @@ function innRoom(inn){
   lg.putImageData(id, 0, 0);
   const host = inn.id === 'adler' ? 'wirtin' : 'wirt';
   const npcs = [
-    { id:'wirt', key:'wirt_' + inn.id, name: inn.host, role: inn.role, x: 372, y: 110, art: INN_ART[host], wirt: true, inn: inn.id,
+    { id:'wirt', key:'wirt_' + inn.id, name: inn.host, role: inn.role, x: 806, y: 176, art: INN_ART[host], wirt: true, inn: inn.id,
       greet:['Setzt Euch, Ritter! Was darf’s sein?', 'Willkommen im ' + inn.name.replace(/^Zu[mr] /, '') + '. Hier wird nicht gekämpft, hier wird gegessen.', 'Ein Krug Bier gegen den Staub der Straße?'] },
-    { id:'spielmann', key:'spielmann_' + inn.id, name:'Spielmann Veit', role:'Spielmann', x: 196, y: 112, art: INN_ART.spielmann, lore: INN_LORE.spielmann },
-    { id:'bauer', key:'bauer_' + inn.id, name:'Bauer Hinz', role:'Gast', x: 98, y: 137, art: INN_ART.bauer, lore: INN_LORE.bauer }
+    { id:'spielmann', key:'spielmann_' + inn.id, name:'Spielmann Veit', role:'Spielmann', x: 480, y: 168, art: INN_ART.spielmann, lore: INN_LORE.spielmann },
+    { id:'bauer', key:'bauer_' + inn.id, name:'Bauer Hinz', role:'Gast', x: 112, y: 247, art: INN_ART.bauer, lore: INN_LORE.bauer }
   ];
-  return (inn.room = { bg, light, items, rects, npcs, candles, fire: { x: 78, y: 92 } });
+  return (inn.room = { bg, light, items, rects, npcs, candles, fire: { x: kx, y: FL + 8 } });
 }
 const roomBlocked = (rm, x, y) => rm.rects.some(r => x + 6 > r[0] && x - 6 < r[2] && y > r[1] && y - 5 < r[3]);
 
@@ -9262,7 +9452,7 @@ function leaveInn(){
   if (!inn) return;
   G.inside = null;
   k.x = inn.dx; k.y = inn.dy + 2; k.dir = 'down';
-  G.zone = zoneAt(k.x, k.y).id; G.spawnT = 0; G.parts.length = 0;
+  G.zone = gZone(k.x, k.y).id; G.spawnT = 0; G.parts.length = 0;
   Sound.setTune('world');
   updateZone(true); updateNear(); sendPresence(true); markDirty(true);
 }
@@ -9273,7 +9463,7 @@ function updateInn(dt){
     if (Math.abs(v.x) > Math.abs(v.y) + .01) k.dir = v.x > 0 ? 'right' : 'left'; else k.dir = v.y > 0 ? 'down' : 'up';
     k.anim += dt * 8;
   } else k.anim = 0;
-  const sp = 92, nx = k.x + v.x * sp * dt, ny = k.y + v.y * sp * dt;
+  const sp = 110, nx = k.x + v.x * sp * dt, ny = k.y + v.y * sp * dt;
   if (!roomBlocked(rm, nx, k.y)) k.x = nx;
   if (!roomBlocked(rm, k.x, ny)) k.y = ny;
   if (k.y > ROOM_DOOR.y - 2 && Math.abs(k.x - ROOM_DOOR.x) < 16 && v.y > 0){ leaveInn(); return; }
@@ -9282,13 +9472,15 @@ function updateInn(dt){
   for (const id in G.cd) if (G.cd[id] > 0) G.cd[id] = Math.max(0, G.cd[id] - dt);
   G.combatT = 99; G.buffT = 0;
   // Funken aus dem Herd
-  if (Math.random() < dt * 9) G.parts.push({ x: rm.fire.x + rand(-14, 14), y: rm.fire.y - 6, vx: rand(-6, 6), vy: rand(-46, -22), life: rand(.4, .9), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -8, glow: true });
+  if (Math.random() < dt * 12) G.parts.push({ x: rm.fire.x + rand(-26, 26), y: rm.fire.y - 6, vx: rand(-6, 6), vy: rand(-46, -22), life: rand(.4, .9), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -8, glow: true });
 }
 function renderInn(){
-  const inn = G.inside, rm = innRoom(inn), k = G.knight;
+  const inn = G.inside, rm = innRoom(inn), k = G.knight, cam = roomCam(k);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (RW < W || RH < H){ ctx.fillStyle = '#0b0908'; ctx.fillRect(0, 0, W, H); }
+  ctx.setTransform(1, 0, 0, 1, -cam.x + Math.max(0, (W - RW) >> 1), -cam.y + Math.max(0, (H - RH) >> 1));
   ctx.drawImage(rm.bg, 0, 0);
-  for (let i = 0; i < 4; i++) flame(rm.fire.x - 15 + i * 10, rm.fire.y, G.t + i * .7, i === 1 || i === 2);
+  for (let i = 0; i < 6; i++) flame(rm.fire.x - 30 + i * 12, rm.fire.y, G.t + i * .7, i > 0 && i < 5);
   const actors = [{ x: k.x, y: k.y }].concat(rm.npcs, [...PEERS.values()].filter(p => p.in === inn.id));
   for (const a of actors) shadow(a.x, a.y - 1, 16, .35);
   const list = rm.items.map(it => ({ y: it.y, d: () => ctx.drawImage(it.img, Math.round(it.x - it.ax), Math.round(it.y - it.ay)) }));
@@ -9302,13 +9494,14 @@ function renderInn(){
   ctx.drawImage(rm.light, 0, 0);
   for (const n of rm.npcs) drawNpcPlate(n);
   for (const p of PEERS.values()) if (p.in === inn.id){
-    drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 9, '#9cc8ff');
-    if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11, p.say);
+    drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15, '#9cc8ff');
+    if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 17, p.say);
   }
   if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4, G.say);
   if (G.nearExit) drawText(TOUCH ? 'Hinausgehen' : 'Nach unten: hinaus', ROOM_DOOR.x, ROOM_DOOR.y - 2, '#ffffff');
   for (const f of G.floats){ ctx.globalAlpha = clamp(f.life / f.max * 2.5, 0, 1); drawText(f.txt, f.x, f.y, f.c, 'c', f.s); }
   ctx.globalAlpha = 1;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 /* Stärkung durch Speis und Trank: läuft in Spielzeit ab */
 function tickBuffs(dt){
@@ -9341,19 +9534,19 @@ function freshKnight(x, y){
     atkT:0, atkLen:SWING, atkCd:0, swing:0, swA0:0, swA1:0, kbx:0, kby:0, mult:1, bashT:0, bx:0, by:0 };
 }
 function freshState(mode){
-  const p = HERO ? { x: HERO.x, y: HERO.y } : START;
+  const p = HERO ? { x: HERO.x, y: HERO.y } : GSTART;
   return {
-    v:5, mode, t:0, shake:0, flash:0, dieT:0, fogX:0, zone: zoneAt(p.x, p.y).id,
+    v:5, mode, t:0, shake:0, flash:0, dieT:0, fogX:0, zone: gZone(p.x, p.y).id,
     knight: freshKnight(p.x, p.y),
     mons:[], rising:[], shots:[], parts:[], floats:[], loot:[],
     cd:{ rund:0, stoss:0, ruf:0, trank:0 }, buffT:0, combatT:99, inside:null, near:null, nearDoor:null, nearExit:false, spawnT:0, saveT:0, fullMsgT:0, lostGold:0
   };
 }
 let G = null;
-const camOf = k => ({ x: Math.round(clamp(k.x - W / 2, 0, WW - W)), y: Math.round(clamp(k.y - 22 - H / 2, 0, WH - H)) });
+const camOf = k => ({ x: Math.round(clamp(k.x - W / 2, 0, GW - W)), y: Math.round(clamp(k.y - 22 - H / 2, 0, GH - H)) });
 
 /* Kollision über das Weltraster */
-const blocked = (x, y, wade) => boxBlocked(x - 6, y - 5, x + 6, y, wade);
+const blocked = (x, y, wade) => gBlocked(x - 6, y - 5, x + 6, y, wade);
 function pushOut(m, wade){
   if (!blocked(m.x, m.y, wade)) return;
   for (let r = 2; r <= 24; r += 2) for (let a = 0; a < 8; a++){
@@ -9381,18 +9574,18 @@ function steer(m, mvx, mvy, wade){
 }
 
 /* Objekte der Welt in ein grobes Raster einsortieren, damit nur Sichtbares gezeichnet wird */
-const PCELL = 256, PCOLS = Math.ceil(WW / PCELL), PROWS = Math.ceil(WH / PCELL);
+const PCELL = 512, PCOLS = Math.ceil(GW / PCELL), PROWS = Math.ceil(GH / PCELL);
 const propGrid = Array.from({ length: PCOLS * PROWS }, () => []);
-PROPS.forEach((p, i) => {
+GPROPS.forEach((p, i) => {
   p.shake = p.shake || 0;
   const c = clamp(p.x / PCELL | 0, 0, PCOLS - 1), r = clamp(p.y / PCELL | 0, 0, PROWS - 1);
   propGrid[r * PCOLS + c].push(i);
 });
 function propsInView(cam){
-  const out = [], c0 = Math.max(0, (cam.x - 120) / PCELL | 0), c1 = Math.min(PCOLS - 1, (cam.x + W + 120) / PCELL | 0);
-  const r0 = Math.max(0, (cam.y - 40) / PCELL | 0), r1 = Math.min(PROWS - 1, (cam.y + H + 240) / PCELL | 0);
+  const out = [], c0 = Math.max(0, (cam.x - 300) / PCELL | 0), c1 = Math.min(PCOLS - 1, (cam.x + W + 300) / PCELL | 0);
+  const r0 = Math.max(0, (cam.y - 80) / PCELL | 0), r1 = Math.min(PROWS - 1, (cam.y + H + 560) / PCELL | 0);
   for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) for (const i of propGrid[r * PCOLS + c]){
-    const p = PROPS[i];
+    const p = GPROPS[i];
     if (p.x - p.ax > cam.x + W || p.x - p.ax + p.img.width < cam.x || p.y - p.ay > cam.y + H || p.y - p.ay + p.img.height < cam.y) continue;
     out.push(p);
   }
@@ -9407,7 +9600,7 @@ function burst(x, y, colors, n, spd = 70, glow){
 /* schwebende Zahlen und Worte; s = Vergrößerung */
 function floatText(x, y, txt, c, s, life){
   // frische Schriften an derselben Stelle stapeln, damit nichts übereinander liegt
-  for (const f of G.floats) if (Math.abs(f.x - x) < 30 && Math.abs(f.y - y) < 7 && f.max - f.life < .35) y = f.y - 7 * (f.s || 1);
+  for (const f of G.floats) if (Math.abs(f.x - x) < 40 && Math.abs(f.y - y) < 12 && f.max - f.life < .35) y = f.y - 13 * (f.s || 1);
   G.floats.push({ x, y, txt: String(txt), c, s: s || 1, life: life || .9, max: life || .9 });
 }
 
@@ -9442,7 +9635,7 @@ function wurmSegs(m){
 let monSeq = 0;
 function createMonster(kind, x, y, lvl, slot){
   const d = MON[kind];
-  const m = { k: kind, x, y, y0: y, hx: x, hy: y, lvl, slot: slot || null, zone: slot ? slot.zone : (BOSSES[kind] ? BOSSES[kind].zone : zoneAt(x, y).id),
+  const m = { k: kind, x, y, y0: y, hx: x, hy: y, lvl, slot: slot || null, zone: slot ? slot.zone : (BOSSES[kind] ? BOSSES[kind].zone : gZone(x, y).id),
     hp: monHp(kind, lvl), max: 0, vx: 0, vy: 0, t: rand(0, 6), st: 'idle', sT: 0, dir: Math.random() < .5 ? 1 : -1, fl: 0, hitBy: -1,
     ax: 0, ay: 0, loot: [], av: 0, avT: 0, rl: rand(1, 2), spd: d.spd, mode: 'idle', wT: rand(.5, 3), tx: x, ty: y, walking: false,
     alpha: 1, stunT: 0, backT: 0, uid: ++monSeq, seen: 0 };
@@ -9453,7 +9646,7 @@ function createMonster(kind, x, y, lvl, slot){
   return m;
 }
 const aggroRange = m => MON[m.k].boss ? 130 : clamp(95 + (m.lvl - HERO.lvl) * 9, 45, 150);
-const leashOf = m => MON[m.k].boss ? 320 : 400;
+const leashOf = m => MON[m.k].boss ? 420 : 520;
 function engage(m, social){
   if (m.mode === 'fight' || m.mode === 'back') return;
   m.mode = 'fight'; m.t = 0; m.walking = false;
@@ -9462,7 +9655,7 @@ function engage(m, social){
   if (!social){
     if (m.k === 'werwolf') Sound.howl(); else if (m.k === 'rabe') Sound.caw(); else if (m.k === 'ratte') Sound.squeak();
     if (MON[m.k].boss){ Sound.horn(); G.flash = .3; showBanner(MON[m.k].name, 'Stufe ' + m.lvl + ' · Anführer'); }
-    for (const o of G.mons) if (o !== m && o.mode === 'idle' && !MON[o.k].boss && Math.hypot(o.x - m.x, o.y - m.y) < 64) engage(o, true);
+    for (const o of G.mons) if (o !== m && o.mode === 'idle' && !MON[o.k].boss && Math.hypot(o.x - m.x, o.y - m.y) < 80) engage(o, true);
   }
 }
 /* Heimkehr: das Monster lässt ab, läuft zu seinem Lager und heilt sich */
@@ -9487,7 +9680,7 @@ function idleMove(m, dt){
     return [dx / l * sp, dy / l * sp];
   }
   if (m.wT <= 0){
-    const p = randomWalkable(m.hx, m.hy, 8, 40);
+    const p = gRandWalk(m.hx, m.hy, 8, 48);
     if (p && !(d.wade ? false : blocked(p.x, p.y))){ m.tx = p.x; m.ty = p.y; m.walking = true; m.wT = 4; }
     else m.wT = rand(1, 3);
   }
@@ -9619,7 +9812,7 @@ function aiMove(m, dt, k, dx, dy, dist){
       else if (m.st === 'hidden'){
         if (m.sT <= 0){
           const a = rand(0, Math.PI * 2);
-          m.x = clamp(k.x + Math.cos(a) * 52, 30, WW - 30); m.y = clamp(k.y - KBODY + Math.sin(a) * 36, 40, WH - 20);
+          m.x = clamp(k.x + Math.cos(a) * 52, 30, GW - 30); m.y = clamp(k.y - KBODY + Math.sin(a) * 36, 40, GH - 20);
           m.st = 'appear'; m.sT = .9; m.alpha = 0;
         }
       }
@@ -9648,7 +9841,7 @@ function updateSpawns(dt){
     if (s.mon){ if (s.mon !== true && !G.mons.includes(s.mon)) s.mon = null; else continue; }
     if (s.t > 0){ s.t -= .5; continue; }
     const d = Math.hypot(s.x - k.x, s.y - k.y);
-    if (d > 640 || d < 70) continue;
+    if (d > 1080 || d < 70) continue;
     if (inView(s.x, s.y, cam, 10)){ s.mon = true; G.rising.push({ kind: s.kind, x: s.x, y: s.y, t: s.boss ? 1.6 : .9, slot: s }); }
     else { s.mon = createMonster(s.kind, s.x, s.y, s.lvl, s); }
   }
@@ -9679,7 +9872,7 @@ function updateMons(dt){
     if (m.mode === 'idle'){
       [mvx, mvy] = idleMove(m, dt);
       if (alive && !safe && dist < aggroRange(m)) engage(m);
-      if (dist > 950 && !m.minion){ G.mons.splice(i, 1); if (m.slot) m.slot.mon = null; continue; }
+      if (dist > 1500 && !m.minion){ G.mons.splice(i, 1); if (m.slot) m.slot.mon = null; continue; }
     } else if (m.mode === 'fight'){
       const home = Math.hypot(m.x - m.hx, m.y - m.hy);
       if (!alive || safe || home > leashOf(m) || dist > 560){ goHome(m); }
@@ -9706,8 +9899,8 @@ function updateMons(dt){
     const decay = Math.pow(.002, dt); m.vx *= decay; m.vy *= decay;
     if (ground){
       if (blocked(m.x, m.y, d.wade)){ if (!blocked(m.x, oy, d.wade)) m.y = oy; else if (!blocked(ox, m.y, d.wade)) m.x = ox; else pushOut(m, d.wade); }
-      m.x = clamp(m.x, 8, WW - 8); m.y = clamp(m.y, 12, WH - 2);
-    } else { m.x = clamp(m.x, 12, WW - 12); m.y = clamp(m.y, 24, WH - 6); }
+      m.x = clamp(m.x, 8, GW - 8); m.y = clamp(m.y, 12, GH - 2);
+    } else { m.x = clamp(m.x, 12, GW - 12); m.y = clamp(m.y, 24, GH - 6); }
     if (m.k === 'lindwurm'){
       const last = m.trail[m.trail.length - 1];
       if (!last || Math.hypot(last[0] - m.x, last[1] - m.y) >= WURM_STEP){ m.trail.push([Math.round(m.x), Math.round(m.y)]); if (m.trail.length > 120) m.trail.shift(); }
@@ -9715,7 +9908,7 @@ function updateMons(dt){
     if (d.boss && m.mode === 'fight' && !m.summoned && m.hp <= m.max / 2){
       m.summoned = true;
       for (let j = 0; j < 2; j++){
-        const p = randomWalkable(m.x, m.y, 40, 90); if (!p) continue;
+        const p = gRandWalk(m.x, m.y, 40, 90); if (!p) continue;
         G.rising.push({ kind: BOSS_MINION[m.k], x: p.x, y: p.y, t: .9 + j * .2, lvl: Math.max(1, m.lvl - 3), engage: true, minionOf: m });
       }
     }
@@ -9745,8 +9938,8 @@ function updateShots(dt){
     const s = G.shots[i];
     s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
     if (s.k === 'fire' && Math.random() < .6) G.parts.push({ x: s.x, y: s.y, vx: rand(-10, 10), vy: rand(-18, 0), life: .3, c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: 0, glow: true });
-    let gone = s.life <= 0 || s.x < 0 || s.y < 0 || s.x > WW || s.y > WH;
-    if (!gone && boxBlocked(s.x - 1, s.y + (s.h || 20) - 2, s.x + 1, s.y + (s.h || 20), true)) gone = true;
+    let gone = s.life <= 0 || s.x < 0 || s.y < 0 || s.x > GW || s.y > GH;
+    if (!gone && gBlocked(s.x - 1, s.y + (s.h || 20) - 2, s.x + 1, s.y + (s.h || 20), true)) gone = true;
     if (!gone && G.mode === 'play' && k.hp > 0 && Math.hypot(s.x - k.x, s.y - (k.y - KBODY)) < 10){
       // Schild nach vorn: Geschosse prallen ab
       const [fx, fy] = DIRV[k.dir], facing = (-s.vx * fx - s.vy * fy) > 0;
@@ -9922,7 +10115,7 @@ function kill(m){
   updateHud(); markDirty();
 }
 function dropLoot(at, t, n, it){
-  let ax = clamp(at.x + rand(-16, 16), 10, WW - 10), ay = clamp(at.y + rand(-4, 14), 12, WH - 4);
+  let ax = clamp(at.x + rand(-16, 16), 10, GW - 10), ay = clamp(at.y + rand(-4, 14), 12, GH - 4);
   for (let i = 0; i < 10 && blocked(ax, ay); i++){ ax += rand(-12, 12); ay += rand(-4, 12); }
   G.loot.push({ x: ax, y: ay, z: 14, vz: -120, t, n: n || 0, it: it || null, age: 0, bounced: false });
   if (it && it.r >= 2) setTimeout(() => Sound.loot(it.r), 200);
@@ -10040,7 +10233,7 @@ function respawn(){
   for (let i = G.mons.length - 1; i >= 0; i--){ const m = G.mons[i]; if (m.slot) m.slot.mon = null; }
   G.mons.length = 0; G.rising.length = 0;
   for (const s of SPAWN_SLOTS) if (s.mon === true) s.mon = null;
-  G.zone = zoneAt(k.x, k.y).id; updateZone(true);
+  G.zone = gZone(k.x, k.y).id; updateZone(true);
   showOverlay(null); blurActive(); updateHud(); Sound.startMusic();
   if (INN_BY[HERO.bind]) enterInn(INN_BY[HERO.bind]);
   showBanner('Ihr erwacht', HUB_NAME[HERO.bind]);
@@ -10054,7 +10247,7 @@ function updateKnight(dt){
   if (k.bashT > 0){
     // Schildstoß: kurzer Sprung nach vorn
     k.bashT -= dt;
-    const nx = clamp(k.x + k.bx * 320 * dt, 8, WW - 8), ny = clamp(k.y + k.by * 320 * dt, 12, WH - 2);
+    const nx = clamp(k.x + k.bx * 320 * dt, 8, GW - 8), ny = clamp(k.y + k.by * 320 * dt, 12, GH - 2);
     if (!blocked(nx, k.y)) k.x = nx;
     if (!blocked(k.x, ny)) k.y = ny;
     bashHits();
@@ -10070,14 +10263,14 @@ function updateKnight(dt){
       if (k.dust <= 0){ k.dust = .22; G.parts.push({ x: k.x + rand(-5, 5), y: k.y, vx: rand(-10, 10), vy: -12, life: .4, c: '#6e5a42', g: 0 }); }
     } else k.anim = 0;
     k.ride = riding() ? HERO.horse : null;
-    const sp = 108 * (k.atkT > 0 ? .55 : 1) * (k.slowT > 0 ? .55 : 1) * (k.ride ? HORSES[k.ride].speed : 1);
+    const sp = 128 * (k.atkT > 0 ? .55 : 1) * (k.slowT > 0 ? .55 : 1) * (k.ride ? HORSES[k.ride].speed : 1);
     if (k.ride && k.moving){ G.hoofT = (G.hoofT || 0) - dt; if (G.hoofT <= 0){ G.hoofT = .25 / HORSES[k.ride].speed * 1.5; Sound.hoof(); } }
-    const nx = clamp(k.x + (v.x * sp + k.kbx) * dt, 8, WW - 8);
+    const nx = clamp(k.x + (v.x * sp + k.kbx) * dt, 8, GW - 8);
     if (!blocked(nx, k.y)) k.x = nx;
-    const ny = clamp(k.y + (v.y * sp + k.kby) * dt, 12, WH - 2);
+    const ny = clamp(k.y + (v.y * sp + k.kby) * dt, 12, GH - 2);
     if (!blocked(k.x, ny)) k.y = ny;
     // gegen die Gasthaustür laufen: eintreten
-    if (v.y < -.5) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 9 && k.y - inn.y < 13 && k.y > inn.y){ enterInn(inn); return; }
+    if (v.y < -.5) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 12 && k.y - inn.y < 28 && k.y > inn.y){ enterInn(inn); return; }
   }
   const decay = Math.pow(.001, dt); k.kbx *= decay; k.kby *= decay;
   if (k.inv > 0) k.inv -= dt;
@@ -10103,12 +10296,12 @@ function updateFx(dt){
   }
   const cam = camOf(G.knight), near = (x, y) => x > cam.x - 80 && x < cam.x + W + 80 && y > cam.y - 60 && y < cam.y + H + 120;
   if (G.parts.length < 420 && !G.inside){
-    for (const f of FIRES) if (near(f.x, f.y) && Math.random() < dt * (f.big ? 8 : 4))
+    for (const f of GFIRES) if (near(f.x, f.y) && Math.random() < dt * (f.big ? 8 : 4))
       G.parts.push({ x: f.x + rand(-3, 3), y: f.y - 6, vx: rand(-6, 6), vy: rand(-40, -20), life: rand(.6, 1.2), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -6, glow: true });
-    for (const s of SMOKES) if (near(s.x, s.y) && Math.random() < dt * 5)
+    for (const s of GSMOKES) if (near(s.x, s.y) && Math.random() < dt * 5)
       G.parts.push({ x: s.x + rand(-6, 6), y: s.y, vx: rand(4, 14), vy: rand(-26, -14), life: rand(1.8, 3), c: Math.random() < .5 ? '#6e6a70' : '#56525a', g: -2, s: 3 });
   }
-  for (const p of PROPS) if (p.shake > 0) p.shake -= dt;
+  for (const p of GPROPS) if (p.shake > 0) p.shake -= dt;
   if (G.shake > 0) G.shake -= dt;
   if (G.flash > 0) G.flash -= dt;
 }
@@ -10139,7 +10332,7 @@ function update(dt){
   }
   updateKnight(dt);
   if (G.inside) return;
-  const z = zoneAt(G.knight.x, G.knight.y).id;
+  const z = gZone(G.knight.x, G.knight.y).id;
   if (z !== G.zone){ G.zone = z; updateZone(true); }
   updateSpawns(dt);
   updateLoot(dt);
@@ -10298,14 +10491,14 @@ function drawMon(m, glowOnly){
 /* Namensschild über einem Monster: Name und Stufe in der Farbe des Abstands, darunter Lebensbalken */
 function drawPlate(m){
   if (m.k === 'tod' && (m.st === 'hidden' || (m.alpha != null && m.alpha < .5))) return;
-  const art = artOf(m.k), d = MON[m.k], top = (m.k === 'lindwurm' ? m.y - 40 : d.fly ? m.y - art.h * .5 - 4 : m.y - art.ay) - 11;
+  const art = artOf(m.k), d = MON[m.k], top = (m.k === 'lindwurm' ? m.y - 40 : d.fly ? m.y - art.h * .5 - 4 : m.y - art.ay) - 19;
   const col = CON_COL[conOf(m.lvl - HERO.lvl)];
   drawText(d.name + ' ' + m.lvl, m.x, top, col);
   if (m.hp < m.max){
-    const w = d.boss ? 30 : 20, x0 = Math.round(m.x - w / 2), y0 = Math.round(top + 8), f = Math.max(0, Math.round((w - 2) * m.hp / m.max));
-    ctx.fillStyle = OUT; ctx.fillRect(x0, y0, w, 4);
-    ctx.fillStyle = '#3a1416'; ctx.fillRect(x0 + 1, y0 + 1, w - 2, 2);
-    ctx.fillStyle = '#d0343c'; ctx.fillRect(x0 + 1, y0 + 1, f, 2);
+    const w = d.boss ? 44 : 28, x0 = Math.round(m.x - w / 2), y0 = Math.round(top + 14), f = Math.max(0, Math.round((w - 2) * m.hp / m.max));
+    ctx.fillStyle = OUT; ctx.fillRect(x0, y0, w, 5);
+    ctx.fillStyle = '#3a1416'; ctx.fillRect(x0 + 1, y0 + 1, w - 2, 3);
+    ctx.fillStyle = '#d0343c'; ctx.fillRect(x0 + 1, y0 + 1, f, 3);
     ctx.fillStyle = '#f08a80'; ctx.fillRect(x0 + 1, y0 + 1, f, 1);
   }
   if (m.stunT > 0 || (m.k === 'raubritter' && m.st === 'stun')) for (let i = 0; i < 3; i++){
@@ -10333,6 +10526,20 @@ function flame(x, y, t, big){
   ctx.fillStyle = '#ffd36a'; ctx.fillRect(x0 + (w >> 1) - (big ? 1 : 0), y - h + 2, big ? 3 : 1, h - 3);
   ctx.fillStyle = '#fff3c0'; ctx.fillRect(x0 + (w >> 1), y - (h >> 1), 1, 2);
 }
+/* Flamme in Feinpixeln für Feuerstellen der Welt: flackernde Zunge mit hellem Kern */
+function flameHD(x, y, t, big){
+  const ph = t * 9 + x * .37, h = (big ? 22 : 13) + Math.round(Math.sin(ph * 1.7) * 2 + Math.sin(ph * 3.1)), w = big ? 14 : 8;
+  x = Math.round(x); y = Math.round(y);
+  ctx.fillStyle = '#5e1610'; ctx.fillRect(x - (w >> 1), y - 1, w, 2);
+  for (let r = 0; r < h; r++){
+    const u = r / h, hw = w / 2 * Math.pow(Math.sin(Math.PI * Math.min(1, u * .9 + .12)), .7) * (1 - u * .45), sw = Math.sin(ph + u * 5) * u * 2.4;
+    if (hw < .35) continue;
+    const cx = x + sw, yy = y - 1 - r;
+    ctx.fillStyle = u > .75 ? '#c8461e' : '#e0782a'; ctx.fillRect(Math.round(cx - hw), yy, Math.max(1, Math.round(hw * 2)), 1);
+    if (u < .7 && hw > 1.2){ ctx.fillStyle = '#ffd36a'; ctx.fillRect(Math.round(cx - hw * .55), yy, Math.max(1, Math.round(hw * 1.1)), 1); }
+    if (u < .38 && hw > 2){ ctx.fillStyle = '#fff3c0'; ctx.fillRect(Math.round(cx - hw * .22), yy, Math.max(1, Math.round(hw * .44)), 1); }
+  }
+}
 const inView = (x, y, cam, m) => { m = m || 60; return x > cam.x - m && x < cam.x + W + m && y > cam.y - m && y < cam.y + H + m * 2; };
 
 /* Leute: Bild, Name, Rolle, Zeichen für offene Aufträge */
@@ -10347,11 +10554,11 @@ function drawNpc(n){
   ctx.drawImage(f, Math.round(n.x - n.art.ax), Math.round(n.y - n.art.ay));
 }
 function drawNpcPlate(n){
-  const top = n.y - n.art.ay - 14;
+  const top = n.y - n.art.ay - 26;
   drawText(n.name, n.x, top, '#9fe08a');
-  drawText('<' + n.role + '>', n.x, top + 7, '#c8d8b8');
+  drawText('<' + n.role + '>', n.x, top + 12, '#c8d8b8');
   const mk = npcMark(n);
-  if (mk) drawText(mk, n.x, top - 13 + Math.round(Math.sin(G.t * 4) * 1.5), '#ffd541', 'c', 2);
+  if (mk) drawText(mk, n.x, top - 22 + Math.round(Math.sin(G.t * 4) * 2), '#ffd541', 'c', 1.5);
   if (G.near === n) drawText(TOUCH ? 'Sprechen' : 'E: Sprechen', n.x, n.y + 4, '#ffffff');
 }
 
@@ -10383,11 +10590,11 @@ const FOG_BY_ZONE = { moor:.26, friedhof:.16, wald:.13, fluss:.12, schlachtfeld:
 function drawBubble(x, y, text){
   const lines = wrapText(text, 26);
   if (!lines.length) return;
-  const imgs = lines.map(l => textImg(l, '#2a1c12', true)), w = Math.max(...imgs.map(i => i.width)) + 4, h = imgs.length * 7 + 3;
-  const x0 = Math.round(clamp(x - w / 2, 2, WW - w - 2)), y0 = Math.round(y - h - 4), tx = Math.round(x);
+  const imgs = lines.map(l => textImg(l, '#2a1c12', true)), w = Math.max(...imgs.map(i => i.width)) + 8, h = imgs.length * 13 + 4;
+  const x0 = Math.round(clamp(x - w / 2, 2, GW - w - 2)), y0 = Math.round(y - h - 4), tx = Math.round(x);
   ctx.fillStyle = OUT; ctx.fillRect(x0 - 1, y0 - 1, w + 2, h + 2); ctx.fillRect(tx - 2, y0 + h, 5, 2); ctx.fillRect(tx - 1, y0 + h + 2, 3, 1);
   ctx.fillStyle = '#e8dcbc'; ctx.fillRect(x0, y0, w, h); ctx.fillRect(tx - 1, y0 + h, 3, 1); ctx.fillRect(tx, y0 + h + 1, 1, 1);
-  imgs.forEach((im, i) => ctx.drawImage(im, x0 + 2, y0 + 1 + i * 7));
+  imgs.forEach((im, i) => ctx.drawImage(im, x0 + 4, y0 + 2 + i * 13));
 }
 
 function render(){
@@ -10401,7 +10608,7 @@ function render(){
   const title = G.mode === 'title';
 
   for (const a of G.loot) if (inView(a.x, a.y, cam)) shadow(a.x, a.y - 1, a.z > 3 ? 4 : 8, a.z > 3 ? .2 : .3);
-  const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 36 : 22) : 18;
+  const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 44 : 26) : 18;
   if (!title) shadow(k.x, k.y - 1, shW(k), .42);
   for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, shW(p), .38);
   for (const n of NPCS) if (inView(n.x, n.y, cam)) shadow(n.x, n.y - 1, 14, .38);
@@ -10449,7 +10656,7 @@ function render(){
   ctx.drawImage(gradeTex, 0, 0);
 
   ctx.setTransform(1, 0, 0, 1, sx - cam.x, sy - cam.y);
-  for (const f of FIRES) if (inView(f.x, f.y, cam)) flame(f.x, f.y, G.t + f.x * .01, f.big);
+  for (const f of GFIRES) if (inView(f.x, f.y, cam)) flameHD(f.x, f.y, G.t + f.x * .01, f.big);
   for (const m of G.mons) if (inView(m.x, m.y, cam, 120)) drawMon(m, true);
   for (const m of G.mons) if (m.k === 'lindwurm' && m.st === 'breath' && (G.t * 18 | 0) % 2){
     const mz = mouthOf(m); ctx.fillStyle = '#ffd36a'; ctx.fillRect(Math.round(mz.x) - 2, Math.round(mz.y) - 1, 4, 3);
@@ -10461,16 +10668,16 @@ function render(){
   if (!title){
     for (const m of G.mons) if (inView(m.x, m.y, cam, 20) && (m.mode === 'fight' || m.hp < m.max || Math.hypot(m.x - k.x, m.y - k.y) < 170)) drawPlate(m);
     for (const n of NPCS) if (inView(n.x, n.y, cam, 20)) drawNpcPlate(n);
-    for (const inn of INNS) if (inView(inn.dx, inn.y, cam, 40)){
-      drawText('Gasthaus ' + inn.name, inn.dx, inn.y - 32, '#ffd98a');
-      if (G.nearDoor === inn) drawText(TOUCH ? 'Eintreten' : 'E oder hinauf: eintreten', inn.dx, inn.y + 2, '#ffffff');
+    for (const inn of INNS) if (inView(inn.dx, inn.y, cam, 260)){
+      drawText('Gasthaus ' + inn.name, inn.dx, inn.y - 74, '#ffd98a');
+      if (G.nearDoor === inn) drawText(TOUCH ? 'Eintreten' : 'E oder hinauf: eintreten', inn.dx, inn.y + 4, '#ffffff');
     }
     for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam, 20)){
-      const up = p.ride ? 12 : 0;
-      drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 9 - up, '#9cc8ff');
+      const up = p.ride ? 15 : 0;
+      drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15 - up, '#9cc8ff');
       if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11 - up, p.say);
     }
-    if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4 - (k.ride ? 12 : 0), G.say);
+    if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4 - (k.ride ? 15 : 0), G.say);
   }
   for (const f of G.floats){
     ctx.globalAlpha = clamp(f.life / f.max * 2.5, 0, 1);
@@ -10481,7 +10688,7 @@ function render(){
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (!RM){
     ctx.fillStyle = 'rgba(190,198,212,.3)';
-    for (let i = 0; i < 70; i++){
+    for (let i = 0, n = Math.round(70 * W * H / 129600 * .7); i < n; i++){
       const x = ((i * 53.7 + G.t * 46) % (W + 20)) - 10, y = ((i * 97.3 + G.t * 190) % (H + 10)) - 5;
       ctx.fillRect(x | 0, y | 0, 1, 3); ctx.fillRect((x | 0) - 1, (y | 0) + 3, 1, 1);
     }
@@ -10490,11 +10697,11 @@ function render(){
   const off = [];
   for (const m of G.mons){ if (m.mode !== 'fight' || (m.k === 'tod' && m.st === 'hidden')) continue; const c = centerOf(m); if (!(c.x > cam.x && c.x < cam.x + W && c.y > cam.y && c.y < cam.y + H)) off.push({ x: c.x, y: c.y, boss: MON[m.k].boss }); }
   for (const o of off.slice(0, 10)){
-    const vx = o.x - (cam.x + W / 2), vy = o.y - (cam.y + H / 2), s = Math.min((W / 2 - 8) / Math.abs(vx || 1e-6), (H / 2 - 8) / Math.abs(vy || 1e-6));
+    const vx = o.x - (cam.x + W / 2), vy = o.y - (cam.y + H / 2), s = Math.min((W / 2 - 12) / Math.abs(vx || 1e-6), (H / 2 - 12) / Math.abs(vy || 1e-6));
     const x = Math.round(W / 2 + vx * s), y = Math.round(H / 2 + vy * s);
-    ctx.fillStyle = OUT; ctx.fillRect(x - 3, y - 3, 7, 7);
-    ctx.fillStyle = o.boss ? '#ecd27a' : '#d0343c'; ctx.fillRect(x - 2, y - 2, 5, 5);
-    if (o.boss){ ctx.fillStyle = '#d0343c'; ctx.fillRect(x - 1, y - 1, 3, 3); }
+    ctx.fillStyle = OUT; ctx.fillRect(x - 5, y - 5, 11, 11);
+    ctx.fillStyle = o.boss ? '#ecd27a' : '#d0343c'; ctx.fillRect(x - 4, y - 4, 9, 9);
+    if (o.boss){ ctx.fillStyle = '#d0343c'; ctx.fillRect(x - 2, y - 2, 5, 5); }
   }
   if (!title){ drawQuestArrow(k); drawMiniMap(k, cam); }
   if (G.flash > 0 && !RM){
@@ -10503,29 +10710,34 @@ function render(){
   }
 }
 /* Ausschnitt der Übersichtskarte um den Ritter (1 px = 32 Weltpixel) */
-const MM_W = 96, MM_H = 72, MM_S = WW / MINIMAP.width;
+const MM_W = 96, MM_H = 72, MM_S = GW / MINIMAP.width;
+const MM_Z = W >= 800 ? 2 : 1, mmCv = canvasOf(MM_W + 4, MM_H + 4), mmG = mmCv.getContext('2d');
 function drawMiniMap(k, cam){
-  const mx = W - MM_W - 4, my = H - MM_H - 4;
+  drawMiniMap1(mmG, k, cam, 2, 2);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(mmCv, Math.round(W - (MM_W + 4) * MM_Z - 6), Math.round(H - (MM_H + 4) * MM_Z - 6), Math.round((MM_W + 4) * MM_Z), Math.round((MM_H + 4) * MM_Z));
+}
+function drawMiniMap1(g, k, cam, mx, my){
   const sx0 = clamp(Math.round(k.x / MM_S - MM_W / 2), 0, MINIMAP.width - MM_W), sy0 = clamp(Math.round(k.y / MM_S - MM_H / 2), 0, MINIMAP.height - MM_H);
-  ctx.fillStyle = OUT; ctx.fillRect(mx - 2, my - 2, MM_W + 4, MM_H + 4);
-  ctx.fillStyle = '#7d6414'; ctx.fillRect(mx - 1, my - 1, MM_W + 2, MM_H + 2);
-  ctx.drawImage(MINIMAP, sx0, sy0, MM_W, MM_H, mx, my, MM_W, MM_H);
+  g.fillStyle = OUT; g.fillRect(mx - 2, my - 2, MM_W + 4, MM_H + 4);
+  g.fillStyle = '#7d6414'; g.fillRect(mx - 1, my - 1, MM_W + 2, MM_H + 2);
+  g.drawImage(MINIMAP, sx0, sy0, MM_W, MM_H, mx, my, MM_W, MM_H);
   const P = (x, y) => [mx + (x / MM_S | 0) - sx0, my + (y / MM_S | 0) - sy0];
   const inMM = ([x, y]) => x >= mx && y >= my && x < mx + MM_W && y < my + MM_H;
-  const dot = (x, y, c, s) => { const q = P(x, y); if (inMM(q)){ ctx.fillStyle = c; ctx.fillRect(q[0], q[1], s || 1, s || 1); } };
-  ctx.fillStyle = 'rgba(236,210,122,.75)';
+  const dot = (x, y, c, s) => { const q = P(x, y); if (inMM(q)){ g.fillStyle = c; g.fillRect(q[0], q[1], s || 1, s || 1); } };
+  g.fillStyle = 'rgba(236,210,122,.75)';
   const [vx, vy] = P(cam.x, cam.y), vw = W / MM_S | 0, vh = H / MM_S | 0;
-  ctx.fillRect(vx, vy, vw, 1); ctx.fillRect(vx, vy + vh, vw, 1); ctx.fillRect(vx, vy, 1, vh); ctx.fillRect(vx + vw, vy, 1, vh + 1);
+  g.fillRect(vx, vy, vw, 1); g.fillRect(vx, vy + vh, vw, 1); g.fillRect(vx, vy, 1, vh); g.fillRect(vx + vw, vy, 1, vh + 1);
   for (const a of G.loot) if (a.t === 'item') dot(a.x, a.y, RARITY[a.it.r].c);
   for (const m of G.mons){ const boss = MON[m.k].boss; dot(m.x, m.y, boss ? '#ffe27a' : m.mode === 'fight' ? '#ff3b3b' : '#a83a3a', boss ? 2 : 1); }
   for (const n of NPCS) dot(n.x, n.y, npcMark(n) ? '#ffd541' : '#7fe08a', 2);
   for (const inn of INNS) dot(inn.dx, inn.y, '#ff9a40', 2);
   for (const p of PEERS.values()){ const at = p.in && INN_BY[p.in]; dot(at ? at.dx : p.x, at ? at.y + 4 : p.y, '#9cc8ff', 2); }
-  const q = P(k.x, k.y); ctx.fillStyle = '#ffffff'; ctx.fillRect(q[0] - 1, q[1] - 1, 3, 3); ctx.fillStyle = OUT; ctx.fillRect(q[0], q[1], 1, 1);
+  const q = P(k.x, k.y); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3); g.fillStyle = OUT; g.fillRect(q[0], q[1], 1, 1);
 }
 
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
-ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 0, 0, 20, 20, -1, -2, 20, 20); return c; })();
+ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
 const riding = () => !!(HERO && HERO.riding && HERO.horse && !G.inside);
 function mountHorse(){
   if (!canAct() || G.inside) return;
@@ -10579,17 +10791,17 @@ function drawQuestArrow(k){
   const dx = t.x - k.x, dy = t.y - k.y;
   if (Math.hypot(dx, dy) < 220) return;
   const a = Math.atan2(dy, dx), c = Math.cos(a), s = Math.sin(a);
-  const sc = Math.min((W / 2 - 22) / Math.abs(c || 1e-6), (H / 2 - 22) / Math.abs(s || 1e-6));
+  const sc = Math.min((W / 2 - 30) / Math.abs(c || 1e-6), (H / 2 - 30) / Math.abs(s || 1e-6));
   const cx = Math.round(W / 2 + c * sc), cy = Math.round(H / 2 + s * sc);
   const pulse = (G.t * 3 | 0) % 2;
-  for (let y = -11; y <= 11; y++) for (let x = -11; x <= 11; x++){
-    const u = x * c + y * s, v = -x * s + y * c;                     // u entlang, v quer
+  for (let y = -16; y <= 16; y++) for (let x = -16; x <= 16; x++){
+    const u = (x * c + y * s) / 1.4, v = (-x * s + y * c) / 1.4;     // u entlang, v quer
     const inside = u <= 9 && u >= -5 && Math.abs(v) <= (9 - u) * .5;
-    const edge = u <= 10.5 && u >= -6.5 && Math.abs(v) <= (10.5 - u) * .55 + .6;
+    const edge = u <= 9.8 && u >= -5.8 && Math.abs(v) <= (9.8 - u) * .55 + .45;
     if (inside){ ctx.fillStyle = u > 3 ? (pulse ? '#ffffff' : '#fff0a0') : '#ffd541'; ctx.fillRect(cx + x, cy + y, 1, 1); }
     else if (edge){ ctx.fillStyle = OUT; ctx.fillRect(cx + x, cy + y, 1, 1); }
   }
-  drawText(t.label, clamp(cx - c * 20, 34, W - 34), clamp(cy - s * 16 - 3, 4, H - 10), '#ffd541');
+  drawText(t.label, clamp(cx - c * 30, 60, W - 60), clamp(cy - s * 24 - 6, 6, H - 18), '#ffd541');
 }
 
 /* ============ Oberfläche ============ */
@@ -10812,7 +11024,7 @@ function renderSkills(){
   const rb = document.querySelector('[data-skill="ruf"]'); if (rb) rb.title = 'Schlachtruf „' + F.cry + '“: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer';
 }
 const HO_ICON = {};
-function horseIcon(hid){ const c = canvasOf(16, 16), sp = horseSet(hid, HERO ? HERO.f : 'reich').left[4].under; c.getContext('2d').drawImage(sp, 0, 0, 20, 20, -1, -2, 20, 20); return c; }
+function horseIcon(hid){ const c = canvasOf(16, 16), sp = horseSet(hid, HERO ? HERO.f : 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; }
 /* Stärkung durch Speis und Trank in der Kopfzeile */
 function renderBuffs(){
   const box = $('buffs'); box.textContent = '';
@@ -10855,7 +11067,7 @@ function closePanel(){
 
 /* ---------- Karte ---------- */
 function drawFullMap(){
-  const c = $('mapCv'), g = c.getContext('2d'), s = WW / c.width, k = G.knight, P = v => v / s | 0;
+  const c = $('mapCv'), g = c.getContext('2d'), s = GW / c.width, k = G.knight, P = v => v / s | 0;
   g.imageSmoothingEnabled = false; g.drawImage(FULLMAP, 0, 0, c.width, c.height);
   for (const [kind, p] of Object.entries(LAIRS)){ g.fillStyle = '#5a1012'; g.fillRect(P(p.x) - 4, P(p.y) - 4, 9, 9); g.fillStyle = HERO.bosses[kind] ? '#7a6a5a' : '#c8343c'; g.fillRect(P(p.x) - 3, P(p.y) - 3, 7, 7); g.fillStyle = '#ecd27a'; g.fillRect(P(p.x) - 1, P(p.y) - 1, 3, 3); }
   for (const n of NPCS){ g.fillStyle = '#16120f'; g.fillRect(P(n.x) - 3, P(n.y) - 3, 7, 7); g.fillStyle = npcMark(n) ? '#ffd541' : '#5ac85a'; g.fillRect(P(n.x) - 2, P(n.y) - 2, 5, 5); }
@@ -10981,7 +11193,7 @@ function updateNear(){
   let best = null, bd = 40, door = null, exit = false;
   for (const n of (G.inside ? innRoom(G.inside).npcs : NPCS)){ const d = Math.hypot(n.x - k.x, n.y - k.y); if (d < bd){ bd = d; best = n; } }
   if (G.inside) exit = !best && k.y > ROOM_DOOR.y - 26 && Math.abs(k.x - ROOM_DOOR.x) < 24;
-  else if (!best) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 16 && k.y > inn.y && k.y - inn.y < 32) door = inn;
+  else if (!best) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 18 && k.y > inn.y && k.y - inn.y < 44) door = inn;
   if (best !== G.near || door !== G.nearDoor || exit !== G.nearExit){
     G.near = best; G.nearDoor = door; G.nearExit = exit;
     const b = $('btnTalk');
@@ -11445,8 +11657,9 @@ function readPeer(p){
   const s = p.presence || {};
   if (!Number.isFinite(+s.x) || !Number.isFinite(+s.y)) return null;
   let q = PEERS.get(p.peer);
-  if (!q){ q = { x: +s.x, y: +s.y, anim: 0, atkT: 0, atkLen: SWING, swA0: 0, swA1: 0, mult: 1, bashT: 0, inv: 0, slowT: 0, sw: s.sw, seen: 0 }; PEERS.set(p.peer, q); }
-  q.tx = num(s.x, 0, WW, q.x); q.ty = num(s.y, 0, WH, q.y);
+  if (!q){ q = { x: +s.x * (s.ws ? 1 : WS), y: +s.y * (s.ws ? 1 : WS), anim: 0, atkT: 0, atkLen: SWING, swA0: 0, swA1: 0, mult: 1, bashT: 0, inv: 0, slowT: 0, sw: s.sw, seen: 0 }; PEERS.set(p.peer, q); }
+  const sc = s.ws ? 1 : WS;   // ältere Fassung sendet Weltpixel
+  q.tx = num(s.x * sc, 0, GW, q.x); q.ty = num(s.y * sc, 0, GH, q.y);
   if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || (INN_BY[s.in] ? s.in : 0) !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
   q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead;
   q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = INN_BY[s.in] ? s.in : 0; q.ride = HORSES[s.ri] && !q.in ? s.ri : null;
@@ -11467,7 +11680,7 @@ function sendPresence(force){
   const t = nowS();
   if (!force && t - presT < .12) return;
   const k = G.knight;
-  const pr = { x: Math.round(k.x), y: Math.round(k.y), d: k.dir, mv: k.moving ? 1 : 0, sw: k.swing, sa: +k.swA0.toFixed(2), se: +k.swA1.toFixed(2), sl: +k.atkLen.toFixed(2), m: k.mult,
+  const pr = { ws: WS, x: Math.round(k.x), y: Math.round(k.y), d: k.dir, mv: k.moving ? 1 : 0, sw: k.swing, sa: +k.swA0.toFixed(2), se: +k.swA1.toFixed(2), sl: +k.atkLen.toFixed(2), m: k.mult,
     lv: HERO.lvl, nm: HERO.name, f: HERO.f, in: G.inside ? G.inside.id : 0, ri: riding() ? HERO.horse : 0, dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
   const js = JSON.stringify(pr);
   if (js === presLast && !force) return;
@@ -11538,17 +11751,21 @@ function initCloud(){
 
 /* ============ Start ============ */
 function seedTitle(){
-  for (const [dx, dy, kind] of [[-150, 40, 'wieder'], [160, 20, 'pluend'], [-60, -80, 'rabe'], [90, 90, 'wieder']]){
-    const p = randomWalkable(START.x + dx, START.y + dy, 0, 40);
+  for (const [dx, dy, kind] of [[-300, 60, 'wieder'], [320, 30, 'pluend'], [-120, -150, 'rabe'], [180, 160, 'wieder'], [-380, -60, 'pluend']]){
+    const p = gRandWalk(GSTART.x + dx, GSTART.y + dy, 0, 60);
     if (p) createMonster(kind, p.x, p.y, 1, null);
   }
 }
 const stageEl = $('stage');
 function fitCanvas(){
-  if (matchMedia('(hover:none) and (pointer:coarse) and (orientation:landscape)').matches){ cv.style.width = ''; return; }
-  const avail = stageEl.clientWidth, dpr = window.devicePixelRatio || 1;
-  const n = Math.floor(avail * dpr / W), snapped = n * W / dpr;
-  cv.style.width = n >= 2 && snapped >= avail * .88 ? snapped + 'px' : '';
+  const dpr = window.devicePixelRatio || 1;
+  if (matchMedia('(hover:none) and (pointer:coarse) and (orientation:landscape)').matches) cv.style.width = '';
+  else {
+    const avail = stageEl.clientWidth, n = Math.floor(avail * dpr / W), snapped = n * W / dpr;
+    cv.style.width = n >= 1 && snapped >= avail * .88 ? snapped + 'px' : '';
+  }
+  // verkleinert weich zeichnen (sonst fallen Pixelzeilen aus), sonst pixelscharf
+  cv.style.imageRendering = cv.getBoundingClientRect().width * dpr < W * .97 ? 'auto' : '';
 }
 try { new ResizeObserver(fitCanvas).observe(stageEl); } catch(e){ addEventListener('resize', fitCanvas); }
 fitCanvas();
