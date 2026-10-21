@@ -628,6 +628,11 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <ul class="list" id="beasts"></ul>
     </div>
     <div class="note">
+      <h3>Leben im Reichsland</h3>
+      <ul class="list" id="lifeList"></ul>
+      <p class="tip">Tiere und Leute kämpfen nicht. Das Wild flieht vor Euch, Hühner flattern auf, Tauben fliegen davon. Bürger, Mägde und Wachen grüßen, wenn Ihr vorbeikommt, und die Händler rufen ihre Ware aus. Auf den Straßen ziehen Pilger, Händler und Bauern.</p>
+    </div>
+    <div class="note">
       <h3>Fähigkeiten</h3>
       <ul class="list" id="skillList"></ul>
     </div>
@@ -6253,6 +6258,7 @@ const wp_K = {
   fels: [(s, v) => wp_kFels(s, v), 5], stein: [(s, v) => wp_kStein(s, v), 6], feuerschale: [(s, v) => wp_kFeuerschale(s, v), 2], lagerfeuer: [(s, v) => wp_kLagerfeuer(s, v), 3],
   zaun_h: [(s, v) => wp_kZaunH(s, v), 4], zaun_v: [(s, v) => wp_kZaunV(s, v), 3], spiesse: [(s, v) => wp_kSpiesse(s, v), 4], fass: [(s, v) => wp_kFass(s, v), 4],
   kisten: [(s, v) => wp_kKisten(s, v), 4], wegweiser: [(s, v) => wp_kWegweiser(s, v), 3], banner: [(s, v) => wp_kBanner(s, v), 2],
+  marktstand: [(s, v) => wp_kMarktstand(s, v), 6], maibaum: [(s, v) => wp_kMaibaum(s), 1],
   gasthaus_adler: [(s, v) => wp_bStadthaus(s + 31, 0, 'adler'), 1], gasthaus_krone: [(s, v) => wp_bHaus(s + 17, 1, 'krone'), 1], gasthaus_ochse: [(s, v) => wp_bHaus(s + 5, 3, 'ochse'), 1]
 };
 const WP_KINDS = Object.keys(wp_K);
@@ -6736,6 +6742,57 @@ function wp_kBanner(s){
   return wp_xRes(B, [[-2, -3, 2, 1]], null);
 }
 
+/* Marktstand: Pfosten, gestreiftes Sonnendach mit Bogenkante, Ladentisch und Ware (v: 0 Brot, 1 Tuch, 2 Töpfe, 3 Kohl und Rüben, 4 Fisch, 5 Äpfel) */
+function wp_kMarktstand(s, v){
+  const B = wp_img(52, 44, 41), ax = B.ax, ay = B.ay, R = rng(s), ware = v % 6;
+  const AW = [[wp_P.red2, wp_P.cloth], [wp_P.blue2, wp_P.cloth], [wp_P.yel2, wp_P.red2], [wp_P.red2, wp_P.yel2], [wp_P.blue2, wp_P.yel2], [wp_P.cloth, wp_P.red2]][v % 6];
+  const x0 = ax - 21, x1 = ax + 21, top = ay - 14;
+  wp_shadowPoly(B, [[x0 + 2, ay - 1], [x1 + 5, ay - 1], [x1 + 5, ay + 2], [x0 + 2, ay + 2]]);
+  // hintere Pfosten und Rückwand aus Tuch
+  for (const x of [x0 + 2, x1 - 2]) wp_beam(B, x, ay - 8, x, ay - 32, 2, wp_P.wood, s + x);
+  wp_rect(B, x0 + 3, ay - 30, x1 - 2, top - 2, (x, y) => wp_tone(AW[1], .28 + (y - ay + 30) * .012 + (((x - x0) % 8) < 1 ? -.1 : 0), x, y));
+  // Ladentisch: Platte und Bretterfront
+  wp_rect(B, x0, top, x1, top + 2, (x, y) => wp_tone(wp_P.wood, y === top ? .85 : .55, x, y));
+  wp_rect(B, x0 + 1, top + 2, x1 - 1, ay - 2, wp_planks(wp_P.wood, s + 2, 4, { ox: x0 + 1 }));
+  wp_rect(B, x0 + 1, ay - 3, x1 - 1, ay - 2, wp_P.wood[1]);
+  // Ware auf dem Tisch
+  const lay = (n, fn) => { for (let i = 0; i < n; i++) fn(x0 + 4 + (i + .5) * (x1 - x0 - 8) / n, top - 1, i); };
+  if (ware === 0) lay(6, (x, y, i) => { if (i % 3 === 2){ wp_ell(B, x, y - 2, 2.6, 2, (X, Y) => (Math.hypot(X - x + .3, Y - y + 2) < 1.1) ? 0 : wp_tone(wp_P.straw, .5 - (Y - y) * .1, X, Y)); } else { wp_ell(B, x, y - 1.6, 3, 2, (X, Y) => wp_tone(wp_P.straw, .82 - (Y - y + 2) * .16 - (X - x) * .03, X, Y)); wp_line(B, x - 1, y - 2, x + 1, y - 3, wp_P.straw[2]); } });
+  if (ware === 1) lay(5, (x, y, i) => { const C = [wp_P.red2, wp_P.blue2, wp_P.yel2, wp_P.cloth, wp_P.moss][i]; for (let k = 0; k < 2; k++) wp_ell(B, x, y - 1.5 - k * 3, 3.4, 1.7, (X, Y) => wp_tone(C, .75 - (Y - y + 1.5 + k * 3) * .2 - (Math.abs(X - x) > 2.6 ? .25 : 0), X, Y)); });
+  if (ware === 2) lay(5, (x, y, i) => { const C = i & 1 ? wp_P.red : wp_P.ochre, h = 4 + (i % 3); wp_ell(B, x, y - h / 2, 2.6, h / 2, (X, Y) => wp_tone(C, .7 - (X - x) * .12, X, Y)); wp_rect(B, x - 1, y - h - 1, x + 2, y - h, C[1]); });
+  if (ware === 3) lay(6, (x, y, i) => { if (i & 1){ for (let k = 0; k < 3; k++) wp_line(B, x - 1 + k, y - 1, x - 2 + k * 1.5, y - 4, wp_P.ochre[4]); wp_set(B, x, y - 5, wp_LEAF.busch[5]); } else wp_ell(B, x, y - 2, 2.6, 2.4, (X, Y) => wp_tone(wp_LEAF.buche, .75 - (Y - y + 2) * .18 - (X - x) * .1 + (wp_h(X * 2, Y * 2, s) - .5) * .2, X, Y)); });
+  if (ware === 4){ wp_rect(B, x0 + 3, top - 1, x1 - 3, top, wp_P.gwood[3]); lay(6, (x, y, i) => { wp_ell(B, x, y - 1.2, 3, 1.1, (X, Y) => wp_tone(wp_P.iron, .85 - (Y - y + 1) * .25, X, Y)); wp_set(B, x + 3, y - 1, wp_P.iron[3]); wp_set(B, x - 2, y - 2, wp_P.dark[1]); }); }
+  if (ware === 5) lay(3, (x, y, i) => { wp_ell(B, x, y - 2, 4.4, 2.6, (X, Y) => wp_tone(wp_P.straw, .45 - (Y - y + 2) * .15, X, Y)); for (let k = 0; k < 5; k++) wp_ell(B, x - 3 + k * 1.5, y - 4 - (k & 1), 1.2, 1.1, (X, Y) => wp_tone(i === 1 ? wp_LEAF.birke : wp_P.red2, .8 - (Y - y + 4) * .2, X, Y)); });
+  // vordere Pfosten
+  for (const x of [x0 + 1, x1 - 1]) wp_beam(B, x, ay - 1, x, ay - 28, 2, wp_P.wood, s + 9 + x);
+  // Sonnendach: schräge Bahn mit Längsstreifen, vorn Bogenkante
+  const stripe = x => Math.floor((x - x0 + 60) / 5) & 1;
+  wp_poly(B, [[x0 - 3, ay - 28], [x1 + 3, ay - 28], [x1 + 1, ay - 36], [x0 - 1, ay - 36]], (x, y) => wp_tone(AW[stripe(x)], .5 + (y - ay + 36) * .045 + (wp_h(x, y, s) - .5) * .08, x, y));
+  for (let x = x0 - 3; x <= x1 + 3; x++){
+    const lx = (x - x0 + 60) % 5, h = lx === 0 || lx === 4 ? 1 : 2;
+    for (let j = 0; j <= h; j++) wp_set(B, x, ay - 28 + j, wp_tone(AW[stripe(x)], .38 - j * .1, x, ay - 28 + j));
+  }
+  wp_line(B, x0 - 1, ay - 36, x1 + 1, ay - 36, wp_P.wood[2]);
+  return wp_xRes(B, [[-22, -10, 22, 2]], [-26, -40, 26, -12], {});
+}
+/* Maibaum: geschälter Stamm mit Kränzen, Bändern und Zunftzeichen */
+function wp_kMaibaum(s){
+  const B = wp_img(30, 112, 108), cx = B.ax, ay = B.ay;
+  wp_groundShadow(B, cx + 4, ay + 1, 10, 2);
+  wp_rect(B, cx - 4, ay - 3, cx + 5, ay + 1, (x, y) => wp_tone(wp_P.grey, y === ay - 3 ? .8 : .5, x, y));
+  wp_seg(B, cx, ay - 2, cx, ay - 100, 2.8, (x, y, t, q) => wp_tone(wp_P.birch, .7 - q * .35 + ((Math.floor((y + x * .4) / 5) & 1) ? -.2 : 0), x, y));
+  // Querstangen mit Zeichen
+  for (const [y, w] of [[ay - 78, 9], [ay - 60, 8], [ay - 42, 7]]){
+    wp_seg(B, cx - w, y, cx + w, y, 1.4, wp_P.oak[3]);
+    for (const sx of [-1, 1]){ const x = cx + sx * w; wp_rect(B, x - 2, y + 1, x + 2, y + 5, (X, Y) => wp_tone(sx < 0 ? wp_P.red2 : wp_P.blue2, .7 - (Y - y) * .08, X, Y)); wp_set(B, x, y + 3, wp_P.gold[5]); }
+  }
+  // Kranz oben, flatternde Bänder
+  wp_ell(B, cx, ay - 101, 6, 2.4, (x, y) => Math.abs(((x - cx) / 6) ** 2 + ((y - ay + 101) / 2.4) ** 2) > .4 ? wp_tone(wp_LEAF.fichte, .6 - (y - ay + 101) * .1 + (wp_h(x, y, s) - .5) * .3, x, y) : 0);
+  for (let i = 0; i < 4; i++){ const C = [wp_P.red2, wp_P.yel2, wp_P.blue2, wp_P.cloth][i]; for (let k = 0; k < 14; k++) wp_set(B, cx - 5 + i * 3 + Math.round(Math.sin(k * .6 + i) * 1.4), ay - 99 + k, wp_tone(C, .6, 0, 0)); }
+  wp_ell(B, cx, ay - 106, 2, 3, (x, y) => wp_tone(wp_LEAF.fichte, .5 - (y - ay + 106) * .1, x, y));
+  return wp_xRes(B, [[-4, -3, 4, 1]], [-10, -108, 10, -10], {});
+}
+
 /* ============ Die Welt: das Reichsland 4096 × 3072 (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
 const wo_T0 = performance.now();
 const wo_CW = WW >> 3, wo_CH = WH >> 3;                // Kollisionsraster, 8 px
@@ -6824,7 +6881,8 @@ const ZONES = [
   { id: 'schlachtfeld', name: 'Das alte Schlachtfeld', monsters: ['wieder', 'rabe', 'pluend'], label: { x: 3760, y: 2560 } },
   { id: 'lager', name: 'Das Landsknechtslager', monsters: ['pluend', 'armbrust'], label: { x: 2990, y: 1020 } },
   { id: 'ruine', name: 'Die Raubritterburg', monsters: ['pluend', 'armbrust'], label: { x: 3540, y: 170 } },
-  { id: 'fluss', name: 'Die Flussaue', monsters: ['ratte', 'moor'], label: { x: 2280, y: 1760 } }
+  { id: 'fluss', name: 'Die Flussaue', monsters: ['ratte', 'moor'], label: { x: 2280, y: 1760 } },
+  { id: 'weiler', name: 'Das Dorf Lindach', monsters: [], label: { x: 2520, y: 846 } }
 ];
 const wo_ZI = {}; ZONES.forEach((z, i) => { wo_ZI[z.id] = i; });
 /* Gebietskerne: Ellipsen [cx, cy, rx, ry] */
@@ -6833,7 +6891,7 @@ const wo_ZELL = {
   wald: [[600, 980, 760, 1060], [300, 1760, 420, 330]], ruine: [[3420, 400, 720, 470]],
   lager: [[2990, 1270, 400, 360]], galgen: [[3800, 1250, 360, 420]], dorf: [[1700, 2340, 560, 330]],
   friedhof: [[1620, 2880, 640, 240]], moor: [[480, 2660, 640, 560]],
-  schlachtfeld: [[3780, 2560, 420, 640], [3150, 2930, 520, 230]], stadt: [[2966, 2310, 470, 380]]
+  schlachtfeld: [[3780, 2560, 420, 640], [3150, 2930, 520, 230]], stadt: [[2966, 2310, 470, 380]], weiler: [[2444, 570, 190, 220]]
 };
 /* Stadtmauer (Fußlinien) und Burgring */
 const wo_CITY = { x0: 2580, x1: 3352, y0: 2000, y1: 2620, gx: 2966 };
@@ -6939,7 +6997,9 @@ const wo_ROADS = [
   { t: 1, hw: 7, p: [[2440, 1402], [2400, 1470], [2400, 1560], [2450, 1590]] },                                // Mühlweg
   { t: 1, hw: 6, p: [[1880, 1840], [2060, 1820], [2260, 1806], [2440, 1800], [2500, 1790]] },                 // Leinpfad
   { t: 1, hw: 7, p: [[2950, 1340], [2960, 1240], [2990, 1150], [2990, 1090]] },                                // Lagergasse
-  { t: 1, hw: 6, p: [[2140, 1324], [2160, 1220], [2180, 1160]] }                                               // zum Obsthof
+  { t: 1, hw: 6, p: [[2140, 1324], [2160, 1220], [2180, 1160]] },                                              // zum Obsthof
+  { t: 0, hw: 9, p: [[2350, 800], [2392, 736], [2428, 668], [2444, 612]] },                                    // Dorfweg Lindach
+  { t: 1, hw: 7, p: [[2290, 590], [2380, 600], [2444, 612], [2520, 604], [2610, 586]] }                       // Dorfgasse
 ].map(r => ({ t: r.t, hw: r.hw, p: wo_spline(r.p.map(q => [q[0], q[1], r.hw]), 6) }));
 const wo_RSD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RT = new Uint8Array(wo_GW * wo_GH);
 for (const r of wo_ROADS) wo_stamp(wo_RSD, wo_RD, wo_RT, r.t, r.p, 26, r.t === 3 ? null : (x, y) => (wo_fin(x, y) - .5) * (r.t === 1 ? 2.6 : 1.6));
@@ -7304,6 +7364,8 @@ const wo_INNP = {};       // Gasthäuser
   wo_feat({ m: WM.YARD, sub: 2, x0: mk.x0, y0: mk.y0, x1: mk.x1, y1: mk.y1 });
   wo_reserve(C.gx - 24, C.y0, C.gx + 24, C.y1);
   wo_put('brunnen', 3010, 2300, 2); wo_put('pranger', 2900, 2286, 1);
+  for (const [x, y, v] of [[2884, 2254, 0], [2930, 2254, 1], [3010, 2252, 4], [3062, 2254, 2], [2884, 2368, 3], [2930, 2368, 5], [3010, 2370, 1], [3062, 2368, 0]])
+    wo_try('marktstand', x, y, wo_seedFor('marktstand', v), 1, -40);
   for (const [k, x, y] of [['karren', 3060, 2250], ['kisten', 2880, 2236], ['fass', 2864, 2244], ['fass', 2872, 2252], ['kisten', 3090, 2384], ['karren', 2896, 2392],
     ['fass', 3090, 2240], ['kisten', 2926, 2250], ['heuhaufen', 3080, 2330], ['fass', 2864, 2340]]) wo_try(k, x, y, wo_ns(), 0, -40);
   // Kirche mit Kirchhof
@@ -7341,6 +7403,54 @@ const wo_INNP = {};       // Gasthäuser
   };
   place('ochse', 'gasthaus_ochse', 2010, 800);
   place('krone', 'gasthaus_krone', 3080, 1900);
+})();
+
+/* ---------- Dorf Lindach am Fuß der Burg: Anger mit Linde, Maibaum und Brunnen, Höfe, Gärten, Felder, Weide ---------- */
+const wo_HAMLET = { x: 2444, y: 584 }, wo_HFIELDS = [];
+/* Saatwert, der eine bestimmte Spielart eines Objekts ergibt */
+function wo_seedFor(kind, v){
+  const n = wp_K[kind][1];
+  for (let s = 1; s < 4000; s++){ const sv = Math.floor(s * 977) + s; if (Math.floor(wp_h(sv, 11, 4049) * n) === v) return s; }
+  return v + 1;
+}
+/* in der Nähe versuchen, falls die Stelle besetzt ist */
+function wo_tryNear(kind, x, y, seed, m, rm){
+  for (let r = 0; r <= 36; r += 6) for (let k = 0; k < (r ? 8 : 1); k++){
+    const a = k / 8 * Math.PI * 2, o = wo_try(kind, x + Math.cos(a) * r, y + Math.sin(a) * r * .7, seed, m, rm);
+    if (o) return o;
+  }
+  return null;
+}
+(function wo_hamlet(){
+  const R = rng(1488), { x: cx, y: cy } = wo_HAMLET;
+  wo_reserve(cx - 46, cy - 26, cx + 46, cy + 30);                       // Anger frei halten
+  wo_put('eiche', cx - 30, cy - 4, 9);                                  // Dorflinde
+  wo_put('maibaum', cx + 26, cy + 6, 1);
+  wo_tryNear('brunnen', cx + 62, cy - 22, 6, 2, 3);
+  // Marktstände am Anger
+  for (const [x, y, v] of [[cx - 70, cy + 52, 0], [cx + 4, cy + 58, 3], [cx + 76, cy + 50, 5]]) wo_tryNear('marktstand', x, y, wo_seedFor('marktstand', v), 2, 3);
+  // Höfe rings um den Anger
+  for (const [x, y] of [[2346, 476], [2452, 452], [2566, 484], [2330, 700], [2566, 704], [2446, 760]]){
+    const h = wo_tryNear('fachwerkhaus', x, y, wo_ns(), 2, 4);
+    if (!h) continue;
+    wo_HOUSES.push(h);
+    // Garten mit Beeten neben dem Haus
+    const gx = h.x + (R() < .5 ? -78 : 54), gy = h.y - 12;
+    if (wo_occFree(gx - 2, gy - 2, gx + 26, gy + 22)){ wo_feat({ m: WM.HERB, x0: gx, y0: gy, x1: gx + 24, y1: gy + 20, s: R() * 99 | 0 }); wo_reserve(gx, gy, gx + 24, gy + 20); }
+  }
+  // Felder nördlich des Dorfes
+  for (let x = 2300; x < 2590; ){
+    const w = 18 + (R() * 14 | 0), crop = wo_pick(R, ['wheat', 'rye', 'green', 'plow', 'wheat', 'stub']);
+    const f = wo_feat({ m: WM.FIELD, crop, vert: true, x0: x, x1: x + w, y0: 338, y1: 404, s: R() * 1000 | 0 });
+    wo_HFIELDS.push(f); wo_reserve(f.x0 + 3, f.y0 + 3, f.x1 - 3, f.y1 - 3); x += w + 3;
+  }
+  wo_tryNear('vogelscheuche', 2420, 372, 4, -10, 2); wo_tryNear('vogelscheuche', 2530, 380, 5, -10, 2);
+  // Weide im Osten: Zaun, darin nichts als Gras
+  for (let y = 520; y <= 700; y += 30) wo_try('zaun_v', 2650, y, wo_ns(), -1, 2);
+  wo_reserve(2600, 530, 2646, 700);
+  // Kleinkram an den Höfen
+  for (let k = 0; k < 26; k++) wo_try(wo_pick(R, ['heuhaufen', 'fass', 'kisten', 'karren', 'heuhaufen', 'zaun_h', 'apfelbaum', 'busch']), cx - 170 + R() * 340, cy - 150 + R() * 300, wo_ns(), 6, 8);
+  for (let k = 0; k < 10; k++) wo_try(R() < .7 ? 'apfelbaum' : 'busch', 2290 + R() * 330, 780 + R() * 50, wo_ns(), 8, 10);
 })();
 
 /* ---------- Mühle, Ufer, Brückenköpfe ---------- */
@@ -7387,7 +7497,7 @@ const wo_INNP = {};       // Gasthäuser
 })();
 
 /* ---------- verbranntes Dorf und Felder ---------- */
-const wo_FIELDS = [];
+const wo_FIELDS = wo_HFIELDS.slice();
 (function wo_village(){
   const R = rng(1525);
   const crops = ['wheat', 'rye', 'green', 'plow', 'fallow', 'burn', 'stub', 'wheat', 'rye', 'burn'];
@@ -7567,7 +7677,7 @@ const wo_CLEAR = [[620, 1000, 210, 170], [330, 640, 120, 90], [1040, 480, 110, 9
     obstgarten: ['busch', 'stein', 'eiche'], burg: ['busch', 'stein', 'eiche', 'buche', 'fels'], fluss: ['weide', 'busch', 'birke', 'stein'],
     dorf: ['busch', 'eiche', 'stein', 'apfelbaum'], lager: ['busch', 'stein', 'fass'], galgen: ['busch', 'stein', 'toter_baum'],
     schlachtfeld: ['stein', 'busch', 'toter_baum'], friedhof: ['busch', 'stein'], stadt: ['busch', 'apfelbaum'], ruine: ['stein', 'busch'],
-    wald: ['busch', 'stein'], moor: ['busch', 'stein']
+    wald: ['busch', 'stein'], moor: ['busch', 'stein'], weiler: ['busch', 'apfelbaum']
   };
   for (let k = 0; k < 2600; k++){
     const x = 20 + R() * (WW - 40), y = 20 + R() * (WH - 40), z = ZONES[wo_zid(x, y)].id;
@@ -7677,7 +7787,7 @@ const wo_PAL = [
   /* 7 Lagerplatz */ [['#1b1611', '#262018', '#322a1f', '#3e3427', '#4a3f2f', '#564a38', '#625542'], ['#24271a', '#303420', '#3d4227', '#4a502f', '#585e37', '#656b40'], ['#3a3020', '#4e4229', '#625434', '#76663f', '#88784b'], ['#121110', '#1c1a18', '#282521', '#35312c']],
   /* 8 Waldlichtung */ [['#192014', '#222a19', '#2b351e', '#354024', '#3f4b2a', '#4a5631', '#556139', '#616c42'], ['#1a2213', '#232e19', '#2e3b1f', '#384825', '#43552c'], ['#28180f', '#3a2313', '#4d2f17', '#5f3b1c', '#704722'], ['#15120d', '#1f1a13', '#292218', '#342b1d']]
 ].map(chs => chs.map(k => wo_ramp(k, 12)));
-const wo_ZB = ZONES.map(z => ({ obstgarten: 0, burg: 0, stadt: 0, dorf: 6, wald: 1, moor: 2, friedhof: 5, galgen: 3, schlachtfeld: 4, lager: 0, ruine: 3, fluss: 0 })[z.id]);
+const wo_ZB = ZONES.map(z => ({ obstgarten: 0, burg: 0, stadt: 0, dorf: 6, wald: 1, moor: 2, friedhof: 5, galgen: 3, schlachtfeld: 4, lager: 0, ruine: 3, fluss: 0, weiler: 6 })[z.id]);
 
 /* Bodentexturen 256 × 256 Feinpixel (Periode 128 Weltpixel): Kanal << 4 | Ton */
 function wo_tex(kind, seed){
@@ -8463,7 +8573,7 @@ const wo_BUILDK = { fachwerkhaus: 1, fachwerkhaus_ruine: 1, stadthaus: 1, kirche
 const MINIMAP = (() => {
   const c = canvasOf(128, 96), g = c.getContext('2d'), id = g.createImageData(128, 96), D = new Uint32Array(id.data.buffer);
   const col = { w: '#3c5560', b: '#8a7458', r: '#8a7450', p: '#7a7468', obstgarten: '#5c6a3c', burg: '#5f6840', stadt: '#6a6448', dorf: '#6e6a40', wald: '#2c3a22', moor: '#41452f',
-    friedhof: '#46523a', galgen: '#6e6646', schlachtfeld: '#5a4c34', lager: '#66603e', ruine: '#605c4a', fluss: '#566a40' };
+    friedhof: '#46523a', galgen: '#6e6646', schlachtfeld: '#5a4c34', lager: '#66603e', ruine: '#605c4a', fluss: '#566a40', weiler: '#6e6a40' };
   for (let j = 0; j < 96; j++) for (let i = 0; i < 128; i++){
     let k = wo_mapClass(i * 32 + 16, j * 32 + 16);
     let w = 0; for (const [dx, dy] of [[6, 6], [26, 6], [6, 26], [26, 26]]) if (wo_wsd(i * 32 + dx, j * 32 + dy) < 0) w++;
@@ -8661,6 +8771,29 @@ const Sound = {
 
 
 
+/* Tierlaute, Vogelsang und Glocken; k = Lautstärke nach Entfernung 0..1 */
+Object.assign(Sound, {
+  cluck(k){ for (let i = 0; i < 3; i++) this.tone(620 + Math.random() * 80, .05, 'square', .012 * k, -160, i * .09); },
+  crow(k){ this.tone(700, .16, 'sawtooth', .014 * k, 300); this.tone(1000, .22, 'sawtooth', .014 * k, -200, .17); this.tone(820, .4, 'sawtooth', .012 * k, -380, .4); },
+  moo(k){ this.tone(140, .9, 'sawtooth', .02 * k, -30); this.tone(146, .9, 'triangle', .02 * k, -40); },
+  baa(k){ for (let i = 0; i < 5; i++) this.tone(420 - i * 6, .07, 'sawtooth', .012 * k, 30, i * .07); },
+  oink(k){ this.tone(190, .12, 'sawtooth', .02 * k, -60); this.noise(.1, .02 * k, 700, .02); this.tone(170, .1, 'sawtooth', .016 * k, -50, .16); },
+  quack(k){ this.tone(330, .09, 'sawtooth', .016 * k, -120); this.tone(320, .1, 'sawtooth', .014 * k, -120, .13); },
+  honk(k){ this.tone(440, .14, 'square', .012 * k, -80); this.tone(400, .16, 'square', .01 * k, -60, .18); },
+  bark(k){ this.tone(300, .07, 'square', .02 * k, -140); this.noise(.06, .03 * k, 1400); this.tone(280, .07, 'square', .018 * k, -130, .16); this.noise(.06, .025 * k, 1400, .16); },
+  meow(k){ this.tone(600, .3, 'triangle', .016 * k, 300); this.tone(900, .25, 'triangle', .012 * k, -350, .25); },
+  bleat(k){ for (let i = 0; i < 4; i++) this.tone(520, .06, 'sawtooth', .01 * k, -20, i * .06); },
+  neigh(k){ for (let i = 0; i < 6; i++) this.tone(700 - i * 50, .08, 'sawtooth', .012 * k, 60, i * .07); },
+  chirp(k){
+    const b = 2600 + Math.random() * 1400, n = 2 + (Math.random() * 4 | 0);
+    for (let i = 0; i < n; i++) this.tone(b + (i & 1 ? 500 : 0), .06, 'sine', .012 * k, i & 1 ? -800 : 600, i * .09);
+  },
+  coo(k){ this.tone(330, .25, 'sine', .016 * k, -40); this.tone(300, .35, 'sine', .014 * k, -30, .3); },
+  croak(k){ this.tone(160, .12, 'square', .014 * k, -40); this.noise(.08, .02 * k, 600, .02); this.tone(150, .12, 'square', .012 * k, -40, .2); },
+  flap(k){ for (let i = 0; i < 4; i++) this.noise(.05, .03 * k, 900, i * .07); },
+  chime(){ [262, 523, 659, 784].forEach((f, i) => this.tone(f, 2.8 - i * .5, 'sine', [.03, .015, .009, .006][i])); [196, 392].forEach((f, i) => this.tone(f, 2.8, 'sine', [.025, .01][i], 0, 1.4)); }
+});
+
 /* ============ Spielwelt in Feinpixeln: Spielkoordinaten = Weltpixel × WS ============ */
 const GW = WW * WS, GH = WH * WS;
 const gPt = p => ({ x: p.x * WS, y: p.y * WS });
@@ -8719,7 +8852,7 @@ const SKILLS = [
 
 /* Gebiete: Stufenbereich der Monster; Burg und Stadt sind sicher */
 const ZONE_LV = { obstgarten:[1, 3], fluss:[2, 4], dorf:[3, 6], friedhof:[5, 8], lager:[6, 9], galgen:[7, 10], wald:[8, 12], schlachtfeld:[10, 14], moor:[12, 16], ruine:[14, 18] };
-const SAFE = { burg:true, stadt:true };
+const SAFE = { burg:true, stadt:true, weiler:true };
 const ZONE_MOBS = {
   obstgarten:['wieder', 'pluend'], fluss:['ratte', 'moor'], dorf:['ratte', 'pluend'], friedhof:['wieder', 'rabe'],
   lager:['pluend', 'armbrust'], galgen:['rabe', 'wieder'], wald:['werwolf', 'armbrust', 'rabe'],
@@ -8737,7 +8870,8 @@ const ZONE_INFO = {
   wald:'Werwölfe, Schützen und Raben im dunklen Tann.',
   schlachtfeld:'Zerbrochene Spieße, unruhige Tote. Hier geht der Tod um.',
   moor:'Nebel, Moorleichen und Irrlichter. Im Sumpf haust der Lindwurm.',
-  ruine:'Die Raubritterburg auf dem Felsen. Kunz der Schwarze und seine Bande.'
+  ruine:'Die Raubritterburg auf dem Felsen. Kunz der Schwarze und seine Bande.',
+  weiler:'Höfe, Gärten und Felder am Fuß der Burg. Markt am Anger unter der Linde, Vieh auf der Weide. Hier seid Ihr sicher.'
 };
 const zoneLvText = id => ZONE_LV[id] ? 'Stufe ' + ZONE_LV[id][0] + '–' + ZONE_LV[id][1] : SAFE[id] ? 'sicher' : '';
 
@@ -8773,7 +8907,7 @@ const BOSSES = {
 };
 const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder' };
 const BIND = { burg: gNear(1900, 456), stadt: gNear(2972, 2380) };
-const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt' };
+const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt', weiler:'Dorf Lindach' };
 
 /* ============ Beute: Seltenheit, Grundformen, Zusätze ============ */
 const RARITY = [
@@ -8938,7 +9072,7 @@ const NP_BASE = {
   K:'#22252b', D:'#434952', M:'#6c747e', L:'#98a1ab', H:'#c5ccd3', G:'#eef1f3',
   s:'#6e4630', t:'#a0694a', u:'#cf9a74', v:'#ecc4a0', e:'#141217',
   w:'#8a8478', x:'#c8c2b0', z:'#f2eee0', N:'#3a2416', n:'#61402a', b:'#8c6340', B:'#b08454',
-  a:'#9c7a32', A:'#e0c271', f:'#5a4030', F:'#8a6a4a', W:'#4a3020', X:'#7a5634'
+  a:'#9c7a32', A:'#e0c271', f:'#5a4030', F:'#8a6a4a', W:'#4a3020', X:'#7a5634', h:'#3a2414', j:'#5a3a20'
 };
 function np_figure(o){
   const Wd = 23, Ht = 47, cx = 11, g = Array.from({ length: Ht }, () => Array(Wd).fill('.'));
@@ -8946,12 +9080,14 @@ function np_figure(o){
   const tone = (x, x0, x1, ramp, lift) => { const t = (x - x0 + .5) / (x1 - x0 + 1), nx = 2 * t - 1, l = -nx * .55 + Math.sqrt(Math.max(0, 1 - nx * nx)) * .75 + (lift || 0); return ramp[l > .86 ? 3 : l > .45 ? 2 : l > .05 ? 1 : 0]; };
   const band = (y, x0, x1, ramp, lift) => { for (let x = x0; x <= x1; x++) px(x, y, tone(x, x0, x1, ramp, lift)); };
   const C1 = ['1', '2', '3', '4'], C2 = ['5', '6', '7', '8'], SK = ['s', 't', 'u', 'v'], LN = ['w', 'x', 'x', 'z'], LE = ['N', 'n', 'b', 'B'], IR = ['D', 'M', 'L', 'H'];
-  const long = o.robe === 'long', hem = long ? 43 : 33;
+  const long = o.robe === 'long', hem = long ? 43 : 33, back = !!o.back, sd = back ? -1 : 1;   // sd: Seite der getragenen Dinge
+  // Schritt (0 Stand, 1 linker Fuß gehoben, 3 rechter Fuß gehoben) und Armschwung
+  const lu = o.step === 1 ? 1 : 0, ru = o.step === 3 ? 1 : 0, sw = o.step === 1 ? -1 : o.step === 3 ? 1 : 0;
   // Beine und Schuhe
-  if (long){ band(44, cx - 5, cx - 1, LE); band(44, cx + 1, cx + 5, LE); band(45, cx - 5, cx - 1, ['N', 'N', 'n', 'n']); band(45, cx + 1, cx + 5, ['N', 'N', 'n', 'n']); }
+  if (long){ band(44 - lu, cx - 5, cx - 1, LE); band(44 - ru, cx + 1, cx + 5, LE); if (!lu) band(45, cx - 5, cx - 1, ['N', 'N', 'n', 'n']); if (!ru) band(45, cx + 1, cx + 5, ['N', 'N', 'n', 'n']); }
   else {
-    for (let y = 34; y <= 42; y++){ band(y, cx - 4, cx - 1, C2); band(y, cx + 1, cx + 4, C2); }
-    for (let y = 43; y <= 45; y++){ band(y, cx - 5, cx - 1, LE); band(y, cx + 1, cx + 5, LE); }
+    for (let y = 34; y <= 42; y++){ if (y <= 42 - lu) band(y, cx - 4, cx - 1, C2); if (y <= 42 - ru) band(y, cx + 1, cx + 4, C2); }
+    for (let y = 43; y <= 45; y++){ band(y - lu, cx - 5, cx - 1, LE); band(y - ru, cx + 1, cx + 5, LE); }
   }
   // Rumpf und Rock
   for (let y = 17; y <= hem; y++){
@@ -8960,31 +9096,43 @@ function np_figure(o){
   }
   if (!long) for (let x = cx - 6; x <= cx + 6; x++) px(x, 33, (x & 1) ? '1' : '2');
   // Gürtel
-  if (o.belt){ for (let x = cx - 6; x <= cx + 6; x++) px(x, 27, x === cx ? 'A' : (x < cx - 3 ? 'N' : 'n')); }
-  // Schürze
-  if (o.apron){ const ap = o.apron === 'leather' ? LE : LN; for (let y = 24; y <= hem - 2; y++){ const hw = y < 27 ? 3 : 4; band(y, cx - hw, cx + hw, ap, .1); } for (let x = cx - 5; x <= cx + 5; x++) px(x, 24, o.apron === 'leather' ? 'N' : 'w'); }
+  if (o.belt){ for (let x = cx - 6; x <= cx + 6; x++) px(x, 27, x === cx && !back ? 'A' : (x < cx - 3 ? 'N' : 'n')); }
+  if (o.rope){ for (let x = cx - 6; x <= cx + 6; x++) px(x, 27, (x & 1) ? 'x' : 'w'); if (!back){ px(cx - 2, 28, 'x'); px(cx - 2, 29, 'w'); px(cx - 2, 30, 'x'); } }
+  // Schürze (von hinten nur die Bänder)
+  if (o.apron && !back){ const ap = o.apron === 'leather' ? LE : LN; for (let y = 24; y <= hem - 2; y++){ const hw = y < 27 ? 3 : 4; band(y, cx - hw, cx + hw, ap, .1); } for (let x = cx - 5; x <= cx + 5; x++) px(x, 24, o.apron === 'leather' ? 'N' : 'w'); }
+  if (o.apron && back){ for (let x = cx - 6; x <= cx + 6; x++) px(x, 25, o.apron === 'leather' ? 'N' : 'w'); px(cx - 1, 26, 'x'); px(cx + 1, 26, 'x'); px(cx - 1, 27, 'w'); px(cx + 1, 28, 'w'); }
   // Pelzkragen und Saum (Schaube)
   if (o.fur){
-    for (let y = 17; y <= 21; y++){ const hw = 6 - (y > 19 ? 1 : 0); for (let x = cx - hw; x <= cx + hw; x++) if (Math.abs(x - cx) > 1 || y > 20) px(x, y, ((x + y) & 1) ? 'F' : 'f'); }
-    for (let y = 22; y <= hem; y++){ px(cx - 1, y, (y & 1) ? 'F' : 'f'); px(cx + 1, y, (y & 1) ? 'f' : 'F'); px(cx, y, '1'); }
+    for (let y = 17; y <= 21; y++){ const hw = 6 - (y > 19 ? 1 : 0); for (let x = cx - hw; x <= cx + hw; x++) if (back || Math.abs(x - cx) > 1 || y > 20) px(x, y, ((x + y) & 1) ? 'F' : 'f'); }
+    if (!back) for (let y = 22; y <= hem; y++){ px(cx - 1, y, (y & 1) ? 'F' : 'f'); px(cx + 1, y, (y & 1) ? 'f' : 'F'); px(cx, y, '1'); }
   }
+  // Mantel des Pilgers mit Kragen
+  if (o.cape){ for (let y = 17; y <= 24; y++){ const hw = 6 + (y > 20 ? 1 : 0); band(y, cx - hw, cx + hw, C2, .1); } }
   // Amtskette
-  if (o.chain){ for (let k = 0; k <= 5; k++){ px(cx - 4 + k * .6, 18 + k, k & 1 ? 'a' : 'A'); px(cx + 4 - k * .6, 18 + k, k & 1 ? 'A' : 'a'); } px(cx, 24, 'A'); px(cx, 25, 'a'); }
-  // Brustplatte (Vogt)
+  if (o.chain && !back){ for (let k = 0; k <= 5; k++){ px(cx - 4 + k * .6, 18 + k, k & 1 ? 'a' : 'A'); px(cx + 4 - k * .6, 18 + k, k & 1 ? 'A' : 'a'); } px(cx, 24, 'A'); px(cx, 25, 'a'); }
+  // Brustplatte (Vogt, Wachen)
   if (o.plate){ for (let y = 18; y <= 26; y++){ const hw = y < 25 ? 4 : 3; band(y, cx - hw, cx + hw, IR, .2); } }
-  // Arme mit Ärmeln, Hände
+  // Arme mit Ärmeln, Hände (schwingen beim Gehen)
   const sl = o.sleeve || C1;
-  for (let y = 18; y <= 29; y++){ px(cx - 7, y, sl[1]); px(cx - 6, y, sl[2]); px(cx + 6, y, sl[1]); px(cx + 7, y, sl[0]); }
-  px(cx - 7, 30, 'u'); px(cx - 6, 30, 'v'); px(cx - 7, 31, 't'); px(cx - 6, 31, 'u');
-  px(cx + 6, 30, 'u'); px(cx + 7, 30, 't'); px(cx + 6, 31, 't'); px(cx + 7, 31, 's');
+  for (let y = 18; y <= 29; y++){ px(cx - 7, y + (y > 26 ? sw : 0), sl[1]); px(cx - 6, y + (y > 26 ? sw : 0), sl[2]); px(cx + 6, y - (y > 26 ? sw : 0), sl[1]); px(cx + 7, y - (y > 26 ? sw : 0), sl[0]); }
+  px(cx - 7, 30 + sw, 'u'); px(cx - 6, 30 + sw, 'v'); px(cx - 7, 31 + sw, 't'); px(cx - 6, 31 + sw, 'u');
+  px(cx + 6, 30 - sw, 'u'); px(cx + 7, 30 - sw, 't'); px(cx + 6, 31 - sw, 't'); px(cx + 7, 31 - sw, 's');
   // Hals und Kopf
   px(cx - 1, 16, 't'); px(cx, 16, 'u'); px(cx + 1, 16, 's');
   for (const [y, hw] of [[7, 2], [8, 3], [9, 3], [10, 3], [11, 3], [12, 3], [13, 3], [14, 2], [15, 1]]) band(y, cx - hw, cx + hw, SK, .12);
   const hair = o.hair || ['h', 'j'];
-  if (o.hairSide){ for (let y = 8; y <= 12; y++){ px(cx - 3, y, hair[0]); px(cx + 3, y, hair[0]); } }
-  px(cx - 2, 10, 'e'); px(cx + 2, 10, 'e'); px(cx - 2, 9, hair[1]); px(cx + 2, 9, hair[1]);
-  px(cx, 11, 't'); px(cx, 12, 't'); px(cx - 1, 14, 's'); px(cx, 14, 's'); px(cx + 1, 14, 's');
-  if (o.beard){ for (const [y, x0, x1] of [[12, -3, -2], [12, 2, 3], [13, -3, -1], [13, 1, 3], [14, -2, -2], [14, 2, 2], [15, -2, 2], [16, -1, 1]]) for (let x = x0; x <= x1; x++) px(cx + x, y, (x + y) & 1 ? hair[0] : hair[1]); px(cx - 1, 14, 's'); px(cx, 14, 's'); px(cx + 1, 14, 's'); }
+  if (back){
+    // Hinterkopf: Haar (Glatze mit Kranz beim Mönch)
+    for (const [y, hw] of [[7, 2], [8, 3], [9, 3], [10, 3], [11, 3], [12, 3], [13, 2]]) for (let x = cx - hw; x <= cx + hw; x++) px(x, y, (x + y) & 1 ? hair[0] : hair[1]);
+    if (o.bald) for (const [y, hw] of [[7, 2], [8, 2], [9, 1]]) for (let x = cx - hw; x <= cx + hw; x++) px(x, y, x < cx ? 'u' : 'v');
+  } else {
+    if (o.hairSide){ for (let y = 8; y <= 12; y++){ px(cx - 3, y, hair[0]); px(cx + 3, y, hair[0]); } }
+    if (o.bald){ for (const x of [-3, 3]) for (let y = 9; y <= 11; y++) px(cx + x, y, hair[0]); }
+    else if (o.hairTop !== false){ for (let x = cx - 2; x <= cx + 2; x++) px(x, 7, hair[(x & 1)]); px(cx - 3, 8, hair[0]); px(cx + 3, 8, hair[0]); }
+    px(cx - 2, 10, 'e'); px(cx + 2, 10, 'e'); px(cx - 2, 9, hair[1]); px(cx + 2, 9, hair[1]);
+    px(cx, 11, 't'); px(cx, 12, 't'); px(cx - 1, 14, 's'); px(cx, 14, 's'); px(cx + 1, 14, 's');
+    if (o.beard){ for (const [y, x0, x1] of [[12, -3, -2], [12, 2, 3], [13, -3, -1], [13, 1, 3], [14, -2, -2], [14, 2, 2], [15, -2, 2], [16, -1, 1]]) for (let x = x0; x <= x1; x++) px(cx + x, y, (x + y) & 1 ? hair[0] : hair[1]); px(cx - 1, 14, 's'); px(cx, 14, 's'); px(cx + 1, 14, 's'); }
+  }
   // Kopfbedeckung
   if (o.hat === 'eisenhut'){
     for (const [y, hw] of [[3, 2], [4, 3], [5, 4], [6, 4]]) band(y, cx - hw, cx + hw, IR, .25);
@@ -8997,18 +9145,31 @@ function np_figure(o){
     for (const [y, hw] of [[5, 3], [6, 4], [7, 4]]) band(y, cx - hw, cx + hw, LN, .2);
     for (let y = 8; y <= 15; y++){ px(cx - 4, y, 'x'); px(cx + 4, y, 'w'); }
     band(16, cx - 3, cx + 3, LN);
+    if (back) for (let y = 8; y <= 14; y++) band(y, cx - 4, cx + 4, LN, .1);
+  } else if (o.hat === 'tuch'){
+    for (const [y, hw] of [[5, 3], [6, 4], [7, 4], [8, 4]]) band(y, cx - hw, cx + hw, C2, .2);
+    for (let y = 9; y <= 12; y++){ px(cx - 4, y, '6'); px(cx + 4, y, '5'); }
+    if (back) for (let y = 9; y <= 15; y++) band(y, cx - 4, cx + 4, C2, .1);
   } else if (o.hat === 'filz'){
     for (const [y, hw] of [[3, 3], [4, 3], [5, 3]]) band(y, cx - hw, cx + hw, ['W', 'X', 'X', 'b'], .1);
     band(6, cx - 7, cx + 7, ['W', 'W', 'X', 'X']); px(cx - 3, 5, 'R');
+  } else if (o.hat === 'pilger'){
+    for (const [y, hw] of [[3, 3], [4, 4], [5, 4]]) band(y, cx - hw, cx + hw, ['W', 'X', 'X', 'b'], .1);
+    band(6, cx - 9, cx + 9, ['W', 'W', 'X', 'b']); if (!back){ px(cx, 4, 'z'); px(cx - 1, 5, 'x'); px(cx + 1, 5, 'x'); }
+  } else if (o.hat === 'kapuze'){
+    for (const [y, hw] of [[4, 3], [5, 4], [6, 5], [7, 5]]) band(y, cx - hw, cx + hw, C1, .2);
+    for (let y = 8; y <= 16; y++){ band(y, cx - 5, cx - 4, C1); band(y, cx + 4, cx + 5, C1); }
+    band(16, cx - 5, cx + 5, C1, .1);
+    if (back) for (let y = 8; y <= 17; y++) band(y, cx - 5, cx + 5, C1, .15);
   }
   // Mi-parti: Rock rechts in der zweiten Farbe, Beine gegengewechselt
   if (o.parti) for (let y = 16; y < Ht; y++) for (let x = 0; x < Wd; x++){
     const ch = g[y][x], i = '1234'.indexOf(ch), j = '5678'.indexOf(ch);
-    if (y <= 33 && x > cx && i >= 0) g[y][x] = '5678'[i];
-    else if (y > 33 && x > cx && j >= 0) g[y][x] = '1234'[j];
+    if (y <= 33 && (x - cx) * sd > 0 && i >= 0) g[y][x] = '5678'[i];
+    else if (y > 33 && (x - cx) * sd > 0 && j >= 0) g[y][x] = '1234'[j];
   }
   // Laute vor dem Bauch, Hals nach rechts oben
-  if (o.lute){
+  if (o.lute && !back){
     for (let y = 22; y <= 31; y++) for (let x = cx - 7; x <= cx + 2; x++){
       const u = (x + .5 - (cx - 2.5)) / 4.6, v = (y + .5 - 27) / 4.2;
       if (u * u + v * v > 1) continue;
@@ -9018,12 +9179,19 @@ function np_figure(o){
     for (let k = 0; k <= 6; k++) px(cx + 1 + k, 24 - k, k & 1 ? 'X' : 'B');
     px(cx + 8, 17, 'W'); px(cx + 8, 16, 'W'); px(cx + 7, 16, 'N');
   }
-  // Hellebarde
+  // Tragen: Korb am Arm, Sack auf dem Rücken, Eimer
+  const X = d => cx + sd * d;
+  if (o.carry === 'korb'){ for (let y = 29; y <= 33; y++) for (let d = 6; d <= 10; d++) px(X(d), y - sw * sd, y === 29 ? 'B' : ((d + y) & 1) ? 'b' : 'n'); px(X(7), 28 - sw * sd, 'b'); px(X(9), 28 - sw * sd, 'b'); px(X(8), 27 - sw * sd, 'b'); }
+  if (o.carry === 'sack' && back){ for (let y = 15; y <= 25; y++){ const hw = y < 17 ? 3 : 4; band(y, cx - hw, cx + hw, LN, .1); } px(cx, 14, 'w'); }
+  if (o.carry === 'eimer'){ for (let y = 30; y <= 34; y++) for (let d = 7; d <= 11; d++) px(X(-d), y + sw * sd, y === 30 ? 'D' : d === 11 ? 'W' : (d & 1 ? 'X' : 'b')); px(X(-9), 29 + sw * sd, 'D'); }
+  // Hellebarde, Stab oder Hacke
   if (o.halberd){
-    for (let y = 1; y <= 45; y++) px(cx + 9, y, y & 1 ? 'W' : 'X');
-    for (const [x, y, c] of [[9, 0, 'H'], [9, 1, 'L'], [10, 2, 'L'], [10, 3, 'M'], [10, 4, 'H'], [10, 5, 'L'], [8, 3, 'M'], [8, 4, 'L'], [7, 4, 'D'], [8, 5, 'M']]) px(cx + x, y, c);
-    px(cx + 8, 30, 'u'); px(cx + 8, 31, 't');
+    for (let y = 1; y <= 45; y++) px(X(9), y, y & 1 ? 'W' : 'X');
+    for (const [x, y, c] of [[9, 0, 'H'], [9, 1, 'L'], [10, 2, 'L'], [10, 3, 'M'], [10, 4, 'H'], [10, 5, 'L'], [8, 3, 'M'], [8, 4, 'L'], [7, 4, 'D'], [8, 5, 'M']]) px(X(x), y, c);
+    px(X(8), 30, 'u'); px(X(8), 31, 't');
   }
+  if (o.staff){ for (let y = 5; y <= 45; y++) px(X(9), y, y & 1 ? 'W' : 'X'); px(X(9), 4, 'b'); if (o.hat === 'pilger') px(X(9), 8, 'z'); px(X(8), 30, 'u'); px(X(8), 31, 't'); }
+  if (o.hoe){ for (let y = 2; y <= 44; y++) px(X(9), y, y & 1 ? 'W' : 'X'); for (const [x, y] of [[10, 2], [11, 2], [10, 3], [11, 3], [11, 4]]) px(X(x), y, 'M'); px(X(8), 30, 'u'); }
   return g;
 }
 function np_frames(o, pal){
@@ -9043,6 +9211,357 @@ const NPC_ART = {
   kraemer: np_frames({ robe:'short', hat:'filz', hairSide:true, apron:'leather', belt:true, sleeve:['5', '6', '7', '8'] },
     { 1:'#1e3a2e', 2:'#2c5440', 3:'#3e6e52', 4:'#5a8a68', 5:'#4a2a18', 6:'#6a3e22', 7:'#8a5630', 8:'#a87040', R:'#b8281e' })
 };
+
+/* ============ Tiere: Hof, Wald, Wasser und Luft (Figurenmaßstab, Blick nach rechts) ============
+   Vierbeiner prozedural: Fell in vier Tönen 1 2 3 4 (dunkel .. hell), Abzeichen 5 6 7 8, Auge e, Huf h, Nase n,
+   Horn und Geweih k, Schwanz und Mähne m, Euter u, Weiß w. Bilder: Gang 0..3, Stand 4, Grasen 5, Flucht 6 und 7. */
+const tr_grid = (w, h) => Array.from({ length: h }, () => Array(w).fill('.'));
+function tr_px(g, x, y, c){ x = Math.round(x); y = Math.round(y); if (c && y >= 0 && y < g.length && x >= 0 && x < g[0].length) g[y][x] = c; }
+const tr_tone = v => '1234'[clamp(Math.floor(v * 4), 0, 3)];
+function tr_ell(g, cx, cy, rx, ry, lit, R){
+  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++){
+    const nx = (x + .5 - cx) / rx, ny = (y + .5 - cy) / ry, q = nx * nx + ny * ny;
+    if (q > 1) continue;
+    const v = .64 - ny * .36 - nx * .12 - q * .16 + (lit || 0);
+    tr_px(g, x, y, R ? R[clamp(Math.floor(v * 4), 0, 3)] : tr_tone(v));
+  }
+}
+function tr_thick(g, x0, y0, x1, y1, w0, w1, chf){
+  const L = Math.hypot(x1 - x0, y1 - y0) || 1, n = Math.ceil(L * 2.5);
+  for (let i = 0; i <= n; i++){
+    const t = i / n, cx = x0 + (x1 - x0) * t, cy = y0 + (y1 - y0) * t, r = (w0 + (w1 - w0) * t) / 2;
+    for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++){
+      const dx = x + .5 - cx, dy = y + .5 - cy;
+      if (dx * dx + dy * dy > r * r) continue;
+      tr_px(g, x, y, typeof chf === 'function' ? chf(t, dx / r, dy / r) : chf);
+    }
+  }
+}
+const tr_coat = (lit, R) => (t, qx, qy) => { const v = .6 - qy * .3 - qx * .18 + (lit || 0); return R ? R[clamp(Math.floor(v * 4), 0, 3)] : tr_tone(v); };
+/* Bein: oben (x, top), unten mit Schwung sw und Heben lift; Huf zwei Zeilen */
+function tr_leg(g, x, top, gy, w0, w1, sw, lift, far, hoof, R){
+  const bx = x + sw, by = gy - 2 - lift;
+  tr_thick(g, x, top, bx, by, w0, w1, (t, qx) => { const v = .5 - qx * .22 - t * .16 - (far ? .3 : 0); return R ? R[clamp(Math.floor(v * 4), 0, 3)] : tr_tone(v); });
+  if (hoof) for (let i = 0; i < Math.max(2, Math.round(w1)); i++){ tr_px(g, bx - (w1 > 2 ? 1 : 0) + i, gy - 1 - lift, hoof); tr_px(g, bx - (w1 > 2 ? 1 : 0) + i, gy - lift, hoof); }
+}
+/* Beinstellungen je Bild: [Schwung, Heben] für nah vorn, fern vorn, nah hinten, fern hinten */
+const TR_GAIT = [
+  [[2, 0], [-2, 0], [-2, 0], [2, 0]], [[1, 1], [0, 0], [0, 0], [1, 1]], [[-2, 0], [2, 0], [2, 0], [-2, 0]], [[0, 0], [1, 1], [1, 1], [0, 0]],
+  [[0, 0], [0, 0], [0, 0], [0, 0]], [[0, 0], [0, 0], [0, 0], [0, 0]], [[4, 2], [3, 1], [-4, 1], [-3, 0]], [[-1, 0], [0, 1], [2, 1], [1, 0]]
+];
+/* Vierbeiner nach Bauplan S, Bild f */
+function tr_quad(S, f){
+  const g = tr_grid(S.W, S.H), gy = S.H - 1, G = TR_GAIT[f], graze = f === 5, run = f >= 6;
+  const L = S.legs;   // [x nah vorn, x fern vorn, x nah hinten, x fern hinten, Oberkante]
+  const lean = run ? (f === 6 ? -1 : 1) : 0;
+  // ferne Beine, Schwanz
+  tr_leg(g, L[1], L[4] + lean, gy, S.lw[0], S.lw[1], G[1][0] * (S.stride || 1), G[1][1], true, S.hoof);
+  tr_leg(g, L[3], L[4] - lean, gy, S.lw[0], S.lw[1], G[3][0] * (S.stride || 1), G[3][1], true, S.hoof);
+  if (S.tail) S.tail(g, f);
+  // Leib
+  for (const e of S.body) tr_ell(g, e[0], e[1] + (e[0] > S.W / 2 ? lean : -lean) * .5, e[2], e[3], e[4] || 0, S.bodyR);
+  // Hals und Kopf
+  const H = graze ? S.graze : S.head;
+  if (H.neck) tr_thick(g, H.neck[0], H.neck[1], H.neck[2], H.neck[3], H.neck[4], H.neck[5], tr_coat(.04));
+  if (H.ell) tr_ell(g, H.ell[0], H.ell[1], H.ell[2], H.ell[3], .06);
+  if (H.snout) tr_thick(g, H.snout[0], H.snout[1], H.snout[2], H.snout[3], H.snout[4], H.snout[5], (t, qx, qy) => S.snoutC ? S.snoutC(t, qx, qy) : tr_tone(.62 - qy * .3 - t * .12));
+  if (H.px) for (const [x, y, c] of H.px) tr_px(g, x, y, c);
+  // nahe Beine
+  tr_leg(g, L[0], L[4] + lean, gy, S.lw[0], S.lw[1], G[0][0] * (S.stride || 1), G[0][1], false, S.hoof);
+  tr_leg(g, L[2], L[4] - lean, gy, S.lw[0], S.lw[1], G[2][0] * (S.stride || 1), G[2][1], false, S.hoof);
+  if (S.after) S.after(g, f, graze);
+  return g;
+}
+/* Abzeichen: Felltöne an Flecken durch die Abzeichenfarbe ersetzen */
+function tr_patch(g, seed, k, x0, x1){
+  for (let y = 0; y < g.length; y++) for (let x = x0 || 0; x < (x1 || g[0].length); x++){
+    const i = '1234'.indexOf(g[y][x]); if (i < 0) continue;
+    if (wp_vn(x * .28 + seed, y * .34, seed) > k) g[y][x] = '5678'[i];
+  }
+}
+const TR_SPEC = {
+  kuh: { W: 40, H: 28, stride: 1, lw: [3.6, 2.6], hoof: 'h', legs: [28, 26, 11, 13, 16],
+    body: [[9, 12, 6.4, 6.6, .02], [19, 13, 12.5, 6.4], [28, 13, 6, 7, .03]],
+    head: { neck: [31, 12, 34, 9, 7, 5], ell: [35, 10, 3.6, 3.2], snout: [35, 11, 38, 13.5, 4.2, 3.6], px: [[35, 9, 'e'], [38, 14, 'n'], [37, 14, 'n'], [38, 13, 'n'], [32, 7, '2'], [31, 7, '1'], [33, 6, 'k'], [34, 5, 'k'], [36, 6, 'k'], [37, 5, 'k']] },
+    graze: { neck: [31, 13, 35, 20, 7, 5], ell: [36, 21, 3.4, 3.4], snout: [36, 22, 38, 25, 4, 3.4], px: [[37, 20, 'e'], [38, 26, 'n'], [37, 26, 'n'], [33, 18, '2'], [35, 17, 'k'], [37, 17, 'k']] },
+    tail: (g, f) => { const s = f === 5 ? 1 : (f & 1); tr_thick(g, 3, 8, 2 - s, 19, 1.6, 1.4, '2'); for (const [x, y] of [[1 - s, 19], [2 - s, 19], [1 - s, 20], [2 - s, 20], [2 - s, 21]]) tr_px(g, x, y, 'm'); },
+    after: (g, f) => { for (let x = 15; x <= 18; x++) tr_px(g, x, 19, x === 15 || x === 18 ? 'U' : 'u'); tr_px(g, 16, 20, 'u'); tr_px(g, 17, 20, 'U'); } },
+  schwein: { W: 24, H: 15, stride: .8, lw: [2.6, 2.2], hoof: 'h', legs: [17, 15, 6, 8, 10],
+    body: [[6, 7.5, 4.6, 4.8, .02], [11, 7.5, 8.6, 5.2], [16, 7.6, 4.6, 5, .02]],
+    head: { ell: [19.5, 7.6, 3.4, 3.4], snout: [21, 8.6, 22.6, 9, 3.4, 3.2], px: [[20, 6, 'e'], [23, 9, 'n'], [23, 8, 'n'], [22, 9, 'N'], [19, 4, '2'], [20, 4, '1'], [20, 5, '1'], [21, 5, '2']] },
+    graze: { ell: [19.5, 9.6, 3.4, 3.2], snout: [21, 11, 22, 12.6, 3.4, 3], px: [[20, 8, 'e'], [22, 13, 'n'], [23, 12, 'n'], [19, 6, '2'], [20, 6, '1'], [21, 7, '2']] },
+    snoutC: (t, qx, qy) => t > .6 ? 'n' : tr_tone(.62 - qy * .3),
+    tail: (g, f) => { for (const [x, y] of [[2, 5], [1, 5], [1, 6], [2, 7], [1, 8]]) tr_px(g, x, y, '2'); } },
+  schaf: { W: 22, H: 17, stride: .8, lw: [1.8, 1.6], hoof: 'h', legs: [15, 14, 6, 7, 11],
+    body: [[10, 8.4, 8.4, 5.6]],
+    head: { neck: [16, 8, 17, 6, 4, 3.4], ell: [18, 6.4, 2.4, 2.6], snout: [18, 7, 20, 8.5, 3, 2.4], px: [[18, 6, 'e'], [20, 9, 'N'], [16, 5, '6'], [15, 5, '5']] },
+    graze: { neck: [16, 9, 18, 12, 4, 3.4], ell: [18.6, 13, 2.4, 2.4], snout: [19, 13.6, 20, 15, 3, 2.4], px: [[19, 12, 'e'], [16, 11, '6']] },
+    snoutC: (t, qx, qy) => '5678'[clamp(Math.floor((.6 - qy * .3 - t * .2) * 4), 0, 3)],
+    tail: (g, f) => { tr_px(g, 1, 7, '2'); tr_px(g, 1, 8, '2'); tr_px(g, 2, 9, '1'); },
+    after: (g, f, graze) => {
+      // Wolle: Locken am Rücken, Kopf und Beine dunkel
+      for (let k = 0; k < 7; k++){ const x = 4 + k * 2.2, y = 3 + (k % 2 ? 0 : .6); tr_ell(g, x, y, 1.6, 1.4, .18); }
+      for (let y = 0; y < g.length; y++) for (let x = 0; x < g[0].length; x++){ const c = g[y][x], i = '1234'.indexOf(c); if (i > 0 && ((x * 3 + y * 5) % 7 === 0)) g[y][x] = '1234'[i - 1]; }
+      for (let y = 12; y < 17; y++) for (let x = 0; x < 22; x++) if ('1234'.includes(g[y][x]) && y > 13) g[y][x] = '5678'['1234'.indexOf(g[y][x])];
+      if (!graze){ tr_ell(g, 17.2, 5.4, 2.2, 1.6, .2); }
+    } },
+  ziege: { W: 21, H: 19, stride: .9, lw: [1.8, 1.4], hoof: 'h', legs: [14, 13, 5, 6, 11],
+    body: [[9, 9.6, 7.6, 4.4]],
+    head: { neck: [14, 9, 16, 5, 3.6, 2.8], ell: [16.6, 4.4, 2.4, 2.2], snout: [17, 5, 19.4, 6.4, 2.6, 2], px: [[17, 4, 'e'], [19, 7, 'N'], [18, 8, 'm'], [18, 9, 'm'], [15, 3, '2'], [14, 3, '1'], [16, 2, 'k'], [15, 1, 'k'], [14, 1, 'k'], [17, 2, 'k'], [16, 1, 'k']] },
+    graze: { neck: [14, 10, 16, 14, 3.6, 2.8], ell: [17, 15, 2.2, 2.2], snout: [17.4, 15.6, 19, 17.4, 2.6, 2], px: [[17, 14, 'e'], [16, 12, 'k'], [15, 12, 'k'], [19, 18, 'm']] },
+    tail: (g, f) => { tr_px(g, 1, 6, '3'); tr_px(g, 1, 5, '4'); tr_px(g, 2, 7, '3'); } },
+  reh: { W: 25, H: 26, stride: 1.2, lw: [2, 1.3], hoof: 'h', legs: [17, 16, 6, 7, 15],
+    body: [[6, 12.6, 4.4, 4.4, .02], [11, 13, 8, 4.4], [16, 12.6, 4, 4.6, .03]],
+    head: { neck: [17, 11, 19, 5, 4, 3], ell: [20, 4.4, 2.6, 2.2], snout: [20.5, 5, 23, 6.2, 2.6, 2], px: [[20, 4, 'e'], [23, 6, 'n'], [18, 1, '2'], [18, 2, '3'], [19, 1, '1'], [17, 0, '2'], [17, 1, '3']] },
+    graze: { neck: [17, 12, 20, 19, 4, 3], ell: [21, 20, 2.4, 2.2], snout: [21.4, 20.6, 22.6, 23, 2.4, 2], px: [[21, 19, 'e'], [22, 23, 'n'], [19, 17, '2'], [18, 16, '2']] },
+    tail: (g, f) => { for (let y = 10; y <= 14; y++) for (let x = 2; x <= 3; x++) tr_px(g, x, y, 'w'); tr_px(g, 1, 11, 'w'); } },
+  hirsch: { W: 33, H: 34, stride: 1.4, lw: [2.6, 1.6], hoof: 'h', legs: [23, 22, 8, 9, 21],
+    body: [[8, 17.6, 6, 5.6, .02], [15, 18, 10.5, 5.6], [22, 17.4, 5.4, 6.2, .03]],
+    head: { neck: [23, 16, 25, 9, 6, 4], ell: [26.5, 8.4, 3.2, 2.8], snout: [27, 9, 30.4, 10.6, 3.2, 2.6], px: [[27, 8, 'e'], [30, 10, 'n'], [24, 6, '2'], [23, 6, '1']] },
+    graze: { neck: [23, 17, 27, 25, 6, 4], ell: [28, 26, 3, 2.8], snout: [28.4, 26.6, 30, 30, 3, 2.6], px: [[28, 25, 'e'], [29, 30, 'n']] },
+    tail: (g, f) => { for (let y = 14; y <= 17; y++) for (let x = 2; x <= 3; x++) tr_px(g, x, y, 'w'); },
+    after: (g, f, graze) => {
+      // Geweih: zwei Stangen mit Enden
+      const ox = graze ? 2 : 0, oy = graze ? 17 : 0;
+      const br = [[26, 6, 24, 0], [24, 0, 22, -4], [25, 3, 21, 1], [24, 0, 26, -3], [27, 6, 29, 1], [29, 1, 30, -4], [29, 1, 32, 0], [28, 3, 31, 3]];
+      for (const [x0, y0, x1, y1] of br) tr_thick(g, x0 + ox, y0 + oy + 4, x1 + ox, y1 + oy + 4, 1.4, 1, 'k');
+    } },
+  fuchs: { W: 24, H: 12, stride: .9, lw: [1.6, 1.3], hoof: 'm', legs: [16, 15, 7, 8, 7],
+    body: [[11, 6, 6.8, 2.8]],
+    head: { ell: [17.6, 4.6, 2.6, 2.2], snout: [18.6, 5.4, 21.6, 5.8, 2.2, 1.4], px: [[18, 4, 'e'], [22, 6, 'm'], [16, 2, 'm'], [17, 2, '3'], [18, 1, 'm'], [18, 2, '3'], [18, 6, 'w'], [19, 6, 'w']] },
+    graze: { ell: [18, 7, 2.4, 2], snout: [19, 7.6, 21.4, 9, 2, 1.4], px: [[18, 6, 'e'], [16, 4, 'm'], [18, 4, 'm']] },
+    tail: (g, f) => { const s = f & 1; tr_thick(g, 5, 5, 0, 6 + s, 2.4, 3.2, (t, qx, qy) => t > .8 ? 'w' : tr_tone(.6 - qy * .3)); },
+    after: (g, f) => { for (let x = 15; x <= 17; x++) tr_px(g, x, 7, 'w'); } },
+  hund: { W: 20, H: 15, stride: .9, lw: [2, 1.6], hoof: 'h', legs: [14, 13, 5, 6, 8],
+    body: [[9, 7.6, 6.4, 3.4]],
+    head: { ell: [15, 5, 2.8, 2.6], snout: [16, 6, 18.6, 6.6, 2.6, 2], px: [[15, 4, 'e'], [19, 6, 'N'], [13, 4, '1'], [13, 5, '1'], [14, 3, '1'], [13, 6, '1']] },
+    graze: { ell: [15, 8, 2.6, 2.4], snout: [16, 9, 18, 11, 2.4, 2], px: [[15, 7, 'e'], [18, 11, 'N'], [13, 7, '1'], [13, 8, '1']] },
+    tail: (g, f) => { const s = f & 1; tr_thick(g, 3, 6, 1 - s, 2, 1.6, 1.2, '3'); },
+    after: (g, f) => { for (const [x, y] of [[13, 8], [14, 8], [15, 9]]) if (g[y][x] !== '.') g[y][x] = '7'; } },
+  wildschwein: { W: 27, H: 17, stride: .9, lw: [2.8, 2.2], hoof: 'h', legs: [19, 17, 7, 9, 11],
+    body: [[7, 9, 5, 5, .02], [12, 8.4, 9, 5.8], [18, 7.8, 5, 6, .02]],
+    head: { ell: [21.4, 8.6, 3.6, 3.6], snout: [23, 9.6, 25.6, 11, 3.2, 2.6], px: [[22, 7, 'e'], [26, 11, 'n'], [25, 12, 'w'], [24, 12, 'w'], [20, 5, '1'], [21, 4, '1'], [21, 5, '2']] },
+    graze: { ell: [21.6, 11, 3.4, 3.2], snout: [23, 12, 25, 14.6, 3, 2.4], px: [[22, 9, 'e'], [25, 15, 'n'], [24, 15, 'w'], [20, 7, '1']] },
+    tail: (g, f) => { tr_px(g, 2, 6, '1'); tr_px(g, 1, 7, '1'); tr_px(g, 1, 8, 'm'); },
+    after: (g, f) => { for (let x = 9; x <= 20; x++){ const y = x > 15 ? 2 : 3; if (g[y + 1][x] !== '.') tr_px(g, x, y, (x & 1) ? 'm' : '1'); } } }
+};
+/* Farben je Tier und Spielart */
+const TR_PAL = {
+  kuh:    [{ 1:'#4a2414', 2:'#6c361e', 3:'#8e4e2c', 4:'#ac6a40', 5:'#8e8a80', 6:'#b6b2a6', 7:'#d6d2c6', 8:'#eeebe2', e:'#141012', h:'#2a2420', n:'#c8908a', N:'#7a4a46', k:'#d8ceb2', m:'#2a1a12', u:'#d8a49c', U:'#b07a72', w:'#eeebe2', patch:.56 },
+            { 1:'#54402a', 2:'#76603e', 3:'#987e54', 4:'#b49c6c', 5:'#3a2a1c', 6:'#4e3a26', 7:'#624a32', 8:'#78603e', e:'#141012', h:'#2a2420', n:'#5a4440', N:'#3a2a26', k:'#d8ceb2', m:'#2a1e14', u:'#c89a90', U:'#a07870', w:'#e8e2d0' }],
+  schwein:[{ 1:'#7a4a40', 2:'#a06a58', 3:'#c08a74', 4:'#d8a890', 5:'#3a2a24', 6:'#4e3a32', 7:'#624a40', 8:'#7a5e50', e:'#141012', h:'#3a2a24', n:'#e0a090', N:'#8a4a40', patch:.6 },
+            { 1:'#2a201c', 2:'#403228', 3:'#584636', 4:'#705a46', 5:'#7a5a42', 6:'#94704e', 7:'#ac885e', 8:'#c0a070', e:'#0e0c0c', h:'#1a1412', n:'#7a5a50', N:'#3a2a26', patch:.66 }],
+  schaf:  [{ 1:'#8a8270', 2:'#aca490', 3:'#cac2ac', 4:'#e4dec8', 5:'#241e1a', 6:'#3a322c', 7:'#504842', 8:'#686058', e:'#0e0c0c', h:'#1e1a16', N:'#141012' },
+            { 1:'#5a4e40', 2:'#766a58', 3:'#928670', 4:'#aca088', 5:'#241e1a', 6:'#3a322c', 7:'#504842', 8:'#686058', e:'#0e0c0c', h:'#1e1a16', N:'#141012' }],
+  ziege:  [{ 1:'#8a8478', 2:'#ada698', 3:'#cac4b4', 4:'#e2ddd0', e:'#2a1a0e', h:'#2a2420', N:'#4a3a34', k:'#7a6a52', m:'#8a8478' },
+            { 1:'#3e2a1a', 2:'#5a3e26', 3:'#765434', 4:'#906c46', e:'#1a100a', h:'#1e1814', N:'#2a1e18', k:'#a0906e', m:'#2a1e14' }],
+  reh:    [{ 1:'#4e2a14', 2:'#72401e', 3:'#965a2e', 4:'#b47844', e:'#0e0a08', h:'#2a1e16', n:'#1a1210', w:'#ece6da' }],
+  hirsch: [{ 1:'#3e2414', 2:'#5c361e', 3:'#7c4c2c', 4:'#98663e', e:'#0e0a08', h:'#241a14', n:'#1a1210', w:'#e2dccf', k:'#cfc2a0' }],
+  fuchs:  [{ 1:'#6a2a10', 2:'#9a4418', 3:'#c4642a', 4:'#dc8a4a', e:'#0e0a08', h:'#1a1210', m:'#1e1410', w:'#efe8dc' }],
+  hund:   [{ 1:'#4a3220', 2:'#6a4a30', 3:'#8a6642', 4:'#a68256', 7:'#c8a878', e:'#0e0a08', h:'#2a2018', N:'#141012' },
+            { 1:'#1a1816', 2:'#2c2a26', 3:'#403c36', 4:'#58524a', 7:'#a0784a', e:'#0e0a08', h:'#141210', N:'#0a0808' },
+            { 1:'#6a645a', 2:'#8a8478', 3:'#aaa496', 4:'#c8c2b2', 7:'#e4dece', e:'#0e0a08', h:'#3a3630', N:'#1a1614' }],
+  wildschwein: [{ 1:'#1e1814', 2:'#302620', 3:'#44382e', 4:'#5a4a3c', e:'#0a0808', h:'#120e0c', n:'#4a3a34', m:'#0e0c0a', w:'#e8e0cc' }]
+};
+/* kleine Tiere als Pixelraster (Blick nach rechts) */
+const TR_SMALL = {
+  huhn: { pal: [{ 1:'#6a3a1a', 2:'#8e5226', 3:'#b06e36', 4:'#cc8c4e', r:'#c42a20', y:'#e0a030', e:'#0e0a08' }, { 1:'#9a968a', 2:'#c2beb2', 3:'#dedad0', 4:'#f4f2ea', r:'#c42a20', y:'#e0a030', e:'#0e0a08' },
+                  { 1:'#2a2420', 2:'#3e342c', 3:'#584a3a', 4:'#76624a', r:'#c42a20', y:'#e0a030', e:'#0e0a08' }],
+    frames: {
+      stand: ['.......rr..', '......r34r.', '......4e44y', '.1....3443r', '1211..2332.', '122223333..', '.12233332..', '..122222...', '...y..y....', '..yy.yy....'],
+      walk:  ['.......rr..', '......r34r.', '......4e44y', '.1....3443r', '1211..2332.', '122223333..', '.12233332..', '..122222...', '...y...y...', '..yy....yy.'],
+      peck:  ['...........', '...........', '...........', '.1.........', '1211.......', '1222233.rr.', '.1223334r4.', '..12223e44y', '...y..y334r', '..yy.yy....'] } },
+  hahn: { pal: [{ 1:'#5a1e10', 2:'#8a3418', 3:'#b85a20', 4:'#e0a040', r:'#d02a1e', y:'#e0a030', e:'#0e0a08', g:'#1e3a3e', G:'#2e5a52' }],
+    frames: {
+      stand: ['.g.....rrr..', 'gG.....r34r.', 'gG.G...4e44y', '.gG.G..3443r', '.GgG2..2332r', '.gG22233333.', '..122233332.', '...1222222..', '....y...y...', '...yy..yy...'],
+      walk:  ['.g.....rrr..', 'gG.....r34r.', 'gG.G...4e44y', '.gG.G..3443r', '.GgG2..2332r', '.gG22233333.', '..122233332.', '...1222222..', '....y....y..', '...yy.....yy'],
+      peck:  ['............', '.g..........', 'gG.G........', '.gG.G.......', '.GgG2.......', '.gG22233.rr.', '..122233r34.', '...1222234e4y', '....y...3443r', '...yy..yy..r'] } },
+  gans: { pal: [{ 1:'#8e8a80', 2:'#b6b2a6', 3:'#d8d4c8', 4:'#f2efe6', y:'#e0782a', Y:'#b0501a', e:'#0e0a08' }],
+    frames: {
+      stand: ['........34..', '........4e4y', '........33yy', '........33..', '........23..', '........23..', '.1......23..', '1222...233..', '122223333...', '.12223333...', '..1222222...', '...y...y....', '..yY..yY....'],
+      walk:  ['........34..', '........4e4y', '........33yy', '........33..', '........23..', '........23..', '.1......23..', '1222...233..', '122223333...', '.12223333...', '..1222222...', '...y....y...', '..yY.....yY.'],
+      peck:  ['............', '............', '............', '............', '............', '.1..........', '1222........', '1222233333..', '.122333334..', '..122222334y', '...y.y...4ey', '..yY.yY..33y', '............'] } },
+  ente: { pal: [{ 1:'#3a3022', 2:'#5a4a34', 3:'#7a6646', 4:'#9a8460', g:'#1e4a2e', G:'#2e6a3e', y:'#d8a030', w:'#e8e4d8', e:'#0e0a08' },
+                { 1:'#4a3624', 2:'#6a4e34', 3:'#8a6a48', 4:'#a8865e', g:'#5a4430', G:'#7a5e40', y:'#c8902a', w:'#c8b898', e:'#0e0a08' }],
+    frames: {
+      stand: ['........gg..', '.......gGeg.', '.......gGgyy', '........w...', '.1....2333..', '1222223334..', '.12222333...', '..111111....'],
+      walk:  ['........gg..', '.......gGeg.', '.......gGgyy', '........w...', '.1....2333..', '1222223334..', '.12222333...', '...111111...'],
+      peck:  ['............', '............', '............', '............', '.1..........', '12222233gg..', '.1222233gGgy', '..11111.....'] } },
+  hase: { pal: [{ 1:'#4a3a2a', 2:'#6a543c', 3:'#8a7052', 4:'#a68c6a', w:'#e8e2d4', e:'#0e0a08', n:'#c8908a' }],
+    frames: {
+      stand: ['.....12....', '.....12....', '.....23....', '....3343...', '....34e3n..', '.w.23333...', 'w2223333...', '12223333...', '.1h..hh....'],
+      walk:  ['...........', '.....12....', '.....123...', '....3343...', '.w..34e3n..', 'w2223333...', '1222333333.', '.12.....2h.', '.h.........'],
+      peck:  ['.....12....', '.....12....', '.....23....', '....3343...', '....34e3n..', '.w.23333...', 'w2223333...', '12223333...', '.1h..hh....'] } },
+  katze: { pal: [{ 1:'#3a3430', 2:'#56504a', 3:'#726a62', 4:'#8e867c', e:'#c8b030', n:'#c8908a' }, { 1:'#6a3a18', 2:'#8e5226', 3:'#b06e36', 4:'#cc8c4e', e:'#3a8a30', n:'#c8908a' }],
+    frames: {
+      stand: ['1..........1.1', '1..........343', '.1.........4e3n', '.12222222233.', '.1222223333..', '..2.2...3.3..', '..2.2...3.3..'],
+      walk:  ['1..........1.1', '1..........343', '.1.........4e3n', '.12222222233.', '.1222223333..', '..2..2..3..3.', '.2....2.3...3'],
+      peck:  ['...........1.1', '1..........343', '1..........4e3n', '.1.2222223333.', '.11222223333..', '...22223333...', '..2.2...3.3...'] } },
+  taube: { pal: [{ 1:'#4a4c54', 2:'#6a6e78', 3:'#8a909a', 4:'#aab0b8', g:'#4a7a6a', y:'#c88a6a', e:'#c8402a' }],
+    frames: { stand: ['....33.', '1..3e3y', '1223g3.', '.12233.', '..y.y..'], walk: ['....33.', '1..3e3y', '1223g3.', '.12233.', '.y...y.'], peck: ['.......', '1......', '12233..', '.1223e3', '..y.y3y'] } },
+  spatz: { pal: [{ 1:'#3a2a1a', 2:'#5a4228', 3:'#7a5e3a', 4:'#a08a6a', y:'#3a2a1a', e:'#0e0a08' }],
+    frames: { stand: ['...33', '1.3e4', '1223.', '.y.y.'], walk: ['...33', '1.3e4', '1223.', 'y...y'], peck: ['.....', '1....', '12234', '.y3e4'] } },
+  frosch: { pal: [{ 1:'#1e3a16', 2:'#2e5420', 3:'#467030', 4:'#6a9046', e:'#e0c040' }],
+    frames: { stand: ['...e.e', '.23443', '12333.', '1.1.1.'], walk: ['....e.e', '..23443', '123333.', '1....1.'], peck: ['...e.e', '.23443', '12333.', '1.1.1.'] } }
+};
+/* Bild aus Raster mit Kontur; Bildersatz je Richtung */
+function tr_sprite(rows, pal){
+  const R = rows.map(r => typeof r === 'string' ? r : r.join('')), w = Math.max(...R.map(r => r.length));
+  return makeSprite(R.map(r => r.padEnd(w, '.')), pal, OUT);
+}
+const TR_ART = {};
+function trArt(kind, v){
+  const key = kind + (v || 0);
+  if (TR_ART[key]) return TR_ART[key];
+  let set;
+  if (TR_SPEC[kind]){
+    const S = TR_SPEC[kind], pals = TR_PAL[kind], P = pals[(v || 0) % pals.length];
+    const frames = [];
+    for (let f = 0; f < 8; f++){ const g = tr_quad(S, f); if (P.patch) tr_patch(g, 7 + (v || 0) * 13, P.patch); frames.push(tr_sprite(g, P)); }
+    set = { walk: frames.slice(0, 4), stand: frames[4], graze: frames[5], run: frames.slice(6, 8), w: S.W + 2, h: S.H + 2 };
+  } else {
+    const T = TR_SMALL[kind], P = T.pal[(v || 0) % T.pal.length], F = T.frames;
+    const st = tr_sprite(F.stand, P), wk = tr_sprite(F.walk, P), pk = tr_sprite(F.peck, P);
+    set = { walk: [st, wk, st, wk], stand: st, graze: pk, run: [wk, st], w: st.width, h: st.height };
+  }
+  const flip = a => Array.isArray(a) ? a.map(flipped) : flipped(a);
+  set.l = { walk: flip(set.walk), stand: flip(set.stand), graze: flip(set.graze), run: flip(set.run) };
+  set.ax = set.w >> 1; set.ay = set.h - 1;
+  return (TR_ART[key] = set);
+}
+/* fliegende Vögel und Schmetterlinge: zwei Flügelschläge */
+const TR_FLY = (() => {
+  const mk = (rows, pal) => makeSprite(rows, pal, null);
+  const crow = { a:'#1a1818', b:'#3a3636' }, star = { a:'#2a2a30', b:'#4a4a56' }, dove = { a:'#6a6e78', b:'#9aa0aa' };
+  const bird = pal => [mk(['b.....b', '.b...b.', '..aaa..'], pal), mk(['.......', '..aaa..', '.b...b.', 'b.....b'], pal)];
+  const fly = (c1, c2) => [mk(['a.a', 'bab', 'a.a'], { a: c1, b: c2 }), mk(['...', 'aba', '...'], { a: c1, b: c2 })];
+  return { krähe: bird(crow), star: bird(star), taube: bird(dove),
+    falter: [fly('#e8d050', '#3a2a1a'), fly('#f0eee6', '#3a3a3a'), fly('#c84a2a', '#2a1a12'), fly('#7a8ad8', '#2a2a3a')] };
+})();
+
+/* ============ Leute unterwegs: von vorn, hinten und der Seite, Gang in vier Bildern ============ */
+/* Seitenansicht (Blick nach rechts) im selben Raster wie np_figure; f 0..3 Gang, 4 Stand */
+function np_side(o, f){
+  const Wd = 23, Ht = 47, cx = 11, g = Array.from({ length: Ht }, () => Array(Wd).fill('.'));
+  const px = (x, y, c) => { x = Math.round(x); y = Math.round(y); if (c && x >= 0 && y >= 0 && x < Wd && y < Ht) g[y][x] = c; };
+  const tone = (x, x0, x1, ramp, lift) => { const t = (x - x0 + .5) / (x1 - x0 + 1), nx = 2 * t - 1, l = -nx * .5 + Math.sqrt(Math.max(0, 1 - nx * nx)) * .75 + (lift || 0); return ramp[l > .86 ? 3 : l > .45 ? 2 : l > .05 ? 1 : 0]; };
+  const band = (y, x0, x1, ramp, lift) => { for (let x = x0; x <= x1; x++) px(x, y, tone(x, x0, x1, ramp, lift)); };
+  const line = (x0, y0, x1, y1, w, ramp, lift) => {
+    const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2) || 1;
+    for (let i = 0; i <= n; i++){ const t = i / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t; for (let k = 0; k < w; k++) px(x - (w - 1) / 2 + k, y, ramp[clamp(Math.round(2 - k * .9 + (lift || 0)), 0, 3)]); }
+  };
+  const C1 = ['1', '2', '3', '4'], C2 = ['5', '6', '7', '8'], SK = ['s', 't', 'u', 'v'], LN = ['w', 'x', 'x', 'z'], LE = ['N', 'n', 'b', 'B'], IR = ['D', 'M', 'L', 'H'];
+  const long = o.robe === 'long', hem = long ? 43 : 33, st = f === 4 ? [0, 0] : [[3, -3], [0, 0], [-3, 3], [0, 0]][f], lift = f === 1 ? 1 : f === 3 ? -1 : 0;
+  const armS = f === 4 ? 0 : [-3, 0, 3, 0][f], hair = o.hair || ['h', 'j'], sl = o.sleeve || C1;
+  // ferner Arm (hinter dem Leib)
+  line(cx - 1, 19, cx - 1 - armS * .7, 29, 2, sl, -1); px(cx - 1 - armS * .7, 30, 't');
+  // Beine: ferner zuerst, dunkler
+  const legs = (k, dark) => {
+    const fx = cx + st[k], ft = 45 - (k === 0 && f === 1 ? 1 : k === 1 && f === 3 ? 1 : 0);
+    if (long){ for (let x = 0; x < 4; x++) px(fx - 1 + x, ft, dark ? 'N' : x > 1 ? 'b' : 'n'); for (let x = 0; x < 3; x++) px(fx - 1 + x, ft - 1, dark ? 'N' : 'n'); return; }
+    line(cx + (k ? -1 : 1) * .5, 34, fx, ft - 2, 3, C2, dark ? -1.2 : 0);
+    for (let x = 0; x < 4; x++){ px(fx - 1 + x, ft, dark ? 'N' : x > 1 ? 'b' : 'n'); px(fx - 1 + x, ft - 1, dark ? 'N' : 'n'); }
+  };
+  legs(1, true);
+  // Rumpf und Rock: Brust vorn, Rücken hinten, Rock weitet sich nach unten
+  for (let y = 17; y <= hem; y++){
+    const t = (y - 17) / Math.max(1, hem - 17), b = Math.round(3 + t * (long ? 2 : .8)), fr = Math.round(3 + t * (long ? 1.6 : .6));
+    band(y, cx - b, cx + fr, C1, y < 20 ? .15 : 0);
+  }
+  if (!long) for (let x = cx - 4; x <= cx + 4; x++) px(x, 33, (x & 1) ? '1' : '2');
+  if (o.cape) for (let y = 17; y <= 25; y++) band(y, cx - 4 - (y > 20 ? 1 : 0), cx + 3, C2, .1);
+  if (o.fur) for (let y = 17; y <= 20; y++) for (let x = cx - 4; x <= cx + 3; x++) px(x, y, ((x + y) & 1) ? 'F' : 'f');
+  if (o.fur) for (let y = 21; y <= hem; y++) px(cx + 3 + (y > 34 ? 1 : 0), y, (y & 1) ? 'F' : 'f');
+  if (o.plate) for (let y = 18; y <= 26; y++) band(y, cx - 3, cx + 4, IR, .2);
+  if (o.belt) for (let x = cx - 4; x <= cx + 4; x++) px(x, 27, x === cx + 3 ? 'A' : 'n');
+  if (o.rope){ for (let x = cx - 4; x <= cx + 4; x++) px(x, 27, (x & 1) ? 'x' : 'w'); px(cx + 2, 28, 'x'); px(cx + 2, 29, 'w'); px(cx + 3, 30, 'x'); }
+  if (o.apron){ const ap = o.apron === 'leather' ? LE : LN; for (let y = 24; y <= hem - 2; y++) band(y, cx + 1, cx + 4 + (y > 30 ? 1 : 0), ap, .2); }
+  if (o.parti) for (let y = 17; y <= 33; y++) for (let x = cx - 6; x <= cx; x++){ const i = '1234'.indexOf(g[y][x]); if (i >= 0) g[y][x] = '5678'[i]; }
+  if (o.carry === 'sack') for (let y = 15; y <= 26; y++) band(y, cx - 7, cx - 3, LN, .1);
+  // nahes Bein
+  legs(0, false);
+  // Hals und Kopf im Profil
+  px(cx, 16, 't'); px(cx + 1, 16, 'u');
+  for (const [y, x0, x1] of [[7, -2, 1], [8, -3, 2], [9, -3, 3], [10, -3, 3], [11, -3, 3], [12, -3, 3], [13, -2, 3], [14, -2, 2], [15, -1, 1]]) band(y, cx + x0, cx + x1, SK, .1);
+  px(cx + 4, 11, 'u'); px(cx + 4, 12, 't');                 // Nase
+  if (o.bald){ for (let y = 9; y <= 12; y++){ px(cx - 3, y, hair[0]); px(cx - 2, y, hair[1]); } }
+  else if (!o.hat || o.hat === 'filz' || o.hat === 'barett' || o.hat === 'eisenhut' || o.hat === 'pilger'){
+    for (const [y, x0, x1] of [[7, -2, 1], [8, -3, 1], [9, -3, -1], [10, -3, -1], [11, -3, -2], [12, -3, -2], [13, -2, -2]]) for (let x = x0; x <= x1; x++) px(cx + x, y, (x + y) & 1 ? hair[0] : hair[1]);
+  }
+  px(cx + 2, 10, 'e'); px(cx + 2, 9, hair[1]); px(cx - 1, 11, 't'); px(cx + 2, 13, 's');
+  if (o.beard) for (const [y, x0, x1] of [[12, 0, 1], [13, 0, 3], [14, -1, 3], [15, -1, 2], [16, 0, 2]]) for (let x = x0; x <= x1; x++) px(cx + x, y, (x + y) & 1 ? hair[0] : hair[1]);
+  // Kopfbedeckung
+  if (o.hat === 'eisenhut'){ for (const [y, x0, x1] of [[3, -2, 1], [4, -3, 2], [5, -4, 3], [6, -4, 3]]) band(y, cx + x0, cx + x1, IR, .25); band(7, cx - 6, cx + 5, ['K', 'D', 'M', 'L']); band(8, cx - 5, cx + 4, ['K', 'K', 'D', 'D']); }
+  else if (o.hat === 'barett'){ for (const [y, x0, x1] of [[4, -4, 3], [5, -6, 5], [6, -6, 6], [7, -5, 4]]) band(y, cx + x0, cx + x1, C2, .1); px(cx - 4, 3, 'z'); px(cx - 5, 2, 'z'); px(cx - 6, 1, 'x'); }
+  else if (o.hat === 'haube'){ for (const [y, x0, x1] of [[5, -3, 2], [6, -4, 3], [7, -4, 3]]) band(y, cx + x0, cx + x1, LN, .2); for (let y = 8; y <= 15; y++) band(y, cx - 4, cx - 1 + (y < 10 ? 2 : 0), LN, .1); band(16, cx - 3, cx + 1, LN); }
+  else if (o.hat === 'tuch'){ for (const [y, x0, x1] of [[5, -3, 2], [6, -4, 3], [7, -4, 3], [8, -4, 2]]) band(y, cx + x0, cx + x1, C2, .2); for (let y = 9; y <= 14; y++) band(y, cx - 4, cx - 2, C2, .1); }
+  else if (o.hat === 'filz'){ for (const [y, x0, x1] of [[3, -3, 2], [4, -3, 2], [5, -3, 2]]) band(y, cx + x0, cx + x1, ['W', 'X', 'X', 'b'], .1); band(6, cx - 6, cx + 6, ['W', 'W', 'X', 'X']); px(cx - 3, 5, 'R'); }
+  else if (o.hat === 'pilger'){ for (const [y, x0, x1] of [[3, -3, 2], [4, -4, 3], [5, -4, 3]]) band(y, cx + x0, cx + x1, ['W', 'X', 'X', 'b'], .1); band(6, cx - 8, cx + 8, ['W', 'W', 'X', 'b']); px(cx + 1, 4, 'z'); }
+  else if (o.hat === 'kapuze'){ for (const [y, x0, x1] of [[4, -3, 2], [5, -4, 3], [6, -5, 4], [7, -5, 4]]) band(y, cx + x0, cx + x1, C1, .2); for (let y = 8; y <= 17; y++) band(y, cx - 5, cx - 1 + (y < 9 ? 3 : 0), C1, .1); }
+  // naher Arm mit Hand; Dinge in der Hand
+  const hx = cx + armS * .8, hy = 30;
+  if (o.halberd || o.staff || o.hoe){
+    const sx = cx + 5;
+    if (o.halberd){ for (let y = 1; y <= 45; y++) px(sx, y, y & 1 ? 'W' : 'X'); for (const [x, y, c] of [[0, 0, 'H'], [0, 1, 'L'], [1, 2, 'L'], [1, 3, 'M'], [1, 4, 'H'], [1, 5, 'L'], [-1, 3, 'M'], [-1, 4, 'L'], [-2, 4, 'D'], [-1, 5, 'M']]) px(sx + x, y, c); }
+    if (o.staff){ for (let y = 5; y <= 45; y++) px(sx, y, y & 1 ? 'W' : 'X'); px(sx, 4, 'b'); }
+    if (o.hoe){ for (let k = 0; k <= 30; k++) px(cx - 6 + k * .45, 4 + k, k & 1 ? 'W' : 'X'); for (const [x, y] of [[-8, 3], [-7, 3], [-8, 4], [-7, 2], [-9, 4]]) px(cx + x, y, 'M'); }
+    line(cx, 19, sx - 1, 27, 2, sl); px(sx - 1, 28, 'u'); px(sx, 28, 't');
+  } else {
+    line(cx, 19, hx, hy - 1, 3, sl); px(hx, hy, 'u'); px(hx + 1, hy, 't'); px(hx, hy + 1, 't');
+    if (o.carry === 'korb'){ for (let y = hy; y <= hy + 4; y++) for (let x = hx - 1; x <= hx + 3; x++) px(x, y + 1, y === hy ? 'B' : ((x + y) & 1) ? 'b' : 'n'); px(hx + 1, hy - 1, 'b'); }
+    if (o.carry === 'eimer'){ for (let y = hy + 1; y <= hy + 5; y++) for (let x = hx - 1; x <= hx + 2; x++) px(x, y, y === hy + 1 ? 'D' : x === hx - 1 ? 'W' : 'X'); }
+  }
+  return g;
+}
+/* Bildersatz einer Person: Gang in vier Richtungen, Stand vorn */
+const VK_SETS = {};
+function vkSet(key, o, pal){
+  if (VK_SETS[key]) return VK_SETS[key];
+  const P = Object.assign({}, NP_BASE, pal), mk = g => makeSprite(g.map(r => r.join('')), P, OUT);
+  const set = { down: [], up: [], right: [], left: [], ax: 12, ay: 47 };
+  for (let f = 0; f < 4; f++){
+    const step = f === 1 ? 1 : f === 3 ? 3 : 0;
+    set.down.push(mk(np_figure(Object.assign({}, o, { step }))));
+    set.up.push(mk(np_figure(Object.assign({}, o, { step, back: true }))));
+    const s = mk(np_side(o, f)); set.right.push(s); set.left.push(flipped(s));
+  }
+  set.stand = { down: set.down[0], up: set.up[0], right: mk(np_side(o, 4)), left: null };
+  set.stand.left = flipped(set.stand.right);
+  set.breath = makeSprite(['.'.repeat(23)].concat(np_figure(o).map(r => r.join('')).slice(0, 30), np_figure(o).map(r => r.join('')).slice(31)), P, OUT);
+  return (VK_SETS[key] = set);
+}
+/* Leute nach Stand: Aussehen und Farben (je Art mehrere Kleiderfarben) */
+const VK_TYPES = {
+  buerger:  { o: { robe:'long', hat:'barett', beard:true, fur:true, belt:false, hair:['h', 'j'] },
+    pals: [['#141218', '#221e28', '#322c3a', '#463e50', '#3a0e12', '#5a1a1e', '#7a2a2a', '#9a3a34'], ['#2a1a10', '#3e2a1a', '#56402a', '#6e563c', '#141218', '#241e2a', '#3a3040', '#504658'], ['#16241c', '#22362a', '#30483a', '#425e4c', '#2a1a10', '#3e2a1a', '#56402a', '#6e563c']] },
+  buergerin:{ o: { robe:'long', hat:'haube', apron:'linen', hairTop:false },
+    pals: [['#1a2a4a', '#24386a', '#34508a', '#4a6aa6', '#3a2c1e', '#4a3a28', '#5a4a34', '#6e5c44'], ['#4a1416', '#6a1e20', '#8a2e2c', '#a8463e', '#3a2c1e', '#4a3a28', '#5a4a34', '#6e5c44'], ['#2e3a1c', '#46562a', '#5e7038', '#7c8c4c', '#3a2c1e', '#4a3a28', '#5a4a34', '#6e5c44']] },
+  magd:     { o: { robe:'long', hat:'tuch', apron:'linen', carry:'korb', hairTop:false },
+    pals: [['#3a3024', '#52442e', '#6a5a3c', '#84724c', '#6a1e1a', '#8a2e24', '#a84432', '#c25a40'], ['#2e2a26', '#46403a', '#5e564e', '#787064', '#24386a', '#34508a', '#4a6aa6', '#6684bc']] },
+  baeuerin: { o: { robe:'long', hat:'tuch', apron:'linen', carry:'eimer', hairTop:false },
+    pals: [['#4a3a22', '#64502e', '#7e683c', '#98804e', '#6a6040', '#847a52', '#9e9466', '#b8ae7c']] },
+  bauer:    { o: { robe:'short', hat:'filz', belt:true, hoe:true, beard:true, hair:['h', 'j'] },
+    pals: [['#3e3020', '#56442c', '#6e5a3a', '#88724c', '#4a4a3a', '#5e5e4a', '#76765c', '#8e8e70'], ['#2c3424', '#3e4a32', '#526242', '#6a7a54', '#4a3a28', '#5e4a34', '#765e44', '#8e7656']] },
+  knecht:   { o: { robe:'short', belt:true, carry:'sack', hair:['h', 'j'] },
+    pals: [['#5a4e3a', '#72664c', '#8a7e60', '#a49878', '#3a3028', '#4e4236', '#645646', '#7a6c58']] },
+  moench:   { o: { robe:'long', hat:'kapuze', rope:true, bald:true, hair:['h', 'j'] },
+    pals: [['#2a1e16', '#3e2c20', '#54402e', '#6a543e', '#2a1e16', '#3e2c20', '#54402e', '#6a543e'], ['#141216', '#222026', '#34303a', '#48434e', '#141216', '#222026', '#34303a', '#48434e']] },
+  wache:    { o: { robe:'short', hat:'eisenhut', plate:true, halberd:true, belt:true, parti:true, beard:true, hair:['h', 'j'] },
+    pals: [['#4a0e12', '#7a1a1e', '#a42a2a', '#c84a40', '#8a8478', '#b0aa9c', '#d0cabc', '#ebe6da'], ['#2a2410', '#4e4418', '#a07a1a', '#d0a830', '#141216', '#222026', '#34303a', '#48434e']] },
+  pilger:   { o: { robe:'long', hat:'pilger', cape:true, staff:true, beard:true, hair:['h', 'j'] },
+    pals: [['#3a342c', '#524a3e', '#6a6050', '#847a66', '#4a3a28', '#5e4a34', '#765e44', '#8e7656']] },
+  bettler:  { o: { robe:'short', staff:true, beard:true, hair:['w', 'x'] },
+    pals: [['#3a3630', '#4e4a42', '#625e54', '#787266', '#3a3028', '#4a3e32', '#5a4c3e', '#6a5c4c']] },
+  haendler: { o: { robe:'short', hat:'filz', apron:'leather', belt:true, hairSide:true, hair:['h', 'j'] },
+    pals: [['#1e3a2e', '#2c5440', '#3e6e52', '#5a8a68', '#4a2a18', '#6a3e22', '#8a5630', '#a87040'], ['#3a1e2e', '#542c40', '#6e3e52', '#8a5a68', '#2a2a2a', '#3e3e3e', '#565656', '#6e6e6e']] }
+};
+const VK_HAIR = [['#2a1a10', '#4a3020'], ['#5a3a1a', '#7a5228'], ['#8a6a3a', '#b08a50'], ['#3a3632', '#6a645c'], ['#a89a84', '#d0c4ae']];
+function vkPerson(type, v){
+  const T = VK_TYPES[type], p = T.pals[v % T.pals.length], hr = VK_HAIR[(v * 7 + type.length) % VK_HAIR.length];
+  const pal = { 1: p[0], 2: p[1], 3: p[2], 4: p[3], 5: p[4], 6: p[5], 7: p[6], 8: p[7], h: hr[0], j: hr[1], R: '#8a1c1c' };
+  if (T.o.hair && T.o.hair[0] === 'w') Object.assign(pal, { w: '#8a8478', x: '#c8c2b0' });
+  return vkSet(type + v, T.o, pal);
+}
 
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */
@@ -9527,6 +10046,460 @@ function eatFare(f){
 }
 
 
+/* ============ Leben im Reichsland: Tiere, Leute, Vögel ============
+   Lebensorte aus der Welt; nahe beim Ritter entstehen ihre Bewohner, weit weg verschwinden sie wieder.
+   Nichts davon kämpft: Tiere fliehen vor Ritter und Kampf, Leute gehen ihren Geschäften nach und grüßen. */
+const LIFE_KIND = {
+  // Tiere: c Verhalten, spd Schritt, run Flucht, fear Fluchtabstand, snd Laut
+  kuh:        { c:'herd', spd: 9,  run: 34,  fear: 34,  snd:'moo',   v: 2 },
+  schaf:      { c:'herd', spd: 11, run: 46,  fear: 56,  snd:'baa',   v: 2 },
+  ziege:      { c:'herd', spd: 12, run: 52,  fear: 50,  snd:'bleat', v: 2 },
+  schwein:    { c:'herd', spd: 12, run: 44,  fear: 44,  snd:'oink',  v: 2 },
+  huhn:       { c:'herd', spd: 16, run: 70,  fear: 44,  snd:'cluck', v: 3, hop: true },
+  hahn:       { c:'herd', spd: 16, run: 70,  fear: 44,  snd:'crow',  v: 1, hop: true },
+  gans:       { c:'herd', spd: 13, run: 50,  fear: 36,  snd:'honk',  v: 1 },
+  pferd:      { c:'herd', spd: 10, run: 40,  fear: 30,  snd:'neigh', v: 2 },
+  ente:       { c:'swim', spd: 9,  run: 30,  fear: 64,  snd:'quack', v: 2 },
+  reh:        { c:'wild', spd: 16, run: 150, fear: 150, v: 1 },
+  hirsch:     { c:'wild', spd: 14, run: 140, fear: 170, v: 1 },
+  hase:       { c:'wild', spd: 18, run: 150, fear: 110, v: 1, hop: true },
+  fuchs:      { c:'wild', spd: 24, run: 130, fear: 140, v: 1 },
+  wildschwein:{ c:'wild', spd: 14, run: 110, fear: 110, snd:'oink', v: 1 },
+  hund:       { c:'pet',  spd: 30, run: 80,  fear: 0,   snd:'bark',  v: 3 },
+  katze:      { c:'pet',  spd: 18, run: 90,  fear: 54,  snd:'meow',  v: 2 },
+  taube:      { c:'bird', spd: 10, run: 0,   fear: 70,  snd:'coo',   v: 1 },
+  spatz:      { c:'bird', spd: 12, run: 0,   fear: 56,  snd:'chirp', v: 1 },
+  frosch:     { c:'frog', spd: 0,  run: 0,   fear: 52,  snd:'croak', v: 1 }
+};
+/* Leute: Sprüche je Stand */
+const VK_SAY = {
+  buerger: ['Gott zum Gruße, Herr Ritter.', 'Der Rat zahlt gut für jedes erschlagene Untier.', 'Habt Ihr vom Lindwurm im Moor gehört?', 'Der Zoll an der Steinbrücke ist wieder gestiegen.', 'Man sagt, ein Fugger sei durch die Stadt gereist.'],
+  buergerin: ['Grüß Gott, edler Herr!', 'Kommt Ihr auch zum Markt?', 'Die Eier sind teuer, seit die Plünderer die Höfe heimsuchen.', 'Meine Schwester hat Irrlichter im Moor gesehen.'],
+  magd: ['Grüß Gott, Herr Ritter!', 'Ich muss zum Brunnen, die Herrin wartet.', 'Seit der Tod umgeht, legen die Hühner nicht.', 'Habt Ihr Hunger? Die Wirtin kocht heute Kraut.'],
+  baeuerin: ['Gott zum Gruße!', 'Die Gänse haben wieder den Kohl gefressen.', 'Schaut nach den Feldern, wenn Ihr vorbeireitet, Herr.'],
+  bauer: ['Das Korn steht gut dieses Jahr.', 'Hütet Euch vor dem Finsterwald, Herr.', 'Der Zehnt frisst uns die halbe Ernte.', 'Nachts heulen drüben die Werwölfe.', 'Die Landsknechte im Lager nehmen, was sie wollen.'],
+  knecht: ['Schwer, so ein Sack Mehl.', 'Der Müller zahlt schlecht, aber er zahlt.', 'Gott zum Gruße.'],
+  moench: ['Pax vobiscum.', 'Betet für die armen Seelen auf dem Friedhof.', 'Ora et labora, mein Sohn.', 'Der Abt hat Bücher aus Mainz kommen lassen. Gedruckt!'],
+  wache: ['Halt! … ach, Ihr seid es, Herr Ritter.', 'Alles ruhig am Tor.', 'Plünderer auf der Reichsstraße. Seid wachsam.', 'Ohne Passierschein kommt hier keiner rein. Ihr natürlich schon.'],
+  pilger: ['Ich ziehe nach Santiago de Compostela.', 'Der Weg nach Rom ist weit.', 'Gott schütze Euch auf Euren Wegen.', 'Habt Ihr ein Stück Brot für einen Pilger?'],
+  bettler: ['Ein Almosen, edler Herr?', 'Gott vergelt’s.', 'Ich war Landsknecht bei Marignano, wisst Ihr.'],
+  hirte: ['Meine Schafe sind mein ganzer Reichtum.', 'Der Fuchs hat mir zwei Lämmer gerissen.', 'Gott zum Gruße, Herr.'],
+  haendler: ['Kauft, Leute, kauft!', 'Gute Ware, ehrlicher Preis!']
+};
+const VK_WARE = [['Frisches Brot! Brezeln!', 'Brot vom Bäcker, noch warm!'], ['Feines Tuch aus Flandern!', 'Leinen und Barchent aus Augsburg!'], ['Töpfe und Krüge, gut gebrannt!', 'Krüge für Bier und Wein!'],
+  ['Kohl und Rüben, frisch vom Feld!', 'Zwiebeln, Rüben, Kraut!'], ['Fisch aus dem Fluss, heute gefangen!', 'Hecht und Karpfen!'], ['Äpfel aus den Obstgärten!', 'Süße Äpfel, saure Äpfel!']];
+VK_TYPES.hirte = { o: { robe:'short', hat:'filz', belt:true, staff:true, beard:true, hair:['h', 'j'] },
+  pals: [['#4a3e2a', '#625238', '#7c6a4a', '#96845e', '#3a3028', '#4e4236', '#645646', '#7a6c58']] };
+const LIFE_WATER = (x, y, d) => wo_wsd(x / WS, y / WS) < -(d || 3);
+const LIFE_FREE = (x, y) => !blocked(x, y) && wo_wsd(x / WS, y / WS) > 2;
+/* Lebensorte (Spielkoordinaten): k Art, n [min, max], r Streifradius, p Person, t Leutearten */
+const LIFE_SPOTS = (() => {
+  const S = [], R = rng(1519), P = (x, y) => gPt({ x, y });
+  const add = o => { if (o.p || o.k){ o.ents = []; o.act = false; o.cool = 0; S.push(o); } };
+  const near = (x, y) => gNear(x, y);
+  const ware = img => { const a = wp_cache.get('marktstand') || []; for (let i = 0; i < a.length; i++) if (a[i] && a[i].img === img) return i; return 0; };
+  // Höfe und Häuser: Hühner, Katzen; Marktstände: Händler
+  for (const p of GPROPS){
+    const z = gZone(p.x, p.y).id;
+    if (p.kind === 'fachwerkhaus' && z !== 'dorf'){
+      add({ k: R() < .8 ? 'huhn' : 'gans', x: p.x + (R() - .5) * 120, y: p.y + 70, r: 90, n: [3, 6], mix: R() < .5 ? 'hahn' : null });
+      if (R() < .35) add({ k: 'katze', x: p.x + 60, y: p.y + 40, r: 70, n: [1, 1] });
+      if (R() < .25) add({ k: 'spatz', x: p.x - 40, y: p.y + 50, r: 40, n: [3, 5] });
+    }
+    if (p.kind === 'stadthaus' && R() < .22) add({ k: R() < .5 ? 'katze' : 'huhn', x: p.x, y: p.y + 60, r: 60, n: [1, 3] });
+    if (p.kind === 'marktstand') add({ p: 'stand', t: ['haendler'], x: p.x + 4, y: p.y - 14, base: p.y, dir: 'down', ware: ware(p.img), n: [1, 1] });
+    if (p.kind === 'muehle') add({ p: 'walk', t: ['knecht'], x: p.x - 80, y: p.y + 60, r: 80, n: [1, 1] });
+    if (p.kind === 'kirche' && z === 'stadt') add({ k: 'taube', x: p.x + 40, y: p.y + 80, r: 50, n: [4, 6] });
+  }
+  // Reichsstadt: Bürger auf Gassen und Markt, Wachen an den Toren, Schweine, Hunde, Tauben
+  const C = wo_CITY;
+  for (const [x, y, r, n] of [[2980, 2310, 200, 4], [2966, 2160, 160, 2], [2966, 2480, 160, 2], [2720, 2366, 180, 2], [3240, 2366, 180, 2], [2780, 2136, 160, 1], [3160, 2136, 160, 1]])
+    add({ p: 'walk', t: ['buerger', 'buergerin', 'magd', 'buergerin', 'knecht', 'moench', 'bettler'], ...P(x, y), r: r * WS, n: [n, n + 1] });
+  for (const [x, y] of [[C.gx - 36, C.y0 + 30], [C.gx + 36, C.y0 + 30], [C.gx - 36, C.y1 + 30], [C.gx + 36, C.y1 + 30]]) add({ p: 'stand', t: ['wache'], ...near(x, y), dir: 'down', n: [1, 1] });
+  add({ k: 'schwein', ...P(2790, 2470), r: 160, n: [2, 3] }); add({ k: 'schwein', ...P(3200, 2440), r: 140, n: [1, 2] });
+  add({ k: 'taube', ...P(2990, 2330), r: 120, n: [5, 8] }); add({ k: 'taube', ...P(2930, 2180), r: 80, n: [3, 5] });
+  add({ k: 'hund', ...P(2900, 2420), r: 260, n: [1, 1] }); add({ k: 'hund', ...P(3100, 2180), r: 220, n: [1, 1] });
+  add({ k: 'katze', ...P(2700, 2200), r: 100, n: [1, 1] }); add({ k: 'katze', ...P(3280, 2500), r: 100, n: [1, 1] });
+  // Reichsburg: Gesinde, Wachen, Hühner, Hund, Pferde beim Stallmeister
+  const B = wo_CAST;
+  add({ p: 'walk', t: ['magd', 'knecht', 'magd', 'buerger', 'moench'], ...P(1910, 520), r: 260, n: [3, 4] });
+  for (const [x, y] of [[B.gx - 34, B.y1 + 26], [B.gx + 34, B.y1 + 26], [B.gx - 30, B.y1 - 40], [B.gx + 30, B.y1 - 40]]) add({ p: 'stand', t: ['wache'], ...near(x, y), dir: 'down', n: [1, 1] });
+  add({ k: 'huhn', ...P(1760, 640), r: 90, n: [3, 5], mix: 'hahn' }); add({ k: 'hund', ...P(1950, 560), r: 200, n: [1, 1] });
+  add({ k: 'taube', ...P(1990, 470), r: 80, n: [4, 6] });
+  add({ k: 'pferd', ...P(1720, 556), r: 70, n: [2, 2] });
+  // Dorf Lindach: Bauern, Mägde, Vieh
+  const H = wo_HAMLET;
+  add({ p: 'walk', t: ['bauer', 'baeuerin', 'magd', 'knecht', 'baeuerin', 'bauer'], ...P(H.x, H.y + 10), r: 300, n: [4, 5] });
+  add({ p: 'work', t: ['bauer'], ...P(2380, 372), r: 70, n: [1, 1] }); add({ p: 'work', t: ['baeuerin', 'bauer'], ...P(2520, 372), r: 70, n: [1, 1] });
+  add({ k: 'kuh', ...P(2622, 610), r: 110, n: [3, 4] }); add({ k: 'schwein', ...P(2350, 650), r: 90, n: [2, 3] });
+  add({ k: 'gans', ...P(H.x + 40, H.y + 34), r: 90, n: [4, 5] }); add({ k: 'ziege', ...P(2540, 430), r: 80, n: [2, 2] });
+  add({ k: 'hund', ...P(H.x - 20, H.y + 30), r: 220, n: [1, 1] });
+  add({ p: 'walk', t: ['hirte'], ...P(2440, 280), r: 120, n: [1, 1] }); add({ k: 'schaf', ...P(2440, 280), r: 140, n: [6, 8] });
+  // Obsthof, Mühle, Gasthäuser, Kloster
+  add({ k: 'kuh', ...P(2230, 1200), r: 90, n: [2, 2] }); add({ p: 'walk', t: ['bauer', 'magd'], ...P(2200, 1180), r: 110, n: [1, 2] });
+  add({ k: 'ente', ...P(2560, 1156), r: 90, n: [3, 5] }); add({ k: 'ente', ...P(2534, 1450), r: 60, n: [2, 3] });
+  for (const inn of INNS) add({ k: 'hund', x: inn.dx + 60, y: inn.dy + 40, r: 120, n: [1, 1] });
+  add({ p: 'walk', t: ['moench'], ...P(1360, 2870), r: 160, n: [3, 3] }); add({ k: 'gans', ...P(1420, 2920), r: 80, n: [3, 4] });
+  add({ k: 'huhn', ...P(1300, 2900), r: 80, n: [3, 4], mix: 'hahn' });
+  // Schäfer in der Flussaue und unter der Burg
+  add({ p: 'walk', t: ['hirte'], ...P(1480, 760), r: 140, n: [1, 1] }); add({ k: 'schaf', ...P(1480, 760), r: 170, n: [6, 9] });
+  add({ p: 'walk', t: ['hirte'], ...P(2180, 1700), r: 140, n: [1, 1] }); add({ k: 'schaf', ...P(2180, 1700), r: 160, n: [5, 7] });
+  // Wasser: Enten an Teichen und am Fluss, Frösche im Moor
+  for (const [x, y, rx, ry, t] of wo_PONDS){
+    if (t === 2) add({ k: 'ente', ...P(x, y), r: Math.min(rx, ry) * WS, n: [2, 4] });
+    else if (R() < .6) add({ k: 'frosch', ...P(x + rx * .9, y), r: 30, n: [2, 3] });
+  }
+  for (let i = 0; i < wo_RIVER.length; i += 40){ const [x, y] = wo_RIVER[i]; if (R() < .6) add({ k: 'ente', ...P(x, y), r: 90, n: [2, 3] }); }
+  // Wild: Rehe, Hirsche, Hasen, Füchse, Wildschweine
+  const wildAt = (zones, k, n, cnt, r) => {
+    for (let t = 0; t < cnt * 40 && cnt > 0; t++){
+      const x = 60 + R() * (WW - 120), y = 60 + R() * (WH - 120);
+      if (!zones.includes(ZONES[wo_zid(x, y)].id) || !wo_ok(x | 0, y | 0)) continue;
+      add({ k, ...P(x, y), r: r || 160, n }); cnt--;
+    }
+  };
+  for (const [cx, cy] of wo_CLEAR) add({ k: R() < .3 ? 'hirsch' : 'reh', ...P(cx, cy), r: 200, n: [1, 3] });
+  wildAt(['wald'], 'reh', [1, 3], 10); wildAt(['wald'], 'wildschwein', [1, 3], 6); wildAt(['wald', 'obstgarten'], 'fuchs', [1, 1], 7);
+  wildAt(['obstgarten', 'fluss', 'burg', 'weiler', 'lager', 'galgen'], 'hase', [1, 2], 18, 140); wildAt(['burg', 'obstgarten'], 'reh', [1, 2], 4);
+  return S;
+})();
+function lifeReset(){ for (const s of LIFE_SPOTS){ s.ents = []; s.act = false; s.cool = 0; } }
+
+/* ---------- Bewohner erzeugen ---------- */
+function lifeMake(s){
+  const n = s.n[0] + (Math.random() * (s.n[1] - s.n[0] + 1) | 0);
+  for (let i = 0; i < n; i++){
+    if (s.p){
+      const type = s.t[(Math.random() * s.t.length) | 0], art = vkPerson(type, (Math.random() * 3) | 0);
+      let x = s.x, y = s.y;
+      if (s.p !== 'stand'){ const q = gRandWalk(s.x, s.y, 0, s.r); if (!q) continue; x = q.x; y = q.y; }
+      s.ents.push({ person: true, type, art, x, y, hx: s.x, hy: s.y, r: s.r || 0, mode: s.p, st: 'idle', t: rand(.5, 4), dir: s.dir || 'down', f: 0, anim: Math.random() * 4,
+        spd: rand(24, 34), sayT: 0, say: null, sayUntil: 0, spot: s, ware: s.ware });
+      // Händler hinter dem Ladentisch: nach dem Stand zeichnen, unterhalb der Tischplatte abschneiden
+      if (s.base){ const e = s.ents[s.ents.length - 1]; e.sy = s.base + 1; e.clip = s.base - 29; }
+      continue;
+    }
+    const k = i === 0 && s.mix ? s.mix : s.k, K = LIFE_KIND[k];
+    let x = s.x, y = s.y, ok = false;
+    for (let a = 0; a < 12 && !ok; a++){
+      const ang = Math.random() * 6.283, rr = Math.random() * (s.r || 40);
+      x = s.x + Math.cos(ang) * rr; y = s.y + Math.sin(ang) * rr * .7;
+      ok = K.c === 'swim' ? LIFE_WATER(x, y, 4) : LIFE_FREE(x, y);
+    }
+    if (!ok) continue;
+    const art = k === 'pferd' ? lifeHorse(i) : trArt(k, (Math.random() * K.v) | 0);
+    s.ents.push({ k, K, art, x, y, hx: s.x, hy: s.y, r: s.r || 40, st: 'idle', t: rand(.3, 4), dir: Math.random() < .5 ? 1 : -1, anim: Math.random() * 4, z: 0, vz: 0, spot: s });
+  }
+}
+/* grasende Pferde beim Stallmeister: Seitenbilder ohne Reiter */
+function lifeHorse(i){
+  const set = horseSet(i ? 'zelter' : 'klepper', 'reich');
+  const r = set.right.map(f => f.under), l = set.left.map(f => f.under);
+  return { walk: r.slice(0, 4), stand: r[4], graze: r[4], run: [r[0], r[2]], l: { walk: l.slice(0, 4), stand: l[4], graze: l[4], run: [l[0], l[2]] }, ax: set.right[0].ax + 1, ay: HO_GY + 1, w: set.right[0].w, horse: true };
+}
+
+/* ---------- Aktualisieren ---------- */
+function lifeThreat(e, K){
+  const k = G.knight;
+  if (G.mode === 'play' || G.mode === 'dying'){
+    const d = Math.hypot(k.x - e.x, k.y - e.y), f = K.fear * (k.moving ? 1 : .6) * (k.atkT > 0 ? 1.7 : 1) * (k.ride ? 1.4 : 1);
+    if (f > 0 && d < f) return k;
+  }
+  for (const m of G.mons) if (m.mode === 'fight' && Math.abs(m.x - e.x) < 120 && Math.abs(m.y - e.y) < 90) return m;
+  return null;
+}
+function lifeMove(e, vx, vy, dt, swim){
+  const nx = e.x + vx * dt, ny = e.y + vy * dt;
+  const ok = (x, y) => swim ? LIFE_WATER(x, y, 2) : !blocked(x, y) && wo_wsd(x / WS, y / WS) > 1;
+  if (ok(nx, ny)){ e.x = nx; e.y = ny; return true; }
+  if (ok(nx, e.y)){ e.x = nx; return true; }
+  if (ok(e.x, ny)){ e.y = ny; return true; }
+  return false;
+}
+function lifeAnimal(e, dt){
+  const K = e.K, s = e.spot, th = K.c !== 'pet' || K.fear ? lifeThreat(e, K) : null;
+  if (e.st === 'fly'){                                   // Vogel fliegt auf und davon
+    e.z += e.vz * dt; e.vz = Math.min(90, e.vz + 30 * dt); e.x += e.vx * dt; e.y += e.vy * dt; e.anim += dt * 12;
+    if (e.z > 260) e.gone = true;
+    return;
+  }
+  if (e.z > 0 || e.vz){ e.vz -= 420 * dt; e.z = Math.max(0, e.z + e.vz * dt); if (e.z === 0) e.vz = 0; }
+  if (th && e.st !== 'flee'){
+    if (K.c === 'bird'){ e.st = 'fly'; e.vz = 50; const a = Math.atan2(e.y - th.y, e.x - th.x) + rand(-.6, .6); e.vx = Math.cos(a) * 90; e.vy = Math.sin(a) * 60; e.dir = e.vx > 0 ? 1 : -1; s.cool = 30; if (Math.random() < .4) lifeSound('flap', e); return; }
+    if (K.c === 'frog'){ e.st = 'flee'; e.t = .5; e.vz = 120; const a = Math.atan2(e.y - th.y, e.x - th.x); e.fx = Math.cos(a); e.fy = Math.sin(a); s.cool = 40; return; }
+    e.st = 'flee'; e.t = rand(.9, 1.6);
+    const a = Math.atan2(e.y - th.y, e.x - th.x) + rand(-.5, .5); e.fx = Math.cos(a); e.fy = Math.sin(a);
+    if (K.hop && Math.random() < .6){ e.vz = 90; burst(e.x, e.y - 6, ['#f0eee6', '#c8a070'], 3, 30); }
+    if (K.snd && Math.random() < .35) lifeSound(K.snd, e);
+  }
+  if (e.st === 'flee'){
+    e.t -= dt;
+    if (K.c === 'frog'){ e.x += e.fx * 60 * dt; e.y += e.fy * 40 * dt; if (e.t <= 0){ e.gone = true; burst(e.x, e.y, ['#9ab0a8', '#d8e2dc'], 4, 30); } return; }
+    let fx = e.fx, fy = e.fy;
+    if (K.c !== 'wild'){ const hd = Math.hypot(e.hx - e.x, e.hy - e.y); if (hd > e.r * 1.6){ fx = (e.hx - e.x) / hd; fy = (e.hy - e.y) / hd; } }
+    if (!lifeMove(e, fx * K.run, fy * K.run * .8, dt, K.c === 'swim')){ const t = e.fx; e.fx = -e.fy; e.fy = t; }
+    e.dir = fx > 0 ? 1 : -1; e.anim += dt * (K.c === 'wild' ? 9 : 12);
+    if (K.c === 'wild' && Math.hypot(G.knight.x - e.x, G.knight.y - e.y) > 520){ e.gone = true; s.cool = 60; }
+    if (e.t <= 0 && !th) e.st = 'idle', e.t = rand(1, 3);
+    return;
+  }
+  // Hund: läuft gern ein Stück neben dem Ritter her
+  if (e.k === 'hund' && (G.mode === 'play') && !e.follow && Math.random() < dt * .03 && Math.hypot(G.knight.x - e.x, G.knight.y - e.y) < 160){ e.follow = rand(4, 8); lifeSound('bark', e); }
+  if (e.follow > 0){
+    e.follow -= dt; const k = G.knight, dx = k.x - 26 * (k.dir === 'left' ? -1 : 1) - e.x, dy = k.y + 6 - e.y, d = Math.hypot(dx, dy);
+    if (d > 20 && Math.hypot(e.hx - e.x, e.hy - e.y) < 700){ lifeMove(e, dx / d * Math.min(110, d * 2), dy / d * Math.min(110, d * 2), dt); e.dir = dx > 0 ? 1 : -1; e.anim += dt * 10; e.st = 'walk'; }
+    else { e.st = 'idle'; e.anim = 0; }
+    if (e.follow <= 0) e.follow = -rand(20, 40);
+    return;
+  }
+  if (e.follow < 0) e.follow += dt;
+  if (e.st === 'walk'){
+    const dx = e.tx - e.x, dy = e.ty - e.y, d = Math.hypot(dx, dy);
+    if (d < 3 || !lifeMove(e, dx / d * K.spd, dy / d * K.spd, dt, K.c === 'swim')){ e.st = 'idle'; e.t = rand(1.5, 6); return; }
+    e.dir = dx > 0 ? 1 : -1; e.anim += dt * (K.c === 'bird' ? 10 : 7);
+    if (K.c === 'bird' && Math.random() < dt * 3) e.vz = 30;
+    return;
+  }
+  // ruhen, grasen, picken; dann ein Stück weiter
+  e.t -= dt; e.graze = K.c !== 'swim' && (e.t % 2.4) < 1.6;
+  if (e.t <= 0){
+    for (let a = 0; a < 6; a++){
+      const ang = Math.random() * 6.283, rr = Math.random() * e.r, x = e.hx + Math.cos(ang) * rr, y = e.hy + Math.sin(ang) * rr * .7;
+      if (K.c === 'swim' ? LIFE_WATER(x, y, 4) : LIFE_FREE(x, y)){ e.tx = x; e.ty = y; e.st = 'walk'; break; }
+    }
+    e.t = rand(2, 6);
+  }
+}
+const VK_DIR = (vx, vy) => Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 'right' : 'left') : (vy > 0 ? 'down' : 'up');
+function lifePerson(e, dt){
+  const k = G.knight, dk = Math.hypot(k.x - e.x, k.y - e.y);
+  if (e.mode === 'stand'){
+    if (e.type === 'haendler') e.dir = dk < 170 ? (Math.abs(k.x - e.x) > 30 ? (k.x > e.x ? 'right' : 'left') : 'down') : 'down';
+    e.anim += dt; return;
+  }
+  if (e.mode === 'work'){                              // Feldarbeit: hacken und ein Stück weitergehen
+    e.t -= dt;
+    if (e.st === 'walk'){
+      const dx = e.tx - e.x, dy = e.ty - e.y, d = Math.hypot(dx, dy);
+      if (d < 3 || !lifeMove(e, dx / d * 16, dy / d * 16, dt)){ e.st = 'idle'; e.t = rand(4, 8); }
+      e.dir = VK_DIR(dx, dy); e.anim += dt * 5; return;
+    }
+    e.dir = 'down'; e.chop = (e.t * 1.6) % 1 < .5;
+    if (e.chop && !e.chopped){ e.chopped = true; G.parts.push({ x: e.x + 9, y: e.y + 1, vx: rand(-12, 12), vy: -20, life: .4, c: '#5a4632', g: 80 }); }
+    if (!e.chop) e.chopped = false;
+    if (e.t <= 0){ const q = gRandWalk(e.hx, e.hy, 10, e.r); if (q){ e.tx = q.x; e.ty = q.y; e.st = 'walk'; } else e.t = rand(3, 6); }
+    return;
+  }
+  if (e.mode === 'road'){                              // Reisende folgen dem Weg
+    const p = e.path[e.pi];
+    if (!p){ e.gone = true; return; }
+    const dx = p[0] - e.x, dy = p[1] - e.y, d = Math.hypot(dx, dy);
+    if (d < 6){ e.pi += e.pd; if (e.pi < 0 || e.pi >= e.path.length) e.gone = true; return; }
+    if (dk < 40 && e.sayUntil > nowS()){ e.dir = VK_DIR(k.x - e.x, k.y - e.y); return; }
+    e.x += dx / d * e.spd * dt; e.y += dy / d * e.spd * dt; e.dir = VK_DIR(dx, dy); e.anim += dt * e.spd / 7;
+    return;
+  }
+  // umhergehen: Ziel nahe dem Zuhause, unterwegs anderen ausweichen
+  if (e.st === 'walk'){
+    const dx = e.tx - e.x, dy = e.ty - e.y, d = Math.hypot(dx, dy);
+    if (dk < 34 && e.sayUntil > nowS()){ e.dir = VK_DIR(k.x - e.x, k.y - e.y); return; }   // beim Reden stehen bleiben
+    if (d < 4){ e.st = 'idle'; e.t = rand(2, 7); return; }
+    const [mx, my] = steer(e, dx / d * e.spd, dy / d * e.spd, false);
+    if (!lifeMove(e, mx, my, dt)){ e.stuck = (e.stuck || 0) + dt; if (e.stuck > .6){ e.st = 'idle'; e.t = rand(.5, 2); e.stuck = 0; } }
+    e.dir = VK_DIR(mx, my); e.anim += dt * e.spd / 7;
+    return;
+  }
+  e.t -= dt;
+  if (dk < 60 && G.mode === 'play') e.dir = VK_DIR(k.x - e.x, k.y - e.y);
+  if (e.t <= 0){ const q = gRandWalk(e.hx, e.hy, 20, e.r); if (q){ e.tx = q.x; e.ty = q.y; e.st = 'walk'; e.av = 0; } e.t = rand(1, 3); }
+}
+/* Sprüche: Leute in der Nähe grüßen, Händler rufen ihre Ware aus */
+function lifeTalk(e){
+  const now = nowS(), k = G.knight, d = Math.hypot(k.x - e.x, k.y - e.y);
+  if (G.mode !== 'play' || e.sayT > now || G.lifeSayT > now) return;
+  const reach = e.type === 'haendler' ? 160 : 74;
+  if (d > reach) return;
+  const L = e.type === 'haendler' ? VK_WARE[e.ware || 0].concat(VK_SAY.haendler) : VK_SAY[e.type];
+  e.say = L[(Math.random() * L.length) | 0]; e.sayUntil = now + 3.6; e.sayT = now + (e.type === 'haendler' ? 14 : 45); G.lifeSayT = now + 3.2;
+}
+function lifeSound(snd, e){
+  if (!Sound[snd]) return;
+  const d = Math.hypot(G.knight.x - e.x, G.knight.y - e.y), v = clamp(1.2 - d / 420, 0, 1);
+  if (v > .05) Sound[snd](v);
+}
+/* Reisende auf Burgweg, Reichsstraße, Brückenweg und Dorfweg */
+const LIFE_ROADS = wo_ROADS.filter(r => r.t === 0 || r.t === 3).map(r => r.p.map(q => [q[0] * WS, q[1] * WS]));
+const LIFE_ROADZ = { obstgarten: 1, fluss: 1, burg: 1, stadt: 1, weiler: 1 };
+function lifeTraveler(){
+  const k = G.knight, cam = camOf(k);
+  for (let tries = 0; tries < 8; tries++){
+    const path = LIFE_ROADS[(Math.random() * LIFE_ROADS.length) | 0], i = (Math.random() * path.length) | 0, [x, y] = path[i];
+    const d = Math.hypot(x - k.x, y - k.y);
+    if (d < W * .6 || d > 1300 || inView(x, y, cam, 30) || !LIFE_ROADZ[gZone(x, y).id]) continue;
+    const pd = Math.random() < .5 ? 1 : -1, type = ['pilger', 'haendler', 'bauer', 'knecht', 'magd', 'moench', 'buerger', 'bettler'][(Math.random() * 8) | 0];
+    const off = (Math.random() < .5 ? -1 : 1) * rand(3, 8);
+    G.travel.push({ person: true, type, art: vkPerson(type, (Math.random() * 3) | 0), x: x + off, y, mode: 'road', path: path.map(q => [q[0] + off, q[1]]), pi: clamp(i + pd, 0, path.length - 1), pd,
+      dir: 'down', anim: 0, spd: rand(22, 32), sayT: 0, sayUntil: 0, st: 'walk' });
+    return;
+  }
+}
+function updateLife(dt){
+  if (G.inside) return;
+  const k = G.knight;
+  G.lifeT = (G.lifeT || 0) - dt;
+  if (G.lifeT <= 0){
+    G.lifeT = .5;
+    for (const s of LIFE_SPOTS){
+      if (s.cool > 0) s.cool -= .5;
+      const d = Math.hypot(s.x - k.x, s.y - k.y);
+      if (!s.act && d < 1150 && s.cool <= 0){
+        // nicht vor den Augen des Ritters entstehen lassen (außer beim Start)
+        if (G.lifeInit && d < Math.min(W, H) * .55 && !s.p) continue;
+        s.act = true; lifeMake(s);
+      } else if (s.act && d > 1600){ s.act = false; s.ents = []; }
+    }
+    G.lifeInit = true;
+    if (G.mode === 'play' || G.mode === 'title'){
+      G.travelT = (G.travelT || 0) - .5;
+      if (G.travelT <= 0 && G.travel.length < 4){ lifeTraveler(); G.travelT = rand(5, 12); }
+      // Laute: ein Tier in der Nähe meldet sich, Vögel singen, in der Stadt läutet es
+      const near = [];
+      for (const s of LIFE_SPOTS) if (s.act) for (const e of s.ents) if (!e.person && e.K && e.K.snd && Math.hypot(e.x - k.x, e.y - k.y) < 360) near.push(e);
+      if (near.length && Math.random() < .09) { const e = near[(Math.random() * near.length) | 0]; lifeSound(e.K.snd, e); }
+      const z = G.zone;
+      if ((z === 'obstgarten' || z === 'burg' || z === 'weiler' || z === 'fluss' || z === 'wald') && Math.random() < (z === 'wald' ? .1 : .16)) Sound.chirp(.5 + Math.random() * .5);
+      if (z === 'stadt'){ G.bellT = (G.bellT || 20) - .5; if (G.bellT <= 0){ Sound.chime(); G.bellT = rand(40, 70); } }
+    }
+  }
+  for (const s of LIFE_SPOTS){
+    if (!s.act) continue;
+    for (let i = s.ents.length - 1; i >= 0; i--){
+      const e = s.ents[i];
+      if (e.person){ lifePerson(e, dt); lifeTalk(e); } else lifeAnimal(e, dt);
+      if (e.gone) s.ents.splice(i, 1);
+    }
+  }
+  for (let i = G.travel.length - 1; i >= 0; i--){
+    const e = G.travel[i];
+    lifePerson(e, dt); lifeTalk(e);
+    if (e.gone || Math.hypot(e.x - k.x, e.y - k.y) > 1700) G.travel.splice(i, 1);
+  }
+  updateSky(dt);
+}
+/* ---------- Himmel: Vogelschwärme, Falter, springende Fische ---------- */
+const SKY_BIRD = { galgen:'krähe', schlachtfeld:'krähe', friedhof:'krähe', dorf:'krähe', wald:'krähe', moor:'krähe', ruine:'krähe', stadt:'taube', obstgarten:'star', fluss:'star', burg:'star', weiler:'star', lager:'krähe' };
+const SKY_FALTER = { obstgarten: 1, burg: 1, weiler: 1, fluss: 1 };
+function updateSky(dt){
+  const k = G.knight, cam = camOf(k);
+  G.flockT = (G.flockT || rand(3, 8)) - dt;
+  if (G.flockT <= 0 && G.flocks.length < 2){
+    G.flockT = rand(14, 34);
+    const kind = SKY_BIRD[G.zone] || 'star', n = 4 + (Math.random() * 9 | 0), from = Math.random() < .5 ? -1 : 1, sp = rand(55, 85);
+    const y0 = cam.y + rand(H * .1, H * .9), x0 = from < 0 ? cam.x - 80 : cam.x + W + 80, vy = rand(-14, 14);
+    const birds = [];
+    for (let i = 0; i < n; i++) birds.push({ dx: -from * (i * 9 + rand(0, 8)), dy: (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 6 + rand(-3, 3), ph: Math.random() * 6 });
+    G.flocks.push({ kind, x: x0, y: y0, vx: -from * sp, vy, z: rand(110, 170), birds, t: 0 });
+    if (kind === 'krähe' && Math.random() < .5) Sound.caw();
+  }
+  for (let i = G.flocks.length - 1; i >= 0; i--){
+    const F = G.flocks[i]; F.t += dt; F.x += F.vx * dt; F.y += (F.vy + Math.sin(F.t * 1.3) * 8) * dt;
+    if ((F.vx > 0 && F.x > cam.x + W + 260) || (F.vx < 0 && F.x < cam.x - 260)) G.flocks.splice(i, 1);
+  }
+  // Falter über Wiesen
+  if (SKY_FALTER[G.zone] && G.falter.length < 5 && Math.random() < dt * .8){
+    const x = cam.x + rand(20, W - 20), y = cam.y + rand(40, H - 20);
+    if (LIFE_FREE(x, y)) G.falter.push({ x, y, z: rand(6, 16), vx: rand(-20, 20), vy: rand(-12, 12), t: 0, life: rand(12, 26), c: (Math.random() * TR_FLY.falter.length) | 0 });
+  }
+  for (let i = G.falter.length - 1; i >= 0; i--){
+    const b = G.falter[i]; b.t += dt; b.life -= dt;
+    b.vx += rand(-60, 60) * dt; b.vy += rand(-40, 40) * dt; b.vx = clamp(b.vx, -26, 26); b.vy = clamp(b.vy, -18, 18);
+    if (Math.hypot(k.x - b.x, k.y - b.y) < 30){ b.vx += (b.x - k.x) * dt * 4; b.vy += (b.y - k.y) * dt * 4; }
+    b.x += b.vx * dt; b.y += b.vy * dt; b.z = clamp(b.z + Math.sin(b.t * 3) * 6 * dt, 4, 22);
+    if (b.life <= 0 || !inView(b.x, b.y, cam, 80)) G.falter.splice(i, 1);
+  }
+  // Fische springen im Fluss und in Teichen
+  G.fishT = (G.fishT || 2) - dt;
+  if (G.fishT <= 0){
+    G.fishT = rand(1.5, 4);
+    for (let t = 0; t < 6; t++){
+      const x = cam.x + rand(10, W - 10), y = cam.y + rand(10, H - 10);
+      if (!LIFE_WATER(x, y, 8)) continue;
+      for (let j = 0; j < 7; j++) G.parts.push({ x: x + rand(-3, 3), y: y - 2, vx: rand(-20, 20), vy: rand(-55, -25), life: rand(.35, .6), c: j & 1 ? '#d8e2dc' : '#9ab0a8', g: 160 });
+      G.fishJ = { x, y, t: 0 };
+      break;
+    }
+  }
+  if (G.fishJ){ G.fishJ.t += dt; if (G.fishJ.t > .5) G.fishJ = null; }
+}
+
+/* ---------- Zeichnen ---------- */
+function lifeEnts(cam, out){
+  for (const s of LIFE_SPOTS) if (s.act) for (const e of s.ents) if (inView(e.x, e.y, cam, 70)) out.push(e);
+  for (const e of G.travel) if (inView(e.x, e.y, cam, 60)) out.push(e);
+  return out;
+}
+function lifeShadow(e){
+  if (e.person){ if (!e.clip) shadow(e.x, e.y - 1, 14, .34); return; }
+  if (e.st === 'fly' || (e.K && e.K.c === 'swim')) return;
+  const w = Math.max(5, Math.round(e.art.w * (e.art.horse ? .5 : .55)));
+  shadow(e.x, e.y - 1, w, .3 - Math.min(.2, e.z * .01));
+}
+function drawLife(e){
+  if (e.person){
+    const A = e.art, moving = (e.st === 'walk' || e.mode === 'road') && !(e.sayUntil > nowS() && Math.hypot(G.knight.x - e.x, G.knight.y - e.y) < 40);
+    let img;
+    if (e.mode === 'work' && e.st !== 'walk') img = e.chop ? A.down[2] : A.stand.down;
+    else if (moving) img = A[e.dir][(e.anim | 0) % 4];
+    else img = e.dir === 'down' ? ((G.t * .8 + e.hx) % 2 < 1 ? A.stand.down : A.breath) : A.stand[e.dir];
+    const x0 = Math.round(e.x - A.ax), y0 = Math.round(e.y - A.ay);
+    if (e.clip){ const h = Math.round(e.clip - y0); if (h > 0) ctx.drawImage(img, 0, 0, img.width, h, x0, y0, img.width, h); }
+    else ctx.drawImage(img, x0, y0);
+    return;
+  }
+  const A = e.art, side = e.dir < 0 && A.l ? A.l : A;
+  if (e.st === 'fly'){
+    const f = TR_FLY[e.k === 'spatz' ? 'star' : 'taube'][(e.anim | 0) % 2];
+    shadow(e.x, e.y - 1, 4, .18);
+    ctx.drawImage(f, Math.round(e.x - 3), Math.round(e.y - 8 - e.z)); return;
+  }
+  let img;
+  if (e.st === 'flee') img = (e.K.c === 'wild' && !A.horse) ? side.run[(e.anim | 0) % 2] : side.walk[(e.anim | 0) % 4];
+  else if (e.st === 'walk') img = side.walk[(e.anim | 0) % 4];
+  else img = e.graze ? side.graze : side.stand;
+  const bob = e.K && e.K.c === 'swim' ? Math.round(Math.sin(G.t * 2 + e.hx) * .6) : 0;
+  ctx.drawImage(img, Math.round(e.x - A.ax), Math.round(e.y - A.ay - e.z + bob));
+  if (e.K && e.K.c === 'swim'){
+    // Kielwasser
+    ctx.fillStyle = 'rgba(200,214,210,.55)';
+    const w = A.w - 4, x0 = Math.round(e.x - w / 2), y0 = Math.round(e.y);
+    ctx.fillRect(x0, y0, w, 1);
+    if (e.st !== 'idle'){ const tx = e.dir > 0 ? x0 - 3 : x0 + w + 1; ctx.fillRect(tx, y0 - 1, 2, 1); ctx.fillRect(e.dir > 0 ? tx - 3 : tx + 3, y0 + 1, 2, 1); }
+  }
+}
+function drawSpeech(cam){
+  const now = nowS();
+  for (const e of lifeEnts(cam, [])) if (e.person && e.say && e.sayUntil > now) drawBubble(e.x, e.y - 50, e.say);
+}
+function drawSky(cam){
+  for (const b of G.falter){
+    const f = TR_FLY.falter[b.c][(b.t * 9 | 0) % 2];
+    ctx.drawImage(f, Math.round(b.x - 1), Math.round(b.y - b.z - 1));
+  }
+  if (G.fishJ){
+    const p = G.fishJ.t / .5, x = Math.round(G.fishJ.x - 6 + p * 12), y = Math.round(G.fishJ.y - Math.sin(p * Math.PI) * 10);
+    ctx.fillStyle = '#9aa8a8'; ctx.fillRect(x - 2, y, 5, 2); ctx.fillStyle = '#c8d4d0'; ctx.fillRect(x - 1, y, 3, 1); ctx.fillStyle = '#5a6a6a'; ctx.fillRect(x - 4, y - 1, 2, 2);
+  }
+  for (const F of G.flocks){
+    const imgs = TR_FLY[F.kind];
+    for (const b of F.birds){
+      const x = F.x + b.dx, y = F.y + b.dy;
+      if (!inView(x, y, cam, 40)) continue;
+      ctx.fillStyle = 'rgba(18,16,22,.16)'; ctx.fillRect(Math.round(x - 2), Math.round(y), 5, 2);
+      ctx.drawImage(imgs[((F.t * 7 + b.ph) | 0) % 2], Math.round(x - 3), Math.round(y - F.z));
+    }
+  }
+}
+
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;
 function freshKnight(x, y){
@@ -9535,11 +10508,13 @@ function freshKnight(x, y){
 }
 function freshState(mode){
   const p = HERO ? { x: HERO.x, y: HERO.y } : GSTART;
+  lifeReset();
   return {
     v:5, mode, t:0, shake:0, flash:0, dieT:0, fogX:0, zone: gZone(p.x, p.y).id,
     knight: freshKnight(p.x, p.y),
     mons:[], rising:[], shots:[], parts:[], floats:[], loot:[],
-    cd:{ rund:0, stoss:0, ruf:0, trank:0 }, buffT:0, combatT:99, inside:null, near:null, nearDoor:null, nearExit:false, spawnT:0, saveT:0, fullMsgT:0, lostGold:0
+    cd:{ rund:0, stoss:0, ruf:0, trank:0 }, buffT:0, combatT:99, inside:null, near:null, nearDoor:null, nearExit:false, spawnT:0, saveT:0, fullMsgT:0, lostGold:0,
+    travel:[], flocks:[], falter:[], lifeSayT:0, lifeT:0
   };
 }
 let G = null;
@@ -10312,6 +11287,7 @@ function update(dt){
   G.t += dt; G.fogX = (G.fogX + dt * 6) % 512;
   if (G.mode === 'title'){
     for (const m of G.mons){ m.t += dt; const [vx, vy] = idleMove(m, dt); if (MON[m.k].fly || !blocked(m.x + vx * dt, m.y + vy * dt)){ m.x += vx * dt; m.y += vy * dt; } }
+    updateLife(dt);
     updateFx(dt);
     return;
   }
@@ -10338,6 +11314,7 @@ function update(dt){
   updateLoot(dt);
   if (G.mode === 'play') updateMons(dt);
   if (G.mode === 'play') updateShots(dt);
+  updateLife(dt);
   updateFx(dt);
   updateBossBar();
   updateNear();
@@ -10612,6 +11589,8 @@ function render(){
   if (!title) shadow(k.x, k.y - 1, shW(k), .42);
   for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, shW(p), .38);
   for (const n of NPCS) if (inView(n.x, n.y, cam)) shadow(n.x, n.y - 1, 14, .38);
+  const lifeL = lifeEnts(cam, []);
+  for (const e of lifeL) lifeShadow(e);
   for (const m of G.mons){
     if (!inView(m.x, m.y, cam)) continue;
     const art = artOf(m.k);
@@ -10632,11 +11611,13 @@ function render(){
   for (const a of G.loot) if (inView(a.x, a.y, cam)) list.push({ y: a.y, d: () => drawLoot(a) });
   for (const m of G.mons) if (!MON[m.k].fly && inView(m.x, m.y, cam, 120)) list.push({ y: m.y + .1, d: () => drawMon(m) });
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
+  for (const e of lifeL) list.push({ y: (e.sy || e.y) + .05, d: () => drawLife(e) });
   for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f), p.dead, 1) });
   if (!title) list.push({ y: k.y + .2, d: drawKnight });
   list.sort((p, q) => p.y - q.y);
   for (const it of list) it.d();
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
+  drawSky(cam);
   for (const s of G.shots) if (s.k === 'bolt') drawShot(s);
   for (const p of G.parts){
     if (p.glow) continue;
@@ -10668,6 +11649,7 @@ function render(){
   if (!title){
     for (const m of G.mons) if (inView(m.x, m.y, cam, 20) && (m.mode === 'fight' || m.hp < m.max || Math.hypot(m.x - k.x, m.y - k.y) < 170)) drawPlate(m);
     for (const n of NPCS) if (inView(n.x, n.y, cam, 20)) drawNpcPlate(n);
+    drawSpeech(cam);
     for (const inn of INNS) if (inView(inn.dx, inn.y, cam, 260)){
       drawText('Gasthaus ' + inn.name, inn.dx, inn.y - 74, '#ffd98a');
       if (G.nearDoor === inn) drawText(TOUCH ? 'Eintreten' : 'E oder hinauf: eintreten', inn.dx, inn.y + 4, '#ffffff');
@@ -10844,6 +11826,22 @@ for (const [kind, name, desc] of BEASTS){
   im.src = urlOf(artOf(kind).idle.r[0].img, 2); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh, v); $('beasts').append(li);
 }
+/* Leben im Reichsland: Tiere und Leute */
+for (const [kind, name, desc, person] of [
+  ['huhn', 'Hühner, Gänse, Schweine', 'an Höfen, im Dorf Lindach und in den Gassen der Stadt'],
+  ['kuh', 'Kühe, Schafe, Ziegen', 'auf Weiden; die Schäfer ziehen mit ihren Herden unter der Burg und in der Flussaue'],
+  ['reh', 'Rehe, Hirsche, Hasen', 'an Waldrändern und Lichtungen, Hasen auf Wiesen und Feldern; scheu'],
+  ['fuchs', 'Füchse und Wildschweine', 'im Finsterwald und am Rand der Obstgärten'],
+  ['ente', 'Enten, Frösche, Fische', 'auf Teichen, am Fluss und im Moor'],
+  ['buerger', 'Bürger und Mägde', 'in der Reichsstadt und auf der Burg, grüßen und wissen Neues', true],
+  ['haendler', 'Händler', 'an den Marktständen in der Stadt und am Anger von Lindach', true],
+  ['wache', 'Wachen', 'an den Toren von Burg und Stadt', true],
+  ['moench', 'Mönche und Pilger', 'im Klostergarten und unterwegs auf den Straßen', true]
+]){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+  im.src = urlOf(person ? vkPerson(kind, 0).stand.right : trArt(kind, 0).stand, 2); im.alt = '';
+  wh.append(el('small', null, desc)); li.append(im, wh); $('lifeList').append(li);
+}
 /* Die Ritter Europas: Tafel und Auswahl beim Anlegen */
 const PLATE_URL = {};
 for (const id of FACTION_IDS){
@@ -10941,7 +11939,7 @@ function updateZone(entered){
     if (z && zoneLvText(z.id)) el2.append(el('small', null, zoneLvText(z.id)));
   }
   if (entered && !RM){ el2.style.animation = 'none'; void el2.offsetWidth; el2.style.animation = 'zonein 1.2s steps(6)'; }
-  if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet die ' + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
+  if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das ' : 'die ') + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
   if (entered && G.inside) logLine('Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
 }
 let bannerTimer = 0;
