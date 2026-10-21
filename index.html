@@ -621,7 +621,19 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     <div class="note">
       <h3>Pferde und Schmied</h3>
       <ul class="list" id="horseList"></ul>
-      <p class="tip">Pferde verkauft der Stallmeister in der Reichsburg. Mit H sitzt Ihr auf und ab. Im Kampf steigt Ihr ab: beim ersten Hieb oder wenn Euch ein Monster trifft. Der Schmied Wolf am Markt der Reichsstadt härtet Waffen und Rüstungen bis +5.</p>
+      <p class="tip">Pferde verkauft der Stallmeister in der Reichsburg. Mit H sitzt Ihr auf und ab. Im Sattel wird der Hieb zum Lanzenstoß: Das Pferd stürmt vor, die Lanze trifft hart und betäubt. Trifft Euch ein Monster, werft es Euch aus dem Sattel. Der Schmied Wolf am Markt der Reichsstadt härtet Waffen und Rüstungen bis +5.</p>
+    </div>
+    <div class="note">
+      <h3>Harnisch und Turnier</h3>
+      <ul class="list" id="gearList"></ul>
+      <p class="tip">Was Ihr tragt, sieht man: Die Güte des Harnischs bestimmt seinen Glanz, ein guter Helm trägt einen Federbusch in seiner Farbe, ein guter Schild einen Rand aus Silber oder Gold, und mit besseren Waffen wird die Klinge länger.</p>
+      <ul class="list" id="joustList"></ul>
+      <p class="tip">Vor dem Osttor der Reichsstadt ruft Herold Kaspar zum Tjost. Drei Durchgänge an der Schranke: Kurz vor dem Zusammenprall wandert das Ziel über den Gegner, mit dem Hieb senkt Ihr die Lanze. Helm zwei Punkte, Schild einer, wer aus dem Sattel fällt, verliert.</p>
+    </div>
+    <div class="note">
+      <h3>Tag, Nacht und Wetter</h3>
+      <ul class="list" id="dayList"></ul>
+      <p class="tip">Ein Tag im Reichsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu.</p>
     </div>
     <div class="note">
       <h3>Bestiarium</h3>
@@ -1193,8 +1205,8 @@ function kn_sword(k){
 const SWORD = { len: 36, gripBack: 5 };
 const kn_SW = kn_sword(1);
 const kn_SWR = Array.from({ length: 64 }, (_, i) => rotateNN(kn_SW.img, i / 64 * Math.PI * 2, kn_SW.gx + .5, kn_SW.gy + .5));
-function drawSword(g, x, y, angle){
-  const i = ((Math.round(angle / (Math.PI * 2) * 64) % 64) + 64) % 64, r = kn_SWR[i];
+function drawSword(g, x, y, angle, rots){
+  const i = ((Math.round(angle / (Math.PI * 2) * 64) % 64) + 64) % 64, r = (rots || kn_SWR)[i];
   g.drawImage(r.img, Math.round(x - r.ox), Math.round(y - r.oy));
 }
 const SWORD_ICON = kn_sword(2).img;
@@ -1377,6 +1389,60 @@ const KN_FACTIONS = {
 };
 for (const F of Object.values(KN_FACTIONS)) F.pal = Object.assign({}, kn_PAL, F.cloth, F.pal || {});
 const FACTION_IDS = Object.keys(KN_FACTIONS);
+/* ---------- Ausrüstung am Ritter sichtbar: Harnischglanz nach Rüstung, Federbusch nach Helm, Schildrand nach Schild ----------
+   look: fünf Zeichen, Seltenheit von Rüstung, Helm, Schild (n = nichts), dann Grundform und Seltenheit der Waffe */
+const GEAR_STEEL = [
+  { K:'#1e2024', D:'#373b41', M:'#565c64', L:'#787f88', H:'#98a0a8', G:'#b8bec5' },                                  // matt geschmiedet
+  null,                                                                                                               // blank poliert
+  { K:'#121828', D:'#26344e', M:'#405676', L:'#6682a6', H:'#98b0cc', G:'#d6e2f0' },                                   // gebläut
+  { K:'#0c0c10', D:'#1c1c22', M:'#30303a', L:'#4c4c58', H:'#72727e', G:'#a6a6b0', A:'#c49a3a', a:'#f4da82' },          // geschwärzt, Messing
+  { K:'#3a2810', D:'#6c521e', M:'#9c7a30', L:'#c49e46', H:'#e4c466', G:'#fbeaa6', A:'#d8a838', a:'#fff0a0' }           // vergoldet
+];
+const GEAR_PLUME = [null, null, { F:'#1e3a7a', f:'#4a6ac8', g:'#a8c0f4' }, { F:'#4a1e5a', f:'#8a4aa8', g:'#cfa2e8' }, { F:'#8a4a0c', f:'#e0a028', g:'#ffe68a' }];
+const GEAR_RIM = [null, null, 'ar', 'or', 'or'];
+const GEAR_NAME = ['matt geschmiedet', 'blank poliert', 'gebläut', 'geschwärzt mit Messing', 'vergoldet'];
+const lookOf = eq => { const r = it => it ? String(it.r) : 'n'; return r(eq.ruestung) + r(eq.helm) + r(eq.schild) + (eq.waffe ? eq.waffe.b + '' + eq.waffe.r : 'nn'); };
+const LOOK_RE = /^[0-4n]{5}$/;
+function knightFaction(fid, body){
+  const base = KN_FACTIONS[fid] || KN_FACTIONS.reich;
+  if (!body) return base;
+  const a = body[0] === 'n' ? 0 : +body[0], h = body[1] === 'n' ? -1 : +body[1], s = body[2] === 'n' ? -1 : +body[2];
+  const F = Object.create(base);
+  F.pal = Object.assign({}, base.pal, GEAR_STEEL[a] || {}, h >= 2 ? GEAR_PLUME[h] : {});
+  if (s >= 2) F.rim = GEAR_RIM[s];
+  return F;
+}
+/* Schwert nach Grundform (Länge, Griff) und Seltenheit (Klinge, Gefäß) */
+const SW_COL = [
+  { I: ['#24262a', '#44484e', '#6a6e74', '#909499', '#b2b6ba'], b1: '#b6babe', b2: '#6c7278', tip: '#a8aeb4', Lr: ['#2a1812', '#4a2a1d', '#6b3d29', '#8a5537'] },
+  { I: ['#2b2d31', '#53575d', '#82878d', '#b4b9be', '#dfe3e6'], b1: '#e4e8ea', b2: '#8f979f', tip: '#c9ced3', Lr: ['#2a1812', '#4a2a1d', '#6b3d29', '#8a5537'] },
+  { I: ['#3a3e46', '#6a707a', '#9aa2ae', '#ccd4de', '#f2f6fa'], b1: '#eef4ff', b2: '#8aa2c4', tip: '#dfe8f8', Lr: ['#141c30', '#24304a', '#344466', '#4a5c82'] },
+  { I: ['#4e3812', '#8a6420', '#c49a3a', '#e8c45a', '#fbe08a'], b1: '#d8d8e2', b2: '#4c4c5a', tip: '#c4c4d0', Lr: ['#0e0e12', '#1c1c22', '#2c2c34', '#3e3e48'] },
+  { I: ['#5a3e10', '#9a7020', '#d4a83a', '#f0cc5a', '#fff0a0'], b1: '#fffdf2', b2: '#c8a868', tip: '#ffffff', Lr: ['#3a0a0a', '#5a1414', '#7a1e1e', '#9a2a2a'], gem: '#d8282a' }
+];
+function kn_swordLook(b, r){
+  const k = 1, grip = [4, 4, 5, 6, 8][b], blade = [20, 24, 26, 29, 32][b], gw = [2, 3, 3, 3, 4][b], C = SW_COL[r];
+  const gEnd = 2 + grip, bl0 = gEnd + 1, tip = bl0 + blade, len = tip + 2, wq = gw + 2;
+  const c = canvasOf(len + 2, wq * 2 + 2), g = c.getContext('2d'), cy = wq + 1, I = C.I;
+  const P = (t, q, col) => { g.fillStyle = col; g.fillRect(Math.round(t) + 1, Math.round(cy + q), 1, 1); };
+  for (let q = -1; q <= 1; q++) P(0, q, q < 0 ? I[3] : q === 0 ? (C.gem || I[2]) : I[1]);
+  for (let q = -1; q <= 2; q++) P(1, q - .5, q < 0 ? I[4] : q < 2 ? I[2] : I[1]);
+  for (let t = 2; t < gEnd; t++){ P(t, 0, t % 2 ? C.Lr[3] : C.Lr[2]); P(t, 1, t % 2 ? C.Lr[1] : C.Lr[0]); }
+  for (let q = -gw; q <= gw + 1; q++) P(gEnd, q, q < 0 ? I[3] : q < 2 ? I[2] : I[1]);
+  P(gEnd - 1, -gw, I[2]); P(gEnd - 1, gw + 1, I[1]); P(gEnd + 1, -gw, I[1]); P(gEnd + 1, gw + 1, I[0]);
+  if (r >= 3){ P(gEnd - 1, -gw + 1, I[4]); P(gEnd + 1, gw, I[3]); }
+  for (let t = bl0; t < tip - 5; t++){ P(t, 0, C.b1); P(t, 1, C.b2); }
+  for (let t = tip - 5; t < tip; t++) P(t, t < tip - 2 ? 0 : .5, C.tip);
+  P(tip, .5, '#f4f6f7');
+  if (r >= 2) for (let t = bl0 + 2; t < tip - 6; t += 5) P(t, 0, '#ffffff');      // Glanzpunkte
+  return { img: c, gx: (2 + grip / 2) * k + 1, gy: cy };
+}
+const SWORD_LOOK = {};
+function swordSet(wl){
+  if (!wl || wl[0] === 'n') wl = '21';
+  return SWORD_LOOK[wl] || (SWORD_LOOK[wl] = (() => { const S = kn_swordLook(+wl[0], +wl[1]); return Array.from({ length: 64 }, (_, i) => rotateNN(S.img, i / 64 * Math.PI * 2, S.gx + .5, S.gy + .5)); })());
+}
+
 
 /* ---------- Zusammensetzen ---------- */
 function kn_frame(grid, handGrid){
@@ -1393,8 +1459,8 @@ const KNIGHT_CARRY = {
   left:  { x: -3, y: -25, a: Math.PI - 1.15, behind: true }
 };
 /* alle Bilder eines Ritters: Gehen, Hieb, Treffer, Sturz, Infotafel und Schild als Symbol */
-function kn_buildSet(id){
-  const prev = kn_F; kn_F = KN_FACTIONS[id];
+function kn_buildSet(id, body){
+  const prev = kn_F; kn_F = knightFaction(id, body);
   const walk = { down: [], up: [], right: [], left: [] }, atk = { down: [], up: [], right: [], left: [] }, hit = {}, fall = {};
   const ax = kn_PAD + kn_CX, ay = kn_PAD + kn_H;
   for (let f = 0; f < 5; f++){
@@ -1447,10 +1513,15 @@ function kn_buildSet(id){
   kn_F = prev;
   return { id, walk, atk, hit, fall, plate, icon };
 }
-const KN_SETS = {};
-function knightSet(id){
+const KN_SETS = {}, KN_LOOKS = {};
+/* Bildersatz eines Ritters: Herkunft und Aussehen der Ausrüstung (look, siehe lookOf) */
+function knightSet(id, look){
   if (!KN_FACTIONS[id]) id = 'reich';
-  return KN_SETS[id] || (KN_SETS[id] = kn_buildSet(id));
+  if (!look || !LOOK_RE.test(look)) return KN_SETS[id] || (KN_SETS[id] = Object.assign(kn_buildSet(id), { key: id, sword: null, wr: 1 }));
+  const key = id + '|' + look;
+  if (KN_LOOKS[key]) return KN_LOOKS[key];
+  const bk = id + '|' + look.slice(0, 3), body = KN_SETS[bk] || (KN_SETS[bk] = kn_buildSet(id, look.slice(0, 3)));
+  return (KN_LOOKS[key] = Object.assign({}, body, { key: bk, sword: swordSet(look.slice(3)), wr: look[4] === 'n' ? 1 : +look[4] }));
 }
 const KNIGHT_SET0 = knightSet('reich');
 const KNIGHT = KNIGHT_SET0.walk, KNIGHT_ATK = KNIGHT_SET0.atk, KNIGHT_HIT = KNIGHT_SET0.hit, KNIGHT_FALL = KNIGHT_SET0.fall, KNIGHT_PLATE = KNIGHT_SET0.plate;
@@ -1676,7 +1747,7 @@ const HO_SETS = {};
 function horseSet(hid, fid){
   const key = hid + '|' + fid;
   if (HO_SETS[key]) return HO_SETS[key];
-  const h = HORSES[hid], F = KN_FACTIONS[fid] || KN_FACTIONS.reich;
+  const [fk, body] = String(fid).split('|'), h = HORSES[hid], F = knightFaction(fk, body);
   const pal = Object.assign({}, F.pal, h.coat, h.mane, { x:'#1a1816' });
   const mk = g => g ? makeSprite(g.map(r => r.join('')), pal, OUT) : null;
   const prev = kn_F; kn_F = F;
@@ -4087,7 +4158,7 @@ function wp_fbm(x, y, s, oct, px){
    Ein Bild hat w × h Bildpunkte; jeder Bildpunkt besteht aus S × S Feinpixeln (S = wp_S beim Anlegen).
    Füllende Grundformen (Rechteck, Vieleck, Ellipse, Strecke) rastern im Feinraster und rufen
    f(x, y) mit Bildkoordinaten in Schritten von 1/S auf; wp_set, wp_dk und wp_tint wirken auf ganze Bildpunkte. */
-let wp_S = 1, wp_FINE = 0;
+let wp_S = 1, wp_FINE = 0, wp_WINREC = null;   // wp_WINREC: Fenster mitschreiben (für die Nacht)
 function wp_buf(w, h, wrap){ const S = wp_S; return { w, h, S, W: w * S, H: h * S, d: new Uint32Array(w * h * S * S), wrap: !!wrap }; }
 /* ein Feinpixel */
 function wp_sf(B, X, Y, c){
@@ -4508,7 +4579,8 @@ function wp_grass(B, x, y, n, s, R2){
 /* ---------- Fenster und Türen ---------- */
 /* Butzenscheiben (Bleiverglasung mit runden Scheiben); kreuz = Fensterkreuz */
 function wp_window(B, x, y, w, h, o){
-  o = o || {}; const G = wp_P.glass, Rf = o.frame || wp_P.oak, s = o.s || 1;
+  o = o || {};
+  if (wp_WINREC && !o.dark) wp_WINREC.push([x, y, w, h]); const G = wp_P.glass, Rf = o.frame || wp_P.oak, s = o.s || 1;
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++){
     const X = x + i, Y = y + j;
     if (o.shape && !o.shape(i, j)) continue;
@@ -4853,6 +4925,7 @@ function wp_jetty(B, x0, x1, y, R, s, step){
    Spitzbogen mit Maßwerk; o: lights (Bahnen), frame Rampe Gewände, s */
 function wp_gwin(B, x, y, w, h, o){
   o = o || {};
+  if (wp_WINREC) wp_WINREC.push([x, y, w, h]);
   const G = wp_P.glass, Rf = o.frame || wp_P.stone, s = o.s || 1, lights = o.lights || (w >= 7 ? 2 : 1);
   const r = w * .8, ah = Math.sqrt(r * r - (r - w / 2) ** 2);
   const inA = (px, py) => {          // px,py relativ zur Kämpferlinie (py>0 = über Kämpfer)
@@ -6242,6 +6315,50 @@ function wp_bKloster(s, v){
 }
 
 
+/* Turnierschranke: Pfosten und bemalte Planken (rot und weiß), lang und niedrig */
+function wp_kSchranke(s){
+  const L = 216, B = wp_img(L + 10, 22, 19), ax = B.ax, ay = B.ay, x0 = ax - L / 2, x1 = ax + L / 2;
+  wp_shadowPoly(B, [[x0, ay - 1], [x1 + 5, ay - 1], [x1 + 5, ay + 2], [x0, ay + 2]]);
+  wp_rect(B, x0, ay - 5, x1, ay - 3, (x, y) => wp_tone(wp_P.wood, y === ay - 5 ? .7 : .4, x, y));
+  for (let x = x0; x <= x1 + .5; x += 24) wp_beam(B, x, ay + 1, x, ay - 15, 2.6, wp_P.wood, s + x);
+  wp_rect(B, x0 - 1, ay - 15, x1 + 2, ay - 8, (x, y) => { const k = Math.floor((x - x0 + (ay - y) * .7) / 7) & 1; return wp_tone(k ? wp_P.red2 : wp_P.cloth, .78 - (y - ay + 15) * .07 + (wp_h(x, y, s) - .5) * .08, x, y); });
+  wp_line(B, x0 - 1, ay - 15, x1 + 1, ay - 15, wp_P.wood[4]); wp_line(B, x0 - 1, ay - 8, x1 + 1, ay - 8, wp_P.wood[1]);
+  for (let x = x0; x <= x1 + .5; x += 24){ wp_set(B, x, ay - 16, wp_P.wood[5]); wp_set(B, x, ay - 12, wp_P.iron[2]); }
+  return wp_xRes(B, [[-L / 2 - 2, -3, L / 2 + 2, 1]], null);
+}
+/* Tribüne: drei Sitzstufen, Rückwand, gestreiftes Zeltdach mit Wimpeln, Wappen an der Brüstung */
+const TRIB = { w: 150, step: 12 };
+function wp_kTribuene(s){
+  const Wd = TRIB.w, st = TRIB.step, B = wp_img(Wd + 12, 104, 100), ax = B.ax, ay = B.ay, x0 = ax - Wd / 2, x1 = ax + Wd / 2, R = rng(s);
+  wp_shadowPoly(B, [[x0 + 2, ay - 1], [x1 + 6, ay - 1], [x1 + 6, ay + 3], [x0 + 2, ay + 3]]);
+  // Rückwand und Gerüst
+  wp_rect(B, x0, ay - 70, x1, ay - 3 * st, wp_planks(wp_P.wood, s + 1, 5, { ox: x0, lit: (x, y) => -.12 }));
+  for (const x of [x0 + 1, ax, x1 - 1]) wp_beam(B, x, ay, x, ay - 76, 2.6, wp_P.oak, s + x);
+  // Stufen: Setzstufe (Front) und Sitzfläche, von unten nach oben
+  for (let i = 2; i >= 0; i--){
+    const yF = ay - st * i, yT = yF - st;
+    wp_rect(B, x0, yT, x1, yF, wp_planks(wp_P.wood, s + 3 + i, 6, { ox: x0 + i * 3, lit: (x, y) => (y - yT < 2 ? .18 : 0) - i * .05 }));
+    wp_rect(B, x0, yT, x1, yT + 1, (x, y) => wp_tone(wp_P.wood, .85, x, y));
+  }
+  // Brüstung mit Tüchern und Wappenschilden
+  const CL = [wp_P.red2, wp_P.blue2, wp_P.yel2, wp_P.cloth];
+  for (let k = 0; k < 6; k++){
+    const cx = x0 + 12 + k * (Wd - 24) / 5, C = CL[k % 4];
+    wp_poly(B, [[cx - 9, ay - st + 1], [cx + 9, ay - st + 1], [cx + 7, ay - 2], [cx, ay + 1], [cx - 7, ay - 2]], (x, y) => wp_tone(C, .62 - (y - ay + st) * .02 + (((x - cx + 20) | 0) % 4 === 0 ? -.1 : 0), x, y));
+    wp_poly(B, [[cx - 3, ay - st + 3], [cx + 3, ay - st + 3], [cx + 3, ay - st + 7], [cx, ay - st + 9], [cx - 3, ay - st + 7]], (x, y) => wp_tone(CL[(k + 2) % 4], .8, x, y));
+  }
+  // Zeltdach: schräge Bahn mit Streifen, Bogenkante, Wimpel
+  const top = ay - 92, eave = ay - 76, stripe = x => Math.floor((x - x0 + 60) / 6) & 1;
+  wp_poly(B, [[x0 - 5, eave], [x1 + 5, eave], [x1 + 2, top], [x0 - 2, top]], (x, y) => wp_tone(stripe(x) ? wp_P.red2 : wp_P.yel2, .48 + (y - top) * .02 + (wp_h(x, y, s) - .5) * .08, x, y));
+  for (let x = x0 - 5; x <= x1 + 5; x++){ const lx = (x - x0 + 60) % 6, h = lx === 0 || lx === 5 ? 1 : 3; for (let j = 0; j <= h; j++) wp_set(B, x, eave + j, wp_tone(stripe(x) ? wp_P.red2 : wp_P.yel2, .36 - j * .07, x, eave + j)); }
+  for (const x of [x0, ax, x1]){
+    wp_seg(B, x, top, x, top - 8, 1.2, wp_P.oak[3]);
+    wp_poly(B, [[x + 1, top - 8], [x + 9, top - 6], [x + 1, top - 4]], (X, Y) => wp_tone(CL[(x | 0) % 3], .7, X, Y));
+  }
+  return wp_xRes(B, [[-Wd / 2, -3 * st - 4, Wd / 2, 2]], [-Wd / 2 - 4, -100, Wd / 2 + 4, -8], {});
+}
+
+
 /* ============ Schnittstelle ============ */
 /* Art -> [Zeichner, Anzahl Varianten]. Varianten werden erst bei Bedarf gezeichnet und behalten. */
 const wp_K = {
@@ -6258,7 +6375,7 @@ const wp_K = {
   fels: [(s, v) => wp_kFels(s, v), 5], stein: [(s, v) => wp_kStein(s, v), 6], feuerschale: [(s, v) => wp_kFeuerschale(s, v), 2], lagerfeuer: [(s, v) => wp_kLagerfeuer(s, v), 3],
   zaun_h: [(s, v) => wp_kZaunH(s, v), 4], zaun_v: [(s, v) => wp_kZaunV(s, v), 3], spiesse: [(s, v) => wp_kSpiesse(s, v), 4], fass: [(s, v) => wp_kFass(s, v), 4],
   kisten: [(s, v) => wp_kKisten(s, v), 4], wegweiser: [(s, v) => wp_kWegweiser(s, v), 3], banner: [(s, v) => wp_kBanner(s, v), 2],
-  marktstand: [(s, v) => wp_kMarktstand(s, v), 6], maibaum: [(s, v) => wp_kMaibaum(s), 1],
+  marktstand: [(s, v) => wp_kMarktstand(s, v), 6], maibaum: [(s, v) => wp_kMaibaum(s), 1], schranke: [(s, v) => wp_kSchranke(s), 1], tribuene: [(s, v) => wp_kTribuene(s), 1],
   gasthaus_adler: [(s, v) => wp_bStadthaus(s + 31, 0, 'adler'), 1], gasthaus_krone: [(s, v) => wp_bHaus(s + 17, 1, 'krone'), 1], gasthaus_ochse: [(s, v) => wp_bHaus(s + 5, 3, 'ochse'), 1]
 };
 const WP_KINDS = Object.keys(wp_K);
@@ -6274,12 +6391,12 @@ function makeProp(kind, seed){
   let p = arr[v];
   if (!p){
     let kh = 0; for (let i = 0; i < kind.length; i++) kh = (kh * 31 + kind.charCodeAt(i)) | 0;
-    const s0 = wp_S; wp_S = WS;
-    try { p = arr[v] = e[0]((kh & 0xffff) + v * 7919 + 101, v); } finally { wp_S = s0; }
+    const s0 = wp_S; wp_S = WS; wp_WINREC = [];
+    try { p = arr[v] = e[0]((kh & 0xffff) + v * 7919 + 101, v); p.wins = wp_WINREC; } finally { wp_S = s0; wp_WINREC = null; }
   }
   const ex = {};
   for (const k in p.extra){ const val = p.extra[k]; ex[k] = Array.isArray(val) ? val.map(q => Object.assign({}, q)) : (val && typeof val === 'object') ? Object.assign({}, val) : val; }
-  return { img: p.img, ax: p.ax, ay: p.ay, foot: p.foot.map(r => r.slice()), occl: p.occl ? p.occl.slice() : null, extra: ex };
+  return { img: p.img, ax: p.ax, ay: p.ay, foot: p.foot.map(r => r.slice()), occl: p.occl ? p.occl.slice() : null, extra: ex, wins: p.wins };
 }
 
 /* ============ Weltgrafiken, Teil 2: Burg, Stadtmauer, Ruine, Kleinteile ============ */
@@ -6895,6 +7012,7 @@ const wo_ZELL = {
 };
 /* Stadtmauer (Fußlinien) und Burgring */
 const wo_CITY = { x0: 2580, x1: 3352, y0: 2000, y1: 2620, gx: 2966 };
+const wo_TJ = { x: 3540, y: 2214 };   // Turnierwiese östlich der Stadt: Mitte der Schranke
 const wo_CAST = { x0: 1626, x1: 2174, y0: 300, y1: 640, gx: 1900 };
 
 /* ============ Gewässer ============ */
@@ -7045,7 +7163,7 @@ const wo_ZR = new Uint8Array(wo_ZW * wo_ZH);
       if (d < bd){ bd = d; best = z; }
     }
     const C = wo_CITY;
-    if (x > C.x0 - 50 && x < C.x1 + 50 && y > C.y0 - 70 && y < C.y1 + 40) best = wo_ZI.stadt;
+    if ((x > C.x0 - 50 && x < C.x1 + 50 && y > C.y0 - 70 && y < C.y1 + 40) || (x > C.x1 && x < wo_TJ.x + 230 && y > wo_TJ.y - 190 && y < wo_TJ.y + 120)) best = wo_ZI.stadt;   // Stadt und Turnierwiese
     else {
       const g = wo_gidx(x, y), w = wo_WSD[g], t = wo_WT[g];
       if (((t === 1 && w < 84 && x > 760) || (t === 4 && w < 56) || (t === 2 && w < 50 && y < 1300)) && best !== wo_ZI.stadt) best = wo_ZI.fluss;
@@ -7085,7 +7203,7 @@ const wo_PI = [];         // interne Zusatzdaten je Objekt (Fußflächen in Welt
 function wo_add(kind, x, y, P, noCol){
   x = Math.round(x); y = Math.round(y);
   const ex = P.extra || {};
-  const e = { kind, x, y, img: P.img, ax: P.ax, ay: P.ay,
+  const e = { kind, x, y, img: P.img, ax: P.ax, ay: P.ay, wins: P.wins || null,
     occl: P.occl ? [x + P.occl[0], y + P.occl[1], x + P.occl[2], y + P.occl[3]] : null,
     apple: !!ex.apples, crown: ex.crown ? { x: x + ex.crown.x, y: y + ex.crown.y } : null, shake: 0, door: ex.door ? x + ex.door.x : null };
   const feet = [];
@@ -7382,6 +7500,15 @@ const wo_INNP = {};       // Gasthäuser
   for (const x of [3182, 3266]){ const h = wo_try('stadthaus', x, 2300, wo_ns(), -2, -40); if (h) wo_HOUSES.push(h); }
   // Kleinkram in Gassen und Höfen
   for (let k = 0; k < 40; k++) wo_try(wo_pick(R, ['fass', 'kisten', 'fass', 'karren', 'heuhaufen', 'brunnen']), C.x0 + 30 + R() * (C.x1 - C.x0 - 60), C.y0 + 30 + R() * (C.y1 - C.y0 - 60), wo_ns(), 4, 8);
+  // Turnierwiese vor der Ostmauer: Schranke, Tribüne, Zelte der Ritter, Banner und Feuerschalen
+  const TJ = wo_TJ;
+  wo_feat({ m: WM.YARD, sub: 3, e: [TJ.x, TJ.y + 6, 156, 54] });
+  wo_put('tribuene', TJ.x, TJ.y - 50, 1);
+  wo_put('schranke', TJ.x, TJ.y, 1);
+  wo_reserve(TJ.x - 150, TJ.y - 44, TJ.x + 150, TJ.y + 46);
+  wo_tryNear('zelt', TJ.x - 130, TJ.y - 48, wo_seedFor('zelt', 0), 0, 2); wo_tryNear('zelt', TJ.x + 130, TJ.y - 48, wo_seedFor('zelt', 1), 0, 2);
+  for (const [x, y, v] of [[TJ.x - 122, TJ.y - 4, 1], [TJ.x + 122, TJ.y - 4, 2], [TJ.x - 84, TJ.y - 52, 3], [TJ.x + 84, TJ.y - 52, 4]]) wo_put('banner', x, y, v);
+  for (const dx of [-176, 176]) wo_tryNear('feuerschale', TJ.x + dx, TJ.y + 10, wo_ns(), 0, 2);
   // Gärten vor der Stadt
   for (let k = 0; k < 28; k++){ const x = C.x0 - 40 - R() * 200, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .5 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
   for (let k = 0; k < 18; k++){ const x = C.x1 + 60 + R() * 120, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .4 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
@@ -8569,7 +8696,7 @@ function wo_mapClass(x, y){
   return ZONES[wo_zid(x, y)].id;
 }
 const wo_TREEK = { eiche: 1, buche: 1, fichte: 1, birke: 1, weide: 1, apfelbaum: 1, toter_baum: 1 };
-const wo_BUILDK = { fachwerkhaus: 1, fachwerkhaus_ruine: 1, stadthaus: 1, kirche: 1, kapelle: 1, kloster: 1, muehle: 1, burg_mauer: 1, burg_turm: 1, burg_tor: 1, bergfried: 1, stadt_mauer: 1, stadt_turm: 1, stadt_tor: 1, ruine_mauer: 1, ruine_turm: 1, mauer: 1, zelt: 1 };
+const wo_BUILDK = { fachwerkhaus: 1, fachwerkhaus_ruine: 1, stadthaus: 1, kirche: 1, kapelle: 1, kloster: 1, muehle: 1, burg_mauer: 1, burg_turm: 1, burg_tor: 1, bergfried: 1, stadt_mauer: 1, stadt_turm: 1, stadt_tor: 1, ruine_mauer: 1, ruine_turm: 1, mauer: 1, zelt: 1, tribuene: 1 };
 const MINIMAP = (() => {
   const c = canvasOf(128, 96), g = c.getContext('2d'), id = g.createImageData(128, 96), D = new Uint32Array(id.data.buffer);
   const col = { w: '#3c5560', b: '#8a7458', r: '#8a7450', p: '#7a7468', obstgarten: '#5c6a3c', burg: '#5f6840', stadt: '#6a6448', dorf: '#6e6a40', wald: '#2c3a22', moor: '#41452f',
@@ -8739,6 +8866,7 @@ const Sound = {
   drop(){ this.tone(230, .05, 'triangle', .04, -100); },
   rot(){ this.tone(120, .14, 'triangle', .035, -40); },
   horn(){ this.tone(110, .7, 'sawtooth', .045, 0); this.tone(165, .9, 'sawtooth', .035, 0, .35); },
+  cheer(v = 1){ for (let i = 0; i < 6; i++) this.noise(.45 + Math.random() * .4, .03 * v, 1200 + Math.random() * 1200, i * .08); [392, 494, 587, 523].forEach((f, i) => this.tone(f + Math.random() * 40, .28, 'triangle', .011 * v, 50, .08 + i * .11)); },
   thunder(){ this.noise(1.6, .22, 380); this.noise(.25, .12, 2500); },
   squeak(){ this.tone(1800, .05, 'square', .02, 400); this.tone(2100, .05, 'square', .02, 300, .08); },
   bolt(){ this.tone(900, .08, 'triangle', .05, -600); this.noise(.05, .04, 3000); },
@@ -8794,6 +8922,29 @@ Object.assign(Sound, {
   chime(){ [262, 523, 659, 784].forEach((f, i) => this.tone(f, 2.8 - i * .5, 'sine', [.03, .015, .009, .006][i])); [196, 392].forEach((f, i) => this.tone(f, 2.8, 'sine', [.025, .01][i], 0, 1.4)); }
 });
 
+/* Regen als Dauerrauschen, Grillen, Käuzchen */
+Object.assign(Sound, {
+  rainSrc: null, rainGain: null, rainV: 0,
+  setRain(v){
+    if (!this.ac || !this.on) v = 0;
+    if (Math.abs(v - this.rainV) < .02 && (this.rainSrc || v === 0)) return;
+    this.rainV = v;
+    if (!this.ac) return;
+    if (!this.rainSrc && v > 0){
+      const n = this.ac.sampleRate * 2, buf = this.ac.createBuffer(1, n, this.ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+      const src = this.ac.createBufferSource(), f = this.ac.createBiquadFilter(), g = this.ac.createGain();
+      src.buffer = buf; src.loop = true; f.type = 'lowpass'; f.frequency.value = 1400; g.gain.value = 0;
+      src.connect(f); f.connect(g); g.connect(this.ac.destination); src.start();
+      this.rainSrc = src; this.rainGain = g;
+    }
+    if (this.rainGain) this.rainGain.gain.setTargetAtTime(v * .045, this.ac.currentTime, .8);
+  },
+  charge(){ this.tone(196, .14, 'sawtooth', .035, 90); this.tone(262, .22, 'sawtooth', .03, 0, .12); this.noise(.35, .05, 600); },
+  cricket(k){ for (let i = 0; i < 3; i++) this.tone(4300 + Math.random() * 200, .03, 'sine', .006 * k, 0, i * .05); },
+  owl(k){ this.tone(380, .3, 'sine', .02 * k, -30); this.tone(360, .55, 'sine', .018 * k, -50, .45); }
+});
+
 /* ============ Spielwelt in Feinpixeln: Spielkoordinaten = Weltpixel × WS ============ */
 const GW = WW * WS, GH = WH * WS;
 const gPt = p => ({ x: p.x * WS, y: p.y * WS });
@@ -8806,7 +8957,7 @@ const gZid = (x, y) => wo_zid(Math.floor(x / WS), Math.floor(y / WS));
 const GSTART = gPt(START);
 /* Objekte, Feuer und Rauch für das Spiel in Feinpixeln (die Welt behält ihre eigenen Daten für den Boden) */
 const GPROPS = PROPS.map(p => ({ kind: p.kind, x: p.x * WS, y: p.y * WS, img: p.img, ax: p.ax * WS, ay: p.ay * WS,
-  occl: p.occl ? p.occl.map(v => v * WS) : null, apple: p.apple, crown: p.crown ? gPt(p.crown) : null, shake: 0, door: p.door == null ? null : p.door * WS }));
+  occl: p.occl ? p.occl.map(v => v * WS) : null, apple: p.apple, crown: p.crown ? gPt(p.crown) : null, shake: 0, door: p.door == null ? null : p.door * WS, wins: p.wins }));
 const GFIRES = FIRES.map(f => ({ x: f.x * WS, y: f.y * WS, big: f.big })), GSMOKES = SMOKES.map(gPt);
 
 /* ============ Regeln: Stufen, Gebiete, Monsterwerte ============ */
@@ -8847,7 +8998,7 @@ const SKILLS = [
   { id:'stoss', name:'Schildstoß', key:'F', lvl:6, cd:9, icon:'shield', desc:'Sprung nach vorn, betäubt, wehrt Geschosse ab' },
   { id:'ruf', name:'Schlachtruf', key:'G', lvl:10, cd:30, icon:'eagle', desc:'Schlachtruf der Herkunft: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer' },
   { id:'trank', name:'Heiltrank', key:'Q', lvl:1, cd:6, icon:'potion', desc:'heilt 45 % des Lebens' },
-  { id:'pferd', name:'Pferd', key:'H', lvl:1, icon:'horse', desc:'auf- und absitzen; der Stallmeister in der Burg verkauft Pferde' }
+  { id:'pferd', name:'Pferd', key:'H', lvl:1, icon:'horse', desc:'auf- und absitzen; im Sattel wird der Hieb zum Lanzenstoß (180 % Schaden, betäubt)' }
 ];
 
 /* Gebiete: Stufenbereich der Monster; Burg und Stadt sind sicher */
@@ -8891,7 +9042,8 @@ const MON = {
 };
 const artOf = k => MON_ART[k] || BOSS_ART[k];
 const monHp = (k, L) => Math.round((1.5 + MON[k].hp * .9) * (6 + 2.7 * L));
-const monDmg = (k, L) => Math.max(1, Math.round((2.5 + 1.5 * L) * MON[k].dmg));
+const NIGHT_BEAST = { werwolf: 1, irrlicht: 1, wieder: 1 };
+const monDmg = (k, L) => Math.max(1, Math.round((2.5 + 1.5 * L) * MON[k].dmg * (NIGHT_BEAST[k] && isNight() ? 1.25 : 1)));
 const monXp = (k, L) => Math.round((10 + 5 * L) * MON[k].xp);
 const monGold = L => Math.max(1, Math.round(rand(.6, 1.4) * (1 + L * .8)));
 /* Erfahrung nach Stufenabstand; graue Monster (5 und mehr Stufen darunter) bringen nichts */
@@ -9435,7 +9587,9 @@ const TR_FLY = (() => {
   const crow = { a:'#1a1818', b:'#3a3636' }, star = { a:'#2a2a30', b:'#4a4a56' }, dove = { a:'#6a6e78', b:'#9aa0aa' };
   const bird = pal => [mk(['b.....b', '.b...b.', '..aaa..'], pal), mk(['.......', '..aaa..', '.b...b.', 'b.....b'], pal)];
   const fly = (c1, c2) => [mk(['a.a', 'bab', 'a.a'], { a: c1, b: c2 }), mk(['...', 'aba', '...'], { a: c1, b: c2 })];
+  const bat = { a:'#141216', b:'#2a2630' };
   return { krähe: bird(crow), star: bird(star), taube: bird(dove),
+    fledermaus: [mk(['b.....b', 'bb.a.bb', '.bbabb.'], bat), mk(['..bab..', '.bbabb.', 'b.....b'], bat)],
     falter: [fly('#e8d050', '#3a2a1a'), fly('#f0eee6', '#3a3a3a'), fly('#c84a2a', '#2a1a12'), fly('#7a8ad8', '#2a2a3a')] };
 })();
 
@@ -9653,6 +9807,7 @@ function cleanHero(h){
   if (h.inn && !INN_BY[h.inn]) h.inn = null;
   if (!HORSES[h.horse]) h.horse = null;
   h.riding = !!(h.horse && h.riding);
+  if (h.joust){ const j = h.joust, b = {}; for (const id of ['konrad', 'bayard', 'goetz']) if (j.beat && j.beat[id]) b[id] = true; h.joust = { wins: Math.max(0, j.wins | 0), beat: b }; }
   return h;
 }
 let HERO = null;
@@ -9717,6 +9872,8 @@ NPC_ART.stall = np_frames({ robe:'short', hat:'filz', belt:true, beard:true, hai
   { 1:'#2a3a24', 2:'#3e5434', 3:'#546e44', 4:'#708a58', 5:'#4a3a28', 6:'#5e4a34', 7:'#725c42', 8:'#8a7254', R:'#8a1c1c' });
 NPC_ART.schmied = np_frames({ robe:'short', apron:'leather', belt:true, beard:true, hairSide:true, hair:['h', 'j'], sleeve:['s', 't', 'u', 'v'] },
   { 1:'#2a2420', 2:'#3a322c', 3:'#4a4038', 4:'#5c5048', 5:'#2a2420', 6:'#3a322c', 7:'#4a4038', 8:'#5c5048' });
+NPC_ART.herold = np_frames({ robe:'short', hat:'barett', belt:true, chain:true, staff:true, parti:true, hair:['h', 'j'] },
+  { 1:'#7a5a10', 2:'#b08a1e', 3:'#d8b030', 4:'#f0d460', 5:'#141218', 6:'#221e28', 7:'#322c3a', 8:'#463e50', R:'#b8281e' });
 const NPCS = [
   { id:'vogt', name:'Vogt Heinrich', role:'Aufträge', hub:'burg', at: gNear(1954, 530), quest:true },
   { id:'kraemerin', name:'Krämerin Gertrud', role:'Händlerin', hub:'burg', at: gNear(2074, 536), shop:true },
@@ -9725,7 +9882,9 @@ const NPCS = [
   { id:'stall', name:'Stallmeister Lienhard', role:'Pferde', hub:'burg', at: gNear(1760, 548), stable:true,
     greet:['Ein Ritter ohne Pferd ist nur ein Mann in Blech.', 'Gute Pferde, ehrlicher Preis. Fast immer.', 'Wollt Ihr reiten oder laufen, Herr Ritter?'] },
   { id:'schmied', name:'Schmied Wolf', role:'Schmied', hub:'stadt', at: gNear(3000, 2372), smith:true,
-    greet:['Gebt her, ich schlage Euch das Eisen härter.', 'Gute Klingen brauchen gute Hämmer.', 'Wer bei mir arbeiten lässt, kehrt öfter heim.'] }
+    greet:['Gebt her, ich schlage Euch das Eisen härter.', 'Gute Klingen brauchen gute Hämmer.', 'Wer bei mir arbeiten lässt, kehrt öfter heim.'] },
+  { id:'herold', name:'Herold Kaspar', role:'Turnier', hub:'stadt', at: gNear(wo_TJ.x - 64, wo_TJ.y + 44), joust:true,
+    greet:['Hört, hört! Wer bricht heute eine Lanze vor der Reichsstadt?', 'Ein Ritter zeigt sich im Turnier, nicht nur im Wald.', 'Die Damen auf der Tribüne warten schon, Herr Ritter.'] }
 ];
 NPCS.forEach(n => { n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; });
 
@@ -10004,7 +10163,7 @@ function renderInn(){
   for (const a of actors) shadow(a.x, a.y - 1, 16, .35);
   const list = rm.items.map(it => ({ y: it.y, d: () => ctx.drawImage(it.img, Math.round(it.x - it.ax), Math.round(it.y - it.ay)) }));
   for (const n of rm.npcs) list.push({ y: n.y + .15, d: () => drawNpc(n) });
-  for (const p of PEERS.values()) if (p.in === inn.id) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f), false, 1) });
+  for (const p of PEERS.values()) if (p.in === inn.id) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f, p.lk), false, 1) });
   list.push({ y: k.y + .2, d: drawKnight });
   list.sort((a, b) => a.y - b.y);
   for (const it of list) it.d();
@@ -10161,13 +10320,23 @@ const LIFE_SPOTS = (() => {
   for (const [cx, cy] of wo_CLEAR) add({ k: R() < .3 ? 'hirsch' : 'reh', ...P(cx, cy), r: 200, n: [1, 3] });
   wildAt(['wald'], 'reh', [1, 3], 10); wildAt(['wald'], 'wildschwein', [1, 3], 6); wildAt(['wald', 'obstgarten'], 'fuchs', [1, 1], 7);
   wildAt(['obstgarten', 'fluss', 'burg', 'weiler', 'lager', 'galgen'], 'hase', [1, 2], 18, 140); wildAt(['burg', 'obstgarten'], 'reh', [1, 2], 4);
+  // Turnierwiese: Zuschauer auf den drei Stufen der Tribüne (beim Tjost voll besetzt), Knappen bei den Zelten
+  const TB = GPROPS.find(p => p.kind === 'tribuene');
+  if (TB){
+    for (let row = 0; row < 3; row++) for (let i = 0; i < 6 - (row % 2); i++)
+      add({ p: 'stand', t: ['buerger', 'buergerin', 'magd', 'knecht', 'buergerin', 'moench', 'bauer', 'baeuerin'], x: Math.round(TB.x - 125 + i * 50 + (row % 2) * 25 + (R() - .5) * 10), y: TB.y - 24 * (row + 1) + 3,
+        dir: 'down', n: [0, R() < .3 ? 1 : 0], crowd: true, sy: TB.y + 1 - row * .1 });
+    for (const dx of [-206, 206]) add({ p: 'stand', t: ['knecht'], ...gNear((TB.x + dx) / WS, (TB.y + 34) / WS), dir: dx < 0 ? 'right' : 'left', n: [1, 1] });
+  }
   return S;
 })();
 function lifeReset(){ for (const s of LIFE_SPOTS){ s.ents = []; s.act = false; s.cool = 0; } }
 
 /* ---------- Bewohner erzeugen ---------- */
-function lifeMake(s){
-  const n = s.n[0] + (Math.random() * (s.n[1] - s.n[0] + 1) | 0);
+function lifeMake(s, full){
+  let n = full ? Math.max(1, s.n[1]) : s.n[0] + (Math.random() * (s.n[1] - s.n[0] + 1) | 0);
+  // nachts sind die Händler daheim, auf den Gassen wenige, auf den Feldern niemand
+  if (!full && isNight() && s.p && s.t[0] !== 'wache'){ if (s.p === 'walk' && s.t[0] !== 'hirte') n = Math.random() < .3 ? 1 : 0; else if (s.p !== 'road') n = 0; }
   for (let i = 0; i < n; i++){
     if (s.p){
       const type = s.t[(Math.random() * s.t.length) | 0], art = vkPerson(type, (Math.random() * 3) | 0);
@@ -10177,6 +10346,7 @@ function lifeMake(s){
         spd: rand(24, 34), sayT: 0, say: null, sayUntil: 0, spot: s, ware: s.ware });
       // Händler hinter dem Ladentisch: nach dem Stand zeichnen, unterhalb der Tischplatte abschneiden
       if (s.base){ const e = s.ents[s.ents.length - 1]; e.sy = s.base + 1; e.clip = s.base - 29; }
+      if (s.sy) s.ents[s.ents.length - 1].sy = s.sy;
       continue;
     }
     const k = i === 0 && s.mix ? s.mix : s.k, K = LIFE_KIND[k];
@@ -10274,6 +10444,7 @@ const VK_DIR = (vx, vy) => Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 'right' : 'le
 function lifePerson(e, dt){
   const k = G.knight, dk = Math.hypot(k.x - e.x, k.y - e.y);
   if (e.mode === 'stand'){
+    e.torch = e.type === 'wache' && SKY.night > .45;
     if (e.type === 'haendler') e.dir = dk < 170 ? (Math.abs(k.x - e.x) > 30 ? (k.x > e.x ? 'right' : 'left') : 'down') : 'down';
     e.anim += dt; return;
   }
@@ -10367,7 +10538,7 @@ function updateLife(dt){
       for (const s of LIFE_SPOTS) if (s.act) for (const e of s.ents) if (!e.person && e.K && e.K.snd && Math.hypot(e.x - k.x, e.y - k.y) < 360) near.push(e);
       if (near.length && Math.random() < .09) { const e = near[(Math.random() * near.length) | 0]; lifeSound(e.K.snd, e); }
       const z = G.zone;
-      if ((z === 'obstgarten' || z === 'burg' || z === 'weiler' || z === 'fluss' || z === 'wald') && Math.random() < (z === 'wald' ? .1 : .16)) Sound.chirp(.5 + Math.random() * .5);
+      if (SKY.night < .4 && SKY.rain < .5 && (z === 'obstgarten' || z === 'burg' || z === 'weiler' || z === 'fluss' || z === 'wald') && Math.random() < (z === 'wald' ? .1 : .16)) Sound.chirp(.5 + Math.random() * .5);
       if (z === 'stadt'){ G.bellT = (G.bellT || 20) - .5; if (G.bellT <= 0){ Sound.chime(); G.bellT = rand(40, 70); } }
     }
   }
@@ -10394,7 +10565,7 @@ function updateSky(dt){
   G.flockT = (G.flockT || rand(3, 8)) - dt;
   if (G.flockT <= 0 && G.flocks.length < 2){
     G.flockT = rand(14, 34);
-    const kind = SKY_BIRD[G.zone] || 'star', n = 4 + (Math.random() * 9 | 0), from = Math.random() < .5 ? -1 : 1, sp = rand(55, 85);
+    const kind = isNight() ? 'fledermaus' : SKY_BIRD[G.zone] || 'star', n = 4 + (Math.random() * 9 | 0), from = Math.random() < .5 ? -1 : 1, sp = rand(55, 85);
     const y0 = cam.y + rand(H * .1, H * .9), x0 = from < 0 ? cam.x - 80 : cam.x + W + 80, vy = rand(-14, 14);
     const birds = [];
     for (let i = 0; i < n; i++) birds.push({ dx: -from * (i * 9 + rand(0, 8)), dy: (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 6 + rand(-3, 3), ph: Math.random() * 6 });
@@ -10406,7 +10577,7 @@ function updateSky(dt){
     if ((F.vx > 0 && F.x > cam.x + W + 260) || (F.vx < 0 && F.x < cam.x - 260)) G.flocks.splice(i, 1);
   }
   // Falter über Wiesen
-  if (SKY_FALTER[G.zone] && G.falter.length < 5 && Math.random() < dt * .8){
+  if (SKY_FALTER[G.zone] && SKY.night < .3 && SKY.rain < .3 && G.falter.length < 5 && Math.random() < dt * .8){
     const x = cam.x + rand(20, W - 20), y = cam.y + rand(40, H - 20);
     if (LIFE_FREE(x, y)) G.falter.push({ x, y, z: rand(6, 16), vx: rand(-20, 20), vy: rand(-12, 12), t: 0, life: rand(12, 26), c: (Math.random() * TR_FLY.falter.length) | 0 });
   }
@@ -10451,7 +10622,10 @@ function drawLife(e){
     if (e.mode === 'work' && e.st !== 'walk') img = e.chop ? A.down[2] : A.stand.down;
     else if (moving) img = A[e.dir][(e.anim | 0) % 4];
     else img = e.dir === 'down' ? ((G.t * .8 + e.hx) % 2 < 1 ? A.stand.down : A.breath) : A.stand[e.dir];
-    const x0 = Math.round(e.x - A.ax), y0 = Math.round(e.y - A.ay);
+    // Zuschauer springen beim Treffer auf
+    const jump = e.spot && e.spot.crowd && G.joust && G.joust.cheer > 0 ? Math.round(Math.abs(Math.sin(G.t * 11 + e.hx * .37)) * 4) : 0;
+    const x0 = Math.round(e.x - A.ax), y0 = Math.round(e.y - A.ay) - jump;
+    if (e.torch){ const tx = e.x + (e.dir === 'left' ? -9 : 9); ctx.fillStyle = '#4a3020'; ctx.fillRect(Math.round(tx), y0 + 18, 2, 14); flameHD(tx + 1, y0 + 19, G.t + e.hx, false); }
     if (e.clip){ const h = Math.round(e.clip - y0); if (h > 0) ctx.drawImage(img, 0, 0, img.width, h, x0, y0, img.width, h); }
     else ctx.drawImage(img, x0, y0);
     return;
@@ -10500,6 +10674,191 @@ function drawSky(cam){
   }
 }
 
+/* ============ Tag und Nacht, Wetter: eine Uhr für alle Ritter (aus der Weltzeit) ============
+   Ein Tag dauert 24 Minuten, eine Stunde also eine Minute. Das Wetter wechselt alle fünf Minuten,
+   für alle Spieler gleich, mit weichem Übergang. */
+const DAY_LEN = 1440, WX_SLOT = 300;
+const WX_KIND = {
+  klar:     { rain: 0,  cloud: 0,   fog: 0,  storm: 0, dark: 0 },
+  heiter:   { rain: 0,  cloud: .45, fog: 0,  storm: 0, dark: 0 },
+  'bewölkt':{ rain: 0,  cloud: .9,  fog: .1, storm: 0, dark: .08 },
+  Regen:    { rain: .75, cloud: 1,  fog: .15, storm: 0, dark: .15 },
+  Nebel:    { rain: 0,  cloud: .5,  fog: .9, storm: 0, dark: .07 },
+  Gewitter: { rain: 1,  cloud: 1,   fog: .1, storm: 1, dark: .24 }
+};
+const SKY = { hour: 12, night: 0, dark: 0, tint: 0, dawn: true, rain: 0, cloud: 0, fog: 0, storm: 0, w: 'klar', wind: 18, wasNight: null };
+const skyNow = () => Date.now() / 1000 + (window.__skyShift || 0);
+function wxAt(slot){
+  if (window.__wx) return window.__wx;   // zum Ausprobieren
+  const h = wo_h(slot, 77, 1520), hourS = ((slot * WX_SLOT / DAY_LEN) % 1) * 24, morning = hourS > 4 && hourS < 9;
+  if (morning && h < .22) return 'Nebel';
+  return h < .32 ? 'klar' : h < .54 ? 'heiter' : h < .72 ? 'bewölkt' : h < .87 ? 'Regen' : h < .93 ? 'Nebel' : 'Gewitter';
+}
+function updateClock(){
+  const t = skyNow(), hour = (t / DAY_LEN % 1) * 24;
+  SKY.hour = hour;
+  // Nacht 21–4 Uhr, Dämmerung 4–6:30 und 18:30–21 Uhr
+  SKY.night = hour >= 21 || hour < 4 ? 1 : hour < 6.5 ? 1 - (hour - 4) / 2.5 : hour < 18.5 ? 0 : (hour - 18.5) / 2.5;
+  SKY.night = SKY.night * SKY.night * (3 - 2 * SKY.night);
+  SKY.dawn = hour < 12;
+  SKY.tint = Math.sin(Math.PI * clamp(SKY.night, 0, 1)) * (hour > 3 && hour < 22 ? 1 : 0);
+  const slot = Math.floor(t / WX_SLOT), f = clamp((t / WX_SLOT - slot) * WX_SLOT / 40, 0, 1), A = WX_KIND[wxAt(slot - 1)], B = WX_KIND[wxAt(slot)];
+  SKY.w = wxAt(slot);
+  for (const k of ['rain', 'cloud', 'fog', 'storm']) SKY[k] = A[k] + (B[k] - A[k]) * f;
+  const wd = A.dark + (B.dark - A.dark) * f;
+  SKY.dark = clamp(.58 * SKY.night + wd * (1 - SKY.night * .4), 0, .72);
+  SKY.wind = 14 + SKY.storm * 30 + SKY.rain * 10;
+}
+/* Ereignisse: Blitz und Donner, Nachtanbruch, Glocken, Nachtgeräusche (im Spiel) */
+function skyEvents(dt){
+  if (!G) return;
+  const k = G.knight, nightNow = SKY.night > .6;
+  if (SKY.wasNight !== null && nightNow !== SKY.wasNight && G.mode === 'play' && !G.inside)
+    logLine(nightNow ? 'Die Nacht bricht herein. Werwölfe, Irrlichter und Wiedergänger sind jetzt stärker.' : 'Der Morgen graut. Die Nacht weicht.', nightNow ? '#9cb8ff' : '#ffd98a');
+  SKY.wasNight = nightNow;
+  if (G.inside) { Sound.setRain(0); return; }
+  if (SKY.storm > .5){
+    G.boltT = (G.boltT || rand(4, 9)) - dt;
+    if (G.boltT <= 0){ G.boltT = rand(6, 15); G.flash = .3; G.bolt = { x: camOf(k).x + rand(40, W - 40), t: .18 }; setTimeout(() => Sound.thunder(), rand(400, 1800)); }
+  }
+  if (G.bolt){ G.bolt.t -= dt; if (G.bolt.t <= 0) G.bolt = null; }
+  Sound.setRain(SKY.rain);
+  // Glocken um 6, 12 und 18 Uhr in Stadt, Burg und Dorf
+  const hr = Math.floor(SKY.hour);
+  if (G.lastHour !== undefined && hr !== G.lastHour && (hr === 6 || hr === 12 || hr === 18) && SAFE[G.zone]) Sound.chime();
+  G.lastHour = hr;
+  G.nightT = (G.nightT || 1) - dt;
+  if (G.nightT <= 0){
+    G.nightT = .5;
+    const z = G.zone, open = z === 'obstgarten' || z === 'burg' || z === 'weiler' || z === 'fluss' || z === 'lager' || z === 'galgen';
+    if (SKY.night > .6 && open && Math.random() < .3) Sound.cricket(.6);
+    if (SKY.night > .6 && (z === 'wald' || z === 'burg' || z === 'friedhof') && Math.random() < .02) Sound.owl(.7);
+    if (SKY.hour > 5 && SKY.hour < 6.6 && (z === 'weiler' || z === 'burg') && Math.random() < .03) Sound.crow(.5);
+  }
+}
+const isNight = () => SKY.night > .6;
+/* Nachtbilder der Häuser: erleuchtete Fenster (gleiche Lage wie im Tagbild) */
+const NIGHT_IMG = new Map();
+function nightImg(img, wins){
+  if (NIGHT_IMG.has(img)) return NIGHT_IMG.get(img);
+  const c = canvasOf(img.width, img.height), g = c.getContext('2d');
+  g.drawImage(img, 0, 0);
+  const id = g.getImageData(0, 0, c.width, c.height), d = id.data;
+  const lit = [];
+  wins.forEach((w, i) => {
+    if (wo_h(i, img.width, img.height) < .28) return;                 // manches Fenster bleibt dunkel
+    const x0 = Math.round((w[0] + .5) * WS), y0 = Math.round((w[1] + .5) * WS), x1 = Math.round((w[0] + w[2] - .5) * WS), y1 = Math.round((w[1] + w[3] - .5) * WS);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){
+      const o = (y * c.width + x) * 4; if (d[o + 3] < 250) continue;
+      const L = (d[o] * .3 + d[o + 1] * .55 + d[o + 2] * .15) / 255, v = clamp(.25 + L * 1.6 + (y - y0 < 2 ? .1 : 0), 0, 1);
+      d[o] = 130 + 125 * v; d[o + 1] = 70 + 150 * v; d[o + 2] = 20 + 90 * v * v;
+    }
+    lit.push([(w[0] + w[2] / 2) * WS, (w[1] + w[3] / 2) * WS]);
+  });
+  g.putImageData(id, 0, 0);
+  const r = { img: c, lit };
+  NIGHT_IMG.set(img, r);
+  return r;
+}
+for (const p of GPROPS){
+  if (!p.wins || !p.wins.length) continue;
+  const n = nightImg(p.img, p.wins);
+  p.nimg = n.img; p.lights = n.lit.map(([x, y]) => [p.x - p.ax + x, p.y - p.ay + y]);
+}
+/* Wolkenschatten: kachelbares Rauschen, wandert mit dem Wind */
+const CLOUD_TEX = (() => {
+  const N = 256, c = canvasOf(N * 2, N * 2), g = c.getContext('2d'), id = g.createImageData(N * 2, N * 2), D = id.data, n = noise2(1520);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+    // kachelbar: vier Ecken mischen
+    const u = x / N, v = y / N, f = (a, b) => fbm(n, a * 6, b * 6, 4);
+    const val = f(u, v) * (1 - u) * (1 - v) + f(u - 1, v) * u * (1 - v) + f(u, v - 1) * (1 - u) * v + f(u - 1, v - 1) * u * v;
+    const a = clamp((val - .52) * 5, 0, 1), q = Math.floor(a * 4 + dither(x, y)) / 4;
+    for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++){ const o = ((y * 2 + j) * N * 2 + x * 2 + i) * 4; D[o] = 14; D[o + 1] = 16; D[o + 2] = 26; D[o + 3] = Math.round(q * 255); }
+  }
+  g.putImageData(id, 0, 0); return c;
+})();
+/* Lichtkarte in halber Auflösung: Dunkel, aus dem Lichter ausgestanzt werden */
+const LIGHT_CV = canvasOf(Math.ceil(W / 2), Math.ceil(H / 2)), LIGHT_G = LIGHT_CV.getContext('2d');
+function skyLights(cam){
+  const L = [], k = G.knight, v = (x, y, m) => x > cam.x - m && x < cam.x + W + m && y > cam.y - m && y < cam.y + H + m;
+  if (G.mode !== 'title') L.push([k.x, k.y - 22, 210, .9, 0]);
+  for (const p of PEERS.values()) if (!p.in && v(p.x, p.y, 200)) L.push([p.x, p.y - 22, 170, .8, 0]);
+  for (const f of GFIRES) if (v(f.x, f.y, 260)) L.push([f.x, f.y - 8, f.big ? 300 : 210, 1, 1]);
+  for (const inn of INNS) if (v(inn.dx, inn.y, 200)) L.push([inn.dx, inn.y - 30, 150, .85, 1]);
+  for (const p of propsInView(cam)) if (p.lights) for (const [x, y] of p.lights) L.push([x, y, 96, .6, 1]);
+  for (const m of G.mons){
+    if (m.k === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 130, .9, 2]);
+    if (m.k === 'tod' && m.st !== 'hidden' && v(m.x, m.y, 120)) L.push([m.x, m.y - 30, 90, .4, 3]);
+  }
+  for (const s of G.shots) if (s.k === 'fire') L.push([s.x, s.y, 140, .9, 1]);
+  for (const a of G.loot) if (a.t === 'item' && a.it.r >= 2 && v(a.x, a.y, 60)) L.push([a.x, a.y - 10, 60, .6, 0]);
+  for (const s of LIFE_SPOTS) if (s.act) for (const e of s.ents) if (e.torch && v(e.x, e.y, 180)) L.push([e.x + 8, e.y - 40, 190, .95, 1]);
+  return L;
+}
+const LIGHT_COL = ['255,240,210', '255,150,60', '120,255,180', '170,180,255'];
+function drawSkyLight(cam){
+  // Wolkenschatten auf dem Land
+  if (SKY.cloud > .05 && !RM){
+    const ox = ((cam.x + skyNow() * SKY.wind) % 512 + 512) % 512, oy = ((cam.y + skyNow() * SKY.wind * .35) % 512 + 512) % 512;
+    ctx.globalAlpha = SKY.cloud * (.2 - SKY.night * .12);
+    for (let y = -oy; y < H; y += 512) for (let x = -ox; x < W; x += 512) ctx.drawImage(CLOUD_TEX, Math.round(x), Math.round(y));
+    ctx.globalAlpha = 1;
+  }
+  // Morgen- und Abendrot
+  if (SKY.tint > .02){ ctx.fillStyle = SKY.dawn ? 'rgba(255,150,110,' + (SKY.tint * .13).toFixed(3) + ')' : 'rgba(255,110,50,' + (SKY.tint * .15).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H); }
+  if (SKY.dark < .02) return;
+  const lights = skyLights(cam), g = LIGHT_G, lw = LIGHT_CV.width, lh = LIGHT_CV.height;
+  g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, lw, lh);
+  const blue = SKY.night > .4;
+  g.fillStyle = blue ? 'rgba(6,10,30,' + SKY.dark.toFixed(3) + ')' : 'rgba(18,18,26,' + SKY.dark.toFixed(3) + ')';
+  g.fillRect(0, 0, lw, lh);
+  g.globalCompositeOperation = 'destination-out';
+  const nl = clamp(SKY.night * 1.3, 0, 1);
+  for (const [x, y, r, kk, c] of lights){
+    const px = (x - cam.x) / 2, py = (y - cam.y) / 2, rr = r / 2, a = kk * (c === 0 ? .55 + .45 * nl : 1);
+    const gr = g.createRadialGradient(px, py, 0, px, py, rr);
+    gr.addColorStop(0, 'rgba(0,0,0,' + a.toFixed(2) + ')'); gr.addColorStop(.55, 'rgba(0,0,0,' + (a * .55).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(px - rr, py - rr, rr * 2, rr * 2);
+  }
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(LIGHT_CV, 0, 0, lw * 2, lh * 2);
+  // warmer Schein um Feuer, Fenster und Irrlichter
+  if (nl > .05){
+    ctx.globalCompositeOperation = 'lighter';
+    for (const [x, y, r, kk, c] of lights){
+      if (!c) continue;
+      const px = x - cam.x, py = y - cam.y, rr = r * .6, gr = ctx.createRadialGradient(px, py, 0, px, py, rr);
+      gr.addColorStop(0, 'rgba(' + LIGHT_COL[c] + ',' + (.2 * kk * nl).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(' + LIGHT_COL[c] + ',0)');
+      ctx.fillStyle = gr; ctx.fillRect(px - rr, py - rr, rr * 2, rr * 2);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+}
+/* Blitz: gezackte Linie vom Himmel */
+function drawBolt(){
+  if (!G.bolt) return;
+  ctx.fillStyle = 'rgba(236,240,255,.9)';
+  const R = rng(G.bolt.x | 0);
+  let x = G.bolt.x - camOf(G.knight).x, y = 0;
+  while (y < H * .7){ const nx = x + (R() - .5) * 26, ny = y + 10 + R() * 18; for (let t = 0; t < 1; t += .1) ctx.fillRect(Math.round(x + (nx - x) * t), Math.round(y + (ny - y) * t), 2, 2); x = nx; y = ny; }
+}
+/* Uhr und Wetter oben rechts */
+const SKY_ICON = {
+  sonne: makeSprite(['....a....', '.a..a..a.', '...bbb...', '..bcccb..', 'aabcccbaa', '..bcccb..', '...bbb...', '.a..a..a.', '....a....'], { a:'#f0c040', b:'#f6c84a', c:'#ffe89a' }, OUT),
+  mond: makeSprite(['...aaa...', '.aab.....', '.abb.....', 'aabb.....', 'aabb.....', 'aabb.....', '.abb.....', '.aab..a..', '...aaa...'], { a:'#e4e8f8', b:'#b4bcda' }, OUT),
+  wolke: makeSprite(['...aaa....', '.aabbbaa..', 'abbbbbbba.', 'abbbbbbbba', '.aaaaaaaa.'], { a:'#a8acb8', b:'#d6dae2' }, OUT)
+};
+function drawSkyHud(){
+  const h = Math.floor(SKY.hour), night = SKY.night > .5;
+  const part = h < 5 ? 'Nacht' : h < 10 ? 'Morgen' : h < 14 ? 'Mittag' : h < 18 ? 'Nachmittag' : h < 22 ? 'Abend' : 'Nacht';
+  const txt = h + ' Uhr, ' + part + ', ' + SKY.w;
+  const im = textImg(txt, night ? '#c8d0ff' : '#ffe9a8'), x = W - 8 - im.width, y = 8;
+  ctx.fillStyle = 'rgba(16,14,20,.55)'; ctx.fillRect(x - 28, y - 4, im.width + 34, im.height + 8);
+  ctx.drawImage(night ? SKY_ICON.mond : SKY_ICON.sonne, x - 24, y - 1);
+  if (SKY.cloud > .6) ctx.drawImage(SKY_ICON.wolke, x - 22, y + 4);
+  ctx.drawImage(im, x, y);
+}
+
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;
 function freshKnight(x, y){
@@ -10513,7 +10872,7 @@ function freshState(mode){
     v:5, mode, t:0, shake:0, flash:0, dieT:0, fogX:0, zone: gZone(p.x, p.y).id,
     knight: freshKnight(p.x, p.y),
     mons:[], rising:[], shots:[], parts:[], floats:[], loot:[],
-    cd:{ rund:0, stoss:0, ruf:0, trank:0 }, buffT:0, combatT:99, inside:null, near:null, nearDoor:null, nearExit:false, spawnT:0, saveT:0, fullMsgT:0, lostGold:0,
+    cd:{ rund:0, stoss:0, ruf:0, trank:0, lanze:0 }, buffT:0, combatT:99, inside:null, near:null, nearDoor:null, nearExit:false, spawnT:0, saveT:0, fullMsgT:0, lostGold:0,
     travel:[], flocks:[], falter:[], lifeSayT:0, lifeT:0
   };
 }
@@ -10940,7 +11299,7 @@ const centerOf = m => { const c = bodyCircles(m)[0]; return { x: c.x, y: c.y }; 
 const gripOf = k => ({ x: k.x + KNIGHT_GRIP[k.dir].x, y: k.y + KNIGHT_GRIP[k.dir].y });
 const reachOf = k => SWORD.len - SWORD.gripBack + 3 + (k.mult > 1.2 ? 4 : 0);
 function swingAngle(k){ const p = clamp(1 - k.atkT / k.atkLen, 0, 1), e = 1 - (1 - p) * (1 - p); return k.swA0 + (k.swA1 - k.swA0) * e; }
-const canAct = () => G.mode === 'play' && G.knight.hp > 0;
+const canAct = () => G.mode === 'play' && G.knight.hp > 0 && !G.joust;
 const canFight = () => canAct() && !G.inside;
 
 function startSwing(k, full, mult, len){
@@ -10951,7 +11310,12 @@ function startSwing(k, full, mult, len){
 }
 function attack(){
   const k = G.knight;
-  if (HERO.riding && canAct()){ dismount(); k.atkCd = .25; return; }
+  if (HERO.riding && canAct()){
+    // im Sattel: Lanzenstoß mit kurzem Ansturm
+    if (!canFight() || G.cd.lanze > 0 || k.lance > 0) return;
+    k.lance = .5; k.lanceHit = new Set(); G.cd.lanze = 3; Sound.charge(); sendPresence(true);
+    return;
+  }
   if (k.atkCd > 0 || !canFight() || k.bashT > 0) return;
   startSwing(k, false, 1, SWING);
   k.atkCd = ST.cd;
@@ -11021,6 +11385,55 @@ function swingHits(){
     G.shots.splice(i, 1);
     burst(s.x, s.y, ['#ffffff', '#ecd27a'], 6, 70, true); Sound.parry();
     floatText(s.x, s.y - 10, 'pariert', '#ecd27a');
+  }
+}
+/* Lanzenspitze und -schaft je Richtung (vom Bodenpunkt des Pferdes) */
+const LANCE_TIP = { right: [56, -34], left: [-56, -34], down: [10, 8], up: [-6, -90] };
+function lanceHits(){
+  const k = G.knight, L = LANCE_TIP[k.dir], t = { x: k.x + L[0], y: k.y + L[1] }, mid = { x: k.x + L[0] * .55, y: k.y - 34 + (L[1] + 34) * .55 };
+  for (const m of G.mons.slice()){
+    if (k.lanceHit.has(m.uid) || !vulnerable(m)) continue;
+    if (!bodyCircles(m).some(c => Math.hypot(c.x - t.x, c.y - t.y) < c.hr + 10 || Math.hypot(c.x - mid.x, c.y - mid.y) < c.hr + 6)) continue;
+    k.lanceHit.add(m.uid);
+    const h = rollHit(1.8);
+    if (!MON[m.k].boss) m.stunT = 1.2;
+    damage(m, h.dmg, h.crit, 2.6);
+    G.shake = Math.max(G.shake, .2);
+    burst(t.x, t.y, ['#e8d8b0', '#b08a5a', '#8a6a42'], 9, 100);
+  }
+}
+/* Turnier- und Kriegslanze: bemalter Schaft, Brechscheibe, im Sattel aufrecht mit Fähnlein */
+const LANCE_COL = { reich: ['#e0b030', '#1a1818'], frankreich: ['#2a4290', '#e8c040'], england: ['#f2eee4', '#b8281e'], spanien: ['#b8281e', '#f2eee4'] };
+function drawLance(k, fid, couched){
+  const C = LANCE_COL[fid] || LANCE_COL.reich, d = k.dir, sx = d === 'left' ? -1 : 1;
+  let x0, y0, x1, y1;
+  if (couched){
+    if (d === 'right' || d === 'left'){ x0 = k.x - 12 * sx; y0 = k.y - 38; x1 = k.x + LANCE_TIP[d][0]; y1 = k.y + LANCE_TIP[d][1]; }
+    else if (d === 'down'){ x0 = k.x + 9; y0 = k.y - 40; x1 = k.x + LANCE_TIP.down[0]; y1 = k.y + LANCE_TIP.down[1]; }
+    else { x0 = k.x - 6; y0 = k.y - 34; x1 = k.x + LANCE_TIP.up[0]; y1 = k.y + LANCE_TIP.up[1]; }
+  } else {
+    const hx = d === 'down' ? 11 : d === 'up' ? -11 : 6 * sx;
+    x0 = k.x + hx; y0 = k.y - 28; x1 = k.x + hx + 4 * (d === 'left' ? -1 : 1); y1 = k.y - 92;
+  }
+  const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0)), nx = (y1 - y0) / n, ny = -(x1 - x0) / n;
+  for (let i = 0; i <= n; i++){
+    const t = i / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t, w = t > .9 ? 1 : 2;
+    ctx.fillStyle = OUT; ctx.fillRect(Math.round(x - nx - .5), Math.round(y - ny - .5), w + 1, w + 1);
+  }
+  for (let i = 0; i <= n; i++){
+    const t = i / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t;
+    ctx.fillStyle = t > .94 ? '#c8ccd2' : (Math.floor(i / 6) & 1) ? C[1] : C[0];
+    ctx.fillRect(Math.round(x), Math.round(y), t > .9 ? 1 : 2, t > .9 ? 1 : 2);
+  }
+  // Brechscheibe am Griff
+  const bx = x0 + (x1 - x0) * .14, by = y0 + (y1 - y0) * .14;
+  ctx.fillStyle = OUT; ctx.fillRect(Math.round(bx - 3), Math.round(by - 3), 7, 7);
+  ctx.fillStyle = '#9aa2ac'; ctx.fillRect(Math.round(bx - 2), Math.round(by - 2), 5, 5); ctx.fillStyle = '#d4d8de'; ctx.fillRect(Math.round(bx - 2), Math.round(by - 2), 2, 2);
+  // Fähnlein an der aufrechten Lanze
+  if (!couched){
+    const fx = Math.round(x1), fy = Math.round(y1 + 4), fl = (G.t * 6 | 0) % 2;
+    for (let j = 0; j < 6; j++){ const len = 10 - j * 1.4 + (fl && j > 2 ? 1 : 0); ctx.fillStyle = OUT; ctx.fillRect(fx + 1, fy + j - 1, Math.round(len) + 1, 3); }
+    for (let j = 0; j < 6; j++){ const len = 9 - j * 1.4 + (fl && j > 2 ? 1 : 0); ctx.fillStyle = j < 3 ? C[0] : C[1]; ctx.fillRect(fx + 2, fy + j, Math.max(1, Math.round(len)), 1); }
   }
 }
 function bashHits(){
@@ -11219,7 +11632,17 @@ function respawn(){
 function updateKnight(dt){
   const k = G.knight, v = inputVec();
   k.moving = v.x !== 0 || v.y !== 0;
-  if (k.bashT > 0){
+  if (k.lance > 0 && riding()){
+    // Lanzenstoß: das Pferd stürmt geradeaus, die Lanze trifft alles vor ihm
+    k.lance -= dt; k.moving = true; k.anim += dt * 14; k.ride = HERO.horse;
+    const [fx, fy] = DIRV[k.dir], sp = 330;
+    const nx = clamp(k.x + fx * sp * dt, 8, GW - 8), ny = clamp(k.y + fy * sp * .8 * dt, 12, GH - 2);
+    if (!blocked(nx, k.y)) k.x = nx; else k.lance = 0;
+    if (!blocked(k.x, ny)) k.y = ny; else if (fy) k.lance = 0;
+    lanceHits();
+    G.hoofT = (G.hoofT || 0) - dt; if (G.hoofT <= 0){ G.hoofT = .09; Sound.hoof(); }
+    if (Math.random() < .9) G.parts.push({ x: k.x + rand(-10, 10), y: k.y, vx: -fx * 50 + rand(-10, 10), vy: -14, life: .45, c: '#6e5a42', g: 0, s: 2 });
+  } else if (k.bashT > 0){
     // Schildstoß: kurzer Sprung nach vorn
     k.bashT -= dt;
     const nx = clamp(k.x + k.bx * 320 * dt, 8, GW - 8), ny = clamp(k.y + k.by * 320 * dt, 12, GH - 2);
@@ -11297,6 +11720,10 @@ function update(dt){
     return;
   }
   tickBuffs(dt);
+  if (G.joust){
+    updateJoust(dt);
+    if (G.joust){ updateLife(dt); skyEvents(dt); updateFx(dt); sendPresence(); HERO.played += dt; return; }
+  }
   if (G.inside){
     updateInn(dt);
     if (G.inside){
@@ -11315,6 +11742,7 @@ function update(dt){
   if (G.mode === 'play') updateMons(dt);
   if (G.mode === 'play') updateShots(dt);
   updateLife(dt);
+  skyEvents(dt);
   updateFx(dt);
   updateBossBar();
   updateNear();
@@ -11322,6 +11750,203 @@ function update(dt){
   HERO.played += dt;
   G.saveT += dt;
   if (G.saveT > 8){ G.saveT = 0; saveHero(); }
+}
+
+/* ============ Turnier: Tjost auf der Wiese vor der Reichsstadt ============
+   Drei Durchgänge an der Schranke. Kurz vor dem Zusammenprall wandert das Ziel über den Gegner:
+   mit Hieb die Lanze senken. Helm 2 Punkte, Schild 1 Punkt, aus dem Sattel heben gewinnt sofort. */
+const JOUST_FOES = [
+  { id:'konrad', name:'Junker Konrad von Lindach', short:'Konrad', lvl: 4, f:'reich', look:'11111', stake: 10, prize: 35, trophy: { name:'Turnierkranz', r: 2 }, osc: 1.5,
+    say:'Ein junger Herr aus dem Dorf unter der Burg. Er reitet tapfer, aber noch ungestüm.' },
+  { id:'bayard', name:'Chevalier Bayard', short:'Bayard', lvl: 10, f:'frankreich', look:'22232', stake: 40, prize: 140, trophy: { name:'Silberner Sporn', r: 3 }, osc: 2.1,
+    say:'Pierre Terrail, Herr von Bayard, der Ritter ohne Furcht und Tadel. Er hat bei Marignano gefochten.' },
+  { id:'goetz', name:'Götz von Berlichingen', short:'Götz', lvl: 16, f:'reich', look:'33343', stake: 120, prize: 420, trophy: { name:'Goldene Kette des Turniers', r: 4 }, osc: 2.8,
+    say:'Der fränkische Reichsritter mit der eisernen Hand. Grob, gefürchtet und kaum je aus dem Sattel zu heben.' }
+];
+const LISTS = (() => { const p = GPROPS.find(q => q.kind === 'schranke'); return p ? { x: p.x, y: p.y } : null; })();
+const JOUST_AIM = 430;   // Abstand, ab dem das Ziel wandert und die Lanze gesenkt werden kann
+const JOUST_ZONES = [['daneben', -1, -.62], ['Schild', -.62, .3], ['Helm', .3, .62], ['daneben', .62, 1.01]];
+function startJoust(foe){
+  if (!LISTS || G.joust || !canAct()) return;
+  if (HERO.gold < foe.stake){ logLine('Das Startgeld beträgt ' + foe.stake + ' Gulden.', '#d8c69c'); return; }
+  HERO.gold -= foe.stake; updateHud();
+  G.joust = { foe, pass: 0, me: 0, op: 0, st: 'intro', t: 1.8, cx: LISTS.x, cy: LISTS.y - 60, cheer: 0, parts: [], text: '', textT: 0, fallen: null };
+  HERO.riding = false; renderSkills(); G.near = null; $('btnTalk').hidden = true; $('log').style.visibility = 'hidden';
+  for (const s of LIFE_SPOTS) if (s.crowd){ s.act = true; s.ents = []; lifeMake(s, true); }
+  showBanner('Tjost', HERO.name + ' gegen ' + foe.name);
+  Sound.horn(); Sound.cheer(.8);
+  joustPass();
+  G.joust.st = 'intro'; G.joust.t = 2.2;
+  markDirty(true);
+}
+function joustPass(){
+  const J = G.joust, half = Math.min(300, W / 2 - 44);
+  J.pass++; J.dir = J.pass % 2 ? 1 : -1;
+  J.px = LISTS.x - half * J.dir; J.ox = LISTS.x + half * J.dir; J.sp = 0;
+  J.py = LISTS.y + 26; J.oy = LISTS.y - 18;
+  J.lock = null; J.ph = Math.random() * 6; J.held = true; J.resolved = false; J.st = 'ready'; J.t = 1.1; J.anim = 0;
+}
+function updateJoust(dt){
+  const J = G.joust, k = G.knight;
+  J.t -= dt; J.anim += dt * (J.sp / 18 + 1); if (J.cheer > 0) J.cheer -= dt; if (J.textT > 0) J.textT -= dt;
+  for (let i = J.parts.length - 1; i >= 0; i--){ const p = J.parts[i]; p.life -= dt; p.vy += 220 * dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.life <= 0) J.parts.splice(i, 1); }
+  if (J.fallen){ J.fallen.t += dt; }
+  const press = atkHeld || atkBtn, edge = press && !J.held; J.held = press;
+  k.x = J.px; k.y = J.py; k.dir = J.dir > 0 ? 'right' : 'left'; k.moving = J.sp > 10;
+  if (J.st === 'intro'){ if (J.t <= 0){ J.st = 'ready'; J.t = .6; } return; }
+  if (J.st === 'ready'){ if (J.t <= 0){ J.st = 'charge'; Sound.horn(); } return; }
+  if (J.st === 'charge' || J.st === 'after'){
+    J.sp = Math.min(230, J.sp + 200 * dt) * (J.st === 'after' ? Math.pow(.25, dt) : 1);
+    J.px += J.sp * J.dir * dt; J.ox -= J.sp * J.dir * dt;
+    J.hoof = (J.hoof || 0) - dt; if (J.hoof <= 0 && J.sp > 30){ J.hoof = 2.6 / Math.max(30, J.sp); Sound.hoof(); }
+    const gap = (J.ox - J.px) * J.dir;
+    if (J.st === 'charge'){
+      J.ph += dt * J.foe.osc * 2.4;
+      if (gap < JOUST_AIM && J.lock === null && edge){ J.lock = Math.sin(J.ph); Sound.swing(); }
+      if (gap <= 0 && !J.resolved){ J.resolved = true; joustImpact(); }
+    } else if (J.t <= 0){
+      if (J.over) return joustEnd();
+      joustPass();
+    }
+  }
+}
+function joustZone(u){ for (const z of JOUST_ZONES) if (u >= z[1] && u < z[2]) return z[0]; return 'daneben'; }
+function joustImpact(){
+  const J = G.joust, f = J.foe, d = HERO.lvl - f.lvl;
+  const myZone = J.lock === null ? 'zu spät' : joustZone(J.lock);
+  let my = 0, op = 0, iFall = false, oFall = false;
+  if (myZone === 'Helm' || myZone === 'Schild'){
+    if (Math.random() < clamp(.74 + d * .04, .3, .96)){
+      my = myZone === 'Helm' ? 2 : 1;
+      if (Math.random() < clamp((myZone === 'Helm' ? .28 : .09) + d * .02, .02, .5)) oFall = true;
+    } else J.glance = true;
+  }
+  const oHit = Math.random() < clamp(.6 - d * .05 - ST.block / 250, .15, .92), oHelm = Math.random() < .3;
+  if (oHit){ op = oHelm ? 2 : 1; if (Math.random() < clamp((oHelm ? .22 : .08) * (1 - ST.mit) * (1 - d * .05), .01, .45)) iFall = true; }
+  J.me += my; J.op += op;
+  const hitX = J.ox, hy = (J.py + J.oy) / 2 - 40;
+  if (my || op){ for (let i = 0; i < 18; i++) J.parts.push({ x: hitX + rand(-8, 8), y: hy + rand(-10, 10), vx: rand(-90, 90), vy: rand(-120, -20), life: rand(.5, 1), c: Math.random() < .5 ? '#e8d8b0' : '#b08a5a' }); G.shake = .35; Sound.hit(); Sound.parry(); J.cheer = 2; Sound.cheer(1); }
+  else Sound.swing();
+  const parts = [];
+  parts.push(myZone === 'zu spät' ? 'Zu spät!' : my ? myZone + '! +' + my : J.glance ? 'Abgeglitten' : 'Daneben');
+  if (op) parts.push(f.short + ' trifft' + (oHelm ? ' den Helm' : '') + ' +' + op);
+  if (oFall){ parts.push(f.short + ' fällt!'); J.fallen = { who: 'op', x: J.ox, y: J.oy, t: 0, dir: -J.dir }; }
+  if (iFall){ parts.push('Ihr fallt!'); J.fallen = { who: 'me', x: J.px, y: J.py, t: 0, dir: J.dir }; }
+  // Rufe von der Tribüne
+  const crowd = [];
+  for (const s of LIFE_SPOTS) if (s.crowd) for (const e of s.ents) crowd.push(e);
+  for (let i = 0; i < 3 && crowd.length && (my || op || oFall || iFall); i++){
+    const e = crowd.splice(Math.random() * crowd.length | 0, 1)[0];
+    e.say = pick(oFall || iFall ? ['Aus dem Sattel!', 'Er fällt!', 'Hoho!', 'Heiliger Georg!'] : my ? ['Bravo!', 'Treffer!', 'Gut gestoßen!', 'Hurra!'] : ['Oh weh!', 'Haltet Euch!', 'Ach!']);
+    e.sayUntil = nowS() + 1.6 + i * .3;
+  }
+  J.text = parts.join(',  '); J.textT = 2.4;
+  J.over = oFall || iFall || (J.pass >= 3 && J.me !== J.op) || J.pass >= 5;
+  J.st = 'after'; J.t = 1.9;
+  if (oFall && !iFall) J.win = true; else if (iFall && !oFall) J.win = false; else if (J.over) J.win = J.me > J.op;
+}
+function joustEnd(){
+  const J = G.joust, f = J.foe, k = G.knight;
+  G.joust = null; $('log').style.visibility = '';
+  const herold = NPCS.find(n => n.id === 'herold');
+  if (herold){ k.x = herold.x + 30; k.y = herold.y + 10; k.dir = 'left'; if (!gOk(k.x, k.y)){ k.x = herold.x; k.y = herold.y + 26; } }
+  HERO.joust = HERO.joust || { wins: 0, beat: {} };
+  if (J.win){
+    HERO.gold += f.prize; HERO.joust.wins++;
+    const xp = Math.round(xpNeed(HERO.lvl) * .12 + f.lvl * 6); gainXp(xp);
+    let extra = '';
+    if (!HERO.joust.beat[f.id]){
+      HERO.joust.beat[f.id] = true;
+      const it = makeItem('kleinod', f.lvl + 4, f.trophy.r, { name: f.trophy.name });
+      const i = HERO.inv.indexOf(null);
+      if (i >= 0){ HERO.inv[i] = it; extra = ' und ' + f.trophy.name; } else extra = ' (der Rucksack ist voll, der Preis verfällt)';
+    }
+    showBanner('Sieg im Tjost', J.me + ' : ' + J.op + ' gegen ' + f.short);
+    logLine('Ihr besiegt ' + f.name + ' im Tjost: ' + f.prize + ' Gulden, ' + xp + ' EP' + extra + '.', '#ffd98a');
+    Sound.levelUp();
+  } else {
+    showBanner(J.me === J.op ? 'Unentschieden' : 'Niederlage im Tjost', J.me + ' : ' + J.op + ' gegen ' + f.short);
+    logLine(J.me === J.op ? 'Gleichstand nach fünf Durchgängen. Das Startgeld behält der Herold.' : f.name + ' bleibt Sieger. Übt weiter und kommt wieder.', '#d8c69c');
+  }
+  updateHud(); markDirty(true); sendPresence(true);
+}
+/* ---------- Zeichnen ---------- */
+function joustLance(x0, y0, x1, y1, fid){
+  const C = LANCE_COL[fid] || LANCE_COL.reich, n = Math.ceil(Math.hypot(x1 - x0, y1 - y0));
+  for (let i = 0; i <= n; i++){ const t = i / n; ctx.fillStyle = OUT; ctx.fillRect(Math.round(x0 + (x1 - x0) * t - 1), Math.round(y0 + (y1 - y0) * t - 1), t > .9 ? 2 : 3, t > .9 ? 2 : 3); }
+  for (let i = 0; i <= n; i++){ const t = i / n; ctx.fillStyle = t > .94 ? '#c8ccd2' : (Math.floor(i / 6) & 1) ? C[1] : C[0]; ctx.fillRect(Math.round(x0 + (x1 - x0) * t), Math.round(y0 + (y1 - y0) * t), t > .9 ? 1 : 2, t > .9 ? 1 : 2); }
+  const bx = x0 + (x1 - x0) * .14, by = y0 + (y1 - y0) * .14;
+  ctx.fillStyle = OUT; ctx.fillRect(Math.round(bx - 3), Math.round(by - 3), 7, 7); ctx.fillStyle = '#9aa2ac'; ctx.fillRect(Math.round(bx - 2), Math.round(by - 2), 5, 5);
+}
+function drawJoustRider(who){
+  const J = G.joust, me = who === 'me', x = me ? J.px : J.ox, y = me ? J.py : J.oy, dir = (me ? J.dir : -J.dir) > 0 ? 'right' : 'left';
+  const set = me ? ownSet() : knightSet(J.foe.f, J.foe.look), fid = me ? HERO.f : J.foe.f;
+  const f = J.sp > 10 ? (J.anim | 0) % 4 : 4, fallen = J.fallen && J.fallen.who === who;
+  if (fallen){
+    const hs = horseSet('streitross', set.key)[dir][f];
+    ctx.drawImage(hs.under, Math.round(x - hs.ax - 1), Math.round(y - HO_GY - 1));
+    const F = J.fallen, fr = (set.fall || KNIGHT_FALL)[F.dir > 0 ? 'right' : 'left'][Math.min(3, Math.floor(F.t * 6))], fy = Math.min(F.t * 120, 40);
+    ctx.drawImage(fr.img, Math.round(F.x - fr.ox), Math.round(F.y - 46 + fy - fr.oy));
+    return;
+  }
+  const sx = dir === 'right' ? 1 : -1, other = me ? { x: J.ox, y: J.oy } : { x: J.px, y: J.py }, gap = Math.abs(other.x - x);
+  // Lanze: aufrecht beim Warten, eingelegt im Ansturm, über die Schranke auf den Gegner gerichtet
+  let tx, ty;
+  if (J.st === 'charge' || J.st === 'after'){ const aimY = me ? -46 : -38; tx = x + sx * 62; ty = y - 34 + (other.y - y + aimY + 34) * clamp(1 - gap / 420, .25, 1); }
+  else { tx = x + sx * 8; ty = y - 92; }
+  if (me) drawMounted(ctx, 'streitross', set.key, dir, x, y, f);
+  joustLance(x - sx * 12, y - 36, tx, ty, fid);
+  if (!me) drawMounted(ctx, 'streitross', set.key, dir, x, y, f);
+}
+function renderJoust(){
+  const J = G.joust, k = G.knight;
+  const cam = { x: Math.round(clamp(J.cx - W / 2, 0, GW - W)), y: Math.round(clamp(J.cy - H / 2, 0, GH - H)) };
+  const sh = G.shake > 0 && !RM ? 2 : 0, sx = sh ? Math.round(rand(-sh, sh)) : 0, sy = sh ? Math.round(rand(-sh, sh)) : 0;
+  ctx.setTransform(1, 0, 0, 1, sx, sy);
+  drawGround(ctx, cam.x, cam.y);
+  ctx.setTransform(1, 0, 0, 1, sx - cam.x, sy - cam.y);
+  shadow(J.px, J.py - 1, 44, .4); shadow(J.ox, J.oy - 1, 44, .4);
+  const list = [];
+  for (const p of propsInView(cam)) list.push({ y: p.y, d: () => drawProp(p) });
+  for (const e of lifeEnts(cam, [])) list.push({ y: (e.sy || e.y) + .05, d: () => drawLife(e) });
+  for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
+  list.push({ y: J.oy + .2, d: () => drawJoustRider('op') }, { y: J.py + .2, d: () => drawJoustRider('me') });
+  list.sort((a, b) => a.y - b.y);
+  for (const it of list) it.d();
+  for (const p of J.parts){ ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x), Math.round(p.y), 2, 2); }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  drawSkyLight(cam);
+  ctx.drawImage(gradeTex, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, sx - cam.x, sy - cam.y);
+  for (const f of GFIRES) if (inView(f.x, f.y, cam)) flameHD(f.x, f.y, G.t + f.x * .01, f.big);
+  for (const p of G.parts){ if (!p.glow) continue; ctx.fillStyle = p.c; ctx.fillRect(p.x | 0, p.y | 0, 1, 1); }
+  drawSpeech(cam);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  drawRain(); drawBolt();
+  // Anzeige: Gegner, Durchgang, Punkte
+  const head = 'Tjost: ' + HERO.name + ' gegen ' + J.foe.short, sc = 'Durchgang ' + Math.max(1, J.pass) + (J.pass > 3 ? ' (Stechen)' : ' von 3') + ',  ' + J.me + ' : ' + J.op;
+  ctx.fillStyle = 'rgba(16,14,20,.62)'; ctx.fillRect(W / 2 - 150, 6, 300, 34);
+  drawText(head, W / 2, 9, '#ffd98a'); drawText(sc, W / 2, 24, '#ffffff');
+  if (J.st === 'intro' || J.st === 'ready') drawText(J.st === 'intro' ? 'Die Trompete ruft!' : 'Anreiten!', W / 2, H * .62, '#ffd98a', 'c', 1.5);
+  // Ziel: wandernde Marke über dem Gegner, Leiste rechts
+  if (J.st === 'charge'){
+    const gap = (J.ox - J.px) * J.dir;
+    if (gap < JOUST_AIM){
+      const u = J.lock !== null ? J.lock : Math.sin(J.ph), bx = W - 40, by = H / 2 - 70, bh = 140;
+      ctx.fillStyle = OUT; ctx.fillRect(bx - 2, by - 2, 18, bh + 4);
+      for (const [nm, a, b] of JOUST_ZONES){ ctx.fillStyle = nm === 'Helm' ? '#d8a830' : nm === 'Schild' ? '#5a9a4a' : '#4a4650'; ctx.fillRect(bx, Math.round(by + (1 - b) / 2 * bh), 14, Math.ceil((b - a) / 2 * bh)); }
+      const my = Math.round(by + (1 - u) / 2 * bh);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(bx - 6, my - 1, 26, 3); ctx.fillStyle = OUT; ctx.fillRect(bx - 8, my - 2, 2, 5);
+      drawText('Helm', bx - 10, Math.round(by + (1 - .46) / 2 * bh) - 6, '#ffd98a', 'r'); drawText('Schild', bx - 10, Math.round(by + (1 + .16) / 2 * bh) - 6, '#9fe08a', 'r');
+      // Marke am Gegner
+      const ox = J.ox - cam.x, oy = J.oy - cam.y - 42 - u * 20;
+      ctx.fillStyle = J.lock !== null ? '#ffd541' : '#ffffff';
+      ctx.fillRect(Math.round(ox) - 6, Math.round(oy), 4, 1); ctx.fillRect(Math.round(ox) + 3, Math.round(oy), 4, 1); ctx.fillRect(Math.round(ox), Math.round(oy) - 6, 1, 4); ctx.fillRect(Math.round(ox), Math.round(oy) + 3, 1, 4);
+      if (J.lock === null) drawText(TOUCH ? 'Hieb: Lanze senken!' : 'Leertaste: Lanze senken!', W / 2, H * .66, '#ffffff', 'c', 1.5);
+    }
+  }
+  if (J.textT > 0) drawText(J.text, W / 2, H * .3, '#ffffff', 'c', 1.5);
+  if (G.flash > 0 && !RM){ ctx.fillStyle = 'rgba(220,226,255,' + Math.min(.45, G.flash * .9).toFixed(2) + ')'; ctx.fillRect(0, 0, W, H); }
 }
 
 /* ============ Zeichnen ============ */
@@ -11334,8 +11959,10 @@ const underProp = (p, o) => o.y < p.y && o.x > p.occl[0] && o.x < p.occl[2] && o
 function drawProp(p){
   const off = p.shake > 0 ? ((G.t * 30 | 0) % 2 ? 1 : -1) : 0;
   const see = G.mode !== 'title' && p.occl && (underProp(p, G.knight) || G.mons.some(m => !MON[m.k].fly && underProp(p, m)));
-  if (see) ctx.globalAlpha = .45;
+  const a0 = see ? .45 : 1;
+  ctx.globalAlpha = a0;
   ctx.drawImage(p.img, Math.round(p.x - p.ax) + off, Math.round(p.y - p.ay));
+  if (p.nimg && SKY.night > .05){ ctx.globalAlpha = a0 * clamp(SKY.night * 1.3, 0, 1); ctx.drawImage(p.nimg, Math.round(p.x - p.ax) + off, Math.round(p.y - p.ay)); }
   ctx.globalAlpha = 1;
 }
 /* Beute am Boden: Münzen, Tränke, Ausrüstung mit Lichtsäule in der Farbe der Seltenheit */
@@ -11357,7 +11984,8 @@ function drawLootBeam(a){
 }
 
 /* Hiebspur: Sichel hinter der Klinge, zur Klinge hin breiter und heller, außen eine helle Schneide */
-function drawTrail(k, gp, a){
+const TRAIL_COL = [null, null, ['rgba(200,224,255,', 'rgba(120,170,240,'], ['rgba(232,200,255,', 'rgba(170,110,230,'], ['rgba(255,240,180,', 'rgba(236,190,90,']];
+function drawTrail(k, gp, a, wr){
   const R = Math.round(reachOf(k) * .92), a0 = Math.max(k.swA0, a - 1.5), span = Math.max(.01, a - a0), px = new Map();
   for (let t = a0; t < a; t += .5 / R){
     const f = (t - a0) / span, w = Math.round(1 + f * 4), c = Math.cos(t), s = Math.sin(t);
@@ -11368,16 +11996,24 @@ function drawTrail(k, gp, a){
   }
   const gold = k.mult > 1.2 || (k === G.knight && G.buffT > 0);
   for (const [x, y, al, edge] of px.values()){
-    ctx.fillStyle = gold ? (edge ? 'rgba(255,240,180,' : 'rgba(236,210,122,') + al.toFixed(2) + ')' : (edge ? 'rgba(240,244,250,' : 'rgba(186,202,224,') + al.toFixed(2) + ')';
+    const TC = TRAIL_COL[wr || 0];
+    ctx.fillStyle = gold ? (edge ? 'rgba(255,240,180,' : 'rgba(236,210,122,') + al.toFixed(2) + ')' : TC ? TC[edge ? 0 : 1] + al.toFixed(2) + ')' : (edge ? 'rgba(240,244,250,' : 'rgba(186,202,224,') + al.toFixed(2) + ')';
     ctx.fillRect(x, y, 1, 1);
   }
 }
 /* Ritter zeichnen: eigener (k = G.knight) oder ein anderer (set = Farbvariante) */
 function drawKnightAt(k, set, dead, dieP){
-  if (k.ride && !dead && HORSES[k.ride]){ drawMounted(ctx, k.ride, set.id, k.dir, k.x, k.y, k.moving ? (k.anim | 0) % 4 : 4); return; }
+  if (k.ride && !dead && HORSES[k.ride]){
+    const couched = k.lance > 0, back = k.dir === 'up';
+    if (back) drawLance(k, set.id, couched);
+    drawMounted(ctx, k.ride, set.key || set.id, k.dir, k.x, k.y, k.moving ? (k.anim | 0) % 4 : 4);
+    if (!back) drawLance(k, set.id, couched);
+    return;
+  }
+  const SW = set.sword;
   if (dead){
     const r = (set.fall || KNIGHT_FALL)[k.dir][Math.min(3, Math.floor(dieP * 9))];
-    drawSword(ctx, Math.round(k.x - 16), Math.round(k.y + 3), -.12);
+    drawSword(ctx, Math.round(k.x - 16), Math.round(k.y + 3), -.12, SW);
     ctx.drawImage(r.img, Math.round(k.x - r.ox), Math.round(k.y - 1 - r.oy));
     return;
   }
@@ -11387,19 +12023,19 @@ function drawKnightAt(k, set, dead, dieP){
   let sword, behind;
   if (k.bashT > 0){
     behind = k.dir !== 'down';
-    sword = () => { const c = KNIGHT_CARRY[k.dir]; drawSword(ctx, Math.round(k.x + c.x), Math.round(k.y + c.y), c.a); };
+    sword = () => { const c = KNIGHT_CARRY[k.dir]; drawSword(ctx, Math.round(k.x + c.x), Math.round(k.y + c.y), c.a, SW); };
   } else if (k.atkT > 0){
     const gp = gripOf(k), a = swingAngle(k);
     behind = k.dir === 'up' || k.dir === 'left' || Math.sin(a) < -.4;
     sword = () => {
-      drawTrail(k, gp, a); drawSword(ctx, Math.round(gp.x), Math.round(gp.y), a);
+      drawTrail(k, gp, a, set.wr); drawSword(ctx, Math.round(gp.x), Math.round(gp.y), a, SW);
       if (k.dir !== 'up') ctx.drawImage(KNIGHT_FIST, Math.round(gp.x - KNIGHT_FIST.width / 2), Math.round(gp.y - KNIGHT_FIST.height / 2));
     };
   } else {
     const c = KNIGHT_CARRY[k.dir], fw = set.walk[k.dir][f];
     behind = c.behind;
     sword = () => {
-      drawSword(ctx, Math.round(k.x + c.x), Math.round(k.y + c.y), c.a);
+      drawSword(ctx, Math.round(k.x + c.x), Math.round(k.y + c.y), c.a, SW);
       if (fw.hands) ctx.drawImage(fw.hands, Math.round(k.x - KS.ax), Math.round(k.y - KS.ay));
     };
   }
@@ -11408,7 +12044,7 @@ function drawKnightAt(k, set, dead, dieP){
   if (k.slowT > 0){ ctx.fillStyle = '#3a2c1e'; ctx.fillRect(Math.round(k.x - 8), Math.round(k.y - 3), 16, 3); }
   if (!behind) sword();
 }
-const ownSet = () => knightSet(HERO ? HERO.f : 'reich');
+const ownSet = () => HERO ? knightSet(HERO.f, lookOf(HERO.eq)) : knightSet('reich');
 function drawKnight(){
   const k = G.knight;
   k.ride = riding() && G.mode !== 'dying' && G.mode !== 'dead' ? HERO.horse : null;
@@ -11575,7 +12211,9 @@ function drawBubble(x, y, text){
 }
 
 function render(){
+  updateClock();
   if (G.inside){ renderInn(); return; }
+  if (G.joust){ renderJoust(); return; }
   const k = G.knight, cam = camOf(k);
   const sh = G.shake > 0 && !RM ? 2 : 0, sx = sh ? Math.round(rand(-sh, sh)) : 0, sy = sh ? Math.round(rand(-sh, sh)) : 0;
   ctx.setTransform(1, 0, 0, 1, sx, sy);
@@ -11612,7 +12250,7 @@ function render(){
   for (const m of G.mons) if (!MON[m.k].fly && inView(m.x, m.y, cam, 120)) list.push({ y: m.y + .1, d: () => drawMon(m) });
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
   for (const e of lifeL) list.push({ y: (e.sy || e.y) + .05, d: () => drawLife(e) });
-  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f), p.dead, 1) });
+  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f, p.lk), p.dead, 1) });
   if (!title) list.push({ y: k.y + .2, d: drawKnight });
   list.sort((p, q) => p.y - q.y);
   for (const it of list) it.d();
@@ -11627,7 +12265,9 @@ function render(){
   ctx.globalAlpha = 1;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  const fogA = FOG_BY_ZONE[G.zone] || .07, fx = Math.round(G.fogX * 1.8) % (W * 2);
+  drawSkyLight(cam);
+  const mist = SKY.hour > 4 && SKY.hour < 8.5 ? .06 * Math.sin((SKY.hour - 4) / 4.5 * Math.PI) : 0;
+  const fogA = (FOG_BY_ZONE[G.zone] || .07) + SKY.fog * .3 + mist, fx = Math.round(G.fogX * 1.8) % (W * 2);
   ctx.globalAlpha = fogA;
   ctx.drawImage(fogTex, -fx, 0); ctx.drawImage(fogTex, W * 2 - fx, 0);
   ctx.globalAlpha = fogA * .6;
@@ -11668,13 +12308,8 @@ function render(){
   ctx.globalAlpha = 1;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  if (!RM){
-    ctx.fillStyle = 'rgba(190,198,212,.3)';
-    for (let i = 0, n = Math.round(70 * W * H / 129600 * .7); i < n; i++){
-      const x = ((i * 53.7 + G.t * 46) % (W + 20)) - 10, y = ((i * 97.3 + G.t * 190) % (H + 10)) - 5;
-      ctx.fillRect(x | 0, y | 0, 1, 3); ctx.fillRect((x | 0) - 1, (y | 0) + 3, 1, 1);
-    }
-  }
+  drawRain();
+  drawBolt();
   // Monster im Kampf außer Sicht: Zeichen am Rand
   const off = [];
   for (const m of G.mons){ if (m.mode !== 'fight' || (m.k === 'tod' && m.st === 'hidden')) continue; const c = centerOf(m); if (!(c.x > cam.x && c.x < cam.x + W && c.y > cam.y && c.y < cam.y + H)) off.push({ x: c.x, y: c.y, boss: MON[m.k].boss }); }
@@ -11685,10 +12320,26 @@ function render(){
     ctx.fillStyle = o.boss ? '#ecd27a' : '#d0343c'; ctx.fillRect(x - 4, y - 4, 9, 9);
     if (o.boss){ ctx.fillStyle = '#d0343c'; ctx.fillRect(x - 2, y - 2, 5, 5); }
   }
-  if (!title){ drawQuestArrow(k); drawMiniMap(k, cam); }
+  if (!title){ drawQuestArrow(k); drawMiniMap(k, cam); drawSkyHud(); }
   if (G.flash > 0 && !RM){
     ctx.fillStyle = 'rgba(220,226,255,' + Math.min(.45, G.flash * .9).toFixed(2) + ')';
     ctx.fillRect(0, 0, W, H);
+  }
+}
+function drawRain(){
+  if (!RM && SKY.rain > .04){
+    // Regen nach Wetter: Tropfen schräg im Wind, kleine Spritzer am Boden
+    ctx.fillStyle = 'rgba(190,198,212,' + (.22 + SKY.rain * .14).toFixed(2) + ')';
+    const sl = SKY.wind / 190;
+    for (let i = 0, n = Math.round(70 * W * H / 129600 * 1.1 * SKY.rain); i < n; i++){
+      const x = ((i * 53.7 + G.t * (46 + SKY.wind * 2)) % (W + 40)) - 20, y = ((i * 97.3 + G.t * 190) % (H + 10)) - 5;
+      ctx.fillRect(x | 0, y | 0, 1, 3); ctx.fillRect(Math.round(x - sl * 4), (y | 0) + 3, 1, 1);
+    }
+    ctx.fillStyle = 'rgba(210,218,226,.45)';
+    for (let i = 0, n = Math.round(24 * SKY.rain * W / 480); i < n; i++){
+      const ph = (G.t * 3 + i * .618) % 1, x = ((i * 137.5) % W + (Math.floor(G.t * 3 + i * .618) * 61) % W) % W, y = ((i * 71.3) % H + (Math.floor(G.t * 3 + i * .618) * 37) % H) % H;
+      if (ph < .3){ ctx.fillRect(x | 0, y | 0, 1, 1); ctx.fillRect((x | 0) - 1, (y | 0) - 1, 1, 1); ctx.fillRect((x | 0) + 1, (y | 0) - 1, 1, 1); }
+    }
   }
 }
 /* Ausschnitt der Übersichtskarte um den Ritter (1 px = 32 Weltpixel) */
@@ -11726,6 +12377,7 @@ function mountHorse(){
   if (!HERO.horse){ floatText(G.knight.x, G.knight.y - KS.ay - 4, 'Kein Pferd', '#d8c69c'); logLine('Ihr habt kein Pferd. Der Stallmeister in der Reichsburg verkauft welche.', '#d8c69c'); return; }
   if (G.combatT < 3){ floatText(G.knight.x, G.knight.y - KS.ay - 4, 'Nicht im Kampf', '#d8c69c'); return; }
   HERO.riding = true; Sound.neigh();
+  if (!G.lanceTip){ G.lanceTip = true; logLine('Im Sattel wird der Hieb zum Lanzenstoß. Zum Kampf zu Fuß mit H absitzen.', '#ffd98a'); }
   burst(G.knight.x, G.knight.y - 4, ['#6e5a42', '#8a7254'], 12, 50);
   renderSkills(); sendPresence(true); markDirty();
 }
@@ -11872,6 +12524,26 @@ for (const hid of HORSE_IDS){
   wh.append(el('small', null, h.desc));
   li.append(im, wh, el('span', 'val', h.price + ' Gulden'));
   $('horseList').append(li);
+}
+/* Harnisch, Turnier, Tag und Nacht: Tafeln */
+for (let r = 0; r < 5; r++){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', GEAR_NAME[r][0].toUpperCase() + GEAR_NAME[r].slice(1));
+  im.src = urlOf(knightSet('reich', '' + r + r + r + 'nn').walk.down[0].img, 1); im.alt = '';
+  wh.append(el('small', null, 'Harnisch, ' + RARITY[r].n + (r >= 2 ? ', mit Federbusch' : '')));
+  if (r) wh.style.color = '#' + [1, 3, 5].map(i => Math.round(parseInt(RARITY[r].c.slice(i, i + 2), 16) * .55).toString(16).padStart(2, '0')).join('');   // Farbe der Güte, dunkler fürs Pergament
+  li.append(im, wh); $('gearList').append(li);
+}
+for (const f of JOUST_FOES){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', f.name), set = knightSet(f.f, f.look);
+  set.url = set.url || urlOf(set.icon, 3); im.src = set.url; im.alt = '';
+  wh.append(el('small', null, 'Stufe ' + f.lvl + ', ' + f.prize + ' Gulden, ' + f.trophy.name));
+  li.append(im, wh); $('joustList').append(li);
+}
+for (const [ic, name, desc] of [['sonne', 'Morgen, 4 bis 9 Uhr', 'Morgenrot, oft liegt Nebel über den Wiesen'], ['sonne', 'Tag', 'klar oder heiter, Wolkenschatten ziehen übers Land'],
+  ['wolke', 'Regen, Nebel, Gewitter', 'das Wetter wechselt alle fünf Minuten, im Gewitter blitzt und donnert es'], ['mond', 'Nacht, 21 bis 4 Uhr', 'Grillen und Käuzchen, Fledermäuse über den Dächern']]){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+  im.src = urlOf(SKY_ICON[ic], 3); im.alt = '';
+  wh.append(el('small', null, desc)); li.append(im, wh); $('dayList').append(li);
 }
 /* Gasthäuser: Tafel */
 for (const inn of INNS){
@@ -12145,7 +12817,7 @@ function renderBag(){
   }
   HERO.inv.forEach((it, i) => grid.append(slotBtn(it, '', () => { G.sel = it ? { from:'inv', i } : null; renderBag(); }, () => equipFrom(i), G.sel && G.sel.from === 'inv' && G.sel.i === i)));
   const st = ST;
-  for (const [k, n] of [['Stufe', HERO.lvl + ' · ' + titleOf(HERO.lvl)], ['Leben', st.hp], ['Schaden', st.dmg], ['Rüstung', st.arm + ' (−' + Math.round(st.mit * 100) + ' %)'], ['Volltreffer', st.crit + ' %'], ['Hiebtempo', '+' + st.spd + ' %'], ['Abwehr', st.block + ' %'], ['Gulden', HERO.gold], ['Erschlagen', HERO.kills]]){
+  for (const [k, n] of [['Stufe', HERO.lvl + ' · ' + titleOf(HERO.lvl)], ['Leben', st.hp], ['Schaden', st.dmg], ['Rüstung', st.arm + ' (−' + Math.round(st.mit * 100) + ' %)'], ['Volltreffer', st.crit + ' %'], ['Hiebtempo', '+' + st.spd + ' %'], ['Abwehr', st.block + ' %'], ['Gulden', HERO.gold], ['Erschlagen', HERO.kills], ['Harnisch', GEAR_NAME[HERO.eq.ruestung ? HERO.eq.ruestung.r : 0]]].concat(HERO.joust ? [['Tjost', HERO.joust.wins + ' Siege']] : [])){
     stats.append(el('dt', null, k), el('dd', null, n));
   }
   $('bagCount').textContent = HERO.inv.filter(Boolean).length + ' / 24';
@@ -12261,6 +12933,7 @@ function renderTalk(view){
     if (n.shop){ opts.append(btn('Handeln: kaufen', () => renderTalk('buy'), 'opt'), btn('Handeln: verkaufen', () => renderTalk('sell'), 'opt')); }
     if (n.stable) opts.append(btn('Pferde ansehen', () => renderTalk('stable'), 'opt'));
     if (n.smith) opts.append(btn('Ausrüstung verbessern', () => renderTalk('smith'), 'opt'));
+    if (n.joust) opts.append(btn('Zum Tjost antreten', () => renderTalk('joust'), 'opt'));
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -12293,7 +12966,7 @@ function renderTalk(view){
     opts.append(btn(view === 'speise' ? 'Getränke' : 'Speisen', () => renderTalk(view === 'speise' ? 'trank' : 'speise'), 'tbtn'), btn('Zurück', () => renderTalk('main'), 'tbtn'));
     body.append(opts);
   } else if (view === 'stable'){
-    $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden. Mit H (oder dem Pferd in der Leiste) sitzt Ihr auf und ab. Wer zuschlägt oder getroffen wird, steigt ab.';
+    $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden. Mit H (oder dem Pferd in der Leiste) sitzt Ihr auf und ab. Im Sattel wird der Hieb zum Lanzenstoß, wer getroffen wird, fällt vom Pferd.';
     for (const hid of HORSE_IDS){
       const h = HORSES[hid], r = el('div', 'shoprow'), ic = el('img');
       HO_ICON['big_' + hid] = HO_ICON['big_' + hid] || urlOf(horseSet(hid, HERO.f).right[4].under, 1);
@@ -12310,6 +12983,22 @@ function renderTalk(view){
       b.disabled = own || have || HERO.gold < h.price || HERO.lvl < h.lvl;
       r.append(ic, t, b); body.append(r);
     }
+    opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
+    body.append(opts);
+  } else if (view === 'joust'){
+    $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
+      + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';
+    const J = HERO.joust || { wins: 0, beat: {} };
+    for (const f of JOUST_FOES){
+      const r = el('div', 'shoprow'), ic = el('img'), set = knightSet(f.f, f.look);
+      set.url = set.url || urlOf(set.icon, 3); ic.src = set.url; ic.alt = '';
+      const t = el('div', 'stx');
+      t.append(el('b', null, f.name + (J.beat[f.id] ? ' (besiegt)' : '')), el('small', null, 'Stufe ' + f.lvl + ', Preis ' + f.prize + ' Gulden' + (J.beat[f.id] ? '' : ' und ' + f.trophy.name) + '. ' + f.say));
+      const b = btn('Antreten für ' + f.stake, () => { if (HERO.gold < f.stake) return; closePanel(); startJoust(f); }, 'tbtn');
+      b.disabled = HERO.gold < f.stake;
+      r.append(ic, t, b); body.append(r);
+    }
+    body.append(el('p', 'hint', J.wins ? 'Ihr habt ' + J.wins + (J.wins === 1 ? ' Tjost' : ' Tjoste') + ' gewonnen.' : 'Der erste Sieg gegen jeden Gegner bringt einen Preis für Euren Rucksack.'));
     opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
     body.append(opts);
   } else if (view === 'smith'){
@@ -12659,7 +13348,7 @@ function readPeer(p){
   const sc = s.ws ? 1 : WS;   // ältere Fassung sendet Weltpixel
   q.tx = num(s.x * sc, 0, GW, q.x); q.ty = num(s.y * sc, 0, GH, q.y);
   if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || (INN_BY[s.in] ? s.in : 0) !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
-  q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead;
+  q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead; q.lk = typeof s.lk === 'string' && LOOK_RE.test(s.lk) ? s.lk : ''; q.lance = s.ln ? 1 : 0;
   q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = INN_BY[s.in] ? s.in : 0; q.ride = HORSES[s.ri] && !q.in ? s.ri : null;
   if (s.sw !== q.sw){ q.sw = s.sw; q.atkLen = num(s.sl, .1, 1, SWING); q.atkT = q.atkLen; q.swA0 = num(s.sa, -10, 10, 0); q.swA1 = num(s.se, -10, 10, 0); q.mult = num(s.m, .5, 2, 1); }
   return q;
@@ -12679,7 +13368,7 @@ function sendPresence(force){
   if (!force && t - presT < .12) return;
   const k = G.knight;
   const pr = { ws: WS, x: Math.round(k.x), y: Math.round(k.y), d: k.dir, mv: k.moving ? 1 : 0, sw: k.swing, sa: +k.swA0.toFixed(2), se: +k.swA1.toFixed(2), sl: +k.atkLen.toFixed(2), m: k.mult,
-    lv: HERO.lvl, nm: HERO.name, f: HERO.f, in: G.inside ? G.inside.id : 0, ri: riding() ? HERO.horse : 0, dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
+    lv: HERO.lvl, nm: HERO.name, f: HERO.f, lk: lookOf(HERO.eq), ln: k.lance > 0 || (G.joust && G.joust.st === 'charge') ? 1 : 0, in: G.inside ? G.inside.id : 0, ri: G.joust ? 'streitross' : riding() ? HERO.horse : 0, dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
   const js = JSON.stringify(pr);
   if (js === presLast && !force) return;
   presLast = js; presT = t;
