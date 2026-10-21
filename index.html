@@ -242,6 +242,13 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
 .inns li{font-size:17px; line-height:1.15;}
 @media (max-width:560px){ .factions{grid-template-columns:repeat(2, minmax(0, 1fr));} .fpick img{height:60px;} }
 
+/* Pferde, bessere Beute */
+img.horseimg,.shoprow img.horseimg{width:66px; height:auto; image-rendering:pixelated; object-fit:contain; background:none;}
+.list li:has(img.horseimg){grid-template-columns:64px 1fr auto;}
+.list img.horseimg{width:64px; height:auto;}
+.slot.better::after{content:"▲"; position:absolute; right:2px; top:0; font-size:13px; line-height:1; color:#7fd65f; text-shadow:1px 1px 0 var(--ink);}
+.skill.on{background:var(--stone-hi); box-shadow:inset 0 0 0 2px var(--gold-hi), 0 0 0 2px var(--gold-lo);}
+
 /* Lebensbalken und Kopfzeile */
 .hpbox{display:grid; grid-template-columns:auto minmax(80px, 150px) auto; align-items:center; gap:8px;}
 .hpbar{height:14px; background:var(--ink); padding:2px; box-shadow:0 0 0 2px var(--blood);}
@@ -612,6 +619,11 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <p class="tip">Im Gasthaus wird nicht gekämpft. Hier trefft Ihr andere Ritter, hört Neuigkeiten und stärkt Euch: Eine Speise und ein Getränk wirken zugleich, jeweils 15 Minuten Spielzeit. Beim Wirt mietet Ihr eine Kammer, dann erwacht Ihr nach dem Tod dort.</p>
     </div>
     <div class="note">
+      <h3>Pferde und Schmied</h3>
+      <ul class="list" id="horseList"></ul>
+      <p class="tip">Pferde verkauft der Stallmeister in der Reichsburg. Mit H sitzt Ihr auf und ab. Im Kampf steigt Ihr ab: beim ersten Hieb oder wenn Euch ein Monster trifft. Der Schmied Wolf am Markt der Reichsstadt härtet Waffen und Rüstungen bis +5.</p>
+    </div>
+    <div class="note">
       <h3>Bestiarium</h3>
       <ul class="list" id="beasts"></ul>
     </div>
@@ -636,6 +648,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <dt class="kbd-only"><kbd>Leertaste</kbd></dt><dd class="kbd-only">Schwerthieb, gedrückt halten für Dauerhiebe</dd>
         <dt class="kbd-only"><kbd>R</kbd><kbd>F</kbd><kbd>G</kbd></dt><dd class="kbd-only">Rundhieb, Schildstoß, Schlachtruf</dd>
         <dt class="kbd-only"><kbd>Q</kbd></dt><dd class="kbd-only">Heiltrank</dd>
+        <dt class="kbd-only"><kbd>H</kbd></dt><dd class="kbd-only">aufs Pferd steigen oder absteigen</dd>
         <dt class="kbd-only"><kbd>E</kbd></dt><dd class="kbd-only">mit Leuten sprechen, ein Gasthaus betreten</dd>
         <dt class="kbd-only"><kbd>I</kbd><kbd>L</kbd><kbd>K</kbd></dt><dd class="kbd-only">Rucksack, Aufträge, Karte</dd>
         <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
@@ -1411,6 +1424,239 @@ const KNIGHT_SET0 = knightSet('reich');
 const KNIGHT = KNIGHT_SET0.walk, KNIGHT_ATK = KNIGHT_SET0.atk, KNIGHT_HIT = KNIGHT_SET0.hit, KNIGHT_FALL = KNIGHT_SET0.fall, KNIGHT_PLATE = KNIGHT_SET0.plate;
 const KNIGHT_SIZE = { w: KNIGHT.down[0].img.width, h: KNIGHT.down[0].img.height, ax: kn_PAD + kn_CX, ay: kn_PAD + kn_H };
 const KNIGHT_FIST = makeSprite(['DLHD', 'LGHD', 'KDDK'], kn_PAL, OUT);
+
+
+/* ============ Pferde: Klepper, Zelter, Streitross ============
+   Seitenansicht (64 × 44), vorn und hinten (34 × 44), Boden in Zeile 43. Vier Bilder für den Schritt, eines für den Stand.
+   Fell in vier Tönen d h i k (dunkel .. hell), Mähne l m, Hufe x; Tuch und Wappen aus der Palette der Herkunft. */
+const HORSES = {
+  klepper:    { name:'Klepper', art:'einen', lvl:1, price:40, speed:1.45, cloth:'none',
+    coat:{ d:'#3e2c1c', h:'#5e4428', i:'#7e5e3a', k:'#9c7c50' }, mane:{ l:'#2a1e14', m:'#4a382a' },
+    desc:'ein genügsamer Gaul, wie ihn Bauern und Boten reiten' },
+  zelter:     { name:'Zelter', art:'einen', lvl:5, price:260, speed:1.7, cloth:'blanket',
+    coat:{ d:'#3a1c10', h:'#6a3018', i:'#8e4824', k:'#b26a3a' }, mane:{ l:'#141012', m:'#2a2220' },
+    desc:'ein Passgänger, bequem auf langen Reisen, mit Satteldecke in Euren Farben' },
+  streitross: { name:'Streitross', art:'ein', lvl:12, price:1200, speed:1.9, cloth:'caparison',
+    coat:{ d:'#141216', h:'#26222c', i:'#3c3644', k:'#5a5262' }, mane:{ l:'#0c0a0e', m:'#1e1a22' },
+    desc:'ein Hengst für die Schlacht, mit Rossstirn aus Stahl und Decke mit Eurem Wappen' }
+};
+const HORSE_IDS = Object.keys(HORSES);
+const HO_H = 44, HO_GY = 43, HO_SEAT = 12;
+const ho_grid = w => Array.from({ length: HO_H }, () => Array(w).fill('.'));
+function ho_px(g, x, y, ch){ x = Math.round(x); y = Math.round(y); if (ch && y >= 0 && y < g.length && x >= 0 && x < g[0].length) g[y][x] = ch; }
+const ho_tone = v => 'dhik'[clamp(Math.floor(v * 4), 0, 3)];
+/* gefüllte Ellipse mit Licht von links oben */
+function ho_ell(g, cx, cy, rx, ry, lit){
+  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++){
+    const nx = (x + .5 - cx) / rx, ny = (y + .5 - cy) / ry, q = nx * nx + ny * ny;
+    if (q > 1) continue;
+    ho_px(g, x, y, ho_tone(.66 - ny * .34 - nx * .14 - q * .16 + (lit || 0)));
+  }
+}
+/* dicke Strecke; chf(t entlang, qx, qy quer) liefert das Zeichen */
+function ho_thick(g, x0, y0, x1, y1, w0, w1, chf){
+  const L = Math.hypot(x1 - x0, y1 - y0) || 1, n = Math.ceil(L * 2);
+  for (let i = 0; i <= n; i++){
+    const t = i / n, cx = x0 + (x1 - x0) * t, cy = y0 + (y1 - y0) * t, r = (w0 + (w1 - w0) * t) / 2;
+    for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++){
+      const dx = x + .5 - cx, dy = y + .5 - cy;
+      if (dx * dx + dy * dy > r * r) continue;
+      ho_px(g, x, y, chf(t, dx / r, dy / r));
+    }
+  }
+}
+const ho_coatF = (lit, dark) => (t, qx, qy) => ho_tone(.6 - qy * .3 - qx * .2 + (lit || 0) - (dark || 0));
+/* Bein: oben, Knie oder Sprunggelenk, Fessel, Huf; lift hebt den Huf an */
+function ho_leg(g, x0, top, kdx, hdx, lift, far, hind){
+  const dk = far ? .25 : 0, kx = x0 + kdx + (hind ? -2 : 0), ky = 33 - lift, hx = x0 + hdx + (lift ? 1 : 0), hy = 40 - lift;
+  ho_thick(g, x0, top, kx, ky, hind ? 5 : 4, 3, ho_coatF(.05, dk));
+  ho_thick(g, kx, ky, hx, hy - 1, 2.6, 2.2, (t, qx) => ho_tone(.42 - qx * .2 - dk - t * .15));
+  for (let i = -1; i <= 1; i++){ ho_px(g, hx + i, hy, 'x'); ho_px(g, hx + i, hy + 1, 'x'); }
+  ho_px(g, hx - 1, hy - 1, far ? 'd' : 'h');
+}
+const HO_STEP = {   // je Bein [Knie, Huf, Heben] für Bild 0..3; Bild 4 = Stand
+  nf: [[2, 4, 0], [1, 1, 2], [-1, -3, 0], [0, 0, 0], [0, 0, 0]],
+  ff: [[-1, -3, 0], [0, 0, 0], [2, 4, 0], [1, 1, 2], [0, 0, 0]],
+  nh: [[-1, -3, 0], [0, 0, 0], [2, 3, 0], [1, 1, 2], [0, 0, 0]],
+  fh: [[2, 3, 0], [1, 1, 2], [-1, -3, 0], [0, 0, 0], [0, 0, 0]]
+};
+const ho_cloth = ch => ({ d:'O', h:'o', i:'y', k:'Y' })[ch];
+const ho_steel = ch => ({ d:'K', h:'D', i:'M', k:'L' })[ch];
+/* Wappen auf der Pferdedecke (Seite) */
+function ho_arms(g, fid, cx, cy){
+  const red = (x, y) => { const i = 'OoyY'.indexOf(g[y] && g[y][x]); if (i >= 0) g[y][x] = '5678'[i]; };
+  if (fid === 'reich') kn_EAGLE9.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') ho_px(g, cx - 4 + i, cy - 4 + j, r[i]); });
+  else if (fid === 'frankreich') for (const [x, y] of [[cx - 6, cy - 3], [cx + 6, cy - 3], [cx, cy + 4], [cx - 12, cy + 4], [cx + 12, cy + 4]]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(g, x - 1 + i, y - 1 + j, r[i]); });
+  else if (fid === 'england'){ for (let y = 12; y <= 35; y++) for (let x = cx - 1; x <= cx + 1; x++) red(x, y); for (let x = 6; x <= 48; x++) for (let y = cy - 1; y <= cy + 1; y++) red(x, y); }
+  else if (fid === 'spanien') for (let t = 0; t <= 1; t += .02){ const y = Math.round(13 + t * 20); for (const x of [cx - 10 + t * 20, cx + 10 - t * 20]){ red(Math.round(x), y); red(Math.round(x) + 1, y); } }
+}
+/* Seitenansicht, Blick nach rechts */
+function ho_side(h, fid, f){
+  const g = ho_grid(64), S = HO_STEP;
+  // ferne Beine, Schweif
+  ho_leg(g, 38, 26, S.ff[f][0], S.ff[f][1], S.ff[f][2], true, false);
+  ho_leg(g, 14, 25, S.fh[f][0], S.fh[f][1], S.fh[f][2], true, true);
+  ho_thick(g, 11, 15, 8, 24, 4, 3.4, (t, qx) => qx < 0 ? 'm' : 'l');
+  ho_thick(g, 8, 24, 9, 33 + (f & 1), 3.4, 2, (t, qx) => qx < -.2 ? 'm' : 'l');
+  // Leib: Kruppe, Rumpf, Brust
+  ho_ell(g, 17, 18, 8, 8, .04);
+  ho_ell(g, 28, 20, 15, 8, 0);
+  ho_ell(g, 40, 19, 7.5, 8.5, .02);
+  // Hals, Kopf, Ohren, Mähne
+  ho_thick(g, 41, 17, 49, 6, 9, 6, ho_coatF(.06));
+  ho_thick(g, 50, 5, 57, 12, 6, 4.4, (t, qx, qy) => ho_tone(.62 - qy * .3 - t * .25));
+  for (const [x, y] of [[49, 1], [49, 2], [50, 2], [51, 0], [51, 1]]) ho_px(g, x, y, 'h');
+  ho_thick(g, 48, 3, 40, 12, 2.6, 2.6, (t, qx, qy) => qy < 0 ? 'm' : 'l');
+  ho_px(g, 50, 4, 'm'); ho_px(g, 51, 5, 'l');
+  ho_px(g, 52, 7, 'x'); ho_px(g, 57, 11, 'd'); ho_px(g, 56, 13, 'd');
+  // nahe Beine
+  ho_leg(g, 42, 26, S.nf[f][0], S.nf[f][1], S.nf[f][2], false, false);
+  ho_leg(g, 18, 25, S.nh[f][0], S.nh[f][1], S.nh[f][2], false, true);
+  // Decke
+  if (h.cloth === 'caparison'){
+    for (let y = 9; y <= 36; y++) for (let x = 6; x <= 50; x++){
+      const ch = g[y][x];
+      if ('dhik'.includes(ch) && !(x > 47 && y < 13)) g[y][x] = ho_cloth(ch);
+    }
+    for (let x = 9; x <= 46; x++){
+      const hem = 33 + ((x >> 1) & 1);
+      for (let y = 26; y <= hem; y++) if (g[y][x] === '.' || 'dhikx'.includes(g[y][x])) g[y][x] = y >= hem ? 'a' : ((x + y) % 4 === 0 ? 'o' : 'y');
+      for (let y = 22; y <= hem - 1; y++) if (x % 5 === 0 && 'OoyY'.includes(g[y][x])) g[y][x] = g[y][x] === 'Y' ? 'y' : g[y][x] === 'y' ? 'o' : 'O';
+    }
+    ho_arms(g, fid, 27, 23);
+    // Rossstirn aus Stahl
+    for (let y = 2; y <= 13; y++) for (let x = 48; x <= 59; x++){ const ch = g[y][x]; if ('dhik'.includes(ch) && x + y > 53) g[y][x] = ho_steel(ch); }
+    ho_px(g, 52, 7, 'K'); ho_px(g, 53, 4, 'G');
+  } else if (h.cloth === 'blanket'){
+    for (let y = 12; y <= 23; y++) for (let x = 19; x <= 36; x++) if (g[y][x] !== '.') g[y][x] = y === 23 ? ((x & 1) ? 'a' : 'A') : 'OoyY'[clamp(Math.floor((.75 - (x - 19) * .02 - (y - 12) * .03) * 4), 0, 3)];
+  }
+  // Sattel, Zaumzeug, Zügel
+  for (let x = 22; x <= 33; x++){ ho_px(g, x, 11, 'n'); ho_px(g, x, 12, 'N'); }
+  ho_px(g, 21, 9, 'n'); ho_px(g, 21, 10, 'n'); ho_px(g, 22, 10, 'b'); ho_px(g, 33, 10, 'b'); ho_px(g, 34, 10, 'n');
+  for (let k = 0; k <= 5; k++) ho_px(g, 51 + k, 6 + k, 'N');
+  ho_px(g, 53, 11, 'a');
+  for (let k = 0; k <= 9; k++) ho_px(g, 54 - k * 1.6, 11 + k * .3, 'N');
+  return g;
+}
+/* von vorn: Leib und Beine unter dem Reiter, Hals und Kopf davor */
+function ho_front(h, fid, f){
+  const under = ho_grid(34), over = ho_grid(34), lift = [[0, 2], [0, 0], [2, 0], [0, 0], [0, 0]][f];
+  ho_ell(under, 17, 19, 11, 7, -.15);
+  for (const [x, lf] of [[10, lift[1]], [24, lift[0]]]) ho_thick(under, x, 26, x, 40 - lf, 3, 2, (t, qx) => ho_tone(.3 - qx * .1));
+  ho_ell(under, 17, 21, 8.5, 8, .05);
+  for (const [x, lf] of [[13, lift[0]], [21, lift[1]]]){
+    ho_thick(under, x, 26, x, 39 - lf, 4, 2.4, (t, qx) => ho_tone(.55 - qx * .25 - t * .2));
+    for (let i = -1; i <= 1; i++){ ho_px(under, x + i, 40 - lf, 'x'); ho_px(under, x + i, 41 - lf, 'x'); }
+  }
+  if (h.cloth === 'caparison'){
+    for (let y = 10; y <= 34; y++) for (let x = 4; x <= 30; x++){ const ch = under[y][x]; if ('dhik'.includes(ch)) under[y][x] = ho_cloth(ch); }
+    for (let x = 6; x <= 28; x++){ const hem = 33 + ((x >> 1) & 1); for (let y = 26; y <= hem; y++) under[y][x] = y >= hem ? 'a' : (x % 5 === 0 ? 'o' : 'y'); }
+    if (fid === 'reich') kn_EAGLE7.forEach((r, j) => { for (let i = 0; i < 7; i++) if (r[i] !== '.') ho_px(under, 14 + i, 22 + j, r[i]); });
+    else if (fid === 'frankreich') for (const x of [12, 22]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(under, x - 1 + i, 26 + j, r[i]); });
+    else for (let y = 20; y <= 32; y++) for (let x = 6; x <= 28; x++){
+      const i = 'OoyY'.indexOf(under[y][x]); if (i < 0) continue;
+      const on = fid === 'england' ? (Math.abs(x - 17) <= 1 || Math.abs(y - 27) <= 1) : (Math.abs((x - 17) - (y - 27) * .9) <= 1 || Math.abs((x - 17) + (y - 27) * .9) <= 1);
+      if (on) under[y][x] = '5678'[i];
+    }
+  } else if (h.cloth === 'blanket'){
+    for (let y = 13; y <= 22; y++) for (let x = 5; x <= 29; x++) if (under[y][x] !== '.' && (x < 9 || x > 25)) under[y][x] = y === 22 ? 'a' : 'OoyY'[x < 17 ? 2 : 1];
+  }
+  // Hals und Kopf (vor dem Reiter)
+  const o = 9;   // der Kopf ragt nach vorn, also im Bild tiefer
+  ho_thick(over, 17, 17 + o, 17, 10 + o, 8, 6, (t, qx) => ho_tone(.6 - qx * .3 + t * .05));
+  ho_thick(over, 17, 5 + o, 17, 16 + o, 5.4, 4.6, (t, qx) => ho_tone(.62 - qx * .3 - t * .3));
+  for (const [x, y] of [[14, 2], [14, 3], [20, 2], [20, 3], [15, 4], [19, 4]]) ho_px(over, x, y + o, 'h');
+  for (const [x, y] of [[16, 4], [17, 4], [18, 4], [17, 5], [16, 5]]) ho_px(over, x, y + o, 'l');
+  ho_px(over, 15, 8 + o, 'x'); ho_px(over, 19, 8 + o, 'x'); ho_px(over, 16, 16 + o, 'd'); ho_px(over, 18, 16 + o, 'd');
+  for (const x of [14, 20]) for (const y of [7, 13]) ho_px(over, x, y + o, 'N');
+  if (h.cloth === 'caparison'){
+    for (let y = 9 + o; y <= 19 + o; y++) for (let x = 12; x <= 22; x++){ const ch = over[y][x]; if ('dhik'.includes(ch) && y > 14 + o) over[y][x] = ho_cloth(ch); }
+    for (let y = 3 + o; y <= 15 + o; y++) for (let x = 14; x <= 20; x++){ const ch = over[y][x]; if ('dhik'.includes(ch)) over[y][x] = ho_steel(ch); }
+    ho_px(over, 17, 6 + o, 'G'); ho_px(over, 17, 7 + o, 'H'); ho_px(over, 15, 8 + o, 'K'); ho_px(over, 19, 8 + o, 'K');
+  }
+  return { under, over };
+}
+/* von hinten: Kruppe, Schweif und Hinterbeine vor dem Reiter */
+function ho_back(h, fid, f){
+  const over = ho_grid(34), lift = [[0, 2], [0, 0], [2, 0], [0, 0], [0, 0]][f];
+  for (const [x, lf] of [[11, lift[1]], [23, lift[0]]]) ho_thick(over, x, 27, x, 40 - lf, 2.6, 2, (t, qx) => ho_tone(.25 - qx * .1));
+  ho_ell(over, 17, 22, 10.5, 8, .02);
+  for (const [x, lf] of [[13, lift[0]], [21, lift[1]]]){
+    ho_thick(over, x, 27, x - (x < 17 ? 1 : -1), 34 - lf, 5, 3, (t, qx) => ho_tone(.55 - qx * .25));
+    ho_thick(over, x - (x < 17 ? 1 : -1), 33 - lf, x, 39 - lf, 2.6, 2.2, (t, qx) => ho_tone(.38 - qx * .2));
+    for (let i = -1; i <= 1; i++){ ho_px(over, x + i, 40 - lf, 'x'); ho_px(over, x + i, 41 - lf, 'x'); }
+  }
+  if (h.cloth === 'caparison'){
+    for (let y = 12; y <= 35; y++) for (let x = 3; x <= 31; x++){ const ch = over[y][x]; if ('dhik'.includes(ch) && y < 35) over[y][x] = ho_cloth(ch); }
+    for (let x = 6; x <= 28; x++){ const hem = 34 + ((x >> 1) & 1); for (let y = 27; y <= hem; y++) over[y][x] = y >= hem ? 'a' : (x % 5 === 0 ? 'o' : 'y'); }
+    for (let y = 16; y <= 33; y++) for (let x = 6; x <= 28; x++){
+      const i = 'OoyY'.indexOf(over[y][x]); if (i < 0) continue;
+      const on = fid === 'england' ? (Math.abs(x - 17) <= 1 || Math.abs(y - 25) <= 1) : fid === 'spanien' ? (Math.abs((x - 17) - (y - 25) * .9) <= 1 || Math.abs((x - 17) + (y - 25) * .9) <= 1) : false;
+      if (on) over[y][x] = '5678'[i];
+    }
+    if (fid === 'reich') kn_EAGLE9.forEach((r, j) => { for (let i = 0; i < 9; i++) if (r[i] !== '.') ho_px(over, 13 + i, 20 + j, r[i]); });
+    if (fid === 'frankreich') for (const [x, y] of [[11, 21], [23, 21], [17, 28]]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(over, x - 1 + i, y - 1 + j, r[i]); });
+  } else if (h.cloth === 'blanket'){
+    for (let y = 14; y <= 20; y++) for (let x = 4; x <= 30; x++) if (over[y][x] !== '.' && y < 19) over[y][x] = y === 18 ? 'a' : 'OoyY'[x < 17 ? 2 : 1];
+  }
+  ho_thick(over, 17, 19, 17, 27, 5, 4.2, (t, qx) => qx < 0 ? 'm' : 'l');
+  ho_thick(over, 17, 27, 17 + (f & 1 ? 1 : -1), 37, 4.2, 2.4, (t, qx) => qx < -.2 ? 'm' : 'l');
+  return { under: null, over };
+}
+/* Reiter: Oberleib des Ritters (bis zum Saum des Rocks) mit Beinen am Pferd */
+function ho_rider(view){
+  let g;
+  if (view === 'down'){
+    g = kn_front(0); const hg = kn_new(); kn_comp(hg, kn_handF(), 0, 0); kn_comp(g, hg, 0, 0);
+  } else if (view === 'up'){
+    g = kn_back(0); const hg = kn_new(); kn_comp(hg, kn_handB(), 0, 0); kn_comp(g, hg, 0, 0);
+  } else { const m = view === 'left'; g = kn_side(0, m); kn_comp(g, kn_handS(0, m), 0, 0); }
+  for (let y = 29; y < kn_H; y++) g[y].fill('.');
+  if (view === 'down' || view === 'up'){
+    for (const sd of [-1, 1]){
+      const X = x => sd < 0 ? x : kn_W - 1 - x - 1;
+      const L = [[27, 7, 'LHMD'], [28, 6, 'LHMD'], [29, 5, 'LHMD'], [30, 5, 'KDDK'], [31, 5, 'LGLD'], [32, 5, 'LHMD'], [33, 5, 'LHMD'], [34, 5, 'MHMD'], [35, 4, 'DLHHD'], [36, 4, 'KDDKK']];
+      for (const [y, x, s] of L) for (let i = 0; i < s.length; i++) kn_px(g, sd < 0 ? x + i : X(x) - i, y, s[i]);
+    }
+  } else {
+    const S = kn_S(g, view === 'left', 0);
+    S.seg(28, [[13, 'LHHMD']]); S.seg(29, [[15, 'LHHMD']]); S.seg(30, [[16, 'KLGD']]);
+    for (let y = 31; y <= 33; y++) S.seg(y, [[17, 'LHMD']]);
+    S.seg(34, [[17, 'MHMD']]); S.seg(35, [[16, 'DLHHD']]); S.seg(36, [[16, 'KDDKK']]);
+  }
+  return g;
+}
+/* alle Bilder eines Pferdes mit Reiter für eine Herkunft */
+const HO_SETS = {};
+function horseSet(hid, fid){
+  const key = hid + '|' + fid;
+  if (HO_SETS[key]) return HO_SETS[key];
+  const h = HORSES[hid], F = KN_FACTIONS[fid] || KN_FACTIONS.reich;
+  const pal = Object.assign({}, F.pal, h.coat, h.mane, { x:'#1a1816' });
+  const mk = g => g ? makeSprite(g.map(r => r.join('')), pal, OUT) : null;
+  const prev = kn_F; kn_F = F;
+  const set = { right: [], left: [], down: [], up: [], rider: {} };
+  for (let f = 0; f < 5; f++){
+    const side = mk(ho_side(h, fid, f));
+    set.right.push({ under: side, over: null, ax: 28, w: 64 });
+    set.left.push({ under: flipped(side), over: null, ax: 64 + 2 - 1 - 28, w: 64 });
+    const fr = ho_front(h, fid, f), bk = ho_back(h, fid, f);
+    set.down.push({ under: mk(fr.under), over: mk(fr.over), ax: 18, w: 34 });
+    set.up.push({ under: null, over: mk(bk.over), ax: 18, w: 34 });
+  }
+  for (const v of ['down', 'up', 'right', 'left']) set.rider[v] = makeSprite(ho_rider(v).map(r => r.join('')), F.pal, OUT);
+  kn_F = prev;
+  return (HO_SETS[key] = set);
+}
+/* Pferd mit Reiter zeichnen: (x, y) Bodenpunkt, f Schrittbild, bob Auf und Ab des Reiters */
+function drawMounted(g, hid, fid, dir, x, y, f, alpha){
+  const set = horseSet(hid, fid), fr = set[dir][f], rd = set.rider[dir];
+  const hx = Math.round(x - fr.ax - 1), hy = Math.round(y - HO_GY - 1), bob = f === 1 || f === 3 ? 1 : 0;
+  const rx = Math.round(x - (kn_PAD + kn_CX)), ry = Math.round(y - (HO_GY - HO_SEAT) - 26 - kn_PAD + bob);
+  if (fr.under) g.drawImage(fr.under, hx, hy);
+  g.drawImage(rd, rx, ry);
+  if (fr.over) g.drawImage(fr.over, hx, hy);
+}
 
 const KNIGHT_NOTES = [
   'Der Ritter trägt den Wappenrock des Reiches: gelbes Tuch mit dem schwarzen Doppeladler auf Brust, Rücken und Ärmeln. So erkannte man im Getümmel, für wen er kämpfte.',
@@ -8275,7 +8521,17 @@ Object.assign(Sound, {
   cry(){ this.tone(1200, .25, 'sawtooth', .025, 500); this.tone(1500, .3, 'sawtooth', .02, -300, .2); this.horn(); },
   click(){ this.tone(660, .04, 'square', .022); },
   equip(){ this.noise(.06, .05, 2500); this.tone(500, .06, 'square', .03, 200, .04); },
-  chat(){ this.tone(880, .05, 'triangle', .03); this.tone(1175, .07, 'triangle', .025, 0, .05); }
+  chat(){ this.tone(880, .05, 'triangle', .03); this.tone(1175, .07, 'triangle', .025, 0, .05); },
+  neigh(){
+    if (!this.on || !this.ac) return;
+    const t = this.ac.currentTime, o = this.ac.createOscillator(), g = this.ac.createGain(), lfo = this.ac.createOscillator(), lg = this.ac.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(950, t); o.frequency.exponentialRampToValueAtTime(380, t + .7);
+    lfo.frequency.value = 17; lg.gain.value = 70; lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.025, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + .75);
+    o.connect(g); g.connect(this.ac.destination); o.start(t); lfo.start(t); o.stop(t + .8); lfo.stop(t + .8);
+  },
+  hoof(){ this.noise(.035, .045, 700); this.tone(150, .04, 'triangle', .02, -50); },
+  anvil(){ this.tone(1800, .3, 'square', .028, -100); this.tone(2600, .25, 'triangle', .022, 0, .01); this.noise(.05, .06, 4000); }
 });
 
 const MAX_LVL = 20;
@@ -8287,7 +8543,8 @@ const SKILLS = [
   { id:'rund', name:'Rundhieb', key:'R', lvl:3, cd:6, icon:'sweep', desc:'trifft alles rundherum, 140 % Schaden' },
   { id:'stoss', name:'Schildstoß', key:'F', lvl:6, cd:9, icon:'shield', desc:'Sprung nach vorn, betäubt, wehrt Geschosse ab' },
   { id:'ruf', name:'Schlachtruf', key:'G', lvl:10, cd:30, icon:'eagle', desc:'Schlachtruf der Herkunft: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer' },
-  { id:'trank', name:'Heiltrank', key:'Q', lvl:1, cd:6, icon:'potion', desc:'heilt 45 % des Lebens' }
+  { id:'trank', name:'Heiltrank', key:'Q', lvl:1, cd:6, icon:'potion', desc:'heilt 45 % des Lebens' },
+  { id:'pferd', name:'Pferd', key:'H', lvl:1, icon:'horse', desc:'auf- und absitzen; der Stallmeister in der Burg verkauft Pferde' }
 ];
 
 /* Gebiete: Stufenbereich der Monster; Burg und Stadt sind sicher */
@@ -8682,7 +8939,7 @@ const qReward = d => ({ xp: Math.round(xpNeed(d.lvl) * (d.boss ? .8 : d.id === '
 /* ============ Der Held (wird gespeichert) ============ */
 const SAVE_KEY = 'apfelritter-held-v5';
 function freshHero(name, f){
-  return { v:5, name, f: KN_FACTIONS[f] ? f : 'reich', food:null, drink:null, lvl:1, xp:0, gold:10, potions:3, inv: Array(24).fill(null),
+  return { v:5, name, f: KN_FACTIONS[f] ? f : 'reich', food:null, drink:null, horse:null, riding:false, lvl:1, xp:0, gold:10, potions:3, inv: Array(24).fill(null),
     eq: { waffe: makeItem('waffe', 1, 0, { name:'Rostiges Kurzschwert' }), helm:null, ruestung: makeItem('ruestung', 1, 0, { name:'Wattierter Gambeson' }),
       schild: makeItem('schild', 1, 0, { name:'Holzschild' }), beine:null, kleinod:null },
     quests:[], done:[], kills:0, bosses:{}, bind:'burg', x: BIND.burg.x, y: BIND.burg.y, played:0, savedAt:0, made: Date.now() };
@@ -8701,6 +8958,8 @@ function cleanHero(h){
   if (!KN_FACTIONS[h.f]) h.f = 'reich';
   for (const key of ['food', 'drink']){ const b = h[key]; h[key] = b && FARE_BY[b.id] && b.t > 0 ? { id: b.id, t: Math.min(+b.t || 0, FARE_MIN * 60) } : null; }
   if (h.inn && !INN_BY[h.inn]) h.inn = null;
+  if (!HORSES[h.horse]) h.horse = null;
+  h.riding = !!(h.horse && h.riding);
   return h;
 }
 let HERO = null;
@@ -8761,11 +9020,19 @@ const SPAWN_SLOTS = (() => {
 })();
 
 /* ============ Leute in Burg und Stadt ============ */
+NPC_ART.stall = np_frames({ robe:'short', hat:'filz', belt:true, beard:true, hair:['j', 'h'] },
+  { 1:'#2a3a24', 2:'#3e5434', 3:'#546e44', 4:'#708a58', 5:'#4a3a28', 6:'#5e4a34', 7:'#725c42', 8:'#8a7254', R:'#8a1c1c' });
+NPC_ART.schmied = np_frames({ robe:'short', apron:'leather', belt:true, beard:true, hairSide:true, hair:['h', 'j'], sleeve:['s', 't', 'u', 'v'] },
+  { 1:'#2a2420', 2:'#3a322c', 3:'#4a4038', 4:'#5c5048', 5:'#2a2420', 6:'#3a322c', 7:'#4a4038', 8:'#5c5048' });
 const NPCS = [
   { id:'vogt', name:'Vogt Heinrich', role:'Aufträge', hub:'burg', at: wo_near(1954, 530), quest:true },
   { id:'kraemerin', name:'Krämerin Gertrud', role:'Händlerin', hub:'burg', at: wo_near(2074, 536), shop:true },
   { id:'buerger', name:'Bürgermeister Ulman', role:'Aufträge', hub:'stadt', at: wo_near(2926, 2352), quest:true },
-  { id:'kraemer', name:'Krämer Jörg', role:'Händler', hub:'stadt', at: wo_near(3052, 2318), shop:true }
+  { id:'kraemer', name:'Krämer Jörg', role:'Händler', hub:'stadt', at: wo_near(3052, 2318), shop:true },
+  { id:'stall', name:'Stallmeister Lienhard', role:'Pferde', hub:'burg', at: wo_near(1760, 548), stable:true,
+    greet:['Ein Ritter ohne Pferd ist nur ein Mann in Blech.', 'Gute Pferde, ehrlicher Preis. Fast immer.', 'Wollt Ihr reiten oder laufen, Herr Ritter?'] },
+  { id:'schmied', name:'Schmied Wolf', role:'Schmied', hub:'stadt', at: wo_near(3000, 2372), smith:true,
+    greet:['Gebt her, ich schlage Euch das Eisen härter.', 'Gute Klingen brauchen gute Hämmer.', 'Wer bei mir arbeiten lässt, kehrt öfter heim.'] }
 ];
 NPCS.forEach(n => { n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; });
 
@@ -8979,7 +9246,8 @@ const roomBlocked = (rm, x, y) => rm.rects.some(r => x + 6 > r[0] && x - 6 < r[2
 function enterInn(inn){
   if (G.mode !== 'play' || G.inside || !inn) return;
   const rm = innRoom(inn), k = G.knight;
-  G.inside = inn;
+  if (HERO.riding){ HERO.riding = false; renderSkills(); }
+  G.inside = inn; k.ride = null;
   k.x = ROOM_DOOR.x; k.y = ROOM_DOOR.y - 4; k.dir = 'up'; k.atkT = 0; k.bashT = 0; k.kbx = k.kby = 0; k.slowT = 0;
   for (const m of G.mons) if (m.slot) m.slot.mon = null;
   G.mons.length = 0; G.rising.length = 0; G.shots.length = 0; G.parts.length = 0;
@@ -9515,6 +9783,7 @@ function startSwing(k, full, mult, len){
 }
 function attack(){
   const k = G.knight;
+  if (HERO.riding && canAct()){ dismount(); k.atkCd = .25; return; }
   if (k.atkCd > 0 || !canFight() || k.bashT > 0) return;
   startSwing(k, false, 1, SWING);
   k.atkCd = ST.cd;
@@ -9522,6 +9791,7 @@ function attack(){
 }
 function skillRund(){
   const k = G.knight;
+  if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 3 || G.cd.rund > 0 || k.bashT > 0) return;
   startSwing(k, true, 1.4, SWING * 1.4);
   k.atkCd = Math.max(k.atkCd, SWING * 1.4); G.cd.rund = 6;
@@ -9529,6 +9799,7 @@ function skillRund(){
 }
 function skillStoss(){
   const k = G.knight;
+  if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 6 || G.cd.stoss > 0) return;
   const [fx, fy] = DIRV[k.dir];
   k.bashT = .26; k.bx = fx; k.by = fy; k.bashHit = new Set(); k.atkT = 0;
@@ -9536,6 +9807,7 @@ function skillStoss(){
 }
 function skillRuf(){
   const k = G.knight;
+  if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 10 || G.cd.ruf > 0) return;
   G.buffT = 10; G.cd.ruf = 30; Sound.cry();
   burst(k.x, k.y - KBODY, ['#ecd27a', '#fff3c0', '#c9a227'], 30, 120, true);
@@ -9685,6 +9957,7 @@ function pickUp(a){
     if (slot < 0) return fullMsg('Der Rucksack ist voll');
     HERO.inv[slot] = a.it; Sound.loot(a.it.r);
     floatText(a.x, a.y - 14, a.it.n, RARITY[a.it.r].c, 1, 1.4);
+    if (itemGain(a.it) > .5) floatText(a.x, a.y - 20, 'besser als Eures', '#7fd65f', 1, 1.4);
     logItem('Erbeutet: ', a.it);
     if (!$('ovBag').hidden) renderBag();
   }
@@ -9734,6 +10007,7 @@ function questProgress(m){
 function hurt(from, dmg, ranged){
   const k = G.knight;
   if (k.inv > 0 || G.mode !== 'play' || k.hp <= 0) return false;
+  if (HERO.riding) dismount('Vom Pferd geworfen!');
   let block = false;
   if (!ranged && from && HERO.eq.schild){
     const [fx, fy] = DIRV[k.dir];
@@ -9752,7 +10026,7 @@ function hurt(from, dmg, ranged){
 }
 function die(){
   const k = G.knight;
-  k.hp = 0; G.mode = 'dying'; G.dieT = 1.3; atkHeld = false; atkBtn = false; G.buffT = 0;
+  k.hp = 0; G.mode = 'dying'; G.dieT = 1.3; atkHeld = false; atkBtn = false; G.buffT = 0; HERO.riding = false; k.ride = null;
   G.lostGold = Math.floor(HERO.gold * .1); HERO.gold -= G.lostGold;
   for (const m of G.mons) if (m.mode === 'fight') goHome(m);
   G.shots.length = 0;
@@ -9795,7 +10069,9 @@ function updateKnight(dt){
       k.dust -= dt;
       if (k.dust <= 0){ k.dust = .22; G.parts.push({ x: k.x + rand(-5, 5), y: k.y, vx: rand(-10, 10), vy: -12, life: .4, c: '#6e5a42', g: 0 }); }
     } else k.anim = 0;
-    const sp = 108 * (k.atkT > 0 ? .55 : 1) * (k.slowT > 0 ? .55 : 1);
+    k.ride = riding() ? HERO.horse : null;
+    const sp = 108 * (k.atkT > 0 ? .55 : 1) * (k.slowT > 0 ? .55 : 1) * (k.ride ? HORSES[k.ride].speed : 1);
+    if (k.ride && k.moving){ G.hoofT = (G.hoofT || 0) - dt; if (G.hoofT <= 0){ G.hoofT = .25 / HORSES[k.ride].speed * 1.5; Sound.hoof(); } }
     const nx = clamp(k.x + (v.x * sp + k.kbx) * dt, 8, WW - 8);
     if (!blocked(nx, k.y)) k.x = nx;
     const ny = clamp(k.y + (v.y * sp + k.kby) * dt, 12, WH - 2);
@@ -9928,6 +10204,7 @@ function drawTrail(k, gp, a){
 }
 /* Ritter zeichnen: eigener (k = G.knight) oder ein anderer (set = Farbvariante) */
 function drawKnightAt(k, set, dead, dieP){
+  if (k.ride && !dead && HORSES[k.ride]){ drawMounted(ctx, k.ride, set.id, k.dir, k.x, k.y, k.moving ? (k.anim | 0) % 4 : 4); return; }
   if (dead){
     const r = (set.fall || KNIGHT_FALL)[k.dir][Math.min(3, Math.floor(dieP * 9))];
     drawSword(ctx, Math.round(k.x - 16), Math.round(k.y + 3), -.12);
@@ -9964,6 +10241,7 @@ function drawKnightAt(k, set, dead, dieP){
 const ownSet = () => knightSet(HERO ? HERO.f : 'reich');
 function drawKnight(){
   const k = G.knight;
+  k.ride = riding() && G.mode !== 'dying' && G.mode !== 'dead' ? HERO.horse : null;
   drawKnightAt(k, ownSet(), G.mode === 'dying' || G.mode === 'dead', G.mode === 'dead' ? 1 : 1 - G.dieT / 1.3);
 }
 
@@ -10123,8 +10401,9 @@ function render(){
   const title = G.mode === 'title';
 
   for (const a of G.loot) if (inView(a.x, a.y, cam)) shadow(a.x, a.y - 1, a.z > 3 ? 4 : 8, a.z > 3 ? .2 : .3);
-  if (!title) shadow(k.x, k.y - 1, 18, .42);
-  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, 18, .38);
+  const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 36 : 22) : 18;
+  if (!title) shadow(k.x, k.y - 1, shW(k), .42);
+  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, shW(p), .38);
   for (const n of NPCS) if (inView(n.x, n.y, cam)) shadow(n.x, n.y - 1, 14, .38);
   for (const m of G.mons){
     if (!inView(m.x, m.y, cam)) continue;
@@ -10187,10 +10466,11 @@ function render(){
       if (G.nearDoor === inn) drawText(TOUCH ? 'Eintreten' : 'E oder hinauf: eintreten', inn.dx, inn.y + 2, '#ffffff');
     }
     for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam, 20)){
-      drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 9, '#9cc8ff');
-      if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11, p.say);
+      const up = p.ride ? 12 : 0;
+      drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 9 - up, '#9cc8ff');
+      if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11 - up, p.say);
     }
-    if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4, G.say);
+    if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4 - (k.ride ? 12 : 0), G.say);
   }
   for (const f of G.floats){
     ctx.globalAlpha = clamp(f.life / f.max * 2.5, 0, 1);
@@ -10216,7 +10496,7 @@ function render(){
     ctx.fillStyle = o.boss ? '#ecd27a' : '#d0343c'; ctx.fillRect(x - 2, y - 2, 5, 5);
     if (o.boss){ ctx.fillStyle = '#d0343c'; ctx.fillRect(x - 1, y - 1, 3, 3); }
   }
-  if (!title) drawMiniMap(k, cam);
+  if (!title){ drawQuestArrow(k); drawMiniMap(k, cam); }
   if (G.flash > 0 && !RM){
     ctx.fillStyle = 'rgba(220,226,255,' + Math.min(.45, G.flash * .9).toFixed(2) + ')';
     ctx.fillRect(0, 0, W, H);
@@ -10242,6 +10522,74 @@ function drawMiniMap(k, cam){
   for (const inn of INNS) dot(inn.dx, inn.y, '#ff9a40', 2);
   for (const p of PEERS.values()){ const at = p.in && INN_BY[p.in]; dot(at ? at.dx : p.x, at ? at.y + 4 : p.y, '#9cc8ff', 2); }
   const q = P(k.x, k.y); ctx.fillStyle = '#ffffff'; ctx.fillRect(q[0] - 1, q[1] - 1, 3, 3); ctx.fillStyle = OUT; ctx.fillRect(q[0], q[1], 1, 1);
+}
+
+/* ============ Pferd: Aufsitzen, Absitzen ============ */
+ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 0, 0, 20, 20, -1, -2, 20, 20); return c; })();
+const riding = () => !!(HERO && HERO.riding && HERO.horse && !G.inside);
+function mountHorse(){
+  if (!canAct() || G.inside) return;
+  if (!HERO.horse){ floatText(G.knight.x, G.knight.y - KS.ay - 4, 'Kein Pferd', '#d8c69c'); logLine('Ihr habt kein Pferd. Der Stallmeister in der Reichsburg verkauft welche.', '#d8c69c'); return; }
+  if (G.combatT < 3){ floatText(G.knight.x, G.knight.y - KS.ay - 4, 'Nicht im Kampf', '#d8c69c'); return; }
+  HERO.riding = true; Sound.neigh();
+  burst(G.knight.x, G.knight.y - 4, ['#6e5a42', '#8a7254'], 12, 50);
+  renderSkills(); sendPresence(true); markDirty();
+}
+function dismount(msg){
+  if (!HERO || !HERO.riding) return;
+  HERO.riding = false;
+  if (msg) floatText(G.knight.x, G.knight.y - KS.ay - 4, msg, '#ffb08a', 1, 1.2);
+  renderSkills(); sendPresence(true); markDirty();
+}
+const toggleHorse = () => HERO.riding ? dismount() : mountHorse();
+
+/* ============ Schmied: Ausrüstung verbessern (+1 bis +5) ============ */
+const itemName = it => it.n + (it.up ? ' +' + it.up : '');
+const upgradeCost = it => Math.round((20 + it.il * 12) * ((it.up || 0) + 1) * [1, 1.3, 1.7, 2.3, 3][it.r]);
+function upgradeItem(it){
+  if (!it.base) it.base = { dmg: it.dmg || 0, arm: it.arm || 0, a: Object.assign({}, it.a), v: it.v };
+  it.up = (it.up || 0) + 1;
+  const B = it.base, u = it.up;
+  if (B.dmg) it.dmg = Math.max(B.dmg + u, Math.round(B.dmg * (1 + .12 * u)));
+  if (B.arm) it.arm = Math.max(B.arm + u, Math.round(B.arm * (1 + .12 * u)));
+  for (const k in B.a) it.a[k] = Math.max(B.a[k] + (u >> 1), Math.round(B.a[k] * (1 + .08 * u)));
+  it.v = Math.round(B.v * (1 + .35 * u));
+}
+/* lohnt der Tausch? gewichtete Summe der Veränderungen */
+const GAIN_W = { hp:.35, dmg:3, arm:1.2, crit:2.2, spd:1.6, block:1.3 };
+function itemGain(it){
+  const cur = heroStats(HERO), nxt = heroStats(Object.assign({}, HERO, { eq: Object.assign({}, HERO.eq, { [it.s]: it }) }));
+  let g = 0; for (const k in GAIN_W) g += (nxt[k] - cur[k]) * GAIN_W[k];
+  return g;
+}
+
+/* ============ Wegweiser zum Auftrag ============ */
+function questTarget(){
+  if (!HERO || G.inside) return null;
+  for (const q of HERO.quests){
+    const d = qInfo(q); if (!d) continue;
+    if (q.n >= d.need){ const n = NPCS.find(x => x.id === d.giver); if (n) return { x: n.x, y: n.y, label: 'Abgabe' }; }
+    else if (d.boss) return { x: LAIRS[d.boss].x, y: LAIRS[d.boss].y, label: MON[d.boss].name };
+    else { const z = ZONE_BY_ID[d.zone]; if (z && G.zone !== d.zone) return { x: z.label.x, y: z.label.y, label: z.name }; }
+  }
+  return null;
+}
+function drawQuestArrow(k){
+  const t = questTarget(); if (!t) return;
+  const dx = t.x - k.x, dy = t.y - k.y;
+  if (Math.hypot(dx, dy) < 220) return;
+  const a = Math.atan2(dy, dx), c = Math.cos(a), s = Math.sin(a);
+  const sc = Math.min((W / 2 - 22) / Math.abs(c || 1e-6), (H / 2 - 22) / Math.abs(s || 1e-6));
+  const cx = Math.round(W / 2 + c * sc), cy = Math.round(H / 2 + s * sc);
+  const pulse = (G.t * 3 | 0) % 2;
+  for (let y = -11; y <= 11; y++) for (let x = -11; x <= 11; x++){
+    const u = x * c + y * s, v = -x * s + y * c;                     // u entlang, v quer
+    const inside = u <= 9 && u >= -5 && Math.abs(v) <= (9 - u) * .5;
+    const edge = u <= 10.5 && u >= -6.5 && Math.abs(v) <= (10.5 - u) * .55 + .6;
+    if (inside){ ctx.fillStyle = u > 3 ? (pulse ? '#ffffff' : '#fff0a0') : '#ffd541'; ctx.fillRect(cx + x, cy + y, 1, 1); }
+    else if (edge){ ctx.fillStyle = OUT; ctx.fillRect(cx + x, cy + y, 1, 1); }
+  }
+  drawText(t.label, clamp(cx - c * 20, 34, W - 34), clamp(cy - s * 16 - 3, 4, H - 10), '#ffd541');
 }
 
 /* ============ Oberfläche ============ */
@@ -10306,6 +10654,14 @@ function renderPick(){
   }
   const F = KN_FACTIONS[G.pickF];
   $('factionDesc').textContent = F.knight + ' · ' + F.bonusText + '. ' + F.desc;
+}
+/* Pferde: Tafel */
+for (const hid of HORSE_IDS){
+  const h = HORSES[hid], li = el('li'), im = el('img'), wh = el('span', 'what', h.name);
+  im.src = urlOf(horseSet(hid, 'reich').right[4].under, 1); im.alt = ''; im.className = 'horseimg';
+  wh.append(el('small', null, h.desc));
+  li.append(im, wh, el('span', 'val', h.price + ' Gulden'));
+  $('horseList').append(li);
 }
 /* Gasthäuser: Tafel */
 for (const inn of INNS){
@@ -10404,7 +10760,7 @@ function logLine(text, color, parts){
   setTimeout(() => { p.remove(); }, 9000);
 }
 function logItem(prefix, it){
-  const s = el('span', null, it.n); s.style.color = RARITY[it.r].c;
+  const s = el('span', null, itemName(it)); s.style.color = RARITY[it.r].c;
   logLine('', null, [prefix, s]);
 }
 function renderTracker(){
@@ -10420,14 +10776,14 @@ function renderTracker(){
 }
 
 /* ---------- Fähigkeiten ---------- */
-const SKILL_FN = { hieb: () => attack(), rund: skillRund, stoss: skillStoss, ruf: skillRuf, trank: drinkPotion };
+const SKILL_FN = { hieb: () => attack(), rund: skillRund, stoss: skillStoss, ruf: skillRuf, trank: drinkPotion, pferd: () => toggleHorse() };
 function buildSkills(){
   const bar = $('skills');
   bar.textContent = '';
   for (const s of SKILLS){
     const b = el('button', 'skill'); b.type = 'button'; b.dataset.skill = s.id;
     const im = el('img'); im.src = ICON_URL[s.icon]; im.alt = '';
-    b.append(im, el('span', 'key', s.key), el('span', 'cd'), el('span', 'lock', 'Stufe ' + s.lvl));
+    b.append(im, el('span', 'key', s.key), el('span', 'cd'), el('span', 'lock', s.id === 'pferd' ? 'Stall' : 'Stufe ' + s.lvl));
     if (s.id === 'trank') b.append(el('span', 'cnt', '0'));
     b.setAttribute('aria-label', s.name + (TOUCH ? '' : ', Taste ' + s.key));
     b.title = s.name + ': ' + s.desc;
@@ -10445,14 +10801,18 @@ function renderSkills(){
   if (!HERO) return;
   for (const s of SKILLS){
     const b = document.querySelector('[data-skill="' + s.id + '"]');
-    if (b) b.classList.toggle('locked', HERO.lvl < s.lvl);
+    if (b) b.classList.toggle('locked', HERO.lvl < s.lvl || (s.id === 'pferd' && !HERO.horse));
   }
+  const pb = document.querySelector('[data-skill="pferd"]');
+  if (pb){ pb.classList.toggle('on', !!HERO.riding); if (HERO.horse){ const im = pb.querySelector('img'); HO_ICON[HERO.horse] = HO_ICON[HERO.horse] || urlOf(horseIcon(HERO.horse), 3); im.src = HO_ICON[HERO.horse]; } }
   // Schildstoß und Schlachtruf mit dem Wappen der eigenen Herkunft
   const set = knightSet(HERO.f), F = KN_FACTIONS[HERO.f];
   set.url = set.url || urlOf(set.icon, 3);
   for (const id of ['stoss', 'ruf']){ const im = document.querySelector('[data-skill="' + id + '"] img'); if (im) im.src = set.url; }
   const rb = document.querySelector('[data-skill="ruf"]'); if (rb) rb.title = 'Schlachtruf „' + F.cry + '“: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer';
 }
+const HO_ICON = {};
+function horseIcon(hid){ const c = canvasOf(16, 16), sp = horseSet(hid, HERO ? HERO.f : 'reich').left[4].under; c.getContext('2d').drawImage(sp, 0, 0, 20, 20, -1, -2, 20, 20); return c; }
 /* Stärkung durch Speis und Trank in der Kopfzeile */
 function renderBuffs(){
   const box = $('buffs'); box.textContent = '';
@@ -10521,7 +10881,7 @@ function statDiff(it){
 function itemCard(it, compare){
   const box = el('div', 'icard'), head = el('div', 'ihead'), im = el('img');
   im.src = itemUrl(it); im.alt = ''; im.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
-  const nm = el('b', null, it.n); nm.style.color = RARITY[it.r].c;
+  const nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
   const sub = el('small', null, SLOT_NAME[it.s] + ' · Stufe ' + it.il + ' · ' + RARITY[it.r].n);
   const tx = el('div'); tx.append(nm, sub); head.append(im, tx); box.append(head);
   const ul = el('ul', 'ilines'); for (const l of itemLines(it)) ul.append(el('li', null, l)); box.append(ul);
@@ -10562,7 +10922,7 @@ function renderBag(){
   doll.textContent = ''; grid.textContent = ''; info.textContent = ''; stats.textContent = '';
   const slotBtn = (it, label, onSel, onUse, selected) => {
     const b = el('button', 'slot' + (selected ? ' sel' : '') + (it ? '' : ' empty')); b.type = 'button';
-    if (it){ const im = el('img'); im.src = itemUrl(it); im.alt = ''; b.append(im); b.style.setProperty('--rc', RARITY[it.r].c); b.setAttribute('aria-label', it.n); }
+    if (it){ const im = el('img'); im.src = itemUrl(it); im.alt = ''; b.append(im); b.style.setProperty('--rc', RARITY[it.r].c); b.setAttribute('aria-label', itemName(it)); if (!label && itemGain(it) > .5) b.classList.add('better'); }
     else b.setAttribute('aria-label', (label || 'Platz') + ', leer');
     let last = 0;
     b.addEventListener('click', () => { const t = performance.now(); if (it && t - last < 400 && onUse){ onUse(); return; } last = t; Sound.click(); onSel(); });
@@ -10689,6 +11049,8 @@ function renderTalk(view){
     }
     if (n.lore) opts.append(btn('Erzählt weiter', () => { G.loreI++; G.greet = n.lore[G.loreI % n.lore.length]; renderTalk('main'); }, 'opt'));
     if (n.shop){ opts.append(btn('Handeln: kaufen', () => renderTalk('buy'), 'opt'), btn('Handeln: verkaufen', () => renderTalk('sell'), 'opt')); }
+    if (n.stable) opts.append(btn('Pferde ansehen', () => renderTalk('stable'), 'opt'));
+    if (n.smith) opts.append(btn('Ausrüstung verbessern', () => renderTalk('smith'), 'opt'));
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -10720,6 +11082,45 @@ function renderTalk(view){
     body.append(el('p', 'hint', 'Eine Speise und ein Getränk wirken zugleich. Was Ihr neu bestellt, ersetzt das alte.'));
     opts.append(btn(view === 'speise' ? 'Getränke' : 'Speisen', () => renderTalk(view === 'speise' ? 'trank' : 'speise'), 'tbtn'), btn('Zurück', () => renderTalk('main'), 'tbtn'));
     body.append(opts);
+  } else if (view === 'stable'){
+    $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden. Mit H (oder dem Pferd in der Leiste) sitzt Ihr auf und ab. Wer zuschlägt oder getroffen wird, steigt ab.';
+    for (const hid of HORSE_IDS){
+      const h = HORSES[hid], r = el('div', 'shoprow'), ic = el('img');
+      HO_ICON['big_' + hid] = HO_ICON['big_' + hid] || urlOf(horseSet(hid, HERO.f).right[4].under, 1);
+      ic.src = HO_ICON['big_' + hid]; ic.alt = ''; ic.className = 'horseimg';
+      const t = el('div', 'stx');
+      t.append(el('b', null, h.name), el('small', null, 'ab Stufe ' + h.lvl + ' · ' + Math.round((h.speed - 1) * 100) + ' % schneller · ' + h.desc));
+      const own = HERO.horse === hid, have = HERO.horse && HORSES[HERO.horse].price >= h.price;
+      const b = btn(own ? 'Euer Pferd' : 'Kaufen für ' + h.price, () => {
+        if (HERO.gold < h.price || HERO.lvl < h.lvl || have) return;
+        HERO.gold -= h.price; HERO.horse = hid; Sound.neigh(); Sound.coin();
+        logLine('Ihr kauft ' + h.art + ' ' + h.name + '. Mit ' + (TOUCH ? 'dem Pferd in der Leiste' : 'H') + ' sitzt Ihr auf.', '#ffd98a');
+        updateHud(); renderSkills(); markDirty(true); renderTalk('stable');
+      }, 'tbtn');
+      b.disabled = own || have || HERO.gold < h.price || HERO.lvl < h.lvl;
+      r.append(ic, t, b); body.append(r);
+    }
+    opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
+    body.append(opts);
+  } else if (view === 'smith'){
+    $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden. Jede Stufe macht Klinge und Rüstung härter, bis +5.';
+    const list = SLOTS.filter(sl => HERO.eq[sl]).map(sl => [HERO.eq[sl], 'angelegt']).concat(HERO.inv.filter(Boolean).map(it => [it, 'im Rucksack']));
+    if (!list.length) body.append(el('p', 'hint', 'Ihr habt nichts, was ich bearbeiten könnte.'));
+    for (const [it, where] of list){
+      const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
+      const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
+      t.append(nm, el('small', null, where + ' · ' + itemLines(it).join(' · ')));
+      const up = it.up || 0, cost = upgradeCost(it);
+      const b = btn(up >= 5 ? 'Meisterstück' : '+' + (up + 1) + ' für ' + cost, () => {
+        if (up >= 5 || HERO.gold < cost) return;
+        HERO.gold -= cost; upgradeItem(it); refreshStats(); Sound.anvil(); setTimeout(() => Sound.anvil(), 260);
+        logItem('Der Schmied verbessert: ', it); updateHud(); markDirty(true); renderTalk('smith');
+      }, 'tbtn');
+      b.disabled = up >= 5 || HERO.gold < cost;
+      r.append(ic, t, b); body.append(r);
+    }
+    opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
+    body.append(opts);
   } else if (view === 'buy'){
     $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden.';
     const price = 4 + 2 * HERO.lvl, row = el('div', 'shoprow');
@@ -10733,7 +11134,7 @@ function renderTalk(view){
     if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ n.stock = [makeItem(pick(SLOTS), HERO.lvl, 0), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl + 1, 1)]; n.stockLvl = HERO.lvl; n.stockT = nowS() + 300; }
     n.stock.forEach((it, i) => {
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
-      const t = el('div', 'stx'), nm = el('b', null, it.n); nm.style.color = RARITY[it.r].c;
+      const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
       const diff = statDiff(it).map(([nn, d]) => (d > 0 ? '+' : '−') + Math.abs(d) + ' ' + nn).join(', ');
       t.append(nm, el('small', null, itemLines(it).join(' · ')), el('small', 'cmp', diff ? 'Statt jetzt: ' + diff : ''));
       const cost = it.v * 4, b = btn(cost + ' Gulden', () => {
@@ -10752,7 +11153,7 @@ function renderTalk(view){
     if (!items.length) body.append(el('p', 'hint', 'Euer Rucksack ist leer.'));
     for (const [it, i] of items){
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
-      const t = el('div', 'stx'), nm = el('b', null, it.n); nm.style.color = RARITY[it.r].c;
+      const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
       t.append(nm, el('small', null, 'Stufe ' + it.il + ' · ' + itemLines(it).join(' · ')));
       r.append(ic, t, btn('für ' + it.v, () => { HERO.inv[i] = null; HERO.gold += it.v; Sound.coin(); updateHud(); markDirty(true); renderTalk('sell'); }, 'tbtn'));
       body.append(r);
@@ -10886,7 +11287,7 @@ $('btnChat').addEventListener('click', () => { Sound.init(); $('chatForm').hidde
 /* ---------- Tastatur ---------- */
 const KEYMAP = { ArrowLeft:'left', KeyA:'left', ArrowRight:'right', KeyD:'right', ArrowUp:'up', KeyW:'up', ArrowDown:'down', KeyS:'down' };
 const ATK_KEYS = ['Space', 'KeyJ'];
-const SKILL_KEYS = { KeyR:'rund', Digit1:'rund', KeyF:'stoss', Digit2:'stoss', KeyG:'ruf', Digit3:'ruf', KeyQ:'trank', Digit4:'trank' };
+const SKILL_KEYS = { KeyR:'rund', Digit1:'rund', KeyF:'stoss', Digit2:'stoss', KeyG:'ruf', Digit3:'ruf', KeyQ:'trank', Digit4:'trank', KeyH:'pferd', Digit5:'pferd' };
 addEventListener('keydown', e => {
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
@@ -11048,7 +11449,7 @@ function readPeer(p){
   q.tx = num(s.x, 0, WW, q.x); q.ty = num(s.y, 0, WH, q.y);
   if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || (INN_BY[s.in] ? s.in : 0) !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
   q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead;
-  q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = INN_BY[s.in] ? s.in : 0;
+  q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = INN_BY[s.in] ? s.in : 0; q.ride = HORSES[s.ri] && !q.in ? s.ri : null;
   if (s.sw !== q.sw){ q.sw = s.sw; q.atkLen = num(s.sl, .1, 1, SWING); q.atkT = q.atkLen; q.swA0 = num(s.sa, -10, 10, 0); q.swA1 = num(s.se, -10, 10, 0); q.mult = num(s.m, .5, 2, 1); }
   return q;
 }
@@ -11067,7 +11468,7 @@ function sendPresence(force){
   if (!force && t - presT < .12) return;
   const k = G.knight;
   const pr = { x: Math.round(k.x), y: Math.round(k.y), d: k.dir, mv: k.moving ? 1 : 0, sw: k.swing, sa: +k.swA0.toFixed(2), se: +k.swA1.toFixed(2), sl: +k.atkLen.toFixed(2), m: k.mult,
-    lv: HERO.lvl, nm: HERO.name, f: HERO.f, in: G.inside ? G.inside.id : 0, dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
+    lv: HERO.lvl, nm: HERO.name, f: HERO.f, in: G.inside ? G.inside.id : 0, ri: riding() ? HERO.horse : 0, dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
   const js = JSON.stringify(pr);
   if (js === presLast && !force) return;
   presLast = js; presT = t;
