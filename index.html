@@ -221,6 +221,27 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
   .xpbar span{transition:none;}
 }
 
+/* Herkunft, Stärkung, Tafeln für Ritter und Gasthäuser */
+.factions{display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px; width:100%;}
+.fpick{display:grid; justify-items:center; align-content:end; gap:3px; padding:6px 4px 5px; border:0; cursor:pointer; font-family:var(--f-body); font-size:16px; line-height:1.05; color:var(--parchment); background:var(--stone);
+  box-shadow:inset -2px -2px 0 var(--ink), inset 2px 2px 0 var(--stone-hi);}
+.fpick img{height:78px; width:auto; image-rendering:pixelated;}
+.fpick:hover{background:var(--stone-hi);}
+.fpick[aria-checked="true"]{background:var(--stone-hi); box-shadow:inset 0 0 0 2px var(--gold-hi), 0 0 0 2px var(--ink); color:var(--gold-hi);}
+.panel .fdesc{margin:0; font-size:17px; max-width:none; color:var(--parchment-lo); text-align:left;}
+.buffs{display:flex; gap:6px;}
+.buffs:empty{display:none;}
+.buff{display:flex; align-items:center; gap:3px; font-size:16px; color:#ffd98a; background:var(--stone-lo); padding:1px 5px 1px 2px; box-shadow:inset 0 0 0 1px var(--gold-lo);}
+.buff img{width:20px; height:20px; image-rendering:pixelated;}
+.knights,.inns{list-style:none; margin:0; padding:0; display:grid; gap:12px;}
+.knights li{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:start; font-size:17px; line-height:1.15;}
+.knights img{width:63px; height:auto; image-rendering:pixelated; background:#b8a47a; box-shadow:0 0 0 2px #8e7a52;}
+.knights b,.inns b{display:block; font-weight:400; color:var(--blood); font-size:20px; line-height:1;}
+.knights small,.inns small{display:block; color:#5a4a34; font-size:15px; margin:1px 0 3px;}
+.knights small.bonus{margin:4px 0 0; color:#3a4a1a;}
+.inns li{font-size:17px; line-height:1.15;}
+@media (max-width:560px){ .factions{grid-template-columns:repeat(2, minmax(0, 1fr));} .fpick img{height:60px;} }
+
 /* Lebensbalken und Kopfzeile */
 .hpbox{display:grid; grid-template-columns:auto minmax(80px, 150px) auto; align-items:center; gap:8px;}
 .hpbar{height:14px; background:var(--ink); padding:2px; box-shadow:0 0 0 2px var(--blood);}
@@ -416,7 +437,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     <img class="seal" id="sealTop" alt="">
     <p class="eyebrow">Anno Domini MDXX · Sacrum Romanum Imperium</p>
     <h1>Der Apfelritter</h1>
-    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter in den Farben des Reiches durch ein weites Land: Erschlage Monster, sammle ihre Beute, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land.</p>
+    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erschlage Monster, sammle ihre Beute, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land und triffst sie im Gasthaus.</p>
   </header>
 
   <section class="cabinet" aria-label="Spiel">
@@ -428,6 +449,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       </div>
       <div class="stat"><span class="lbl">Gulden</span><span id="gold">0</span></div>
       <div class="stat"><span class="lbl">Tränke</span><span id="potions">0</span></div>
+      <div class="buffs" id="buffs" aria-label="Stärkung durch Speis und Trank"></div>
       <div class="stat" id="onlineWrap" hidden><span class="lbl">Im Land</span><span id="online">1</span></div>
       <div class="hud-btns">
         <button class="ibtn" id="btnBag" type="button">Rucksack</button>
@@ -474,11 +496,13 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     </div>
 
     <div class="overlay" id="ovStart">
-      <div class="panel">
+      <div class="panel wide">
         <img class="seal" alt="" data-seal>
         <h2>Das Reichsland ruft</h2>
         <div id="startNew"><form id="formNew" class="newhero" autocomplete="off">
-          <p>Monster bringen Erfahrung und Beute. Burg und Stadt geben Aufträge. Wie heißt Ihr, Knappe?</p>
+          <p>Monster bringen Erfahrung und Beute, Burg und Stadt geben Aufträge. Wählt Eure Herkunft und Euren Namen.</p>
+          <div class="factions" id="factionPick" role="radiogroup" aria-label="Herkunft des Ritters"></div>
+          <p class="fdesc" id="factionDesc"></p>
           <input id="heroName" maxlength="16" placeholder="Euer Name" aria-label="Name des Ritters" enterkeyhint="go">
           <p class="hint" id="nameHint" hidden>Ein Ritter braucht einen Namen.</p>
           <button class="btn" type="submit">Ins Reichsland</button>
@@ -568,11 +592,9 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 
   <section class="notes">
     <div class="note">
-      <h3>Rüstung und Waffe</h3>
-      <div class="plate">
-        <img class="fig" id="armorPlate" alt="Der Ritter in Schaller und gelbem Wappenrock mit Schwert und Adlerschild">
-        <div><div id="armorNotes"></div><img class="sword" id="armorSword" alt="Das Langschwert"></div>
-      </div>
+      <h3>Die Ritter Europas um 1520</h3>
+      <ul class="knights" id="knightList"></ul>
+      <p class="tip">Die Herkunft wählt Ihr beim Anlegen eines Ritters. Sie bestimmt Wappenrock, Helm, Schild und Schlachtruf und gibt einen kleinen Vorteil.</p>
     </div>
     <div class="note">
       <h3>Das Reichsland</h3>
@@ -583,6 +605,11 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <h3>Beute und Ausrüstung</h3>
       <ul class="rarity" id="rarityList"></ul>
       <p class="tip">Jedes Monster kann Gulden, Heiltränke oder Ausrüstung fallen lassen: Waffe, Helm, Rüstung, Schild, Beine und ein Kleinod. Seltene Stücke leuchten am Boden. Der Name über einem Monster zeigt seine Stufe: rot ist gefährlich, grau bringt keine Erfahrung mehr.</p>
+    </div>
+    <div class="note">
+      <h3>Gasthäuser</h3>
+      <ul class="inns" id="innList"></ul>
+      <p class="tip">Im Gasthaus wird nicht gekämpft. Hier trefft Ihr andere Ritter, hört Neuigkeiten und stärkt Euch: Eine Speise und ein Getränk wirken zugleich, jeweils 15 Minuten Spielzeit. Beim Wirt mietet Ihr eine Kammer, dann erwacht Ihr nach dem Tod dort.</p>
     </div>
     <div class="note">
       <h3>Bestiarium</h3>
@@ -607,17 +634,17 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <dl class="keys">
         <dt class="kbd-only"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd class="kbd-only">Laufen, auch mit den Pfeiltasten</dd>
         <dt class="kbd-only"><kbd>Leertaste</kbd></dt><dd class="kbd-only">Schwerthieb, gedrückt halten für Dauerhiebe</dd>
-        <dt class="kbd-only"><kbd>R</kbd><kbd>F</kbd><kbd>G</kbd></dt><dd class="kbd-only">Rundhieb, Schildstoß, Adlerruf</dd>
+        <dt class="kbd-only"><kbd>R</kbd><kbd>F</kbd><kbd>G</kbd></dt><dd class="kbd-only">Rundhieb, Schildstoß, Schlachtruf</dd>
         <dt class="kbd-only"><kbd>Q</kbd></dt><dd class="kbd-only">Heiltrank</dd>
-        <dt class="kbd-only"><kbd>E</kbd></dt><dd class="kbd-only">mit Leuten sprechen</dd>
+        <dt class="kbd-only"><kbd>E</kbd></dt><dd class="kbd-only">mit Leuten sprechen, ein Gasthaus betreten</dd>
         <dt class="kbd-only"><kbd>I</kbd><kbd>L</kbd><kbd>K</kbd></dt><dd class="kbd-only">Rucksack, Aufträge, Karte</dd>
         <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
         <dt class="kbd-only"><kbd>P</kbd><kbd>Esc</kbd></dt><dd class="kbd-only">Pause, Fenster schließen</dd>
         <dt class="kbd-only"><kbd>M</kbd></dt><dd class="kbd-only">Ton an oder aus</dd>
         <dt class="touch-only"><kbd>Steuerkreuz</kbd></dt><dd class="touch-only">Laufen, auch schräg</dd>
         <dt class="touch-only"><kbd>Hieb</kbd></dt><dd class="touch-only">Schwerthieb, gedrückt halten für Dauerhiebe</dd>
-        <dt class="touch-only"><kbd>Leiste</kbd></dt><dd class="touch-only">Rundhieb, Schildstoß, Adlerruf, Heiltrank</dd>
-        <dt class="touch-only"><kbd>Sprechen</kbd></dt><dd class="touch-only">erscheint neben Leuten in Burg und Stadt</dd>
+        <dt class="touch-only"><kbd>Leiste</kbd></dt><dd class="touch-only">Rundhieb, Schildstoß, Schlachtruf, Heiltrank</dd>
+        <dt class="touch-only"><kbd>Sprechen</kbd></dt><dd class="touch-only">erscheint neben Leuten und vor Gasthaustüren</dd>
       </dl>
       <p class="tip">Der Spielstand wird laufend gesichert. Wer angemeldet ist, findet seinen Ritter auch auf anderen Geräten wieder.</p>
     </div>
@@ -743,6 +770,18 @@ const kn_PAL = {
   C:'#858c94', c:'#4a4f57',                                                        // Kettengeflecht
   W:'#4a3020', w:'#6e4c30'                                                         // Holz (Schildrückseite)
 };
+/* Wappenfarben (Tinkturen) in vier Helligkeiten, Haut, Federbusch */
+Object.assign(kn_PAL, {
+  1:'#6f4a12', 2:'#b07c1c', 3:'#dfae2e', 4:'#f2d256',                            // Gold
+  5:'#5a1012', 6:'#8e1c1c', 7:'#b8302a', 8:'#d85448',                            // Rot
+  U:'#141e48', u:'#22357a', J:'#3452a8', j:'#5a7ad0',                            // Blau
+  S:'#7e7a70', s:'#aeaa9c', T:'#d8d4c6', t:'#f6f2e6',                            // Silber (weiß)
+  P:'#4a2056', p:'#8a4a9a',                                                        // Purpur
+  Z:'#7a4a32', z:'#c08a66', q:'#e8bc96',                                           // Haut
+  F:'#8a8a86', f:'#c8c6be', g:'#f6f4ee'                                            // Federbusch
+});
+const kn_TINC = { or:'1234', gu:'5678', az:'UuJj', ar:'SsTt' };
+let kn_F = null;                     // Herkunft, für die gerade gezeichnet wird
 const kn_W = 29, kn_H = 48, kn_CX = 14, kn_PAD = 1;
 const kn_new = () => Array.from({ length: kn_H }, () => Array(kn_W).fill('.'));
 function kn_px(g, x, y, ch){ x = Math.round(x); y = Math.round(y); if (ch && ch !== '.' && ch !== ' ' && y >= 0 && y < kn_H && x >= 0 && x < kn_W) g[y][x] = ch; }
@@ -780,7 +819,7 @@ const kn_EAGLE9 = [
   '.r.eee.r.',
   '...e.e...'];
 /* Dreiecksschild: oben gerade, unten spitz, leicht gewölbt. face: 'front' (Adler) oder 'back' (Holz, bemalter Rand) */
-function kn_shield(g, x0, y0, w, h, face, dark, eagle){
+function kn_shield(g, x0, y0, w, h, face, dark){
   const cx = x0 + w / 2, top = Math.round(h * .48), hwOf = j => {
     if (j < top) return w / 2;
     const q = (j + .5 - top) / (h - top);
@@ -794,22 +833,38 @@ function kn_shield(g, x0, y0, w, h, face, dark, eagle){
       const nx = d / (w / 2), edgeR = d > hw - 1, edgeL = d < -hw + 1, bot = Math.abs(hwOf(j + 1)) < Math.abs(d) - .05;
       let ch;
       if (face === 'back'){
+        const rim = kn_TINC[kn_F.rim];
         ch = ((x - x0) % 3 === 0) ? 'W' : (nx < -.2 ? 'w' : 'W');
-        if (j === 0 || edgeL || edgeR || bot) ch = edgeR || bot ? 'o' : 'y';
+        if (j === 0 || edgeL || edgeR || bot) ch = edgeR || bot ? rim[1] : rim[2];
       } else {
+        const T = kn_TINC[kn_F.field(d < 0, j < top)];
         const l = -nx * .45 + .58 - j / h * .2 - (dark ? .3 : 0);
-        ch = l > .85 ? 'Y' : l > .42 ? 'y' : l > .1 ? 'o' : 'O';
-        if (j === 0) ch = dark ? 'o' : 'Y';
-        else if (edgeL && !dark) ch = 'Y';
-        else if (edgeR || bot) ch = dark ? 'O' : 'o';
+        ch = T[l > .85 ? 3 : l > .42 ? 2 : l > .1 ? 1 : 0];
+        if (j === 0) ch = dark ? T[1] : T[3];
+        else if (edgeL && !dark) ch = T[3];
+        else if (edgeR || bot) ch = dark ? T[0] : T[1];
       }
       kn_px(g, x, y0 + j, ch);
     }
   }
-  if (face !== 'back'){
-    const E = eagle || kn_EAGLE9, ex = Math.round(cx - E[0].length / 2), ey = y0 + 2;
-    kn_art(g, ex, ey, dark ? E.map(r => r.replace(/E/g, 'e')) : E);
-  }
+  if (face !== 'back') kn_F.charge(g, x0, y0, w, h, top, dark);
+}
+/* kleine Wappenbilder in die Viertel eines Schildes setzen: art = [oben links, oben rechts, unten links, unten rechts, unten Mitte] */
+function kn_quarters(g, x0, y0, w, h, top, art){
+  const xs = [x0 + Math.round(w * .27), x0 + Math.round(w * .73) - (w >= 9 ? 1 : 0)], ys = [y0 + Math.round(top * .55), y0 + top + Math.round((h - top) * .28)];
+  art.forEach((a, i) => {
+    if (!a) return;
+    const cx = i === 4 ? Math.round(x0 + w / 2 - .5) : xs[i & 1], cy = i === 4 ? ys[1] : ys[i >> 1];
+    if (w < 9){ kn_px(g, cx, cy, a[1][1] !== '.' ? a[1][1] : a[0][1]); return; }
+    kn_art(g, cx - (a[0].length >> 1), cy - 1, a);
+  });
+}
+/* Abzeichen auf dem Wappenrock: erst das Kreuz einfärben, dann das Bild darüber */
+function kn_recolor(g, x, y, ramp){ const row = g[y]; if (!row) return; const i = 'OoyY'.indexOf(row[x]); if (i >= 0) row[x] = ramp[i]; }
+function kn_emblem(g, view){
+  if (kn_F.mark) kn_F.mark(g, view);
+  const a = view === 'F' ? kn_F.chestF : kn_F.chestB;
+  if (a) kn_art(g, a.x, a.y, a.rows);
 }
 
 /* Wappenrock von vorn und hinten: Schultern, kurze weite Ärmel, Leib, Schoß mit Falten */
@@ -854,14 +909,14 @@ const kn_EAGLE_F = [
 function kn_upperF(atk){
   const g = kn_new();
   kn_tabard(g, [11, 17]);
-  // Brustadler, Halsausschnitt mit Brustplatte
-  kn_art(g, 9, 12, kn_EAGLE_F);
+  // Abzeichen auf der Brust, Halsausschnitt mit Brustplatte
+  kn_emblem(g, 'F');
   kn_seg(g, 10, [[12, 'DHGLD']]); kn_seg(g, 11, [[13, 'DLD']]); kn_px(g, 14, 12, 'D');
   // Gürtel mit Schnalle, schräger Schwertgurt
   kn_seg(g, 20, [[9, 'NbNNNaANNNN']]);
   kn_line(g, 9, 22, 20, 25, 'N');
   // Helm
-  kn_art(g, 8, 0, kn_HELM_F);
+  kn_art(g, 8, 0, kn_F.helmF);
   // rechter Arm (Bildlinks): Armröhre, Armkachel mit Muschel
   kn_seg(g, 16, [[5, 'LHD']]);
   kn_seg(g, 17, [[4, 'DLGD']]);
@@ -925,12 +980,12 @@ const kn_HELM_B = [
 function kn_upperB(atk){
   const g = kn_new();
   kn_tabard(g, [11, 14, 17]);
-  // Rückenadler
-  kn_art(g, 9, 11, kn_EAGLE_F);
+  // Abzeichen auf dem Rücken
+  kn_emblem(g, 'B');
   // Gürtel
   kn_seg(g, 20, [[9, 'NbNNNNNNNNN']]);
   // Helm
-  kn_art(g, 8, 0, kn_HELM_B);
+  kn_art(g, 8, 0, kn_F.helmB);
   // rechter Arm (Bildrechts) mit dem Schwert
   kn_seg(g, 16, [[21, 'LHD']]);
   kn_seg(g, 17, [[21, 'DLGD']]);
@@ -1011,8 +1066,8 @@ function kn_bodyS(S){
   for (let y = 9; y <= 15; y++) S.cloth(y, 10, y >= 13 ? 17 : 16, .15 - (y - 9) * .03);
   for (let x = 10; x <= 17; x++) S.dk(x, 15);
   for (let y = 10; y <= 14; y++) S.dk(y >= 13 ? 17 : 16, y);
-  S.art(11, 11, kn_EAGLE_SL);
-  S.art(5, 0, kn_HELM_S);
+  if (kn_F.sleeve) S.art(kn_F.sleeve[0].length > 3 ? 11 : 12, 11, kn_F.sleeve);
+  S.art(5, 0, kn_F.helmS);
 }
 /* Bein im Profil mit Versatz von Knie (dk) und Fuß (df); fern = dunkler */
 function kn_legS(dk, df){
@@ -1050,7 +1105,7 @@ function kn_swordArmAtkS(S){
 const kn_HAND_S = ['DLHD', 'LGHMD', 'MLLMD', '.KDK'];
 function kn_side(f, m, atk){
   const g = kn_new(), b = kn_BOB[f], U = kn_S(g, m, b), Lg = kn_S(g, m, 0);
-  if (!m) kn_shield(g, 18, 17 + b, 7, 20, 'front', true, kn_EAGLE7);           // ferner Schild vor der Brust
+  if (!m) kn_shield(g, 18, 17 + b, 7, 20, 'front', true);                       // ferner Schild vor der Brust
   else { U.seg(21, [[14, 'MLD']]); U.seg(22, [[15, 'DMD']]); }                 // ferner Schwertarm
   kn_legsS(Lg, ...kn_STRIDE[f]);
   kn_mailS(Lg);
@@ -1099,45 +1154,192 @@ function drawSword(g, x, y, angle){
 }
 const SWORD_ICON = kn_sword(2).img;
 
+/* ---------- Die Ritter Europas um 1520 ----------
+   Jede Herkunft legt fest: Tuchfarben des Wappenrocks, Abzeichen auf Brust, Rücken und Ärmel,
+   Helmform (vorn, hinten, seitlich), Federbusch und das Wappen im Schild. */
+const kn_RED = '5678';
+const kn_LILY3 = ['.4.', '434', '3.3'];
+const kn_LION3 = ['3..4', '.444', '.3.3'];
+const kn_CASTLE3 = ['4.4.4', '44444', '44.44'];
+const kn_LIONP3 = ['.p.', 'pPp', 'P.P'];
+/* große Lilie für Brust und Rücken */
+const kn_LILY_F = [
+  '....4....',
+  '...344...',
+  '...343...',
+  '3..343..3',
+  '43.343.34',
+  '.4334433.',
+  '222222222',
+  '...343...',
+  '..3.3.3..'];
+/* Armet: runder geschlossener Helm, hinten die Scheibe, oben der Federbusch */
+const kn_ARMET_F = [
+  '.....gfF.....',
+  '....gfgF.....',
+  '...LHfgLM....',
+  '..LHGGHLLMD..',
+  '.LHGHHHLLLMD.',
+  '.DKKKKKKKKKD.',
+  '.LHGHKHKLLMD.',
+  '.MLHGHHLLLMD.',
+  '..KLHGHLLMK..',
+  '...KDLLLDK...'];
+const kn_ARMET_B = [
+  '.....gfF.....',
+  '....gfgF.....',
+  '...LHfgLM....',
+  '..LHGGHLLMD..',
+  '.LHGHHHLLLMD.',
+  '.LHHHGHLLLMD.',
+  '.LHHHHLLLLMD.',
+  '.MLHHHLLLLMD.',
+  '..KLHAaALMK..',
+  '...KDAaADK...'];
+const kn_ARMET_S = [
+  '..gfF...........',
+  '..fgfF.LHHLM....',
+  '...fF.LHGGHLM...',
+  '....MLHGHHHHLM..',
+  '....LHGHHHHHLLD.',
+  '....LHHHHHHKKKK.',
+  '....MLHHHHHLLHGD',
+  '...AaMLHHHHLLMD.',
+  '....ADLHHHLLMD..',
+  '......KDLLLMD...'];
+/* geschlossener Helm aus Greenwich: hoher Kamm, Visier mit zwei Sehschlitzen */
+const kn_CLOSE_F = [
+  '......H......',
+  '.....LGM.....',
+  '...LHHGHLM...',
+  '..LHGHGHLMD..',
+  '.LHGHHGHLLMD.',
+  '.DKKKKKKKKKD.',
+  '.LHGHHGLLLMD.',
+  '.DKKKKKKKKKD.',
+  '..KLHGHLLMK..',
+  '...KDLLMDK...'];
+const kn_CLOSE_B = [
+  '......H......',
+  '.....LGM.....',
+  '...LHHGHLM...',
+  '..LHGHGHLMD..',
+  '.LHGHHGHLLMD.',
+  '.LHHHHGLLLMD.',
+  '.LHHHHGLLLMD.',
+  '.MLHHHLLLLMD.',
+  '..KLHHHLLMK..',
+  '...KDLLMDK...'];
+const kn_CLOSE_S = [
+  '.......MHHM.....',
+  '......LHGGHL....',
+  '.....LHGHHHHLM..',
+  '....LHGHHHHHHLD.',
+  '....LHHHHHHKKKK.',
+  '....LHHHHHHLHGLD',
+  '....MLHHHHHKKKKD',
+  '....MLHHHHHLLMD.',
+  '.....KDLHHLLMD..',
+  '......KDLLMD....'];
+/* Borgoñota: offener Helm mit Schirm, Kamm, Wangenklappen und Nackenschutz, roter Federbusch */
+const kn_BORG_F = [
+  '.....gf......',
+  '....gfFM.....',
+  '...LHGFHLM...',
+  '..LHGHGHLLD..',
+  '.LHGHHGHLLMD.',
+  'DLHHHHHHHLLMD',
+  '.DLDqezezDLD.',
+  '.DLDqqzzZDLD.',
+  '.KDLqzZzZLDK.',
+  '..KDLzZzLDK..'];
+const kn_BORG_B = [
+  '.....gf......',
+  '....gfFM.....',
+  '...LHGFHLM...',
+  '..LHGHGHLLD..',
+  '.LHGHHGHLLMD.',
+  '.LHHHHGLLLMD.',
+  '.MLHHHGLLLMD.',
+  'LLHHHLLLLLMMD',
+  'MLLLLLLLLLMDD',
+  '.DDDDDDDDDDD.'];
+const kn_BORG_S = [
+  '...gf..MHHM.....',
+  '...fF.LHGGHL....',
+  '....FLHGHHHHLM..',
+  '....LHGHHHHHHLD.',
+  '....LHHHHHHHHHHD',
+  '...MLHHHHHLDqqz.',
+  '..MLLHHHHHLDqez.',
+  'LLLMLHHHHHLDqzZ.',
+  '..KDLLHHHLLDzZ..',
+  '.......KDLLDZ...'];
+/* Burgunderkreuz: zwei gekreuzte Äste mit Aststummeln */
+function kn_markSaltire(g){
+  for (let i = 0; i <= 40; i++){
+    const t = i / 40, y = Math.round(10 + t * 17), a = 9.5 + t * 9, b = 18.5 - t * 9;
+    for (const c of [a, b]){ kn_recolor(g, Math.round(c - .5), y, kn_RED); kn_recolor(g, Math.round(c + .5), y, kn_RED); }
+  }
+  [.18, .42, .66, .86].forEach((t, i) => {
+    const y = Math.round(10 + t * 17), a = 9.5 + t * 9, b = 18.5 - t * 9, sd = i & 1 ? 1 : -1;
+    kn_recolor(g, Math.round(a + sd * 2), y, kn_RED); kn_recolor(g, Math.round(b - sd * 2), y + 1, kn_RED);
+  });
+}
+/* Georgskreuz: rotes Kreuz über Brust und Rücken */
+function kn_markCross(g){
+  for (let y = 8; y <= 28; y++) for (let x = 13; x <= 15; x++) kn_recolor(g, x, y, kn_RED);
+  for (let y = 13; y <= 15; y++) for (let x = 9; x <= 19; x++) kn_recolor(g, x, y, kn_RED);
+}
+const KN_FACTIONS = {
+  reich: {
+    name:'Heiliges Römisches Reich', knight:'Reichsritter', ruler:'Kaiser Karl V.', cry:'Für Kaiser und Reich!',
+    bonus:{ hpPct:5 }, bonusText:'+5 % Leben',
+    desc:'Ritter Kaiser Karls V., 1519 gewählt und 1520 in Aachen gekrönt. Gelber Wappenrock mit dem schwarzen Doppeladler, deutsche Schaller mit Bart und ein Dreiecksschild mit dem Reichsadler.',
+    cloth:{}, field: () => 'or', rim:'or',
+    charge(g, x0, y0, w, h, top, dark){ const E = w >= 9 ? kn_EAGLE9 : kn_EAGLE7; kn_art(g, Math.round(x0 + w / 2 - E[0].length / 2), y0 + 2, dark ? E.map(r => r.replace(/E/g, 'e')) : E); },
+    chestF:{ x:9, y:12, rows:kn_EAGLE_F }, chestB:{ x:9, y:11, rows:kn_EAGLE_F }, sleeve:kn_EAGLE_SL,
+    helmF:kn_HELM_F, helmB:kn_HELM_B, helmS:kn_HELM_S
+  },
+  frankreich: {
+    name:'Königreich Frankreich', knight:'Chevalier de France', ruler:'König Franz I.', cry:'Montjoie Saint-Denis!',
+    bonus:{ dmgPct:5 }, bonusText:'+5 % Schaden',
+    desc:'Gendarm einer Ordonnanzkompanie König Franz’ I., des Siegers von Marignano 1515. Blauer Rock mit den goldenen Lilien Frankreichs, geschlossener Armet mit weißem Federbusch.',
+    cloth:{ O:'#141e48', o:'#22357a', y:'#3452a8', Y:'#5a7ad0' }, field: () => 'az', rim:'az',
+    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_LILY3, kn_LILY3, null, null, kn_LILY3]); },
+    chestF:{ x:10, y:11, rows:kn_LILY_F }, chestB:{ x:10, y:10, rows:kn_LILY_F }, sleeve:kn_LILY3,
+    helmF:kn_ARMET_F, helmB:kn_ARMET_B, helmS:kn_ARMET_S
+  },
+  england: {
+    name:'Königreich England', knight:'Knight of England', ruler:'König Heinrich VIII.', cry:'Saint George!',
+    bonus:{ crit:3 }, bonusText:'+3 % Volltreffer',
+    desc:'Ritter König Heinrichs VIII., der 1520 auf dem Feld des Güldenen Tuches Franz I. traf. Weißer Rock mit dem roten Georgskreuz, geschlossener Helm aus der Plattnerei von Greenwich; im Schild die Leoparden Englands und die Lilien Frankreichs.',
+    cloth:{ O:'#7e7a70', o:'#aeaa9c', y:'#d8d4c6', Y:'#f6f2e6' }, field: (left, up) => left === up ? 'az' : 'gu', rim:'gu',
+    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_LILY3, kn_LION3, kn_LION3, kn_LILY3]); },
+    mark: kn_markCross, sleeve:['.7.', '878', '.7.'],
+    helmF:kn_CLOSE_F, helmB:kn_CLOSE_B, helmS:kn_CLOSE_S
+  },
+  spanien: {
+    name:'Kastilien und Aragón', knight:'Caballero de Castilla', ruler:'König Karl I. (zugleich Kaiser Karl V.)', cry:'¡Santiago!',
+    bonus:{ spd:5 }, bonusText:'+5 % Hiebtempo',
+    desc:'Caballero König Karls I. von Kastilien und Aragón, der zugleich Kaiser ist. Weißer Rock mit dem roten Burgunderkreuz, dem Feldzeichen der spanischen Truppen; offene Borgoñota mit rotem Busch, im Schild Burg und Löwe von Kastilien und León.',
+    cloth:{ O:'#7e7a70', o:'#aeaa9c', y:'#d8d4c6', Y:'#f6f2e6' }, pal:{ F:'#5a1012', f:'#b8302a', g:'#e8705e' },
+    field: (left, up) => left === up ? 'gu' : 'ar', rim:'gu',
+    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_CASTLE3, kn_LIONP3, kn_LIONP3, kn_CASTLE3]); },
+    mark: kn_markSaltire, sleeve:['7.7', '.8.', '7.7'],
+    helmF:kn_BORG_F, helmB:kn_BORG_B, helmS:kn_BORG_S
+  }
+};
+for (const F of Object.values(KN_FACTIONS)) F.pal = Object.assign({}, kn_PAL, F.cloth, F.pal || {});
+const FACTION_IDS = Object.keys(KN_FACTIONS);
+
 /* ---------- Zusammensetzen ---------- */
 function kn_frame(grid, handGrid){
   const rows = grid.map(r => r.join(''));
-  const fr = spriteOf(makeSprite(rows, kn_PAL, OUT));
-  if (handGrid) fr.hands = makeSprite(handGrid.map(r => r.join('')), kn_PAL, OUT);
+  const fr = spriteOf(makeSprite(rows, kn_F.pal, OUT));
+  if (handGrid) fr.hands = makeSprite(handGrid.map(r => r.join('')), kn_F.pal, OUT);
   return fr;
 }
-const KNIGHT = { down: [], up: [], right: [], left: [] };
-for (let f = 0; f < 5; f++){
-  const hg = kn_new(); kn_comp(hg, kn_handF(), 0, kn_BOB[f]);
-  const body = kn_front(f); kn_comp(body, hg, 0, 0);
-  KNIGHT.down.push(kn_frame(body, hg));
-}
-for (let f = 0; f < 5; f++){
-  const hg = kn_new(); kn_comp(hg, kn_handB(), 0, kn_BOB[f]);
-  const body = kn_back(f); kn_comp(body, hg, 0, 0);
-  KNIGHT.up.push(kn_frame(body, hg));
-}
-for (let f = 0; f < 5; f++) for (const [d, m] of [['right', false], ['left', true]]){
-  const hg = kn_handS(f, m), body = kn_side(f, m);
-  if (!m) kn_comp(body, hg, 0, 0);
-  KNIGHT[d].push(kn_frame(body, hg));
-}
-const KNIGHT_ATK = { down: [], up: [], right: [], left: [] };
-for (let f = 0; f < 5; f++){
-  KNIGHT_ATK.down.push(kn_frame(kn_front(f, true)));
-  KNIGHT_ATK.up.push(kn_frame(kn_back(f, true)));
-  KNIGHT_ATK.right.push(kn_frame(kn_side(f, false, true)));
-  KNIGHT_ATK.left.push(KNIGHT.left[f]);
-}
-/* kurz nach einem Treffer: rot überzogen */
-const KNIGHT_HIT = {};
-for (const d of ['down', 'up', 'right', 'left']){
-  const src = KNIGHT[d][0].img, c = canvasOf(src.width, src.height), g = c.getContext('2d');
-  g.drawImage(src, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(214,40,40,.55)'; g.fillRect(0, 0, c.width, c.height);
-  KNIGHT_HIT[d] = [spriteOf(c)];
-}
-const KNIGHT_SIZE = { w: KNIGHT.down[0].img.width, h: KNIGHT.down[0].img.height, ax: kn_PAD + kn_CX, ay: kn_PAD + kn_H };
-const KNIGHT_FIST = makeSprite(['DLHD', 'LGHD', 'KDDK'], kn_PAL, OUT);
 const KNIGHT_GRIP = { down: { x: 0, y: -24 }, up: { x: 0, y: -28 }, right: { x: 5, y: -25 }, left: { x: -5, y: -25 } };
 const KNIGHT_CARRY = {
   down:  { x: -8, y: -23, a: 2.2, behind: false },
@@ -1145,26 +1347,71 @@ const KNIGHT_CARRY = {
   right: { x: 1, y: -24, a: 1.25, behind: false },
   left:  { x: -3, y: -25, a: Math.PI - 1.15, behind: true }
 };
-/* Sterben: der Ritter kippt um die Füße zur Seite (pixelscharf gedreht) */
-const KNIGHT_FALL = {};
-for (const d of ['down', 'up', 'right', 'left']){
-  const s = d === 'left' ? -1 : 1;
-  KNIGHT_FALL[d] = [.35, .8, 1.25, 1.57].map(a => rotateNN(KNIGHT[d][0].img, s * a, KNIGHT_SIZE.ax, KNIGHT_SIZE.ay - 1));
+/* alle Bilder eines Ritters: Gehen, Hieb, Treffer, Sturz, Infotafel und Schild als Symbol */
+function kn_buildSet(id){
+  const prev = kn_F; kn_F = KN_FACTIONS[id];
+  const walk = { down: [], up: [], right: [], left: [] }, atk = { down: [], up: [], right: [], left: [] }, hit = {}, fall = {};
+  const ax = kn_PAD + kn_CX, ay = kn_PAD + kn_H;
+  for (let f = 0; f < 5; f++){
+    let hg = kn_new(); kn_comp(hg, kn_handF(), 0, kn_BOB[f]);
+    let body = kn_front(f); kn_comp(body, hg, 0, 0); walk.down.push(kn_frame(body, hg));
+    hg = kn_new(); kn_comp(hg, kn_handB(), 0, kn_BOB[f]);
+    body = kn_back(f); kn_comp(body, hg, 0, 0); walk.up.push(kn_frame(body, hg));
+    for (const [d, m] of [['right', false], ['left', true]]){
+      const h2 = kn_handS(f, m), b2 = kn_side(f, m);
+      if (!m) kn_comp(b2, h2, 0, 0);
+      walk[d].push(kn_frame(b2, h2));
+    }
+  }
+  for (let f = 0; f < 5; f++){
+    atk.down.push(kn_frame(kn_front(f, true)));
+    atk.up.push(kn_frame(kn_back(f, true)));
+    atk.right.push(kn_frame(kn_side(f, false, true)));
+    atk.left.push(walk.left[f]);
+  }
+  for (const d of ['down', 'up', 'right', 'left']){
+    // kurz nach einem Treffer: rot überzogen
+    const src = walk[d][0].img, c = canvasOf(src.width, src.height), g = c.getContext('2d');
+    g.drawImage(src, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(214,40,40,.55)'; g.fillRect(0, 0, c.width, c.height);
+    hit[d] = [spriteOf(c)];
+    // Sterben: der Ritter kippt um die Füße zur Seite (pixelscharf gedreht)
+    const sd = d === 'left' ? -1 : 1;
+    fall[d] = [.35, .8, 1.25, 1.57].map(a => rotateNN(src, sd * a, ax, ay - 1));
+  }
+  // Infotafel: von vorn mit Schwert und Schild, knapp zugeschnitten
+  const plate = (() => {
+    const fr = walk.down[0], cr = KNIGHT_CARRY.down, n = 90, c = canvasOf(n, n), g = c.getContext('2d'), x = 46, y = 70;
+    g.drawImage(fr.img, x - ax, y - ay);
+    drawSword(g, x + cr.x, y + cr.y, 1.95);
+    g.drawImage(fr.hands, x - ax, y - ay);
+    const dd = g.getImageData(0, 0, n, n).data;
+    let x0 = n, y0 = n, x1 = 0, y1 = 0;
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) if (dd[(j * n + i) * 4 + 3]){ x0 = Math.min(x0, i); x1 = Math.max(x1, i); y0 = Math.min(y0, j); y1 = Math.max(y1, j); }
+    const out = canvasOf(x1 - x0 + 5, y1 - y0 + 5);
+    out.getContext('2d').drawImage(c, x0 - 2, y0 - 2, out.width, out.height, 0, 0, out.width, out.height);
+    return out;
+  })();
+  // Schild als Symbol (16 × 16) für Fähigkeiten und Tafeln
+  const icon = (() => {
+    const g = kn_new(); kn_shield(g, 1, 0, 11, 14, 'front');
+    const rows = g.slice(0, 14).map(r => r.slice(0, 13).join(''));
+    const sp = makeSprite(rows, kn_F.pal, OUT), c = canvasOf(16, 16);
+    c.getContext('2d').drawImage(sp, 1, 0);
+    return c;
+  })();
+  kn_F = prev;
+  return { id, walk, atk, hit, fall, plate, icon };
 }
+const KN_SETS = {};
+function knightSet(id){
+  if (!KN_FACTIONS[id]) id = 'reich';
+  return KN_SETS[id] || (KN_SETS[id] = kn_buildSet(id));
+}
+const KNIGHT_SET0 = knightSet('reich');
+const KNIGHT = KNIGHT_SET0.walk, KNIGHT_ATK = KNIGHT_SET0.atk, KNIGHT_HIT = KNIGHT_SET0.hit, KNIGHT_FALL = KNIGHT_SET0.fall, KNIGHT_PLATE = KNIGHT_SET0.plate;
+const KNIGHT_SIZE = { w: KNIGHT.down[0].img.width, h: KNIGHT.down[0].img.height, ax: kn_PAD + kn_CX, ay: kn_PAD + kn_H };
+const KNIGHT_FIST = makeSprite(['DLHD', 'LGHD', 'KDDK'], kn_PAL, OUT);
 
-/* Infotafel: der Ritter von vorn mit Schwert und Schild, knapp zugeschnitten */
-const KNIGHT_PLATE = (() => {
-  const fr = KNIGHT.down[0], cr = KNIGHT_CARRY.down, n = 90, c = canvasOf(n, n), g = c.getContext('2d'), x = 46, y = 70;
-  g.drawImage(fr.img, x - KNIGHT_SIZE.ax, y - KNIGHT_SIZE.ay);
-  drawSword(g, x + cr.x, y + cr.y, 1.95);
-  g.drawImage(fr.hands, x - KNIGHT_SIZE.ax, y - KNIGHT_SIZE.ay);
-  const d = g.getImageData(0, 0, n, n).data;
-  let x0 = n, y0 = n, x1 = 0, y1 = 0;
-  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) if (d[(j * n + i) * 4 + 3]){ x0 = Math.min(x0, i); x1 = Math.max(x1, i); y0 = Math.min(y0, j); y1 = Math.max(y1, j); }
-  const out = canvasOf(x1 - x0 + 5, y1 - y0 + 5);
-  out.getContext('2d').drawImage(c, x0 - 2, y0 - 2, out.width, out.height, 0, 0, out.width, out.height);
-  return out;
-})();
 const KNIGHT_NOTES = [
   'Der Ritter trägt den Wappenrock des Reiches: gelbes Tuch mit dem schwarzen Doppeladler auf Brust, Rücken und Ärmeln. So erkannte man im Getümmel, für wen er kämpfte.',
   'Auf dem Kopf sitzt eine Schaller mit Visier und schmalem Sehschlitz, hinten läuft sie in einen langen Nackenschirm aus. Kinn und Kehle deckt der Bart, eine gewölbte Platte vor dem Hals.',
@@ -4927,8 +5174,27 @@ function wp_wheel(B, cx, cy, r, R, s, o){
   if (o.hub) wp_set(B, Math.round(cx - .5), Math.round(cy - .5), I[1]);
 }
 
+/* Wirtshausschild am eisernen Ausleger: bemaltes Brett mit Wappenbild (Adler, Krone, Ochse) */
+function wp_innSign(B, hx, hy, dir, emblem){
+  const I = wp_P.iron, G = wp_P.gold;
+  for (let i = 0; i < 12; i++) wp_set(B, hx + dir * i, hy, I[i & 1 ? 2 : 3]);
+  wp_line(B, hx, hy + 4, hx + dir * 5, hy, I[2]);
+  for (let i = 0; i < 3; i++){ wp_set(B, hx + dir * (11 - i), hy - 1 - (i === 1 ? 1 : 0), I[3]); }
+  const bx = dir > 0 ? hx + 2 : hx - 12, by = hy + 3;
+  wp_set(B, bx + 1, hy + 1, I[2]); wp_set(B, bx + 1, hy + 2, I[1]); wp_set(B, bx + 9, hy + 1, I[2]); wp_set(B, bx + 9, hy + 2, I[1]);
+  const field = { adler: '#2a2420', krone: '#7a1e1c', ochse: '#d8ccae' }[emblem] || '#2a2420';
+  wp_rect(B, bx, by, bx + 11, by + 10, (x, y) => (x === bx || y === by || x === bx + 10 || y === by + 9) ? wp_tone(wp_P.oak, x === bx || y === by ? .7 : .3, x, y) : wp_mix(wp_c(field), wp_c('#000000'), (x - bx) * .025));
+  const art = {
+    adler: ['.g...g.', '.gg.gg.', 'g.ggg.g', 'ggggggg', '.g.g.g.', '..ggg..', '...g...'],
+    krone: ['g..g..g', 'g.ggg.g', 'ggggggg', 'g.g.g.g', 'ggggggg', '.......', '.......'],
+    ochse: ['r.....r', 'rr...rr', '.rrrrr.', '.rwrwr.', '..rrr..', '..rrr..', '...r...']
+  }[emblem] || [];
+  const col = { g: j => G[j < 3 ? 5 : 3], r: () => wp_c('#8e1c1c'), w: () => wp_c('#16120f') };
+  art.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (col[row[i]]) wp_set(B, bx + 2 + i, by + 1 + j, col[row[i]](j)); });
+}
+
 /* ---------- Dorfhaus (Wohnstallhaus, traufständig) ---------- */
-function wp_bHaus(s, v){
+function wp_bHaus(s, v, inn){
   const B = wp_img(104, 104, 101), R = rng(s), ax = B.ax, ay = B.ay;
   const mat = ['thatch', 'tile', 'thatch', 'shingle'][(v || 0) % 4];
   const end = mat === 'thatch' ? (R() < .5 ? 'half' : 'hip') : (R() < .55 ? 'gable' : 'half');
@@ -5006,6 +5272,8 @@ function wp_bHaus(s, v){
   if (R() < .5) wp_wheel(B, flip ? xL + 30 : xR - 32, ay - 6, 6, wp_P.gwood, s + 4, { spokes: 6 });
   if (R() < .5) wp_barrel(B, flip ? xL + 47 : xL + 58, ay + 1, 7, 9, s + 9, { R: wp_P.wood });
   for (let i = 0; i < 6; i++) wp_grass(B, xL + 4 + R() * 88, ay + 1, 3, s + i, wp_LEAF.busch);
+  extra.door = { x: dx + 4 - ax };
+  if (inn){ const dir = flip ? -1 : 1; wp_innSign(B, dir > 0 ? dx + 9 : dx - 2, yG - 15, dir, inn); }
   return wp_res(B, [[-48, -40, 48, 2]], [-48, -98, 48, -6], extra);
 }
 
@@ -5100,7 +5368,7 @@ function wp_bRuine(s, v){
 }
 
 /* ---------- Stadthaus (giebelständig, Vorkragungen, Laden) ---------- */
-function wp_bStadthaus(s, v){
+function wp_bStadthaus(s, v, inn){
   const B = wp_img(88, 118, 114), R = rng(s), ax = B.ax, ay = B.ay;
   const PL = [wp_P.plaster, wp_P.ochre, wp_P.pink, wp_P.plaster][R() * 4 | 0], T = R() < .6 ? wp_P.oakred : wp_P.oak;
   const pat = R() < .5 ? 'mann' : 'kreuz';
@@ -5180,8 +5448,13 @@ function wp_bStadthaus(s, v){
   // Schornstein auf der linken Dachfläche
   const chx = Math.round(gcx - 14), chb = Math.round(gyT + 3 - D * .55 + 14 * Hr / ((gx1 - gx0) / 2));
   const ch = wp_chimney(B, chx, chb, 6, 14, s + 60);
-  // Hauszeichen am Ausleger: Brezel, Krug oder Schlüssel
+  // Hauszeichen am Ausleger: Brezel, Krug oder Schlüssel; beim Gasthaus das Wirtshausschild
   const hx = flip ? xL - 2 : xR + 2, hy = yG - 10, dir = flip ? -1 : 1;
+  if (inn){
+    wp_innSign(B, flip ? xL + 1 : xR - 1, yG - 12, dir, inn);
+    for (let i = 0; i < 4; i++) wp_grass(B, xL + 2 + R() * 70, ay + 1, 2, s + i, wp_LEAF.busch);
+    return wp_res(B, [[-40, -46, 40, 2]], [-42, -110, 42, -8], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }], door: { x: px + 5 - ax } });
+  }
   for (let i = 0; i < 7; i++) wp_set(B, hx + dir * i, hy, wp_P.iron[i & 1 ? 2 : 3]);
   wp_line(B, hx, hy + 3, hx + dir * 4, hy, wp_P.iron[2]);
   const sgx = hx + dir * 5 - 2, sgy = hy + 2, sign = R() * 3 | 0;
@@ -5653,7 +5926,8 @@ const wp_K = {
   grabstein: [(s, v) => wp_kGrabstein(s, v), 6], grabkreuz: [(s, v) => wp_kGrabkreuz(s, v), 6], wegkreuz: [(s, v) => wp_kWegkreuz(s, v), 2],
   fels: [(s, v) => wp_kFels(s, v), 5], stein: [(s, v) => wp_kStein(s, v), 6], feuerschale: [(s, v) => wp_kFeuerschale(s, v), 2], lagerfeuer: [(s, v) => wp_kLagerfeuer(s, v), 3],
   zaun_h: [(s, v) => wp_kZaunH(s, v), 4], zaun_v: [(s, v) => wp_kZaunV(s, v), 3], spiesse: [(s, v) => wp_kSpiesse(s, v), 4], fass: [(s, v) => wp_kFass(s, v), 4],
-  kisten: [(s, v) => wp_kKisten(s, v), 4], wegweiser: [(s, v) => wp_kWegweiser(s, v), 3], banner: [(s, v) => wp_kBanner(s, v), 2]
+  kisten: [(s, v) => wp_kKisten(s, v), 4], wegweiser: [(s, v) => wp_kWegweiser(s, v), 3], banner: [(s, v) => wp_kBanner(s, v), 2],
+  gasthaus_adler: [(s, v) => wp_bStadthaus(s + 31, 0, 'adler'), 1], gasthaus_krone: [(s, v) => wp_bHaus(s + 17, 1, 'krone'), 1], gasthaus_ochse: [(s, v) => wp_bHaus(s + 5, 3, 'ochse'), 1]
 };
 const WP_KINDS = Object.keys(wp_K);
 const wp_cache = new Map();
@@ -6420,7 +6694,7 @@ function wo_add(kind, x, y, P, noCol){
   const ex = P.extra || {};
   const e = { kind, x, y, img: P.img, ax: P.ax, ay: P.ay,
     occl: P.occl ? [x + P.occl[0], y + P.occl[1], x + P.occl[2], y + P.occl[3]] : null,
-    apple: !!ex.apples, crown: ex.crown ? { x: x + ex.crown.x, y: y + ex.crown.y } : null, shake: 0 };
+    apple: !!ex.apples, crown: ex.crown ? { x: x + ex.crown.x, y: y + ex.crown.y } : null, shake: 0, door: ex.door ? x + ex.door.x : null };
   const feet = [];
   for (const f of P.foot){
     const r = [x + f[0], y + f[1], x + f[2], y + f[3]]; feet.push(r);
@@ -6617,6 +6891,7 @@ const wo_ns = () => (wo_seed = (wo_seed * 31 + 7) % 100003) + .37;
 const wo_pick = (R, arr) => arr[R() * arr.length | 0];
 const wo_HOUSES = [];     // Häuser für Rattenpunkte
 const wo_GRAVES = [];     // Gräber für Wiedergänger
+const wo_INNP = {};       // Gasthäuser
 
 /* ---------- Reichsburg ---------- */
 (function wo_castle(){
@@ -6703,7 +6978,10 @@ const wo_GRAVES = [];     // Gräber für Wiedergänger
   for (let k = 0; k < 6; k++){ const g = wo_try(k % 2 ? 'grabkreuz' : 'grabstein', 2630 + k * 18, 2196 + (k % 2) * 4, wo_ns(), 0, -40); if (g) wo_GRAVES.push(g); }
   // Häuserzeilen (Giebel zur Gasse)
   const rowA = [2634, 2718, 2802, 2886, 3046, 3130, 3214, 3298], rowC = [2634, 2718, 2802, 2886, 3046, 3130, 3214, 3298];
-  for (const x of rowA){ const h = wo_try('stadthaus', x, 2104, wo_ns(), -2, -40); if (h) wo_HOUSES.push(h); }
+  for (const x of rowA){
+    const kind = x === 3130 ? 'gasthaus_adler' : 'stadthaus', h = wo_try(kind, x, 2104, wo_ns(), -2, -40);
+    if (h){ if (kind === 'stadthaus') wo_HOUSES.push(h); else { wo_INNP.adler = h; wo_reserve(h.door - 14, 2106, h.door + 14, 2140); } }
+  }
   for (const x of rowC){ const h = wo_try('stadthaus', x, 2524, wo_ns(), -2, -40); if (h) wo_HOUSES.push(h); }
   for (const x of [2880, 3052]){ const h = wo_try('stadthaus', x, 2212, wo_ns(), -2, -40); if (h) wo_HOUSES.push(h); }
   for (const x of [3182, 3266]){ const h = wo_try('stadthaus', x, 2300, wo_ns(), -2, -40); if (h) wo_HOUSES.push(h); }
@@ -6712,6 +6990,24 @@ const wo_GRAVES = [];     // Gräber für Wiedergänger
   // Gärten vor der Stadt
   for (let k = 0; k < 28; k++){ const x = C.x0 - 40 - R() * 200, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .5 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
   for (let k = 0; k < 18; k++){ const x = C.x1 + 60 + R() * 120, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .4 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
+})();
+
+/* ---------- Gasthäuser an der Steinbrücke und am Burgweg ---------- */
+(function wo_inns(){
+  const place = (id, kind, tx, ty) => {
+    const P = makeProp(kind, 7);
+    for (let r = 0; r <= 260; r += 8) for (let k = 0; k < (r ? 16 : 1); k++){
+      const a = k / 16 * Math.PI * 2, x = Math.round(tx + Math.cos(a) * r), y = Math.round(ty + Math.sin(a) * r * .7);
+      if (!wo_fits(P, x, y, 3, 3)) continue;
+      const dx = x + P.extra.door.x;
+      if (!wo_occFree(dx - 14, y + 4, dx + 14, y + 34) || wo_wsd(dx, y + 20) < 6) continue;
+      wo_INNP[id] = wo_add(kind, x, y, P);
+      wo_reserve(dx - 16, y + 3, dx + 16, y + 36);
+      return;
+    }
+  };
+  place('ochse', 'gasthaus_ochse', 2010, 800);
+  place('krone', 'gasthaus_krone', 3080, 1900);
 })();
 
 /* ---------- Mühle, Ufer, Brückenköpfe ---------- */
@@ -7889,6 +8185,10 @@ const nf = s => 440 * Math.pow(2, s / 12);
 const MELODY = [-7,null,-4,null, 0,null,-2,-4, -5,null,-7,null, null,null,null,null,
                 -7,null,-4,0, 1,null,0,-2, -4,-5,-2,-5, -7,null,null,null];
 const BASS = [-31,-31,-35,-33,-31,-31,-36,-31];
+/* im Gasthaus: ein munterer Tanz in G-Dur */
+const INN_MEL = [5,null,2,-2, 0,2,3,0, 2,null,-2,2, 0,null,null,null,
+                 5,null,2,-2, 0,2,3,7, 5,2,0,-3, -2,null,null,null];
+const INN_BASS = [-26,-19,-26,-19,-26,-21,-19,-26];
 const Sound = {
   ac:null, on:true, timer:null, step:0, next:0,
   init(){
@@ -7943,13 +8243,16 @@ const Sound = {
     this.timer = setInterval(() => this.schedule(), 60);
   },
   stopMusic(){ clearInterval(this.timer); this.timer = null; },
+  tune:'world',
+  setTune(t){ if (this.tune !== t){ this.tune = t; this.step = 0; } },
   schedule(){
-    const sp = .27;
+    const inn = this.tune === 'inn', sp = inn ? .19 : .27, M = inn ? INN_MEL : MELODY, Bs = inn ? INN_BASS : BASS;
     while (this.next < this.ac.currentTime + .25){
-      const i = this.step % 32, m = MELODY[i], d = this.next - this.ac.currentTime;
-      if (m !== null) this.tone(nf(m), .3, 'triangle', .028, 0, d);
-      if (i % 4 === 0) this.tone(nf(BASS[i / 4]), .9, 'square', .012, 0, d);
-      if (i === 0 && this.step % 64 === 0) this.bell(d);
+      const i = this.step % 32, m = M[i], d = this.next - this.ac.currentTime;
+      if (m !== null) this.tone(nf(m), inn ? .17 : .3, 'triangle', inn ? .03 : .028, 0, d);
+      if (i % 4 === 0) this.tone(nf(Bs[i / 4]), inn ? .3 : .9, 'square', .012, 0, d);
+      if (inn && i % 2 === 1) this.noise(.03, .018, 2600, d);
+      if (!inn && i === 0 && this.step % 64 === 0) this.bell(d);
       this.next += sp; this.step++;
     }
   }
@@ -7983,7 +8286,7 @@ const SKILLS = [
   { id:'hieb', name:'Hieb', key:'Leer', lvl:1, icon:'sword', desc:'Schwerthieb im Bogen' },
   { id:'rund', name:'Rundhieb', key:'R', lvl:3, cd:6, icon:'sweep', desc:'trifft alles rundherum, 140 % Schaden' },
   { id:'stoss', name:'Schildstoß', key:'F', lvl:6, cd:9, icon:'shield', desc:'Sprung nach vorn, betäubt, wehrt Geschosse ab' },
-  { id:'ruf', name:'Adlerruf', key:'G', lvl:10, cd:30, icon:'eagle', desc:'10 Sekunden lang +30 % Schaden und +10 % Volltreffer' },
+  { id:'ruf', name:'Schlachtruf', key:'G', lvl:10, cd:30, icon:'eagle', desc:'Schlachtruf der Herkunft: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer' },
   { id:'trank', name:'Heiltrank', key:'Q', lvl:1, cd:6, icon:'potion', desc:'heilt 45 % des Lebens' }
 ];
 
@@ -8268,6 +8571,23 @@ function np_figure(o){
     for (const [y, hw] of [[3, 3], [4, 3], [5, 3]]) band(y, cx - hw, cx + hw, ['W', 'X', 'X', 'b'], .1);
     band(6, cx - 7, cx + 7, ['W', 'W', 'X', 'X']); px(cx - 3, 5, 'R');
   }
+  // Mi-parti: Rock rechts in der zweiten Farbe, Beine gegengewechselt
+  if (o.parti) for (let y = 16; y < Ht; y++) for (let x = 0; x < Wd; x++){
+    const ch = g[y][x], i = '1234'.indexOf(ch), j = '5678'.indexOf(ch);
+    if (y <= 33 && x > cx && i >= 0) g[y][x] = '5678'[i];
+    else if (y > 33 && x > cx && j >= 0) g[y][x] = '1234'[j];
+  }
+  // Laute vor dem Bauch, Hals nach rechts oben
+  if (o.lute){
+    for (let y = 22; y <= 31; y++) for (let x = cx - 7; x <= cx + 2; x++){
+      const u = (x + .5 - (cx - 2.5)) / 4.6, v = (y + .5 - 27) / 4.2;
+      if (u * u + v * v > 1) continue;
+      px(x, y, u * u + v * v > .7 ? 'W' : u < -.2 ? 'B' : 'X');
+    }
+    px(cx - 3, 26, 'N'); px(cx - 2, 26, 'N'); px(cx - 3, 27, 'N');
+    for (let k = 0; k <= 6; k++) px(cx + 1 + k, 24 - k, k & 1 ? 'X' : 'B');
+    px(cx + 8, 17, 'W'); px(cx + 8, 16, 'W'); px(cx + 7, 16, 'N');
+  }
   // Hellebarde
   if (o.halberd){
     for (let y = 1; y <= 45; y++) px(cx + 9, y, y & 1 ? 'W' : 'X');
@@ -8361,8 +8681,8 @@ const qReward = d => ({ xp: Math.round(xpNeed(d.lvl) * (d.boss ? .8 : d.id === '
 
 /* ============ Der Held (wird gespeichert) ============ */
 const SAVE_KEY = 'apfelritter-held-v5';
-function freshHero(name){
-  return { v:5, name, lvl:1, xp:0, gold:10, potions:3, inv: Array(24).fill(null),
+function freshHero(name, f){
+  return { v:5, name, f: KN_FACTIONS[f] ? f : 'reich', food:null, drink:null, lvl:1, xp:0, gold:10, potions:3, inv: Array(24).fill(null),
     eq: { waffe: makeItem('waffe', 1, 0, { name:'Rostiges Kurzschwert' }), helm:null, ruestung: makeItem('ruestung', 1, 0, { name:'Wattierter Gambeson' }),
       schild: makeItem('schild', 1, 0, { name:'Holzschild' }), beine:null, kleinod:null },
     quests:[], done:[], kills:0, bosses:{}, bind:'burg', x: BIND.burg.x, y: BIND.burg.y, played:0, savedAt:0, made: Date.now() };
@@ -8378,6 +8698,9 @@ function cleanHero(h){
   h.done = h.done || []; h.bosses = h.bosses || {}; h.kills = h.kills | 0;
   if (!BIND[h.bind]) h.bind = 'burg';
   if (!wo_ok(h.x, h.y)){ h.x = BIND[h.bind].x; h.y = BIND[h.bind].y; }
+  if (!KN_FACTIONS[h.f]) h.f = 'reich';
+  for (const key of ['food', 'drink']){ const b = h[key]; h[key] = b && FARE_BY[b.id] && b.t > 0 ? { id: b.id, t: Math.min(+b.t || 0, FARE_MIN * 60) } : null; }
+  if (h.inn && !INN_BY[h.inn]) h.inn = null;
   return h;
 }
 let HERO = null;
@@ -8392,6 +8715,11 @@ function heroStats(h){
     for (const [k, v] of Object.entries(it.a || {})){ if (k === 'str') s.dmg += v; else s[k] += v; }
   }
   if (h.eq.schild) s.block += 20;
+  // Herkunft und Stärkung durch Speis und Trank
+  s.regen = 1;
+  const fx = [(KN_FACTIONS[h.f] || KN_FACTIONS.reich).bonus].concat([h.food, h.drink].map(b => b && b.t > 0 && FARE_BY[b.id] ? FARE_BY[b.id].fx : null));
+  for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
+  s.hp = Math.round(s.hp);
   s.dmg = Math.round(s.dmg); s.block = Math.min(60, s.block); s.crit = Math.min(50, s.crit);
   s.cd = .6 / (1 + s.spd / 100);
   s.mit = s.arm / (s.arm + 30 + 8 * L);
@@ -8407,7 +8735,8 @@ const SPAWN_SLOTS = (() => {
   const zid = (x, y) => ZONES[wo_zid(x | 0, y | 0)].id;
   const nearSafe = (x, y) => [[0, 0], [110, 0], [-110, 0], [0, 110], [0, -110], [80, 80], [-80, 80], [80, -80], [-80, -80]].some(([dx, dy]) => SAFE[zid(clamp(x + dx, 0, WW - 1), clamp(y + dy, 0, WH - 1))]);
   const lairs = Object.values(LAIRS);
-  const free = (x, y) => !out.some(s => Math.abs(s.x - x) < 72 && Math.abs(s.y - y) < 58) && !lairs.some(p => Math.hypot(p.x - x, p.y - y) < 150) && !nearSafe(x, y);
+  const free = (x, y) => !out.some(s => Math.abs(s.x - x) < 72 && Math.abs(s.y - y) < 58) && !lairs.some(p => Math.hypot(p.x - x, p.y - y) < 150) && !nearSafe(x, y)
+    && !Object.values(wo_INNP).some(e => Math.hypot(e.x - x, e.y - y) < 240);
   for (const [zone, kinds] of Object.entries(ZONE_MOBS)){
     const [lo, hi] = ZONE_LV[zone];
     const first = out.length;
@@ -8438,7 +8767,304 @@ const NPCS = [
   { id:'buerger', name:'Bürgermeister Ulman', role:'Aufträge', hub:'stadt', at: wo_near(2926, 2352), quest:true },
   { id:'kraemer', name:'Krämer Jörg', role:'Händler', hub:'stadt', at: wo_near(3052, 2318), shop:true }
 ];
-NPCS.forEach(n => { n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; });
+NPCS.forEach(n => { n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; });
+
+/* ============ Gasthäuser: Speis und Trank, Rast, Treffpunkt ============ */
+/* Speisen und Getränke wie in einem Wirtshaus um 1520 (keine Kartoffeln, die kamen erst später aus Amerika).
+   fx: hpPct Leben, dmgPct Schaden, crit Volltreffer, spd Hiebtempo, regen Erholung; base Preis bei Stufe 1 */
+const FARE = [
+  { id:'brot', kind:'speise', n:'Roggenbrot mit Schmalz', fx:{ hpPct:6 }, base:2, icon:'brot' },
+  { id:'brei', kind:'speise', n:'Hirsebrei mit Honig', fx:{ hpPct:5, regen:2 }, base:3, icon:'schuessel' },
+  { id:'erbsen', kind:'speise', n:'Erbsen mit Speck', fx:{ hpPct:10 }, base:4, icon:'schuessel' },
+  { id:'wurst', kind:'speise', n:'Rostbratwürste mit Sauerkraut', fx:{ hpPct:8, dmgPct:5 }, base:6, icon:'wurst' },
+  { id:'braten', kind:'speise', n:'Schweinebraten mit Brotknödeln', fx:{ hpPct:15, regen:2 }, base:9, icon:'braten' },
+  { id:'kapaun', kind:'speise', n:'Gebratener Kapaun mit Mandelmus', fx:{ hpPct:18, dmgPct:6 }, base:14, icon:'braten', only:'adler' },
+  { id:'forelle', kind:'speise', n:'Gesottene Forelle aus dem Fluss', fx:{ hpPct:12, regen:3 }, base:8, icon:'fisch', only:'krone' },
+  { id:'ochsen', kind:'speise', n:'Ochsenbraten nach Art des Hauses', fx:{ hpPct:20 }, base:11, icon:'braten', only:'ochse' },
+  { id:'kofent', kind:'trank', n:'Dünnbier (Kofent)', fx:{ crit:2 }, base:1, icon:'krug' },
+  { id:'bier', kind:'trank', n:'Bier nach dem Reinheitsgebot von 1516', fx:{ crit:5 }, base:3, icon:'krug' },
+  { id:'wein', kind:'trank', n:'Frankenwein', fx:{ spd:8 }, base:4, icon:'wein' },
+  { id:'met', kind:'trank', n:'Met mit Honig', fx:{ dmgPct:6 }, base:4, icon:'krug' },
+  { id:'malvasier', kind:'trank', n:'Malvasier aus Venedig', fx:{ spd:10, crit:3 }, base:10, icon:'wein', only:'adler' }
+];
+const FARE_BY = Object.fromEntries(FARE.map(f => [f.id, f]));
+const FARE_MIN = 15;                                  // Minuten Spielzeit, die eine Mahlzeit vorhält
+const farePrice = f => Math.round(f.base * (1 + HERO.lvl * .45));
+const fxText = fx => [fx.hpPct && '+' + fx.hpPct + ' % Leben', fx.dmgPct && '+' + fx.dmgPct + ' % Schaden', fx.crit && '+' + fx.crit + ' % Volltreffer', fx.spd && '+' + fx.spd + ' % Hiebtempo', fx.regen && (fx.regen > 2 ? 'dreifache' : 'doppelte') + ' Erholung'].filter(Boolean).join(', ');
+Object.assign(Sound, {
+  eat(){ for (let i = 0; i < 3; i++) this.noise(.05, .06, 1200, i * .12); },
+  drink(){ this.tone(220, .12, 'sine', .05, 80); this.tone(260, .12, 'sine', .045, 80, .14); this.tone(300, .16, 'sine', .04, 60, .28); }
+});
+
+/* Symbole für Speis und Trank (16 × 16) */
+Object.assign(ICONS, {
+  brot: bi_icon(['................', '................', '................', '................', '......nnnn......', '....nnpqqpnn....', '...npqqpqqqpn...', '..npqpqqpqpqpn..',
+    '..nqqpqqpqqpqn..', '.mnpppqppppppnm.', '.lmnnpppppnnnml.', '..llmmmmmmmmll..', '....llllllll....', '................', '................', '................']),
+  schuessel: bi_icon(['................', '................', '................', '..........x.....', '.........x......', '....ijjjxjji....', '...ihijjjjihi...', '..nmnnnnnnnnmn..',
+    '..npqqpqqpqqpn..', '...npqqpqqpqn...', '....nppppppn....', '.....nmmmmn.....', '......llll......', '................', '................', '................']),
+  wurst: bi_icon(['................', '................', '................', '................', '.....rRRRRr.....', '....rRSSRRRr....', '...rRRRRRRRRr...', '....rrRRRRRr....',
+    '...ij.rRSSRRr...', '..ijirRRRRRRRr..', '..34444rrrrr443.', '...3344444443...', '.....333333.....', '................', '................', '................']),
+  braten: bi_icon(['................', '................', '..........5w....', '.........5w5....', '....mnnn5w5.....', '...mnpqqp55.....', '..mnpqqqppnm....', '..mnppqpppnm....',
+    '..lmnppppnml....', '...llmmmmll.....', '.3344444444433..', '..33444444433...', '....33333333....', '................', '................', '................']),
+  fisch: bi_icon(['................', '................', '................', '................', '................', '...........x....', '..xyyyyyyyxx.x..', '.x1yRyyRyyyyxx..',
+    '.xwwwwwwwwwwxw..', '..xyyyyyyyyx..x.', '.3344444444433..', '..33444444433...', '....33333333....', '................', '................', '................']),
+  krug: bi_icon(['................', '................', '....wwwwww......', '...wwwwwwww.....', '...wxwwxwwx.....', '...npqqpqpn.....', '...npqqpqpnmm...', '...hiiiiiihnn...',
+    '...npqqpqpn..m..', '...npqqpqpn..m..', '...npqqpqpnmm...', '...hiiiiiihn....', '...npqqpqpn.....', '....nnnnnn......', '................', '................']),
+  wein: bi_icon(['................', '................', '....uuuuuuu.....', '....uRRRRRu.....', '....usRRRRu.....', '.....uRRRu......', '......uuu.......', '......vVv.......',
+    '.......u........', '......vVv.......', '.......u........', '....vvVVVvv.....', '.....vvvvv......', '................', '................', '................'])
+});
+
+/* Leute im Gasthaus */
+const INN_INFO = {
+  adler: { name:'Zum Goldenen Adler', where:'in der Reichsstadt', host:'Wirtin Margarethe', role:'Wirtin', wall:wp_P.ochre, seed:31 },
+  krone: { name:'Zur Krone', where:'an der Steinbrücke', host:'Wirt Konrad', role:'Wirt', wall:wp_P.plaster, seed:47 },
+  ochse: { name:'Zum Roten Ochsen', where:'am Burgweg', host:'Wirt Bartholomäus', role:'Wirt', wall:wp_P.pink, seed:59 }
+};
+const INN_ART = {
+  wirt: np_frames({ robe:'short', apron:'linen', belt:true, beard:true, hairSide:true, hair:['j', 'h'] },
+    { 1:'#3a2a1a', 2:'#56402a', 3:'#70583a', 4:'#8a7050', 5:'#2a2420', 6:'#3a322c', 7:'#4a4038', 8:'#5c5048' }),
+  wirtin: np_frames({ robe:'long', hat:'haube', apron:'linen' },
+    { 1:'#4a1414', 2:'#6e2020', 3:'#8e3028', 4:'#ae4a3a', 5:'#3a2c1e', 6:'#4a3a28', 7:'#5a4a34', 8:'#6e5c44' }),
+  spielmann: np_frames({ robe:'short', hat:'barett', parti:true, lute:true, belt:true },
+    { 1:'#6a1414', 2:'#9a2420', 3:'#c03a2c', 4:'#de5a44', 5:'#7a5a10', 6:'#a88220', 7:'#d2a83a', 8:'#ecca5c' }),
+  bauer: np_frames({ robe:'short', hat:'filz', beard:true, belt:true, hair:['j', 'h'] },
+    { 1:'#3a3a2c', 2:'#525240', 3:'#6a6a54', 4:'#84846a', 5:'#3a2c1e', 6:'#4a3a28', 7:'#5a4a34', 8:'#6e5c44', R:'#6a5a3a' })
+};
+const INN_LORE = {
+  spielmann: [
+    'Habt Ihr gehört? In Aachen hat man den jungen Karl zum Kaiser gekrönt.',
+    'Im Juni trafen sich der König von England und der König von Frankreich bei Calais, auf einem Feld voller goldener Zelte.',
+    'Aus Wittenberg erzählt man, ein Mönch namens Luther streite mit dem Papst. Das gibt noch Ärger, sag ich Euch.',
+    'Die Fugger in Augsburg haben die Kaiserwahl bezahlt. Gold öffnet jede Tür, auch die der Kurfürsten.',
+    'Ein Portugiese namens Magellan segelt für Spanien nach Westen, um die Welt herum, heißt es.',
+    'Wer in die Raubritterburg will, sollte vorher hier gut essen. Mit leerem Magen kämpft es sich schlecht.'
+  ],
+  bauer: [
+    'Der Zehnt frisst uns auf, und jetzt noch die Monster in den Feldern.',
+    'Auf dem alten Schlachtfeld geht der Tod um. Ohne Heiltränke geht da keiner hin.',
+    'Im Moor haust der Lindwurm. Sein Feuer brennt durch jede Rüstung.',
+    'Kunz der Schwarze lacht über jeden Ritter unter Stufe 17. Glaubt es mir.',
+    'Die Würste hier sind die besten im ganzen Reichsland. Esst eine, dann schlagt Ihr kräftiger zu.'
+  ]
+};
+
+/* ---------- Gasthäuser in der Welt ---------- */
+const INNS = Object.entries(wo_INNP).map(([id, p]) => Object.assign({ id, x: p.x, y: p.y, dx: p.door, dy: p.y + 12 }, INN_INFO[id]));
+const INN_BY = Object.fromEntries(INNS.map(i => [i.id, i]));
+const HUB_IN = { burg:'in der Reichsburg', stadt:'in der Reichsstadt' };
+for (const inn of INNS){
+  BIND[inn.id] = { x: inn.dx, y: inn.dy + 2 };
+  HUB_NAME[inn.id] = 'Gasthaus ' + inn.name;
+  HUB_IN[inn.id] = 'im Gasthaus ' + inn.name;
+  MAP_LABELS.push({ x: inn.dx, y: inn.y - 70, name: inn.name, inn: true });
+}
+const nearInn = (x, y) => INNS.some(i => Math.hypot(i.dx - x, i.dy - y) < 130);
+
+/* ---------- Innenraum: Herd, Schanktisch, Tische und Bänke (Bildschirmkoordinaten) ---------- */
+const ROOM_DOOR = { x: 240, y: 252 };
+function innRoom(inn){
+  if (inn.room) return inn.room;
+  const s = inn.seed, B = wp_buf(W, H), R = rng(s), items = [], rects = [], candles = [];
+  const C = (h) => wp_c(h);
+  wp_rect(B, 0, 0, W, H, C('#100d0b'));
+  // Rückwand: Fachwerk mit Butzenscheiben
+  wp_fachwerk(B, { x0: 22, x1: 458, yT: 8, yB: 86, R: wp_P.oak, P: inn.wall, s, pat: 'kreuz', flake: .35, gap: 22, par: 3,
+    wins: [{ x: 152, w: 14, h: 12, glass: true }, { x: 214, w: 14, h: 12, glass: true }, { x: 262, w: 14, h: 12, glass: true }] });
+  wp_beam(B, 22, 86, 458, 86, 3, wp_P.oak, s + 3);
+  // Seitenwände in Schräge
+  wp_poly(B, [[0, 0], [22, 8], [22, 92], [0, 112]], (x, y) => wp_tone(wp_P.oak, .18 + (wp_h(x, y, s) - .5) * .1, x, y));
+  wp_poly(B, [[W, 0], [458, 8], [458, 92], [W, 112]], (x, y) => wp_tone(wp_P.oak, .1 + (wp_h(x, y, s) - .5) * .1, x, y));
+  // Dielenboden
+  for (let y = 88; y < H; y++){
+    const row = Math.floor((y - 88) / 7), off = (row * 37) % 60;
+    for (let x = 0; x < W; x++){
+      const k = Math.floor((x + off) / 60), seam = (y - 88) % 7 === 0 || (x + off) % 60 === 0;
+      let v = .42 + (wp_h(k, row, s) - .5) * .22 + (wp_vn(x * .08, y * .5, s + 2) - .5) * .25 - (y < 96 ? .15 : 0);
+      if (seam) v -= .28;
+      wp_set(B, x, y, wp_tone(wp_P.wood, v, x, y));
+      if (wp_h(x, y, s + 9) > .985) wp_set(B, x, y, wp_P.straw[3]);        // Binsenhalme auf dem Boden
+    }
+  }
+  for (let y = 88; y < 112; y++){ const w2 = Math.round(22 - (y - 88) * .9); wp_rect(B, 0, y, Math.max(0, w2), y + 1, C('#100d0b')); wp_rect(B, W - Math.max(0, w2), y, W, y + 1, C('#100d0b')); }
+  // Herd: Steinmantel, Feueröffnung, Kesselhaken
+  wp_rect(B, 30, 10, 126, 100, wp_rubble({ R: wp_P.grey, s: s + 5, cw: 7, chh: 4 }));
+  wp_rect(B, 26, 40, 130, 46, (x, y) => wp_tone(wp_P.oak, y === 40 ? .75 : .4, x, y));
+  wp_rect(B, 50, 58, 106, 98, (x, y) => wp_P.dark[y < 64 ? 0 : 1]);
+  wp_rect(B, 50, 92, 106, 98, (x, y) => wp_tone(wp_P.char, .3 + wp_h(x, y, s) * .5, x, y));
+  wp_line(B, 78, 58, 78, 72, wp_P.iron[2]);
+  wp_ell(B, 78, 78, 8, 6, (x, y) => wp_tone(wp_P.iron, .25 + (78 - x) * .04 - (y - 78) * .03, x, y));
+  for (let i = 0; i < 6; i++){ const jx = 36 + i * 15; wp_rect(B, jx, 33, jx + 5, 40, (x, y) => wp_tone(i & 1 ? wp_P.ochre : wp_P.grey, .3 + (jx + 5 - x) * .1, x, y)); }
+  rects.push([28, 0, 128, 102]);
+  // Regal mit Krügen und Zinntellern, Hirschgeweih, Wappen des Hauses
+  for (const sy of [36, 58]) wp_rect(B, 300, sy, 446, sy + 3, (x, y) => wp_tone(wp_P.oak, y === sy ? .75 : .35, x, y));
+  for (let i = 0; i < 12; i++){
+    const jx = 304 + i * 12, sy = i & 1 ? 58 : 36;
+    if (i % 3 === 0) wp_ell(B, jx + 3, sy - 4, 4, 4, (x, y) => wp_tone(wp_P.iron, .75 - Math.hypot(x - jx - 2, y - sy + 5) * .1, x, y));
+    else wp_rect(B, jx, sy - 7, jx + 6, sy, (x, y) => wp_tone(i % 3 === 1 ? wp_P.grey : wp_P.ochre, .3 + (jx + 6 - x) * .08, x, y));
+  }
+  wp_rect(B, 362, 12, 384, 30, (x, y) => wp_tone(wp_P.oak, .35, x, y));
+  for (const [ax, ay] of [[356, 14], [352, 10], [390, 14], [394, 10]]) wp_line(B, 373, 20, ax, ay, wp_P.bark[4]);
+  // Fässer an der Wand hinter dem Schanktisch
+  for (let i = 0; i < 6; i++) wp_barrel(B, 312 + i * 24, 92, 18, 20, s + i, { R: wp_P.wood });
+  // Ausgang unten: Tür ins Freie
+  wp_rect(B, 0, 254, W, H, (x, y) => wp_tone(wp_P.oak, .22 + (wp_h(x, y, s) - .5) * .1, x, y));
+  wp_rect(B, 224, 254, 256, H, (x, y) => wp_tone(wp_P.moss, .55 + (y - 254) * .02, x, y));
+  wp_rect(B, 222, 252, 224, H, wp_P.oak[4]); wp_rect(B, 256, 252, 258, H, wp_P.oak[1]);
+  rects.push([0, 0, 22, H], [458, 0, W, H], [0, 0, W, 94], [0, 254, 226, H], [254, 254, W, H]);
+  // Radleuchter mit Kerzen an Ketten
+  wp_line(B, 240, 0, 240, 22, wp_P.iron[2]);
+  wp_ell(B, 240, 26, 22, 3, (x, y) => (Math.abs((x - 240) / 22) ** 2 + ((y - 26) / 3) ** 2 > .45) ? wp_tone(wp_P.oak, .45 - (y - 26) * .1, x, y) : 0);
+  for (const cx of [222, 234, 246, 258]){ wp_rect(B, cx, 18, cx + 2, 24, C('#e8e0c8')); wp_set(B, cx, 16, C('#ffd36a')); wp_set(B, cx, 17, C('#fff3c0')); }
+  const bg = wp_canvas(B);
+  // Wirtshausschild an der Rückwand
+  const sign = wp_img(16, 14, 13); wp_innSign(sign, 0, -2, 1, inn.id); wp_outline(sign, true);
+  bg.getContext('2d').drawImage(wp_canvas(sign), 404, 12);
+
+  // Schanktisch (vor dem Wirt)
+  const ct = wp_img(156, 24, 22);
+  wp_rect(ct, 2, 2, 154, 7, (x, y) => wp_tone(wp_P.oak, y < 4 ? .8 : .5, x, y));
+  wp_rect(ct, 4, 7, 152, 22, wp_planks(wp_P.wood, s + 11, 6, {}));
+  for (const kx of [30, 60, 112]){ wp_rect(ct, kx, -1, kx + 5, 2, (x, y) => wp_tone(wp_P.wood, .6, x, y)); wp_rect(ct, kx, -2, kx + 5, 0, C('#e8e2d0')); }
+  wp_outline(ct, true);
+  items.push({ img: wp_canvas(ct), x: 370, y: 120, ax: 78, ay: 22 });
+  rects.push([292, 0, 450, 122]);
+  // Tische mit Bänken
+  const tables = [[62, 172, 152], [210, 300, 204], [330, 440, 178]];
+  for (const [x0, x1, ty] of tables){
+    const w2 = x1 - x0, T = wp_img(w2 + 4, 22, 20);
+    wp_rect(T, 2, 2, w2 + 2, 11, (x, y) => wp_tone(wp_P.oak, .55 + (wp_vn(x * .2, y, s) - .5) * .3 - (y > 8 ? .2 : 0), x, y));
+    wp_rect(T, 2, 11, w2 + 2, 13, (x, y) => wp_tone(wp_P.oak, .2, x, y));
+    for (const lx of [6, w2 - 4]) wp_rect(T, lx, 13, lx + 3, 20, (x, y) => wp_tone(wp_P.oak, .3, x, y));
+    wp_rect(T, 8, 16, w2 - 4, 17, (x, y) => wp_tone(wp_P.oak, .25, x, y));
+    // Krüge, Brot, Kerze
+    for (let i = 0; i < 3; i++){ const mx = 10 + R() * (w2 - 20) | 0; wp_rect(T, mx, 2, mx + 4, 8, (x, y) => wp_tone(wp_P.wood, .5 + (mx + 4 - x) * .1, x, y)); wp_rect(T, mx, 1, mx + 4, 3, C('#e8e2d0')); }
+    const bx = 14 + R() * (w2 - 30) | 0; wp_ell(T, bx, 6, 5, 3, (x, y) => wp_tone(wp_P.straw, .7 - (y - 4) * .15, x, y));
+    const cx = Math.round(w2 / 2) + 2; wp_rect(T, cx, 0, cx + 2, 7, C('#e8e0c8'));
+    wp_outline(T, true);
+    items.push({ img: wp_canvas(T), x: Math.round((x0 + x1) / 2), y: ty, ax: (w2 + 4) >> 1, ay: 20 });
+    candles.push({ x: x0 + cx - 1, y: ty - 21 });
+    rects.push([x0 - 1, ty - 11, x1 + 1, ty + 2]);
+    for (const by of [ty - 16, ty + 14]){
+      const Bn = wp_img(w2 - 6, 8, 7);
+      wp_rect(Bn, 1, 1, w2 - 7, 4, (x, y) => wp_tone(wp_P.wood, y < 2 ? .7 : .45, x, y));
+      for (const lx of [3, w2 - 11]) wp_rect(Bn, lx, 4, lx + 2, 7, (x, y) => wp_tone(wp_P.wood, .3, x, y));
+      wp_outline(Bn, true);
+      items.push({ img: wp_canvas(Bn), x: Math.round((x0 + x1) / 2), y: by, ax: (w2 - 6) >> 1, ay: 7 });
+    }
+  }
+  // Licht: Herdfeuer, Kerzen, Laterne über dem Schanktisch, Tageslicht durch die Tür
+  const lights = [[78, 84, 210, 1, 1], [372, 52, 120, .7, .4], [240, 130, 190, .5, .35], [240, 268, 90, .55, 0]].concat(candles.map(c => [c.x, c.y, 75, .55, .5]));
+  const light = canvasOf(W, H), lg = light.getContext('2d'), id = lg.createImageData(W, H);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){
+    let L = 0, warm = 0;
+    for (const [lx, ly, r, k, wm] of lights){ const d = Math.hypot(x - lx, (y - ly) * 1.2); if (d < r){ const v = Math.pow(1 - d / r, 1.4) * k; L += v; warm += v * wm; } }
+    L = Math.min(1, L); warm = Math.min(1, warm);
+    const q = .07, a = Math.floor((.52 * (1 - L) + .1 * warm) / q + dither(x, y)) * q, i = (y * W + x) * 4;
+    const t = clamp(warm * 1.4, 0, 1);
+    id.data[i] = Math.round(14 + (255 - 14) * t); id.data[i + 1] = Math.round(10 + (160 - 10) * t); id.data[i + 2] = Math.round(8 + (70 - 8) * t);
+    id.data[i + 3] = Math.round(clamp(a, 0, .85) * 255);
+  }
+  lg.putImageData(id, 0, 0);
+  const host = inn.id === 'adler' ? 'wirtin' : 'wirt';
+  const npcs = [
+    { id:'wirt', key:'wirt_' + inn.id, name: inn.host, role: inn.role, x: 372, y: 110, art: INN_ART[host], wirt: true, inn: inn.id,
+      greet:['Setzt Euch, Ritter! Was darf’s sein?', 'Willkommen im ' + inn.name.replace(/^Zu[mr] /, '') + '. Hier wird nicht gekämpft, hier wird gegessen.', 'Ein Krug Bier gegen den Staub der Straße?'] },
+    { id:'spielmann', key:'spielmann_' + inn.id, name:'Spielmann Veit', role:'Spielmann', x: 196, y: 112, art: INN_ART.spielmann, lore: INN_LORE.spielmann },
+    { id:'bauer', key:'bauer_' + inn.id, name:'Bauer Hinz', role:'Gast', x: 98, y: 137, art: INN_ART.bauer, lore: INN_LORE.bauer }
+  ];
+  return (inn.room = { bg, light, items, rects, npcs, candles, fire: { x: 78, y: 92 } });
+}
+const roomBlocked = (rm, x, y) => rm.rects.some(r => x + 6 > r[0] && x - 6 < r[2] && y > r[1] && y - 5 < r[3]);
+
+function enterInn(inn){
+  if (G.mode !== 'play' || G.inside || !inn) return;
+  const rm = innRoom(inn), k = G.knight;
+  G.inside = inn;
+  k.x = ROOM_DOOR.x; k.y = ROOM_DOOR.y - 4; k.dir = 'up'; k.atkT = 0; k.bashT = 0; k.kbx = k.kby = 0; k.slowT = 0;
+  for (const m of G.mons) if (m.slot) m.slot.mon = null;
+  G.mons.length = 0; G.rising.length = 0; G.shots.length = 0; G.parts.length = 0;
+  for (const s of SPAWN_SLOTS) if (s.mon === true) s.mon = null;
+  Sound.setTune('inn');
+  updateZone(true); updateBossBar(); updateNear();
+  showBanner(inn.name, 'Speis und Trank · hier seid Ihr sicher');
+  sendPresence(true); markDirty(true);
+}
+function leaveInn(){
+  const inn = G.inside, k = G.knight;
+  if (!inn) return;
+  G.inside = null;
+  k.x = inn.dx; k.y = inn.dy + 2; k.dir = 'down';
+  G.zone = zoneAt(k.x, k.y).id; G.spawnT = 0; G.parts.length = 0;
+  Sound.setTune('world');
+  updateZone(true); updateNear(); sendPresence(true); markDirty(true);
+}
+function updateInn(dt){
+  const k = G.knight, v = inputVec(), rm = innRoom(G.inside);
+  k.moving = v.x !== 0 || v.y !== 0;
+  if (k.moving){
+    if (Math.abs(v.x) > Math.abs(v.y) + .01) k.dir = v.x > 0 ? 'right' : 'left'; else k.dir = v.y > 0 ? 'down' : 'up';
+    k.anim += dt * 8;
+  } else k.anim = 0;
+  const sp = 92, nx = k.x + v.x * sp * dt, ny = k.y + v.y * sp * dt;
+  if (!roomBlocked(rm, nx, k.y)) k.x = nx;
+  if (!roomBlocked(rm, k.x, ny)) k.y = ny;
+  if (k.y > ROOM_DOOR.y - 2 && Math.abs(k.x - ROOM_DOOR.x) < 16 && v.y > 0){ leaveInn(); return; }
+  k.y = Math.min(k.y, ROOM_DOOR.y + 2);
+  if (k.hp < ST.hp) k.hp = Math.min(ST.hp, k.hp + ST.hp * .15 * dt);
+  for (const id in G.cd) if (G.cd[id] > 0) G.cd[id] = Math.max(0, G.cd[id] - dt);
+  G.combatT = 99; G.buffT = 0;
+  // Funken aus dem Herd
+  if (Math.random() < dt * 9) G.parts.push({ x: rm.fire.x + rand(-14, 14), y: rm.fire.y - 6, vx: rand(-6, 6), vy: rand(-46, -22), life: rand(.4, .9), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -8, glow: true });
+}
+function renderInn(){
+  const inn = G.inside, rm = innRoom(inn), k = G.knight;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(rm.bg, 0, 0);
+  for (let i = 0; i < 4; i++) flame(rm.fire.x - 15 + i * 10, rm.fire.y, G.t + i * .7, i === 1 || i === 2);
+  const actors = [{ x: k.x, y: k.y }].concat(rm.npcs, [...PEERS.values()].filter(p => p.in === inn.id));
+  for (const a of actors) shadow(a.x, a.y - 1, 16, .35);
+  const list = rm.items.map(it => ({ y: it.y, d: () => ctx.drawImage(it.img, Math.round(it.x - it.ax), Math.round(it.y - it.ay)) }));
+  for (const n of rm.npcs) list.push({ y: n.y + .15, d: () => drawNpc(n) });
+  for (const p of PEERS.values()) if (p.in === inn.id) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f), false, 1) });
+  list.push({ y: k.y + .2, d: drawKnight });
+  list.sort((a, b) => a.y - b.y);
+  for (const it of list) it.d();
+  for (const c of rm.candles){ const f = (G.t * 9 + c.x) | 0; ctx.fillStyle = '#ffd36a'; ctx.fillRect(c.x, c.y - 2 - (f % 3 === 0 ? 1 : 0), 1, 2); ctx.fillStyle = '#fff3c0'; ctx.fillRect(c.x, c.y - 1, 1, 1); }
+  for (const p of G.parts){ ctx.fillStyle = p.c; ctx.fillRect(p.x | 0, p.y | 0, 1, 1); }
+  ctx.drawImage(rm.light, 0, 0);
+  for (const n of rm.npcs) drawNpcPlate(n);
+  for (const p of PEERS.values()) if (p.in === inn.id){
+    drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 9, '#9cc8ff');
+    if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11, p.say);
+  }
+  if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4, G.say);
+  if (G.nearExit) drawText(TOUCH ? 'Hinausgehen' : 'Nach unten: hinaus', ROOM_DOOR.x, ROOM_DOOR.y - 2, '#ffffff');
+  for (const f of G.floats){ ctx.globalAlpha = clamp(f.life / f.max * 2.5, 0, 1); drawText(f.txt, f.x, f.y, f.c, 'c', f.s); }
+  ctx.globalAlpha = 1;
+}
+/* Stärkung durch Speis und Trank: läuft in Spielzeit ab */
+function tickBuffs(dt){
+  for (const key of ['food', 'drink']){
+    const b = HERO[key]; if (!b) continue;
+    b.t -= dt;
+    if (b.t <= 0){
+      HERO[key] = null; refreshStats(); updateHud(); renderBuffs(); markDirty();
+      logLine(key === 'food' ? 'Die Mahlzeit ist verdaut.' : 'Der Trunk ist verflogen.', '#d8c69c');
+    } else if (Math.floor(b.t / 60) !== Math.floor((b.t + dt) / 60)) renderBuffs();
+  }
+}
+function eatFare(f){
+  const price = farePrice(f);
+  if (HERO.gold < price) return;
+  HERO.gold -= price;
+  HERO[f.kind === 'speise' ? 'food' : 'drink'] = { id: f.id, t: FARE_MIN * 60 };
+  refreshStats(); G.knight.hp = Math.min(ST.hp, G.knight.hp + ST.hp * .3);
+  if (f.kind === 'speise') Sound.eat(); else Sound.drink();
+  floatText(G.knight.x, G.knight.y - KS.ay - 4, fxText(f.fx).split(',')[0], '#ffd98a', 1, 1.4);
+  logLine((f.kind === 'speise' ? 'Ihr esst ' : 'Ihr trinkt ') + f.n + ': ' + fxText(f.fx) + '.', '#ffd98a');
+  updateHud(); renderBuffs(); markDirty(true);
+}
+
 
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;
@@ -8452,7 +9078,7 @@ function freshState(mode){
     v:5, mode, t:0, shake:0, flash:0, dieT:0, fogX:0, zone: zoneAt(p.x, p.y).id,
     knight: freshKnight(p.x, p.y),
     mons:[], rising:[], shots:[], parts:[], floats:[], loot:[],
-    cd:{ rund:0, stoss:0, ruf:0, trank:0 }, buffT:0, combatT:99, spawnT:0, saveT:0, fullMsgT:0, lostGold:0
+    cd:{ rund:0, stoss:0, ruf:0, trank:0 }, buffT:0, combatT:99, inside:null, near:null, nearDoor:null, nearExit:false, spawnT:0, saveT:0, fullMsgT:0, lostGold:0
   };
 }
 let G = null;
@@ -8760,7 +9386,7 @@ function updateSpawns(dt){
   }
 }
 function updateMons(dt){
-  const k = G.knight, alive = G.mode === 'play' && k.hp > 0, safe = !!SAFE[G.zone];
+  const k = G.knight, alive = G.mode === 'play' && k.hp > 0, safe = !!SAFE[G.zone] || nearInn(k.x, k.y);
   for (let i = G.rising.length - 1; i >= 0; i--){
     const r = G.rising[i]; r.t -= dt;
     if (Math.random() < .6){
@@ -8879,6 +9505,7 @@ const gripOf = k => ({ x: k.x + KNIGHT_GRIP[k.dir].x, y: k.y + KNIGHT_GRIP[k.dir
 const reachOf = k => SWORD.len - SWORD.gripBack + 3 + (k.mult > 1.2 ? 4 : 0);
 function swingAngle(k){ const p = clamp(1 - k.atkT / k.atkLen, 0, 1), e = 1 - (1 - p) * (1 - p); return k.swA0 + (k.swA1 - k.swA0) * e; }
 const canAct = () => G.mode === 'play' && G.knight.hp > 0;
+const canFight = () => canAct() && !G.inside;
 
 function startSwing(k, full, mult, len){
   const [fx, fy] = DIRV[k.dir], base = Math.atan2(fy, fx);
@@ -8888,31 +9515,31 @@ function startSwing(k, full, mult, len){
 }
 function attack(){
   const k = G.knight;
-  if (k.atkCd > 0 || !canAct() || k.bashT > 0) return;
+  if (k.atkCd > 0 || !canFight() || k.bashT > 0) return;
   startSwing(k, false, 1, SWING);
   k.atkCd = ST.cd;
   Sound.swing();
 }
 function skillRund(){
   const k = G.knight;
-  if (!canAct() || HERO.lvl < 3 || G.cd.rund > 0 || k.bashT > 0) return;
+  if (!canFight() || HERO.lvl < 3 || G.cd.rund > 0 || k.bashT > 0) return;
   startSwing(k, true, 1.4, SWING * 1.4);
   k.atkCd = Math.max(k.atkCd, SWING * 1.4); G.cd.rund = 6;
   Sound.swing(); setTimeout(() => Sound.swing(), 120);
 }
 function skillStoss(){
   const k = G.knight;
-  if (!canAct() || HERO.lvl < 6 || G.cd.stoss > 0) return;
+  if (!canFight() || HERO.lvl < 6 || G.cd.stoss > 0) return;
   const [fx, fy] = DIRV[k.dir];
   k.bashT = .26; k.bx = fx; k.by = fy; k.bashHit = new Set(); k.atkT = 0;
   G.cd.stoss = 9; Sound.bash();
 }
 function skillRuf(){
   const k = G.knight;
-  if (!canAct() || HERO.lvl < 10 || G.cd.ruf > 0) return;
+  if (!canFight() || HERO.lvl < 10 || G.cd.ruf > 0) return;
   G.buffT = 10; G.cd.ruf = 30; Sound.cry();
   burst(k.x, k.y - KBODY, ['#ecd27a', '#fff3c0', '#c9a227'], 30, 120, true);
-  floatText(k.x, k.y - KS.ay - 4, 'Adlerruf!', '#ecd27a', 2, 1.2);
+  floatText(k.x, k.y - KS.ay - 4, KN_FACTIONS[HERO.f].cry, '#ecd27a', 2, 1.4);
 }
 function drinkPotion(){
   const k = G.knight;
@@ -9141,6 +9768,7 @@ function respawn(){
   for (const s of SPAWN_SLOTS) if (s.mon === true) s.mon = null;
   G.zone = zoneAt(k.x, k.y).id; updateZone(true);
   showOverlay(null); blurActive(); updateHud(); Sound.startMusic();
+  if (INN_BY[HERO.bind]) enterInn(INN_BY[HERO.bind]);
   showBanner('Ihr erwacht', HUB_NAME[HERO.bind]);
   markDirty(true);
 }
@@ -9172,6 +9800,8 @@ function updateKnight(dt){
     if (!blocked(nx, k.y)) k.x = nx;
     const ny = clamp(k.y + (v.y * sp + k.kby) * dt, 12, WH - 2);
     if (!blocked(k.x, ny)) k.y = ny;
+    // gegen die Gasthaustür laufen: eintreten
+    if (v.y < -.5) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 9 && k.y - inn.y < 13 && k.y > inn.y){ enterInn(inn); return; }
   }
   const decay = Math.pow(.001, dt); k.kbx *= decay; k.kby *= decay;
   if (k.inv > 0) k.inv -= dt;
@@ -9181,7 +9811,7 @@ function updateKnight(dt){
   if (k.atkT > 0){ k.atkT -= dt; swingHits(); }
   // Erholung: außer Gefecht langsam, in Burg und Stadt schnell
   G.combatT += dt;
-  if (k.hp > 0 && k.hp < ST.hp && (G.combatT > 5 || SAFE[G.zone])) k.hp = Math.min(ST.hp, k.hp + ST.hp * (SAFE[G.zone] ? .12 : .03) * dt);
+  if (k.hp > 0 && k.hp < ST.hp && (G.combatT > 5 || SAFE[G.zone])) k.hp = Math.min(ST.hp, k.hp + ST.hp * (SAFE[G.zone] ? .12 : .03) * (ST.regen || 1) * dt);
   for (const id in G.cd) if (G.cd[id] > 0) G.cd[id] = Math.max(0, G.cd[id] - dt);
   if (G.buffT > 0){ G.buffT -= dt; if (Math.random() < dt * 14) G.parts.push({ x: k.x + rand(-9, 9), y: k.y - rand(4, 40), vx: 0, vy: -24, life: .5, c: Math.random() < .5 ? '#ecd27a' : '#fff3c0', g: 0, glow: true }); }
 }
@@ -9196,7 +9826,7 @@ function updateFx(dt){
     if (f.life <= 0) G.floats.splice(i, 1);
   }
   const cam = camOf(G.knight), near = (x, y) => x > cam.x - 80 && x < cam.x + W + 80 && y > cam.y - 60 && y < cam.y + H + 120;
-  if (G.parts.length < 420){
+  if (G.parts.length < 420 && !G.inside){
     for (const f of FIRES) if (near(f.x, f.y) && Math.random() < dt * (f.big ? 8 : 4))
       G.parts.push({ x: f.x + rand(-3, 3), y: f.y - 6, vx: rand(-6, 6), vy: rand(-40, -20), life: rand(.6, 1.2), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -6, glow: true });
     for (const s of SMOKES) if (near(s.x, s.y) && Math.random() < dt * 5)
@@ -9221,7 +9851,18 @@ function update(dt){
     if (G.dieT <= 0){ G.mode = 'dead'; showDead(); }
     return;
   }
+  tickBuffs(dt);
+  if (G.inside){
+    updateInn(dt);
+    if (G.inside){
+      updateFx(dt); updateNear(); sendPresence();
+      HERO.played += dt; G.saveT += dt;
+      if (G.saveT > 8){ G.saveT = 0; saveHero(); }
+      return;
+    }
+  }
   updateKnight(dt);
+  if (G.inside) return;
   const z = zoneAt(G.knight.x, G.knight.y).id;
   if (z !== G.zone){ G.zone = z; updateZone(true); }
   updateSpawns(dt);
@@ -9234,7 +9875,7 @@ function update(dt){
   sendPresence();
   HERO.played += dt;
   G.saveT += dt;
-  if (G.saveT > 8){ G.saveT = 0; HERO.x = Math.round(G.knight.x); HERO.y = Math.round(G.knight.y); saveHero(); }
+  if (G.saveT > 8){ G.saveT = 0; saveHero(); }
 }
 
 /* ============ Zeichnen ============ */
@@ -9295,7 +9936,7 @@ function drawKnightAt(k, set, dead, dieP){
   }
   const f = k.moving ? 1 + ((k.anim | 0) % 4) : 0;
   const hit = k === G.knight && k.inv > .4 && k.inv < .55 + 1e-3;
-  const fr = hit ? KNIGHT_HIT[k.dir][0] : (k.atkT > 0 ? set.atk : set.walk)[k.dir][f];
+  const fr = hit ? (set.hit || KNIGHT_HIT)[k.dir][0] : (k.atkT > 0 ? set.atk : set.walk)[k.dir][f];
   let sword, behind;
   if (k.bashT > 0){
     behind = k.dir !== 'down';
@@ -9320,10 +9961,10 @@ function drawKnightAt(k, set, dead, dieP){
   if (k.slowT > 0){ ctx.fillStyle = '#3a2c1e'; ctx.fillRect(Math.round(k.x - 8), Math.round(k.y - 3), 16, 3); }
   if (!behind) sword();
 }
-const OWN_SET = { walk: KNIGHT, atk: KNIGHT_ATK, fall: KNIGHT_FALL };
+const ownSet = () => knightSet(HERO ? HERO.f : 'reich');
 function drawKnight(){
   const k = G.knight;
-  drawKnightAt(k, OWN_SET, G.mode === 'dying' || G.mode === 'dead', G.mode === 'dead' ? 1 : 1 - G.dieT / 1.3);
+  drawKnightAt(k, ownSet(), G.mode === 'dying' || G.mode === 'dead', G.mode === 'dead' ? 1 : 1 - G.dieT / 1.3);
 }
 
 const MOVE_FPS = { wieder:4, moor:3, ratte:12, rabe:9, pluend:6, armbrust:6, werwolf:8, irrlicht:7, raubritter:5, lindwurm:5, tod:3 };
@@ -9472,6 +10113,7 @@ function drawBubble(x, y, text){
 }
 
 function render(){
+  if (G.inside){ renderInn(); return; }
   const k = G.knight, cam = camOf(k);
   const sh = G.shake > 0 && !RM ? 2 : 0, sx = sh ? Math.round(rand(-sh, sh)) : 0, sy = sh ? Math.round(rand(-sh, sh)) : 0;
   ctx.setTransform(1, 0, 0, 1, sx, sy);
@@ -9482,7 +10124,7 @@ function render(){
 
   for (const a of G.loot) if (inView(a.x, a.y, cam)) shadow(a.x, a.y - 1, a.z > 3 ? 4 : 8, a.z > 3 ? .2 : .3);
   if (!title) shadow(k.x, k.y - 1, 18, .42);
-  for (const p of PEERS.values()) if (inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, 18, .38);
+  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, 18, .38);
   for (const n of NPCS) if (inView(n.x, n.y, cam)) shadow(n.x, n.y - 1, 14, .38);
   for (const m of G.mons){
     if (!inView(m.x, m.y, cam)) continue;
@@ -9504,7 +10146,7 @@ function render(){
   for (const a of G.loot) if (inView(a.x, a.y, cam)) list.push({ y: a.y, d: () => drawLoot(a) });
   for (const m of G.mons) if (!MON[m.k].fly && inView(m.x, m.y, cam, 120)) list.push({ y: m.y + .1, d: () => drawMon(m) });
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
-  for (const p of PEERS.values()) if (inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => drawKnightAt(p, peerSet(p.c), p.dead, 1) });
+  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f), p.dead, 1) });
   if (!title) list.push({ y: k.y + .2, d: drawKnight });
   list.sort((p, q) => p.y - q.y);
   for (const it of list) it.d();
@@ -9540,7 +10182,11 @@ function render(){
   if (!title){
     for (const m of G.mons) if (inView(m.x, m.y, cam, 20) && (m.mode === 'fight' || m.hp < m.max || Math.hypot(m.x - k.x, m.y - k.y) < 170)) drawPlate(m);
     for (const n of NPCS) if (inView(n.x, n.y, cam, 20)) drawNpcPlate(n);
-    for (const p of PEERS.values()) if (inView(p.x, p.y, cam, 20)){
+    for (const inn of INNS) if (inView(inn.dx, inn.y, cam, 40)){
+      drawText('Gasthaus ' + inn.name, inn.dx, inn.y - 32, '#ffd98a');
+      if (G.nearDoor === inn) drawText(TOUCH ? 'Eintreten' : 'E oder hinauf: eintreten', inn.dx, inn.y + 2, '#ffffff');
+    }
+    for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam, 20)){
       drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 9, '#9cc8ff');
       if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11, p.say);
     }
@@ -9593,7 +10239,8 @@ function drawMiniMap(k, cam){
   for (const a of G.loot) if (a.t === 'item') dot(a.x, a.y, RARITY[a.it.r].c);
   for (const m of G.mons){ const boss = MON[m.k].boss; dot(m.x, m.y, boss ? '#ffe27a' : m.mode === 'fight' ? '#ff3b3b' : '#a83a3a', boss ? 2 : 1); }
   for (const n of NPCS) dot(n.x, n.y, npcMark(n) ? '#ffd541' : '#7fe08a', 2);
-  for (const p of PEERS.values()) dot(p.x, p.y, '#9cc8ff', 2);
+  for (const inn of INNS) dot(inn.dx, inn.y, '#ff9a40', 2);
+  for (const p of PEERS.values()){ const at = p.in && INN_BY[p.in]; dot(at ? at.dx : p.x, at ? at.y + 4 : p.y, '#9cc8ff', 2); }
   const q = P(k.x, k.y); ctx.fillStyle = '#ffffff'; ctx.fillRect(q[0] - 1, q[1] - 1, 3, 3); ctx.fillStyle = OUT; ctx.fillRect(q[0], q[1], 1, 1);
 }
 
@@ -9637,9 +10284,35 @@ for (const [kind, name, desc] of BEASTS){
   im.src = urlOf(artOf(kind).idle.r[0].img, 2); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh, v); $('beasts').append(li);
 }
-$('armorPlate').src = urlOf(KNIGHT_PLATE, 3); $('armorPlate').style.width = KNIGHT_PLATE.width * 3 + 'px';
-$('armorSword').src = urlOf(SWORD_ICON, 3);
-for (const t of KNIGHT_NOTES.slice(0, 3)){ $('armorNotes').append(el('p', null, t)); }
+/* Die Ritter Europas: Tafel und Auswahl beim Anlegen */
+const PLATE_URL = {};
+for (const id of FACTION_IDS){
+  const F = KN_FACTIONS[id], set = knightSet(id);
+  PLATE_URL[id] = urlOf(set.plate, 3);
+  const li = el('li'), im = el('img'), tx = el('div');
+  im.src = PLATE_URL[id]; im.alt = F.knight + ' in Wappenrock und Rüstung';
+  tx.append(el('b', null, F.knight), el('small', null, F.name + ' · ' + F.ruler), el('span', null, F.desc), el('small', 'bonus', 'Vorteil: ' + F.bonusText + ' · Schlachtruf: „' + F.cry + '“'));
+  li.append(im, tx); $('knightList').append(li);
+}
+function renderPick(){
+  const box = $('factionPick'); box.textContent = '';
+  for (const id of FACTION_IDS){
+    const F = KN_FACTIONS[id], b = el('button', 'fpick'), im = el('img');
+    b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(G.pickF === id));
+    im.src = PLATE_URL[id]; im.alt = '';
+    b.append(im, el('span', null, F.name.replace(/^(Heiliges Römisches |Königreich )/, '')));
+    b.addEventListener('click', () => { G.pickF = id; Sound.click(); renderPick(); });
+    box.append(b);
+  }
+  const F = KN_FACTIONS[G.pickF];
+  $('factionDesc').textContent = F.knight + ' · ' + F.bonusText + '. ' + F.desc;
+}
+/* Gasthäuser: Tafel */
+for (const inn of INNS){
+  const li = el('li'), sp = FARE.filter(f => f.only === inn.id).map(f => f.n);
+  li.append(el('b', null, inn.name), el('small', null, inn.where + ' · ' + inn.host), el('span', null, 'Spezialität: ' + (sp.join(', ') || 'Bier und Braten')));
+  $('innList').append(li);
+}
 for (const z of ZONES){
   const li = el('li'), bn = el('b', null, z.name), lv = el('span', 'lv', zoneLvText(z.id));
   li.append(bn, ' ', lv, el('br'), ZONE_INFO[z.id] || ''); $('zoneList').append(li);
@@ -9694,10 +10367,14 @@ function updateBossBar(){
 }
 function updateZone(entered){
   const z = ZONE_BY_ID[G.zone], el2 = $('zone');
-  el2.textContent = z ? z.name : '';
-  if (z && zoneLvText(z.id)) el2.append(el('small', null, zoneLvText(z.id)));
+  if (G.inside){ el2.textContent = G.inside.name; el2.append(el('small', null, 'Gasthaus ' + G.inside.where + ' · sicher')); }
+  else {
+    el2.textContent = z ? z.name : '';
+    if (z && zoneLvText(z.id)) el2.append(el('small', null, zoneLvText(z.id)));
+  }
   if (entered && !RM){ el2.style.animation = 'none'; void el2.offsetWidth; el2.style.animation = 'zonein 1.2s steps(6)'; }
-  if (entered && SAFE[G.zone]) logLine('Ihr betretet die ' + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
+  if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet die ' + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
+  if (entered && G.inside) logLine('Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
 }
 let bannerTimer = 0;
 /* Ziffern und römische Zahlen in der Lesefont, die Frakturschrift macht sie schwer lesbar */
@@ -9722,9 +10399,9 @@ function logLine(text, color, parts){
   if (parts) p.append(...parts); else p.textContent = text;
   if (color) p.style.color = color;
   box.append(p);
-  while (box.children.length > 5) box.firstChild.remove();
-  setTimeout(() => { p.classList.add('old'); }, 9000);
-  setTimeout(() => { p.remove(); }, 11000);
+  while (box.children.length > 4) box.firstChild.remove();
+  setTimeout(() => { p.classList.add('old'); }, 7000);
+  setTimeout(() => { p.remove(); }, 9000);
 }
 function logItem(prefix, it){
   const s = el('span', null, it.n); s.style.color = RARITY[it.r].c;
@@ -9770,6 +10447,24 @@ function renderSkills(){
     const b = document.querySelector('[data-skill="' + s.id + '"]');
     if (b) b.classList.toggle('locked', HERO.lvl < s.lvl);
   }
+  // Schildstoß und Schlachtruf mit dem Wappen der eigenen Herkunft
+  const set = knightSet(HERO.f), F = KN_FACTIONS[HERO.f];
+  set.url = set.url || urlOf(set.icon, 3);
+  for (const id of ['stoss', 'ruf']){ const im = document.querySelector('[data-skill="' + id + '"] img'); if (im) im.src = set.url; }
+  const rb = document.querySelector('[data-skill="ruf"]'); if (rb) rb.title = 'Schlachtruf „' + F.cry + '“: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer';
+}
+/* Stärkung durch Speis und Trank in der Kopfzeile */
+function renderBuffs(){
+  const box = $('buffs'); box.textContent = '';
+  if (!HERO) return;
+  for (const key of ['food', 'drink']){
+    const b = HERO[key], f = b && FARE_BY[b.id];
+    if (!f) continue;
+    const chip = el('span', 'buff'), im = el('img'); im.src = ICON_URL[f.icon] || urlOf(ICONS[f.icon], 3); im.alt = '';
+    chip.append(im, el('span', null, Math.ceil(b.t / 60) + ' Min.'));
+    chip.title = f.n + ': ' + fxText(f.fx);
+    box.append(chip);
+  }
 }
 const cdShown = {};
 function updateSkillCd(){
@@ -9810,11 +10505,12 @@ function drawFullMap(){
     g.strokeStyle = '#c9a227'; g.lineWidth = 2; g.setLineDash([4, 3]); g.beginPath(); g.arc(P(z.label.x), P(z.label.y) + 14, 22, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
   }
   for (const m of G.mons){ g.fillStyle = MON[m.k].boss ? '#8e1b1b' : '#3a1014'; g.fillRect(P(m.x) - 1, P(m.y) - 1, 3, 3); }
-  for (const p of PEERS.values()){ g.fillStyle = '#16120f'; g.fillRect(P(p.x) - 3, P(p.y) - 3, 7, 7); g.fillStyle = '#6a9ae0'; g.fillRect(P(p.x) - 2, P(p.y) - 2, 5, 5); }
+  for (const inn of INNS){ g.fillStyle = '#16120f'; g.fillRect(P(inn.dx) - 3, P(inn.y) - 3, 7, 7); g.fillStyle = '#e0823a'; g.fillRect(P(inn.dx) - 2, P(inn.y) - 2, 5, 5); }
+  for (const p of PEERS.values()){ const at = p.in && INN_BY[p.in], px = P(at ? at.dx : p.x) + (at ? 5 : 0), py = P(at ? at.y : p.y); g.fillStyle = '#16120f'; g.fillRect(px - 3, py - 3, 7, 7); g.fillStyle = '#6a9ae0'; g.fillRect(px - 2, py - 2, 5, 5); }
   const kx = P(k.x), ky = P(k.y);
   g.fillStyle = '#16120f'; g.fillRect(kx - 4, ky - 4, 9, 9); g.fillStyle = '#ecd27a'; g.fillRect(kx - 3, ky - 3, 7, 7); g.fillStyle = '#b0242a'; g.fillRect(kx - 1, ky - 1, 3, 3);
 }
-function openMap(){ if (!openPanel('ovMap')) return; drawFullMap(); $('btnMapClose').focus({ preventScroll: true }); }
+function openMap(){ if (G.inside || !openPanel('ovMap')) return; drawFullMap(); $('btnMapClose').focus({ preventScroll: true }); }
 
 /* ---------- Rucksack und Ausrüstung ---------- */
 const STAT_ROWS = [['hp', 'Leben'], ['dmg', 'Schaden'], ['arm', 'Rüstung'], ['crit', '% Volltreffer'], ['spd', '% Hiebtempo'], ['block', '% Abwehr']];
@@ -9922,15 +10618,29 @@ function availableQuests(giver){
 }
 function updateNear(){
   const k = G.knight;
-  let best = null, bd = 40;
-  for (const n of NPCS){ const d = Math.hypot(n.x - k.x, n.y - k.y); if (d < bd){ bd = d; best = n; } }
-  if (best !== G.near){ G.near = best; $('btnTalk').hidden = !best; if (best) $('btnTalk').textContent = 'Sprechen: ' + best.name; }
+  let best = null, bd = 40, door = null, exit = false;
+  for (const n of (G.inside ? innRoom(G.inside).npcs : NPCS)){ const d = Math.hypot(n.x - k.x, n.y - k.y); if (d < bd){ bd = d; best = n; } }
+  if (G.inside) exit = !best && k.y > ROOM_DOOR.y - 26 && Math.abs(k.x - ROOM_DOOR.x) < 24;
+  else if (!best) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 16 && k.y > inn.y && k.y - inn.y < 32) door = inn;
+  if (best !== G.near || door !== G.nearDoor || exit !== G.nearExit){
+    G.near = best; G.nearDoor = door; G.nearExit = exit;
+    const b = $('btnTalk');
+    b.hidden = !best && !door && !exit;
+    b.textContent = best ? 'Sprechen: ' + best.name : door ? 'Eintreten: ' + door.name : 'Hinausgehen';
+  }
 }
-function talk(){ if (G.near && G.mode === 'play') openTalk(G.near); }
+function talk(){
+  if (G.mode !== 'play') return;
+  if (G.near) openTalk(G.near);
+  else if (G.nearDoor) enterInn(G.nearDoor);
+  else if (G.nearExit) leaveInn();
+}
+function npcUrl(n){ return NPC_URL[n.key] || (NPC_URL[n.key] = urlOf(n.art.frames[0], 3)); }
 function openTalk(n){
   if (!openPanel('ovTalk')) return;
-  G.talk = n; G.greet = HERO.kills < 3 && !HERO.done.length ? NPC_TEXT[n.id][0] : pick(NPC_TEXT[n.id]);
-  $('talkImg').src = NPC_URL[n.id]; $('talkName').textContent = n.name; $('talkRole').textContent = n.role;
+  G.talk = n; G.loreI = Math.random() * 20 | 0;
+  G.greet = n.greet ? pick(n.greet) : n.lore ? n.lore[G.loreI % n.lore.length] : HERO.kills < 3 && !HERO.done.length ? NPC_TEXT[n.id][0] : pick(NPC_TEXT[n.id]);
+  $('talkImg').src = npcUrl(n); $('talkName').textContent = n.name; $('talkRole').textContent = n.role;
   renderTalk('main');
 }
 function acceptQuest(q){
@@ -9969,9 +10679,15 @@ function renderTalk(view){
         const zone = bountyZone(HERO.lvl), kg = { id:'kg', zone, need:10, n:0, lvl: HERO.lvl, giver: n.id };
         opts.append(btn('Kopfgeld: ' + ZONE_BY_ID[zone].name + ' (wiederholbar)', () => renderTalk({ q: kg }), 'opt'));
       }
-      if (HERO.bind !== n.hub) opts.append(btn('Hier rasten: nach dem Tod in der ' + HUB_NAME[n.hub] + ' erwachen', () => { HERO.bind = n.hub; Sound.bell(); logLine('Ihr erwacht künftig in der ' + HUB_NAME[n.hub] + '.', '#9fe08a'); markDirty(true); renderTalk('main'); }, 'opt'));
-      else opts.append(el('p', 'hint', 'Ihr rastet hier: Nach dem Tod erwacht Ihr in der ' + HUB_NAME[n.hub] + '.'));
+      if (HERO.bind !== n.hub) opts.append(btn('Hier rasten: nach dem Tod ' + HUB_IN[n.hub] + ' erwachen', () => { HERO.bind = n.hub; Sound.bell(); logLine('Ihr erwacht künftig ' + HUB_IN[n.hub] + '.', '#9fe08a'); markDirty(true); renderTalk('main'); }, 'opt'));
+      else opts.append(el('p', 'hint', 'Ihr rastet hier: Nach dem Tod erwacht Ihr ' + HUB_IN[n.hub] + '.'));
     }
+    if (n.wirt){
+      opts.append(btn('Speisen', () => renderTalk('speise'), 'opt'), btn('Getränke', () => renderTalk('trank'), 'opt'));
+      if (HERO.bind !== n.inn) opts.append(btn('Eine Kammer für die Nacht: nach dem Tod hier erwachen', () => { HERO.bind = n.inn; Sound.bell(); logLine('Ihr erwacht künftig ' + HUB_IN[n.inn] + '.', '#9fe08a'); markDirty(true); renderTalk('main'); }, 'opt'));
+      else opts.append(el('p', 'hint', 'Eure Kammer ist bereit: Nach dem Tod erwacht Ihr hier.'));
+    }
+    if (n.lore) opts.append(btn('Erzählt weiter', () => { G.loreI++; G.greet = n.lore[G.loreI % n.lore.length]; renderTalk('main'); }, 'opt'));
     if (n.shop){ opts.append(btn('Handeln: kaufen', () => renderTalk('buy'), 'opt'), btn('Handeln: verkaufen', () => renderTalk('sell'), 'opt')); }
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
@@ -9987,6 +10703,22 @@ function renderTalk(view){
     if (HERO.quests.length >= 4) opts.append(el('p', 'hint', 'Ihr habt schon vier Aufträge. Gebt erst einen ab oder auf.'));
     else opts.append(btn('Annehmen', () => { acceptQuest(q); renderTalk('main'); }, 'btn small'));
     opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
+    body.append(opts);
+  } else if (view === 'speise' || view === 'trank'){
+    const cur = HERO[view === 'speise' ? 'food' : 'drink'], cf = cur && FARE_BY[cur.id];
+    $('talkText').textContent = (view === 'speise' ? 'Was soll es zu essen sein?' : 'Was darf ich einschenken?') + ' Ihr habt ' + HERO.gold + ' Gulden.'
+      + (cf ? ' Noch wirkt: ' + cf.n + ' (' + Math.ceil(cur.t / 60) + ' Min.).' : '');
+    for (const f of FARE){
+      if (f.kind !== view || (f.only && f.only !== n.inn)) continue;
+      const r = el('div', 'shoprow'), ic = el('img'); ic.src = ICON_URL[f.icon] || urlOf(ICONS[f.icon], 3); ic.alt = '';
+      const t = el('div', 'stx'), nm = el('b', null, f.n + (f.only ? ' (Spezialität des Hauses)' : ''));
+      t.append(nm, el('small', null, fxText(f.fx) + ' · ' + FARE_MIN + ' Minuten'));
+      const price = farePrice(f), b = btn((view === 'speise' ? 'Essen für ' : 'Trinken für ') + price, () => { eatFare(f); renderTalk(view); }, 'tbtn');
+      b.disabled = HERO.gold < price;
+      r.append(ic, t, b); body.append(r);
+    }
+    body.append(el('p', 'hint', 'Eine Speise und ein Getränk wirken zugleich. Was Ihr neu bestellt, ersetzt das alte.'));
+    opts.append(btn(view === 'speise' ? 'Getränke' : 'Speisen', () => renderTalk(view === 'speise' ? 'trank' : 'speise'), 'tbtn'), btn('Zurück', () => renderTalk('main'), 'tbtn'));
     body.append(opts);
   } else if (view === 'buy'){
     $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden.';
@@ -10035,7 +10767,8 @@ function renderTalk(view){
 /* ---------- Tod ---------- */
 function showDead(){
   $('deadText').textContent = G.lostGold ? 'Ihr verliert ' + G.lostGold + ' Gulden. Eure Ausrüstung bleibt Euch.' : 'Eure Ausrüstung bleibt Euch.';
-  $('btnRespawn').textContent = 'In der ' + HUB_NAME[HERO.bind] + ' erwachen';
+  const where = HUB_IN[HERO.bind] || 'in der Reichsburg';
+  $('btnRespawn').textContent = where[0].toUpperCase() + where.slice(1) + ' erwachen';
   showOverlay('ovDead'); Sound.stopMusic();
   setTimeout(() => { if (G.mode === 'dead') $('btnRespawn').focus({ preventScroll: true }); }, 600);
 }
@@ -10048,7 +10781,7 @@ function renderStart(){
   $('startConfirm').hidden = !G.confirmNew;
   if (SAVED){
     $('contName').textContent = SAVED.name;
-    $('contInfo').textContent = 'Stufe ' + SAVED.lvl + ' · ' + titleOf(SAVED.lvl) + ' · ' + SAVED.gold + ' Gulden · ' + SAVED.kills + ' erschlagen';
+    $('contInfo').textContent = (KN_FACTIONS[SAVED.f] || KN_FACTIONS.reich).knight + ' · Stufe ' + SAVED.lvl + ' · ' + titleOf(SAVED.lvl) + ' · ' + SAVED.gold + ' Gulden · ' + SAVED.kills + ' erschlagen';
   }
   if (G.confirmNew) $('startNew').hidden = true;
 }
@@ -10069,6 +10802,8 @@ function startGame(hero){
     showBanner('Willkommen, ' + HERO.name, 'Sprecht mit dem Vogt in der Burg');
     logLine('Der Vogt Heinrich steht im Burghof. Geht zu ihm und drückt ' + (TOUCH ? '„Sprechen“' : 'E') + '.', '#ecd27a');
   } else showBanner(HERO.name, 'Stufe ' + HERO.lvl + ' · ' + titleOf(HERO.lvl));
+  renderBuffs();
+  if (HERO.inn && INN_BY[HERO.inn]){ const inn = INN_BY[HERO.inn]; G.knight.x = inn.dx; G.knight.y = inn.dy + 2; enterInn(inn); }
   saveHero(); pushFame(); sendPresence(true);
   if (TOUCH){
     const cab = document.querySelector('.cabinet'), r = cab.getBoundingClientRect();
@@ -10103,7 +10838,7 @@ $('formNew').addEventListener('submit', e => {
   const name = cleanName($('heroName').value);
   if (!name){ $('heroName').focus(); $('nameHint').hidden = false; return; }
   G.confirmNew = false;
-  startGame(freshHero(name));
+  startGame(freshHero(name, G.pickF));
 });
 $('btnContinue').addEventListener('click', () => { if (SAVED) startGame(SAVED); });
 $('btnNewHero').addEventListener('click', () => { G.confirmNew = true; renderStart(); $('btnCancelNew').focus({ preventScroll: true }); });
@@ -10242,7 +10977,8 @@ function markDirty(now){ dirty = true; if (now) saveHero(); }
 function heroCore(){ return JSON.stringify(Object.assign({}, HERO, { savedAt: 0, played: Math.round(HERO.played / 60) })); }
 function saveHero(){
   if (!HERO || !G || G.mode === 'title') return;
-  if (G.knight && G.knight.hp > 0){ HERO.x = Math.round(G.knight.x); HERO.y = Math.round(G.knight.y); }
+  if (G.inside){ HERO.x = G.inside.dx; HERO.y = G.inside.dy + 2; HERO.inn = G.inside.id; }
+  else if (G.knight && G.knight.hp > 0){ HERO.x = Math.round(G.knight.x); HERO.y = Math.round(G.knight.y); HERO.inn = null; }
   if (G.mode === 'dead' || G.mode === 'dying'){ HERO.x = BIND[HERO.bind].x; HERO.y = BIND[HERO.bind].y; }
   HERO.savedAt = Date.now();
   store.set(SAVE_KEY, JSON.stringify(HERO));
@@ -10267,10 +11003,11 @@ function loadLocal(){
 
 /* ============ Ruhmeshalle: die Ritter aller Spieler ============ */
 function fameBody(){
-  return { nm: HERO.name, lv: HERO.lvl, kills: HERO.kills, bosses: Object.keys(HERO.bosses).length, title: titleOf(HERO.lvl),
+  return { nm: HERO.name, f: HERO.f, lv: HERO.lvl, kills: HERO.kills, bosses: Object.keys(HERO.bosses).length, title: titleOf(HERO.lvl),
     score: HERO.lvl * 100000 + Math.min(99999, HERO.xp) };
 }
 function pushFame(){
+  renderFameLocal();
   if (!cloud.db || !cloud.uid || cloud.fameNoWrite || !HERO || cloud.fameBusy) return;
   const body = fameBody(), js = JSON.stringify(body);
   if (js === cloud.fameLast) return;
@@ -10284,50 +11021,24 @@ function pushFame(){
 function renderFame(rows){
   const box = $('fameList');
   box.textContent = '';
-  const list = rows.map(r => ({ id: r.id, nm: cleanName(r.nm) || 'Unbekannt', lv: clamp(r.lv | 0, 1, MAX_LVL), kills: Math.max(0, r.kills | 0), bosses: clamp(r.bosses | 0, 0, 3), score: +r.score || 0 }))
+  const list = rows.map(r => ({ id: r.id, nm: cleanName(r.nm) || 'Unbekannt', f: KN_FACTIONS[r.f] ? r.f : 'reich', lv: clamp(r.lv | 0, 1, MAX_LVL), kills: Math.max(0, r.kills | 0), bosses: clamp(r.bosses | 0, 0, 3), score: +r.score || 0 }))
     .sort((a, b) => b.score - a.score).slice(0, 15);
   if (!list.length){ box.append(el('li', 'empty', 'Noch niemand verzeichnet.')); return; }
   list.forEach((r, i) => {
     const li = el('li', r.id === cloud.uid ? 'me' : '');
     const nm = el('span', 'fn', r.nm); if (r.bosses) nm.append(el('small', null, ' ' + '✠'.repeat(r.bosses)));
-    li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', 'Stufe ' + r.lv + ' · ' + titleOf(r.lv)), el('span', 'fk', r.kills + ' erschlagen'));
+    li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', 'Stufe ' + r.lv + ' · ' + titleOf(r.lv)), el('span', 'fk', KN_FACTIONS[r.f].knight + ' · ' + r.kills + ' erschlagen'));
     box.append(li);
   });
 }
 function renderFameLocal(){
   const h = HERO || SAVED;
   if (cloud.fameLive) return;
-  renderFame(h ? [{ id: cloud.uid || 'local', nm: h.name, lv: h.lvl, kills: h.kills, bosses: Object.keys(h.bosses || {}).length, score: h.lvl * 100000 + h.xp }] : []);
+  renderFame(h ? [{ id: cloud.uid || 'local', nm: h.name, f: h.f, lv: h.lvl, kills: h.kills, bosses: Object.keys(h.bosses || {}).length, score: h.lvl * 100000 + h.xp }] : []);
 }
 
 /* ============ Andere Ritter: Anwesenheit und Gespräch ============ */
 const PEERS = new Map();
-const PEER_PALS = [
-  null,
-  { O:'#4a0c10', o:'#8a1a1e', y:'#b8302c', Y:'#d8524a', e:'#c8c4b8', E:'#f2eee2', r:'#c9a227' },
-  { O:'#121c3a', o:'#22386a', y:'#365c9e', Y:'#5e88c8', e:'#c8c4b8', E:'#f2eee2', r:'#c9a227' },
-  { O:'#14280e', o:'#24461c', y:'#386a2c', Y:'#5a9446', e:'#7a5a10', E:'#c9a227', r:'#e0c271' },
-  { O:'#7a766a', o:'#a8a496', y:'#d2cebe', Y:'#f2eee0', e:'#141217', E:'#3a3741', r:'#b8281e' }
-];
-const peerSets = {};
-/* Ritter in anderen Wappenfarben, einmal pro Farbe gemalt */
-function peerSet(c){
-  c = clamp(c | 0, 0, PEER_PALS.length - 1);
-  if (!c) return OWN_SET;
-  if (peerSets[c]) return peerSets[c];
-  const pal = Object.assign({}, kn_PAL, PEER_PALS[c]);
-  const fr = (grid, hg) => { const f = { img: makeSprite(grid.map(r => r.join('')), pal, OUT) }; if (hg) f.hands = makeSprite(hg.map(r => r.join('')), pal, OUT); return f; };
-  const walk = { down: [], up: [], right: [], left: [] }, atk = { down: [], up: [], right: [], left: [] };
-  for (let f = 0; f < 5; f++){
-    let hg = kn_new(); kn_comp(hg, kn_handF(), 0, kn_BOB[f]); let body = kn_front(f); kn_comp(body, hg, 0, 0); walk.down.push(fr(body, hg));
-    hg = kn_new(); kn_comp(hg, kn_handB(), 0, kn_BOB[f]); body = kn_back(f); kn_comp(body, hg, 0, 0); walk.up.push(fr(body, hg));
-    for (const [d, m] of [['right', false], ['left', true]]){ const h2 = kn_handS(f, m), b2 = kn_side(f, m); if (!m) kn_comp(b2, h2, 0, 0); walk[d].push(fr(b2, h2)); }
-    atk.down.push(fr(kn_front(f, true))); atk.up.push(fr(kn_back(f, true))); atk.right.push(fr(kn_side(f, false, true))); atk.left.push(walk.left[f]);
-  }
-  const fall = {};
-  for (const d of ['down', 'up', 'right', 'left']){ const s = d === 'left' ? -1 : 1; fall[d] = [.35, .8, 1.25, 1.57].map(a => rotateNN(walk[d][0].img, s * a, KNIGHT_SIZE.ax, KNIGHT_SIZE.ay - 1)); }
-  return (peerSets[c] = { walk, atk, fall });
-}
 const num = (v, lo, hi, d) => Number.isFinite(+v) ? clamp(+v, lo, hi) : d;
 function readPeer(p){
   const s = p.presence || {};
@@ -10335,9 +11046,9 @@ function readPeer(p){
   let q = PEERS.get(p.peer);
   if (!q){ q = { x: +s.x, y: +s.y, anim: 0, atkT: 0, atkLen: SWING, swA0: 0, swA1: 0, mult: 1, bashT: 0, inv: 0, slowT: 0, sw: s.sw, seen: 0 }; PEERS.set(p.peer, q); }
   q.tx = num(s.x, 0, WW, q.x); q.ty = num(s.y, 0, WH, q.y);
-  if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300){ q.x = q.tx; q.y = q.ty; }
+  if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || (INN_BY[s.in] ? s.in : 0) !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
   q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead;
-  q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.c = num(s.c, 0, PEER_PALS.length - 1, 1) | 0;
+  q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = INN_BY[s.in] ? s.in : 0;
   if (s.sw !== q.sw){ q.sw = s.sw; q.atkLen = num(s.sl, .1, 1, SWING); q.atkT = q.atkLen; q.swA0 = num(s.sa, -10, 10, 0); q.swA1 = num(s.se, -10, 10, 0); q.mult = num(s.m, .5, 2, 1); }
   return q;
 }
@@ -10350,14 +11061,13 @@ function updatePeers(dt){
   }
 }
 let presLast = '', presT = 0;
-function heroColor(name){ let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return 1 + h % (PEER_PALS.length - 1); }
 function sendPresence(force){
   if (!cloud.room || !HERO) return;
   const t = nowS();
   if (!force && t - presT < .12) return;
   const k = G.knight;
   const pr = { x: Math.round(k.x), y: Math.round(k.y), d: k.dir, mv: k.moving ? 1 : 0, sw: k.swing, sa: +k.swA0.toFixed(2), se: +k.swA1.toFixed(2), sl: +k.atkLen.toFixed(2), m: k.mult,
-    lv: HERO.lvl, nm: HERO.name, c: heroColor(HERO.name), dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
+    lv: HERO.lvl, nm: HERO.name, f: HERO.f, in: G.inside ? G.inside.id : 0, dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
   const js = JSON.stringify(pr);
   if (js === presLast && !force) return;
   presLast = js; presT = t;
@@ -10453,6 +11163,7 @@ function boot(){
   G = freshState('title'); seedTitle();
   setSound(Sound.on, false);
   buildSkills();
+  G.pickF = 'reich'; renderPick();
   renderStart(); renderFameLocal();
   showOverlay('ovStart');
   updateZone();
