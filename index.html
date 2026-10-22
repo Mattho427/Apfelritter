@@ -285,6 +285,7 @@ img.horseimg,.shoprow img.horseimg{width:66px; height:auto; image-rendering:pixe
 .skill:active{box-shadow:inset 3px 3px 0 var(--ink), 0 0 0 2px var(--gold);}
 
 /* Meldungen und Aufträge im Bild */
+.boss:not([hidden]) + .tracker{top:46px;}
 .tracker{position:absolute; left:6px; top:6px; z-index:1; max-width:44%; display:grid; gap:2px; justify-items:start; line-height:1.05; font-size:clamp(13px, 2.4vw, 17px); pointer-events:none;}
 .bossfight .tracker{top:40px;}
 .tracker p,.log p{margin:0; padding:1px 5px; background:color-mix(in srgb, var(--ink) 58%, transparent); color:var(--parchment);}
@@ -298,6 +299,36 @@ img.horseimg,.shoprow img.horseimg{width:66px; height:auto; image-rendering:pixe
 .boss{position:absolute; left:20%; right:20%; top:5px; z-index:1; line-height:1; display:grid; grid-template-columns:auto 1fr; align-items:center; gap:10px; padding:3px 6px; background:color-mix(in srgb, var(--ink) 72%, transparent);}
 .talkbtn{position:absolute; left:50%; bottom:10px; transform:translateX(-50%); z-index:2; font-family:var(--f-body); font-size:20px; color:var(--ink); background:var(--gold); border:0; padding:5px 12px 4px; cursor:pointer; white-space:nowrap;
   box-shadow:inset -2px -2px 0 var(--gold-lo), inset 2px 2px 0 var(--gold-hi), 0 0 0 2px var(--ink);}
+.ask{position:absolute; left:50%; top:46px; transform:translateX(-50%); z-index:4; display:grid; gap:6px; justify-items:center; max-width:calc(100% - 24px); padding:8px 12px; background:color-mix(in srgb, var(--ink) 86%, transparent); box-shadow:0 0 0 2px var(--gold-lo);}
+.ask p{margin:0; font-size:20px; line-height:1.1; color:var(--parchment); text-align:center;}
+.ask .row{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+.ask .tbtn{font-size:18px; padding:4px 10px 3px;}
+.tracker p.phead b{color:#9fe08a;}
+.tracker p.pm b{color:#cfeec2;}
+.tracker p.pm.dead{opacity:.6;}
+.tracker .hpb{display:inline-block; width:44px; height:6px; margin:0 3px; vertical-align:middle; background:#3a1416; box-shadow:0 0 0 1px var(--ink);}
+.tracker .hpb i{display:block; height:100%; background:#d0343c;}
+.tracker p.ev b{color:#ff9a8a;}
+.trade{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.tcol{display:grid; gap:4px; align-content:start; padding:6px 8px; background:var(--stone-lo);}
+.tcol h4{margin:0; font-family:var(--f-display); font-weight:400; font-size:22px; line-height:1; color:var(--gold);}
+.trow{display:grid; grid-template-columns:auto 1fr; gap:6px; align-items:center;}
+.trow img{width:32px; height:32px; image-rendering:pixelated;}
+.trow small{display:block; font-size:14px; color:var(--parchment-lo);}
+.tg{margin:0; color:var(--gold-hi);}
+.tst{margin:0; font-size:16px; color:var(--parchment-lo);}
+.tst.ok{color:#9fe08a;}
+.tgrid{display:flex; flex-wrap:wrap; gap:4px;}
+.tgrid .slot{width:44px; height:44px;}
+.tgold{display:flex; gap:6px; align-items:center; flex-wrap:wrap; color:var(--parchment);}
+.tgold .tbtn{font-size:18px; padding:4px 10px 3px;}
+.ftabs{display:flex; gap:6px; margin:0 0 6px;}
+.ftabs button{font-family:var(--f-body); font-size:17px; color:#5a4a34; background:none; border:0; border-bottom:2px solid transparent; padding:2px 4px; cursor:pointer;}
+.ftabs button.on{color:var(--blood); border-bottom-color:var(--blood);}
+.ftabs button:focus-visible{outline:2px solid var(--blood);}
+.fame li.frec{grid-template-columns:1fr;}
+.fame li.frec .fk{grid-column:1;}
+.fame .fk.me{color:var(--blood);}
 .chat{position:absolute; left:6px; right:6px; bottom:6px; z-index:3; display:flex; gap:8px; align-items:center; padding:4px 6px; background:color-mix(in srgb, var(--ink) 82%, transparent); line-height:1;}
 .chat input{flex:1; min-width:0; font-family:var(--f-body); font-size:20px; color:var(--parchment); background:var(--soot); border:0; padding:4px 6px; box-shadow:inset 2px 2px 0 var(--ink);}
 .chat input:focus-visible{outline:2px solid var(--gold);}
@@ -419,6 +450,11 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
   .skill img{width:32px; height:32px;}
   .talkhead img{width:46px;}
   .log{bottom:42px; max-width:70%;}
+  .trade{grid-template-columns:1fr;}
+  .ask{top:4px; gap:3px; padding:4px 8px; width:max-content;}
+  .ask p{font-size:14px;}
+  .ask .row{flex-wrap:nowrap; gap:6px;}
+  .ask .tbtn{font-size:14px; padding:2px 8px 1px;}
   .boss{left:6px; right:6px;}
   .tracker{max-width:60%;}
 }
@@ -444,6 +480,8 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
   .skill img{width:30px; height:30px;}
   .talkbtn{bottom:58px;}
   .pad-row{z-index:2;}
+  .ask{top:4px; padding:4px 10px;}
+  .ask p{font-size:16px;}
   .log{left:calc(min(150px, 17vw) + 14px); bottom:62px; max-width:42%;}
   .log,.tracker{font-size:13px;}
   .log p:nth-last-child(n+3){display:none;}
@@ -463,7 +501,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     <img class="seal" id="sealTop" alt="">
     <p class="eyebrow">Anno Domini MDXX · Sacrum Romanum Imperium</p>
     <h1>Der Apfelritter</h1>
-    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land und triffst sie im Gasthaus.</p>
+    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in einer Gruppe, kämpft gemeinsam gegen Raubritter und die Wilde Jagd, tjostiert, handelt und würfelt miteinander.</p>
   </header>
 
   <section class="cabinet" aria-label="Spiel">
@@ -482,6 +520,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <button class="ibtn" id="btnQuests" type="button">Aufträge</button>
         <button class="ibtn" id="btnMap" type="button">Karte</button>
         <button class="ibtn" id="btnChat" type="button" hidden>Sagen</button>
+        <button class="ibtn" id="btnParty" type="button" hidden>Gruppe</button>
         <button class="ibtn" id="btnPause" type="button">Pause</button>
         <button class="ibtn" id="btnSound" type="button" aria-pressed="true">Ton an</button>
       </div>
@@ -503,6 +542,10 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <div class="log" id="log" aria-live="polite"></div>
         <div class="zone" id="zone">Die Obstgärten</div>
         <button class="talkbtn" id="btnTalk" type="button" hidden>Sprechen</button>
+        <div class="ask" id="ask" hidden role="alertdialog" aria-labelledby="askText">
+          <p id="askText"></p>
+          <div class="row"><button class="tbtn" id="askYes" type="button">Annehmen</button><button class="tbtn" id="askNo" type="button">Ablehnen</button></div>
+        </div>
         <form class="chat" id="chatForm" hidden autocomplete="off">
           <label class="lbl" for="chatIn">Sagen</label>
           <input id="chatIn" maxlength="120" placeholder="Was wollt Ihr sagen?" enterkeyhint="send">
@@ -573,6 +616,8 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <dt class="kbd-only"><kbd>E</kbd></dt><dd class="kbd-only">sprechen, eintreten, hinabsteigen, Truhe öffnen, mitspielen</dd>
         <dt class="kbd-only"><kbd>I</kbd><kbd>L</kbd><kbd>K</kbd></dt><dd class="kbd-only">Rucksack, Aufträge, Karte</dd>
         <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
+        <dt class="kbd-only"><kbd>Y</kbd><kbd>N</kbd></dt><dd class="kbd-only">Anfrage eines Ritters annehmen oder ablehnen</dd>
+        <dt class="kbd-only"><kbd>T</kbd></dt><dd class="kbd-only">Eure Gruppe</dd>
         <dt class="kbd-only"><kbd>↑</kbd><kbd>↓</kbd><kbd>1</kbd>–<kbd>9</kbd></dt><dd class="kbd-only">in Fenstern wählen, <kbd>Enter</kbd> bestätigt, <kbd>⌫</kbd> zurück</dd>
         <dt class="kbd-only"><kbd>P</kbd><kbd>Esc</kbd></dt><dd class="kbd-only">Pause, Fenster schließen</dd>
         <dt class="kbd-only"><kbd>M</kbd></dt><dd class="kbd-only">Ton an oder aus</dd>
@@ -586,7 +631,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <div class="panel map">
         <h2>Karte des Reichslandes</h2>
         <div class="mapbox"><canvas id="mapCv" width="512" height="384" aria-label="Übersichtskarte"></canvas><div class="maplabels" id="mapLabels"></div></div>
-        <p class="hint">Gelb: Ihr · Grün: Leute · Rot: Anführer · Blau: andere Ritter · Kreis: Ziel eines Auftrags</p>
+        <p class="hint">Gelb: Ihr · Grün: Leute · Rot: Anführer · Blau: andere Ritter · Hellgrün: Eure Gruppe · Kreis: Ziel eines Auftrags · Rote Fahne: Weltereignis</p>
         <button class="btn" id="btnMapClose" type="button">Zurück</button>
       </div>
     </div>
@@ -668,7 +713,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <ul class="list" id="gearList"></ul>
       <p class="tip">Was Ihr tragt, sieht man: Die Güte des Harnischs bestimmt seinen Glanz, ein guter Helm trägt einen Federbusch in seiner Farbe, ein guter Schild einen Rand aus Silber oder Gold, und mit besseren Waffen wird die Klinge länger.</p>
       <ul class="list" id="joustList"></ul>
-      <p class="tip">Vor dem Osttor der Reichsstadt ruft Herold Kaspar zum Tjost. Drei Durchgänge an der Schranke: Kurz vor dem Zusammenprall wandert das Ziel über den Gegner, mit dem Hieb senkt Ihr die Lanze. Helm zwei Punkte, Schild einer, wer aus dem Sattel fällt, verliert.</p>
+      <p class="tip">Vor dem Osttor der Reichsstadt ruft Herold Kaspar zum Tjost. Drei Durchgänge an der Schranke: Kurz vor dem Zusammenprall wandert das Ziel über den Gegner, mit dem Hieb senkt Ihr die Lanze. Helm zwei Punkte, Schild einer, wer aus dem Sattel fällt, verliert. Stehen zwei Ritter auf der Wiese, kann einer den anderen fordern.</p>
     </div>
     <div class="note">
       <h3>Tag, Nacht und Wetter</h3>
@@ -689,6 +734,16 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <h3>Im Gasthaus</h3>
       <ul class="list" id="innFun"></ul>
       <p class="tip">Jedes Gebiet hat seine Musik: Fanfaren in Burg und Stadt, ein Hirtenlied auf dem Land, ein Trauermarsch in den dunklen Gegenden, leise Weisen in der Nacht, Bordun in den Gewölben. Im Winter klingen Glocken mit, im Frühling eine Flöte. M schaltet den Ton.</p>
+    </div>
+    <div class="note">
+      <h3>Mit anderen Rittern</h3>
+      <ul class="list" id="mpList"></ul>
+      <p class="tip">Geht zu einem anderen Ritter und drückt E oder tippt ihn an. Anfragen erscheinen oben im Bild. Die Gruppe bleibt bestehen, solange Ihr spielt, auch nach einem Neuladen der Seite für eine halbe Stunde.</p>
+    </div>
+    <div class="note">
+      <h3>Weltereignisse</h3>
+      <ul class="list" id="evList"></ul>
+      <p class="tip">Weltereignisse gelten für alle Ritter zugleich. Eine Spielstunde vorher wird gewarnt, oben links steht, wie weit alle zusammen sind. Lohn bekommt, wer mitgekämpft hat; beim ersten Sieg gibt es ein besonderes Kleinod.</p>
     </div>
     <div class="note">
       <h3>Gewölbe</h3>
@@ -720,8 +775,9 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     </div>
     <div class="note">
       <h3>Ruhmeshalle</h3>
+      <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button></div>
       <ol class="fame" id="fameList"></ol>
-      <p class="tip">Die stärksten Ritter aller Spieler. Ein Kreuz steht für jeden bezwungenen Anführer.</p>
+      <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Feste“ die besten Festspiele.</p>
     </div>
     <div class="note">
       <h3>Steuerung</h3>
@@ -734,6 +790,8 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <dt class="kbd-only"><kbd>E</kbd></dt><dd class="kbd-only">sprechen, eintreten, hinabsteigen, Truhe öffnen, mitspielen</dd>
         <dt class="kbd-only"><kbd>I</kbd><kbd>L</kbd><kbd>K</kbd></dt><dd class="kbd-only">Rucksack, Aufträge, Karte</dd>
         <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
+        <dt class="kbd-only"><kbd>Y</kbd><kbd>N</kbd></dt><dd class="kbd-only">Anfrage eines Ritters annehmen oder ablehnen</dd>
+        <dt class="kbd-only"><kbd>T</kbd></dt><dd class="kbd-only">Eure Gruppe</dd>
         <dt class="kbd-only"><kbd>↑</kbd><kbd>↓</kbd><kbd>1</kbd>–<kbd>9</kbd></dt><dd class="kbd-only">in Fenstern wählen, <kbd>Enter</kbd> bestätigt, <kbd>⌫</kbd> zurück</dd>
         <dt class="kbd-only"><kbd>P</kbd><kbd>Esc</kbd></dt><dd class="kbd-only">Pause, Fenster schließen</dd>
         <dt class="kbd-only"><kbd>M</kbd></dt><dd class="kbd-only">Ton an oder aus</dd>
@@ -9300,7 +9358,8 @@ function musicFor(){
   const f = typeof festNear === 'function' ? festNear() : null;
   if (f) return f.tune;
   if (isNight()) return 'nacht';
-  if (SAFE[G.zone]) return 'stadt';
+  if (EVT.cur && !EVT.cur.over && Math.hypot(G.knight.x - EVT.cur.site.x, G.knight.y - EVT.cur.site.y) < 1400) return EVT.cur.d.ghost ? 'nacht' : 'dunkel';
+  if (isSafe(G.zone)) return 'stadt';
   if ({ obstgarten: 1, fluss: 1, dorf: 1, lager: 1 }[G.zone]) return 'land';
   return 'dunkel';
 }
@@ -10315,7 +10374,10 @@ function cleanHero(h){
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
   h.riding = !!(h.horse && h.riding);
-  if (h.joust){ const j = h.joust, b = {}; for (const id of ['konrad', 'bayard', 'goetz']) if (j.beat && j.beat[id]) b[id] = true; h.joust = { wins: Math.max(0, j.wins | 0), beat: b }; }
+  if (h.joust){ const j = h.joust, b = {}; for (const id of ['konrad', 'bayard', 'goetz']) if (j.beat && j.beat[id]) b[id] = true; h.joust = { wins: Math.max(0, j.wins | 0), beat: b, elo: clamp(j.elo | 0 || 1000, 100, 3000), pw: Math.max(0, j.pw | 0), pl: Math.max(0, j.pl | 0) }; }
+  h.pt = h.pt && typeof h.pt.id === 'string' && /^[a-z0-9]{3,12}$/.test(h.pt.id) && Date.now() - (+h.pt.at || 0) < 1800000 ? { id: h.pt.id, t: +h.pt.t || Date.now(), at: +h.pt.at } : null;   // Gruppe: eine halbe Stunde lang
+  if (h.frec){ const o = {}; for (const r of ['stein', 'klettern', 'springen', 'schnee']) if (+h.frec[r] > 0) o[r] = Math.round(+h.frec[r]); h.frec = o; }
+  for (const key of ['evDone', 'evFirst', 'evCur']) if (h[key] && typeof h[key] !== 'object') h[key] = null;
   return h;
 }
 let HERO = null;
@@ -11626,7 +11688,7 @@ function createMonster(kind, x, y, lvl, slot){
   G.mons.push(m);
   return m;
 }
-const aggroRange = m => MON[m.k].boss ? 130 : clamp(95 + (m.lvl - HERO.lvl) * 9, 45, 150);
+const aggroRange = (m, T) => m.ev ? 240 : MON[m.k].boss ? 130 : clamp(95 + (m.lvl - (T && T !== G.knight ? T.lv : HERO.lvl)) * 9, 45, 150);
 const leashOf = m => MON[m.k].boss ? 420 : 520;
 function engage(m, social){
   if (m.mode === 'fight' || m.mode === 'back') return;
@@ -11635,7 +11697,7 @@ function engage(m, social){
   m.sT = m.k === 'raubritter' ? 1.5 : m.k === 'lindwurm' ? 2 : m.k === 'tod' ? .7 : m.k === 'rabe' ? rand(1.2, 2) : 0;
   if (!social){
     if (m.k === 'werwolf') Sound.howl(); else if (m.k === 'rabe') Sound.caw(); else if (m.k === 'ratte') Sound.squeak();
-    if (MON[m.k].boss){ Sound.horn(); G.flash = .3; showBanner(MON[m.k].name, 'Stufe ' + m.lvl + ' · Anführer'); }
+    if (MON[m.k].boss){ Sound.horn(); G.flash = .3; showBanner(m.nm || MON[m.k].name, 'Stufe ' + m.lvl + ' · Anführer'); }
     for (const o of G.mons) if (o !== m && o.mode === 'idle' && !MON[o.k].boss && Math.hypot(o.x - m.x, o.y - m.y) < 80) engage(o, true);
   }
 }
@@ -11655,8 +11717,8 @@ function idleMove(m, dt){
   m.wT -= dt;
   if (m.walking){
     const dx = m.tx - m.x, dy = m.ty - m.y, l = Math.hypot(dx, dy);
-    if (l < 4 || m.wT <= 0){ m.walking = false; m.wT = rand(1.5, 4.5); return [0, 0]; }
-    const sp = Math.max(14, (d.spd || 30) * .4);
+    if (l < 4 || m.wT <= 0){ m.walking = false; m.march = false; m.wT = rand(1.5, 4.5); return [0, 0]; }
+    const sp = Math.max(14, (d.spd || 30) * (m.march ? 1.1 : .4));
     if (Math.abs(dx) > 1) m.dir = dx > 0 ? 1 : -1;
     return [dx / l * sp, dy / l * sp];
   }
@@ -11690,7 +11752,7 @@ function aiMove(m, dt, k, dx, dy, dist){
       } else if (m.st === 'aim'){ if (m.sT <= 0){ m.st = 'thrust'; m.sT = .22; Sound.swing(); m.hitK = false; } }
       else if (m.st === 'thrust'){
         const fwd = (k.x - m.x) * m.dir;
-        if (!m.hitK && fwd > 2 && fwd < reach + 8 && Math.abs(k.y - m.y) < 13){ m.hitK = hurt(m, dmg * 1.2); }
+        if (!m.hitK && fwd > 2 && fwd < reach + 8 && Math.abs(k.y - m.y) < 13){ m.hitK = hitT(k, m, dmg * 1.2); }
         if (m.sT <= 0){ m.st = 'rest'; m.sT = .7; }
       } else if (m.sT <= 0){ m.st = 'go'; m.t = 0; }
       break;
@@ -11787,7 +11849,7 @@ function aiMove(m, dt, k, dx, dy, dist){
       m.sT -= dt;
       if (m.st === 'appear'){ m.alpha = clamp(1 - m.sT / .9, 0, 1); if (m.sT <= 0){ m.st = 'wind'; m.sT = .7; } }
       else if (m.st === 'wind'){ m.alpha = 1; m.dir = dx > 0 ? 1 : -1; if (m.sT <= 0){ m.st = 'sweep'; m.sT = .24; Sound.scythe(); m.hitK = false; } }
-      else if (m.st === 'sweep'){ if (!m.hitK && dist < 64) m.hitK = hurt(m, dmg); if (m.sT <= 0){ m.st = 'linger'; m.sT = 1.5; } }
+      else if (m.st === 'sweep'){ if (!m.hitK && dist < 64) m.hitK = hitT(k, m, dmg); if (m.sT <= 0){ m.st = 'linger'; m.sT = 1.5; } }
       else if (m.st === 'linger'){ [mvx, mvy] = toK(24); m.dir = dx > 0 ? 1 : -1; if (m.sT <= 0){ m.st = 'fade'; m.sT = .5; } }
       else if (m.st === 'fade'){ m.alpha = clamp(m.sT / .5, 0, 1); if (m.sT <= 0){ m.st = 'hidden'; m.sT = .5; } }
       else if (m.st === 'hidden'){
@@ -11828,7 +11890,7 @@ function updateSpawns(dt){
   }
 }
 function updateMons(dt){
-  const k = G.knight, alive = G.mode === 'play' && k.hp > 0, safe = !!SAFE[G.zone] || nearInn(k.x, k.y) || nearFest(k.x, k.y);
+  const k = G.knight, alive = G.mode === 'play' && k.hp > 0, safeZ = isSafe(G.zone), safe = safeZ || nearInn(k.x, k.y) || nearFest(k.x, k.y);
   for (let i = G.rising.length - 1; i >= 0; i--){
     const r = G.rising[i]; r.t -= dt;
     if (Math.random() < .6){
@@ -11848,17 +11910,19 @@ function updateMons(dt){
   for (let i = G.mons.length - 1; i >= 0; i--){
     const m = G.mons[i], d = MON[m.k];
     m.t += dt; if (m.fl > 0) m.fl -= dt;
-    const c = centerOf(m), dx = k.x - c.x, dy = (k.y - KBODY) - c.y, dist = Math.hypot(dx, dy) || 1;
+    // Ziel: der nächste Ritter, der eigene oder ein Mitspieler am selben Ort
+    const c = centerOf(m), T0 = monTarget(m, c, alive && !(m.ev ? safeZ : safe), dt), T = T0 || k;
+    const dx = T.x - c.x, dy = (T.y - KBODY) - c.y, dist = Math.hypot(dx, dy) || 1, dk = Math.hypot(k.x - c.x, k.y - KBODY - c.y);
     let mvx = 0, mvy = 0;
     if (m.mode === 'idle'){
       [mvx, mvy] = idleMove(m, dt);
-      if (alive && !safe && dist < aggroRange(m)) engage(m);
-      if (dist > 1500 && !m.minion){ G.mons.splice(i, 1); if (m.slot) m.slot.mon = null; continue; }
+      if (T0 && dist < aggroRange(m, T)) engage(m);
+      if (dk > (m.ev ? 2400 : 1500) && !m.minion){ G.mons.splice(i, 1); if (m.slot) m.slot.mon = null; continue; }
     } else if (m.mode === 'fight'){
       const home = Math.hypot(m.x - m.hx, m.y - m.hy);
-      if (!alive || safe || home > leashOf(m) || dist > 560){ goHome(m); }
+      if (!T0 || home > leashOf(m) || dist > 560){ goHome(m); }
       else if (m.stunT > 0){ m.stunT -= dt; }
-      else [mvx, mvy] = aiMove(m, dt, k, dx, dy, dist);
+      else [mvx, mvy] = aiMove(m, dt, T, dx, dy, dist);
     }
     if (m.mode === 'back'){
       m.backT += dt;
@@ -11929,6 +11993,7 @@ function updateShots(dt){
       } else hurt(s, s.dmg || 5, true);
       gone = true;
     }
+    if (!gone && s.from) for (const q of PEERS.values()) if (samePlace(q) && !q.dead && Math.hypot(s.x - q.x, s.y - (q.y - KBODY)) < 10){ burst(s.x, s.y, ['#ffffff', '#c8343c'], 5, 60); gone = true; break; }
     if (gone){ G.shots.splice(i, 1); if (s.k === 'fire') burst(s.x, s.y, ['#e0782a', '#ffd36a'], 5, 40, true); }
     if (G.mode !== 'play') return;
   }
@@ -12183,9 +12248,12 @@ function bashHits(){
     G.shake = Math.max(G.shake, .15);
   }
 }
-function damage(m, dmg, crit, kbMul){
-  const k = G.knight, c = centerOf(m);
-  m.hp -= dmg; m.fl = .12; G.combatT = 0;
+function damage(m, dmg, crit, kbMul, src){
+  const mine = !src || src === G.knight, k = mine ? G.knight : src, c = centerOf(m);
+  // Anführer eines Weltereignisses: sein Leben kommt aus dem gemeldeten Schaden aller, Hiebe anderer hier nur zu sehen
+  if (m.ev && m.ev.boss && !mine){ m.fl = .12; burst(c.x, c.y, ['#ffffff', '#c3ccd8'], 4, 60, true); return; }
+  m.hp -= dmg; m.fl = .12; m.by = mine ? 'me' : src.peer;
+  if (mine){ G.combatT = 0; m.mine = (m.mine || 0) + dmg; if (m.ev && EVT.cur && m.ev.id === EVT.cur.id){ EVT.cur.contrib = true; if (m.ev.boss) EVT.cur.dmg += dmg; } }
   if (m.mode === 'idle') engage(m);
   const dx = c.x - k.x, dy = c.y - (k.y - KBODY), l = Math.hypot(dx, dy) || 1;
   const kb = (MON[m.k].boss ? (m.k === 'raubritter' && m.st === 'stun' ? 80 : 0) : m.k === 'moor' ? 90 : 160) * (kbMul || 1);
@@ -12204,13 +12272,18 @@ const DEATH_COLORS = {
 function kill(m){
   const i = G.mons.indexOf(m); if (i >= 0) G.mons.splice(i, 1);
   const d = MON[m.k], c = centerOf(m), k = G.knight;
+  if (m.ev) evMark(m);
+  if (m.ev && m.ev.boss){ burst(c.x, c.y, m.ghost ? ['#9fdcff', '#e8f6ff', '#ffffff'] : DEATH_COLORS[m.k], 50, 140, true); Sound.kill(); G.flash = .4; return; }   // Lohn kommt mit dem Ende des Ereignisses
+  if (!killCredit(m)){ burst(c.x, c.y, DEATH_COLORS[m.k], 12, 70); Sound.kill(); if (m.slot){ m.slot.mon = null; m.slot.t = d.boss ? 240 : rand(40, 70); } return; }
   HERO.kills++; G.shake = Math.max(G.shake, .08);
   Sound.kill();
   burst(c.x, c.y, DEATH_COLORS[m.k], d.boss ? 50 : 16, d.boss ? 140 : 80, m.k === 'irrlicht');
   if (m.k === 'lindwurm') for (const s of wurmSegs(m)) burst(s.x, s.cy, DEATH_COLORS.lindwurm, 8, 70);
   if (m.slot){ m.slot.mon = null; m.slot.t = d.boss ? 240 : rand(40, 70); }
   // Erfahrung
-  const xp = Math.round(monXp(m.k, m.lvl) * xpMul(m.lvl - HERO.lvl));
+  const byMate = m.by && m.by !== 'me' && inParty(PEERS.get(m.by));   // der Gefährte meldet den Sieg, seine Erfahrung kommt über die Gruppe
+  if (m.by === 'me'){ NET.kx = { n: NET.kx.n + 1, s: NET.kx.s + monXp(m.k, m.lvl), l: m.lvl }; }
+  const xp = byMate ? 0 : Math.round(monXp(m.k, m.lvl) * xpMul(m.lvl - HERO.lvl) * (1 + .1 * partyNear().length));   // Gefährten in der Nähe: je ein Zehntel mehr
   if (xp > 0 && HERO.lvl < MAX_LVL) floatText(k.x, k.y - KS.ay - 10, '+' + xp + ' EP', '#c9a6ff', 1, 1.2);
   // Beute
   const gy = m.k === 'tod' ? m.y + 24 : (d.fly ? m.y + 24 : m.y), from = { x: m.x, y: gy };
@@ -12358,7 +12431,7 @@ function die(){
   const k = G.knight;
   k.hp = 0; G.mode = 'dying'; G.dieT = 1.3; atkHeld = false; atkBtn = false; G.buffT = 0; HERO.riding = false; k.ride = null;
   G.lostGold = Math.floor(HERO.gold * .1); HERO.gold -= G.lostGold;
-  for (const m of G.mons) if (m.mode === 'fight') goHome(m);
+  for (const m of G.mons) if (m.mode === 'fight' && (!m.tgt || m.tgt === G.knight)) goHome(m);
   G.shots.length = 0;
   Sound.over(); markDirty(true);
 }
@@ -12429,7 +12502,7 @@ function updateKnight(dt){
   if (k.atkT > 0){ k.atkT -= dt; swingHits(); }
   // Erholung: außer Gefecht langsam, in Burg und Stadt schnell
   G.combatT += dt;
-  if (k.hp > 0 && k.hp < ST.hp && (G.combatT > 5 || SAFE[G.zone])) k.hp = Math.min(ST.hp, k.hp + ST.hp * (SAFE[G.zone] ? .12 : .03) * (ST.regen || 1) * dt);
+  if (k.hp > 0 && k.hp < ST.hp && (G.combatT > 5 || isSafe(G.zone))) k.hp = Math.min(ST.hp, k.hp + ST.hp * (isSafe(G.zone) ? .12 : .03) * (ST.regen || 1) * dt);
   for (const id in G.cd) if (G.cd[id] > 0) G.cd[id] = Math.max(0, G.cd[id] - dt);
   if (G.buffT > 0){ G.buffT -= dt; if (Math.random() < dt * 14) G.parts.push({ x: k.x + rand(-9, 9), y: k.y - rand(4, 40), vx: 0, vy: -24, life: .5, c: Math.random() < .5 ? '#ecd27a' : '#fff3c0', g: 0, glow: true }); }
 }
@@ -12457,6 +12530,8 @@ function updateFx(dt){
 const PAUSED = { pause:1, menu:1, map:1, dead:1 };
 function update(dt){
   updatePeers(dt);
+  netTick(); evTick(dt);
+  const hideT = !!(G.joust || G.fgame); if (hideT !== !!G.trackHidden){ G.trackHidden = hideT; $('tracker').style.visibility = hideT ? 'hidden' : ''; }
   if (PAUSED[G.mode]) return;
   G.t += dt; G.fogX = (G.fogX + dt * 6) % 512;
   if ((G.musT = (G.musT || 0) - dt) <= 0){ G.musT = 1; Sound.setTune(musicFor()); }   // Musik nach Ort und Zeit
@@ -12489,6 +12564,7 @@ function update(dt){
   }
   updateKnight(dt);
   if (G.inside) return;
+  peerHits();
   const z = gZone(G.knight.x, G.knight.y).id;
   if (z !== G.zone){ G.zone = z; updateZone(true); }
   updateSpawns(dt);
@@ -12535,20 +12611,22 @@ function startJoust(foe){
 }
 function joustPass(){
   const J = G.joust, half = Math.min(300, W / 2 - 44);
-  J.pass++; J.dir = J.pass % 2 ? 1 : -1;
+  J.pass++; J.dir = (J.pass % 2 ? 1 : -1) * (J.pvp ? J.pvp.side : 1);
   J.px = LISTS.x - half * J.dir; J.ox = LISTS.x + half * J.dir; J.sp = 0;
-  J.py = LISTS.y + 26; J.oy = LISTS.y - 18;
+  const north = J.pvp && J.pvp.side < 0;   // gegen einen Ritter: wer annimmt, reitet die nördliche Bahn
+  J.py = LISTS.y + (north ? -18 : 26); J.oy = LISTS.y + (north ? 26 : -18);
   J.lock = null; J.ph = Math.random() * 6; J.held = true; J.resolved = false; J.st = 'ready'; J.t = 1.1; J.anim = 0;
 }
 function updateJoust(dt){
   const J = G.joust, k = G.knight;
+  if (J.pvp && !duelTick(J)) return;
   J.t -= dt; J.anim += dt * (J.sp / 18 + 1); if (J.cheer > 0) J.cheer -= dt; if (J.textT > 0) J.textT -= dt;
   for (let i = J.parts.length - 1; i >= 0; i--){ const p = J.parts[i]; p.life -= dt; p.vy += 220 * dt; p.x += p.vx * dt; p.y += p.vy * dt; if (p.life <= 0) J.parts.splice(i, 1); }
   if (J.fallen){ J.fallen.t += dt; }
   const press = atkHeld || atkBtn, edge = press && !J.held; J.held = press;
   k.x = J.px; k.y = J.py; k.dir = J.dir > 0 ? 'right' : 'left'; k.moving = J.sp > 10;
   if (J.st === 'intro'){ if (J.t <= 0){ J.st = 'ready'; J.t = .6; } return; }
-  if (J.st === 'ready'){ if (J.t <= 0){ J.st = 'charge'; Sound.horn(); } return; }
+  if (J.st === 'ready'){ if (J.pvp) J.pvp.r = J.pass; if (J.t <= 0 && (!J.pvp || duelReady(J))){ J.st = 'charge'; Sound.horn(); } return; }
   if (J.st === 'charge' || J.st === 'after'){
     J.sp = Math.min(230, J.sp + 200 * dt) * (J.st === 'after' ? Math.pow(.25, dt) : 1);
     J.px += J.sp * J.dir * dt; J.ox -= J.sp * J.dir * dt;
@@ -12557,7 +12635,10 @@ function updateJoust(dt){
     if (J.st === 'charge'){
       J.ph += dt * J.foe.osc * 2.4;
       if (gap < JOUST_AIM && J.lock === null && edge){ J.lock = Math.sin(J.ph); Sound.swing(); }
-      if (gap <= 0 && !J.resolved){ J.resolved = true; joustImpact(); }
+      if (gap <= 0 && !J.resolved){ J.resolved = true; if (J.pvp) duelLock(J); else joustImpact(); }
+    } else if (J.waitRes){
+      const v = duelPeerLock(J);
+      if (v !== null || nowS() - J.waitRes > 6){ J.waitRes = 0; duelImpact(J, v === null ? -9 : v); }
     } else if (J.t <= 0){
       if (J.over) return joustEnd();
       joustPass();
@@ -12600,6 +12681,7 @@ function joustImpact(){
   if (oFall && !iFall) J.win = true; else if (iFall && !oFall) J.win = false; else if (J.over) J.win = J.me > J.op;
 }
 function joustEnd(){
+  if (G.joust.pvp) return duelEnd(G.joust);
   const J = G.joust, f = J.foe, k = G.knight;
   G.joust = null; $('log').style.visibility = '';
   const herold = NPCS.find(n => n.id === 'herold');
@@ -12962,6 +13044,7 @@ function dgInteract(){
 function updateDungeon(dt){
   const M = DG_ON, k = G.knight;
   updateKnight(dt);
+  peerHits();
   updateLoot(dt);
   if (G.mode === 'play'){ updateMons(dt); updateShots(dt); }
   updateFx(dt); updateBossBar(); dgNear();
@@ -13055,7 +13138,7 @@ function renderDungeon(){
   for (const a of G.loot) if (inView(a.x, a.y, cam)) drawLootBeam(a);
   for (const p of G.parts){ if (!p.glow) continue; ctx.fillStyle = p.c; ctx.fillRect(p.x | 0, p.y | 0, 1, 1); }
   for (const m of G.mons) if (inView(m.x, m.y, cam, 20) && (m.mode === 'fight' || m.hp < m.max || m.elite || Math.hypot(m.x - k.x, m.y - k.y) < 170)) drawPlate(m);
-  for (const p of peers){ drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15, '#9cc8ff'); if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11, p.say); }
+  for (const p of peers){ drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15, inParty(p) ? '#9fe08a' : '#9cc8ff'); if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11, p.say); }
   if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4, G.say);
   for (const f of G.floats){ ctx.globalAlpha = clamp(f.life / f.max * 2.5, 0, 1); drawText(f.txt, f.x, f.y, f.c, 'c', f.s); }
   ctx.globalAlpha = 1;
@@ -13077,6 +13160,7 @@ function dgMiniMap(){
   let q = P(M.stair.x, M.stair.y); g.fillStyle = '#e8ecf4'; g.fillRect(q[0] - 1, q[1], 3, 2);
   if (M.chest && M.seen[M.chest.ty * M.C + M.chest.tx]){ q = P(M.chest.x, M.chest.y); g.fillStyle = M.chestOpen ? '#7a6a40' : '#ffd541'; g.fillRect(q[0] - 1, q[1] - 2, 3, 3); }
   for (const m of G.mons) if (m.mode === 'fight' || m.elite){ q = P(m.x, m.y); g.fillStyle = m.elite ? '#ff7a40' : '#d0343c'; g.fillRect(q[0], q[1], 2, 2); }
+  for (const p of PEERS.values()) if (p.in === 'dg:' + M.id){ q = P(p.x, p.y); g.fillStyle = inParty(p) ? '#7fe08a' : '#9cc8ff'; g.fillRect(q[0], q[1], 2, 2); }
   q = P(k.x, k.y); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3);
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(mmCv, Math.round(W - (MM_W + 4) * MM_Z - 6), Math.round(H - (MM_H + 4) * MM_Z - 6), Math.round((MM_W + 4) * MM_Z), Math.round((MM_H + 4) * MM_Z));
@@ -13309,6 +13393,7 @@ function startFgame(kind){
 function fgEnd(ok, extra){
   const g = G.fgame, k = G.knight; G.fgame = null; k.lift = 0; $('log').style.visibility = '';
   festReward(g.f, ok, extra);
+  festRecordOf(g, ok);
   updateNear();
 }
 function fgSpringRound(g){
@@ -13321,7 +13406,7 @@ function updateFgame(dt){
   g.held = press; g.t += 0; if (g.msgT > 0) g.msgT -= dt;
   const say = (m, c) => { g.msg = m; g.msgC = c || '#ffffff'; g.msgT = 1.4; };
   if (g.kind === 'klettern'){
-    g.ph += dt * (2.2 + g.stage * .5);
+    g.ph += dt * (2.2 + g.stage * .5); if (g.st === 'climb') g.clock = (g.clock || 0) + dt;
     const u = Math.sin(g.ph), w = .5 - g.stage * .06, target = g.H * g.stage / g.max;
     k.lift += (target - k.lift) * Math.min(1, dt * (g.st === 'fall' ? 10 : 4)); k.x = g.px; k.y = g.py; k.dir = 'up'; k.moving = Math.abs(target - k.lift) > 2; if (k.moving) k.anim += dt * 8;
     if (g.st === 'climb' && edge){
@@ -13334,11 +13419,11 @@ function updateFgame(dt){
     if (g.st === 'ready'){ g.t -= dt; if (g.t <= 0) g.st = 'run'; }
     else if (g.st === 'run'){
       g.x += 135 * dt; k.moving = true; k.anim += dt * 9;
-      if (edge){ if (g.x >= z0 && g.x <= z1){ g.st = 'jump'; g.j0 = g.x; Sound.swing(); } else { g.st = 'fail'; g.t = 1.2; say(g.x < z0 ? 'Zu früh abgesprungen!' : 'Zu spät!', '#ff9a8a'); Sound.tone(180, .3, 'triangle', .04, -60); } }
+      if (edge){ if (g.x >= z0 && g.x <= z1){ g.st = 'jump'; g.j0 = g.x; g.mut = Math.round(100 * (g.x - z0) / g.zw); Sound.swing(); } else { g.st = 'fail'; g.t = 1.2; say(g.x < z0 ? 'Zu früh abgesprungen!' : 'Zu spät!', '#ff9a8a'); Sound.tone(180, .3, 'triangle', .04, -60); } }
       else if (g.x > g.fx - 30){ g.st = 'fail'; g.t = 1.2; say('Vor den Flammen gebremst!', '#ff9a8a'); }
     } else if (g.st === 'jump'){
       g.x += 170 * dt; const p = clamp((g.x - g.j0) / 128, 0, 1); k.lift = Math.sin(p * Math.PI) * 46; k.anim += dt * 4;
-      if (p >= 1){ k.lift = 0; g.ok++; g.st = 'land'; g.t = 1; say('Geschafft!', '#9fe08a'); Sound.cheer(.7); }
+      if (p >= 1){ k.lift = 0; g.ok++; g.pts = (g.pts || 0) + (g.mut || 0); g.st = 'land'; g.t = 1; say('Geschafft! Mut ' + (g.mut || 0), '#9fe08a'); Sound.cheer(.7); }
     } else { g.t -= dt; k.moving = false; if (g.t <= 0){ if (g.round >= 3) return fgEnd(g.ok >= 2, g.ok + ' von 3 Sprüngen gelungen.'); g.round++; fgSpringRound(g); } }
     k.x = g.x; k.y = g.fy; k.dir = 'right';
   } else if (g.kind === 'stein'){
@@ -13448,7 +13533,8 @@ function festTalk(n, opts){
 function festTalkView(view, body, opts){
   const F = G.fest;
   if (view === 'festgame'){
-    $('talkText').textContent = F.gameText;
+    const rec = festBest(F.game);
+    $('talkText').textContent = F.gameText + (rec ? ' Rekord aller Ritter: ' + rec.nm + ', ' + FREC_BY[F.game].fmt(rec.v) + '.' : '');
     opts.append(btn('Mitmachen', () => { closePanel(); startFgame(F.game); }, 'opt'), btn('Zurück', () => renderTalk('main'), 'tbtn'));
   } else {
     // Händler: zwei Stücke je Fest
@@ -13579,7 +13665,7 @@ function drawKnight(){
 
 const MOVE_FPS = { wieder:4, moor:3, ratte:12, rabe:9, pluend:6, armbrust:6, werwolf:8, irrlicht:7, raubritter:5, lindwurm:5, tod:3 };
 function monFrame(m){
-  const art = artOf(m.k), side = m.dir > 0 ? 'r' : 'l', st = m.st;
+  const art = m.art || artOf(m.k), side = m.dir > 0 ? 'r' : 'l', st = m.st;
   let set = art.move[side], i = (m.t * (MOVE_FPS[m.k] || 5) | 0) % set.length;
   if (m.stunT > 0){ set = art.idle[side]; i = 0; }
   else if (m.mode !== 'fight' && !m.walking && m.mode !== 'back' && !MON[m.k].fly){ set = art.idle[side]; i = (m.t * 1.5 | 0) % set.length; }
@@ -13632,7 +13718,7 @@ function drawPlate(m){
   if (m.k === 'tod' && (m.st === 'hidden' || (m.alpha != null && m.alpha < .5))) return;
   const art = artOf(m.k), d = MON[m.k], top = (m.k === 'lindwurm' ? m.y - 40 : d.fly ? m.y - art.h * .5 - 4 : m.y - art.ay) - 19;
   const col = CON_COL[conOf(m.lvl - HERO.lvl)];
-  drawText((m.elite || d.name) + ' ' + m.lvl, m.x, top, m.elite ? '#ff9a50' : col);
+  drawText((m.nm || m.elite || d.name) + ' ' + m.lvl, m.x, top, m.elite ? '#ff9a50' : m.ev && m.ev.boss ? '#ff6a50' : col);
   if (m.hp < m.max){
     const w = d.boss || m.elite ? 44 : 28, x0 = Math.round(m.x - w / 2), y0 = Math.round(top + 14), f = Math.max(0, Math.round((w - 2) * m.hp / m.max));
     ctx.fillStyle = OUT; ctx.fillRect(x0, y0, w, 5);
@@ -13832,7 +13918,9 @@ function render(){
     }
     for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam, 20)){
       const up = p.ride ? 15 : 0;
-      drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15 - up, '#9cc8ff');
+      const pal = inParty(p);
+      drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15 - up, pal ? '#9fe08a' : '#9cc8ff');
+      if (pal){ const x0 = Math.round(p.x - 12), y0 = Math.round(p.y - KS.ay - 3 - up); ctx.fillStyle = OUT; ctx.fillRect(x0, y0, 24, 4); ctx.fillStyle = '#3a1416'; ctx.fillRect(x0 + 1, y0 + 1, 22, 2); ctx.fillStyle = '#7fd65f'; ctx.fillRect(x0 + 1, y0 + 1, Math.round(22 * p.hp / 100), 2); }
       if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11 - up, p.say);
     }
     if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4 - (k.ride ? 15 : 0), G.say);
@@ -13856,7 +13944,7 @@ function render(){
     ctx.fillStyle = o.boss ? '#ecd27a' : '#d0343c'; ctx.fillRect(x - 4, y - 4, 9, 9);
     if (o.boss){ ctx.fillStyle = '#d0343c'; ctx.fillRect(x - 2, y - 2, 5, 5); }
   }
-  if (!title){ drawQuestArrow(k); drawMiniMap(k, cam); drawSkyHud(); }
+  if (!title){ drawQuestArrow(k); drawMiniMap(k, cam); drawSkyHud(); duelWatch(); }
   if (G.fgame) drawFgameUI();
   if (G.flash > 0 && !RM){
     ctx.fillStyle = 'rgba(220,226,255,' + Math.min(.45, G.flash * .9).toFixed(2) + ')';
@@ -13913,7 +14001,8 @@ function drawMiniMap1(g, k, cam, mx, my){
   for (const m of G.mons){ const boss = MON[m.k].boss; dot(m.x, m.y, boss ? '#ffe27a' : m.mode === 'fight' ? '#ff3b3b' : '#a83a3a', boss ? 2 : 1); }
   for (const n of NPCS) dot(n.x, n.y, npcMark(n) ? '#ffd541' : '#7fe08a', 2);
   for (const inn of INNS) dot(inn.dx, inn.y, '#ff9a40', 2);
-  for (const p of PEERS.values()){ const at = p.in && INN_BY[p.in]; dot(at ? at.dx : p.x, at ? at.y + 4 : p.y, '#9cc8ff', 2); }
+  for (const p of PEERS.values()){ const at = peerAt(p); dot(at ? at.x : p.x, at ? at.y + 4 : p.y, inParty(p) ? '#7fe08a' : '#9cc8ff', 2); }
+  const es = evMark2(); if (es && (G.t * 3 | 0) % 2){ const q = P(es.x, es.y); if (inMM(q)){ g.fillStyle = '#ff4030'; g.fillRect(q[0] - 1, q[1] - 2, 3, 3); g.fillStyle = OUT; g.fillRect(q[0] - 2, q[1] - 3, 1, 5); } }
   const q = P(k.x, k.y); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3); g.fillStyle = OUT; g.fillRect(q[0], q[1], 1, 1);
 }
 
@@ -14145,6 +14234,24 @@ for (const [art, name, desc] of [[INN_ART.spielmann, 'Spielmann Veit', 'spielt f
   im.src = urlOf(art.frames[0], 2); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh); $('innFun').append(li);
 }
+/* Mit anderen Rittern, Weltereignisse: Tafeln */
+for (const [f, name, desc] of [['reich', 'Gruppe', 'bis zu vier Ritter. Erschlägt ein Gefährte ein Monster, bekommt jeder in der Nähe drei Viertel der Erfahrung; dazu ein Zehntel mehr je Gefährte nahebei. Oben links stehen Stufe und Leben der Gefährten, T öffnet die Gruppe.'],
+  ['england', 'Gemeinsam kämpfen', 'Eure Hiebe treffen auch die Monster vor einem anderen Ritter, und die Monster gehen auf den nächsten Ritter los. Lohn bekommt, wer mitgekämpft hat oder in der Gruppe nahebei steht.'],
+  ['frankreich', 'Tjost gegen einen Ritter', 'auf der Turnierwiese vor dem Osttor: Wer fordert, reitet die südliche Bahn. Der Sieger bekommt Ehrensold vom Herold und Punkte für die Turnierwertung; Zuschauer sehen oben links den Stand.'],
+  ['spanien', 'Handel', 'Gegenstände aus dem Rucksack und Gulden. Getauscht wird erst, wenn beide für genau diese Angebote einverstanden sind.']]){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+  im.src = knightUrl(f); im.alt = '';
+  wh.append(el('small', null, desc)); li.append(im, wh); $('mpList').append(li);
+}
+{ const li = el('li'), im = el('img'), wh = el('span', 'what', 'Würfeln gegen einen Ritter');
+  im.src = urlOf(INN_ART.landsknecht.frames[0], 2); im.alt = '';
+  wh.append(el('small', null, 'im Gasthaus um 5, 20 oder 50 Gulden: beide werfen drei Würfel und dürfen einmal nachwerfen, der bessere Wurf gewinnt den Einsatz des anderen.')); li.append(im, wh); $('mpList').append(li); }
+for (const [art, name, desc] of [[BOSS_ART.raubritter, 'Überfall auf Lindach', 'jeden Spieltag um 9 Uhr, also alle 24 Minuten: Eine Raubritterbande zieht ins Dorf, das dann nicht mehr sicher ist. Sind genug Räuber vertrieben (je mehr Ritter, desto mehr), stellt sich ihr Hauptmann Eppelein von Gailingen.'],
+  [ghostArt(MON_ART.werwolf), 'Die Wilde Jagd', 'jede Spielnacht um 22 Uhr, im Wechsel über dem Finsterwald, dem Moor und dem Galgenberg: der Wilde Jäger mit seinen Geisterhunden. Bis zum Morgengrauen muss er gebannt sein.']]){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+  im.src = urlOf(art.idle.r[0].img, 1); im.alt = '';
+  wh.append(el('small', null, desc)); li.append(im, wh); $('evList').append(li);
+}
 /* Jahreszeiten, Gewölbe, Jagd: Tafeln */
 const SEA_ICON = {
   bluete: makeSprite(['...a...', '.a.a.a.', '..aaa..', 'aaabaaa', '..aaa..', '.a.a.a.', '...a...'], { a:'#f0c8d4', b:'#f0d050' }, OUT),
@@ -14226,7 +14333,7 @@ let bossShown = null;
 function updateBossBar(){
   const b = G.mons.find(m => MON[m.k].boss && m.mode === 'fight');
   if (!b){ if (bossShown !== null){ $('bossBar').hidden = true; bossShown = null; } return; }
-  if (bossShown !== b.k){ setDisplayText($('bossName'), MON[b.k].name + ' ' + b.lvl); $('bossBar').hidden = false; bossShown = b.k; }
+  if (bossShown !== b.uid){ setDisplayText($('bossName'), (b.nm || MON[b.k].name) + ' ' + b.lvl); $('bossBar').hidden = false; bossShown = b.uid; }
   $('bossFill').style.width = clamp(b.hp / b.max, 0, 1) * 100 + '%';
 }
 function updateZone(entered){
@@ -14234,10 +14341,12 @@ function updateZone(entered){
   if (G.inside){ el2.textContent = G.inside.name; el2.append(el('small', null, 'Gasthaus ' + G.inside.where + ' · sicher')); }
   else {
     el2.textContent = z ? z.name : '';
-    if (z && zoneLvText(z.id)) el2.append(el('small', null, zoneLvText(z.id)));
+    if (z && G.zone === 'weiler' && EVT.raid) el2.append(el('small', null, 'Raubritter im Dorf!'));
+    else if (z && zoneLvText(z.id)) el2.append(el('small', null, zoneLvText(z.id)));
   }
   if (entered && !RM){ el2.style.animation = 'none'; void el2.offsetWidth; el2.style.animation = 'zonein 1.2s steps(6)'; }
-  if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das ' : 'die ') + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
+  if (entered && !G.inside && G.zone === 'weiler' && EVT.raid) logLine('Ihr betretet Lindach. Raubritter plündern das Dorf!', '#ff9a8a');
+  else if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das ' : 'die ') + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
   if (entered && G.inside) logLine('Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
 }
 let bannerTimer = 0;
@@ -14275,6 +14384,8 @@ function renderTracker(){
   const box = $('tracker');
   box.textContent = '';
   if (!HERO) return;
+  if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
+  evRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');
@@ -14359,6 +14470,8 @@ function openPanel(id){
 }
 function closePanel(){
   if (G.mode !== 'menu') return;
+  if (NET.tr && !NET.tr.done && G.talk && G.talk.key === 'trade'){ const T = NET.tr; NET.tr = null; logLine('Der Handel mit ' + T.nm + ' ist abgebrochen.', '#d8c69c'); sendPresence(true); }
+  if (NET.dc && G.talk && G.talk.key === 'dicepvp'){ NET.dc = null; sendPresence(true); }
   G.mode = 'play'; G.talk = null; G.sel = null;
   showOverlay(null); blurActive();
 }
@@ -14376,7 +14489,8 @@ function drawFullMap(){
   }
   for (const m of G.mons){ g.fillStyle = MON[m.k].boss ? '#8e1b1b' : '#3a1014'; g.fillRect(P(m.x) - 1, P(m.y) - 1, 3, 3); }
   for (const inn of INNS){ g.fillStyle = '#16120f'; g.fillRect(P(inn.dx) - 3, P(inn.y) - 3, 7, 7); g.fillStyle = '#e0823a'; g.fillRect(P(inn.dx) - 2, P(inn.y) - 2, 5, 5); }
-  for (const p of PEERS.values()){ const at = p.in && INN_BY[p.in], px = P(at ? at.dx : p.x) + (at ? 5 : 0), py = P(at ? at.y : p.y); g.fillStyle = '#16120f'; g.fillRect(px - 3, py - 3, 7, 7); g.fillStyle = '#6a9ae0'; g.fillRect(px - 2, py - 2, 5, 5); }
+  for (const p of PEERS.values()){ const at = peerAt(p), px = P(at ? at.x : p.x) + (at ? 5 : 0), py = P(at ? at.y : p.y); g.fillStyle = '#16120f'; g.fillRect(px - 3, py - 3, 7, 7); g.fillStyle = inParty(p) ? '#7fe08a' : '#6a9ae0'; g.fillRect(px - 2, py - 2, 5, 5); if (inParty(p)){ g.font = '12px monospace'; g.fillStyle = '#16120f'; g.fillText(p.nm, px + 6, py + 5); g.fillStyle = '#cfeec2'; g.fillText(p.nm, px + 5, py + 4); } }
+  const es = evMark2(); if (es){ const ex = P(es.x), ey = P(es.y); g.fillStyle = '#16120f'; g.fillRect(ex - 1, ey - 14, 3, 16); g.fillRect(ex + 1, ey - 15, 10, 8); g.fillStyle = '#d0343c'; g.fillRect(ex + 2, ey - 14, 8, 6); g.fillStyle = '#e8dcbc'; g.fillRect(ex, ey - 13, 1, 14); }
   const kx = P(k.x), ky = P(k.y);
   g.fillStyle = '#16120f'; g.fillRect(kx - 4, ky - 4, 9, 9); g.fillStyle = '#ecd27a'; g.fillRect(kx - 3, ky - 3, 7, 7); g.fillStyle = '#b0242a'; g.fillRect(kx - 1, ky - 1, 3, 3);
 }
@@ -14508,17 +14622,20 @@ function updateNear(){
   if (G.inside) exit = !best && k.y > ROOM_DOOR.y - 26 && Math.abs(k.x - ROOM_DOOR.x) < 24;
   else if (!best) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 18 && k.y > inn.y && k.y - inn.y < 44) door = inn;
   if (!best && !door && !G.inside) for (const d of DG_DOORS) if (Math.abs(k.x - d.x) < 28 && k.y > d.y - 8 && k.y - d.y < 46) door = d;
-  if (best !== G.near || door !== G.nearDoor || exit !== G.nearExit){
-    G.near = best; G.nearDoor = door; G.nearExit = exit;
+  const pq = !door && cloud.room ? nearPeer(bd) : null;   // ein Ritter steht näher als jeder andere
+  if (pq){ best = null; exit = false; }
+  if (best !== G.near || door !== G.nearDoor || exit !== G.nearExit || pq !== G.nearPeer){
+    G.near = best; G.nearDoor = door; G.nearExit = exit; G.nearPeer = pq;
     const b = $('btnTalk');
-    b.hidden = !best && !door && !exit;
-    b.textContent = best ? 'Sprechen: ' + best.name : door ? (door.dg ? 'Hinabsteigen: ' : 'Eintreten: ') + door.name : 'Hinausgehen';
+    b.hidden = !best && !door && !exit && !pq;
+    b.textContent = pq ? 'Ritter ansprechen: ' + pq.nm : best ? 'Sprechen: ' + best.name : door ? (door.dg ? 'Hinabsteigen: ' : 'Eintreten: ') + door.name : 'Hinausgehen';
   }
 }
 function talk(){
   if (G.mode !== 'play') return;
   if (DG_ON) return dgInteract();
-  if (G.near) openTalk(G.near);
+  if (G.nearPeer && PEERS.get(G.nearPeer.peer) === G.nearPeer) openPeer(G.nearPeer);
+  else if (G.near) openTalk(G.near);
   else if (G.nearDoor) (G.nearDoor.dg ? enterDungeon : enterInn)(G.nearDoor);
   else if (G.nearExit) leaveInn();
 }
@@ -14554,12 +14671,15 @@ function completeQuest(q){
   gainXp(r.xp); renderTracker(); updateHud(); pushFame(); markDirty(true);
 }
 function renderTalk(view){
+  const a = document.activeElement, slot = a && a.dataset ? a.dataset.slot : null;
   renderTalk0(view);
   if (G.talk) numberKeys($('talkBody'));
+  if (slot){ const b = $('talkBody').querySelector('[data-slot="' + slot + '"]'); if (b && !b.disabled) b.focus({ preventScroll: true }); }   // Auswahl bleibt beim Neuzeichnen
 }
 function renderTalk0(view){
   const n = G.talk, body = $('talkBody'); body.textContent = '';
   if (!n) return;
+  if (n.peerTalk){ peerView(view, body, el('div', 'opts')); return; }
   const opts = el('div', 'opts');
   if (view === 'main'){
     $('talkText').textContent = G.greet;
@@ -14839,6 +14959,8 @@ function startGame(hero){
   HERO = cleanHero(hero); SAVED = HERO;
   refreshStats();
   G = freshState('play');
+  NET.pt = HERO.pt ? { id: HERO.pt.id, t: HERO.pt.t } : null; NET.ptT = nowS(); NET.alone = 0; NET.mem = {};
+  EVT.cur = null;
   G.knight.hp = ST.hp;
   for (const s of SPAWN_SLOTS){ s.mon = null; s.t = 0; }
   updateZone(); showOverlay(null); blurActive();
@@ -14859,7 +14981,7 @@ function startGame(hero){
   }
 }
 function pauseGame(){
-  if (G.mode !== 'play') return;
+  if (G.mode !== 'play' || (G.joust && G.joust.pvp)) return;   // ein Tjost gegen einen Ritter läuft weiter
   G.mode = 'pause'; keys.clear(); atkHeld = false; atkBtn = false;
   showOverlay('ovPause'); Sound.stopMusic();
   $('btnPause').textContent = 'Weiter';
@@ -14914,6 +15036,12 @@ cv.addEventListener('pointerdown', e => {
       return;
     }
   }
+  if (G.inside || DG_ON) return;
+  for (const q of PEERS.values()){
+    if (!samePlace(q) || Math.abs(wx - q.x) > 12 || wy < q.y - 48 || wy > q.y + 4) continue;
+    if (peerDist(q) < 90){ e.preventDefault(); openPeer(q); } else floatText(q.x, q.y - 60, 'Zu weit weg', '#d8c69c');
+    return;
+  }
 });
 
 /* ---------- Plaudern ---------- */
@@ -14940,6 +15068,7 @@ addEventListener('keydown', e => {
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
   if (!e.ctrlKey && !e.metaKey && !e.altKey) setKbd(true);
+  if (NET.inbox[0] && (G.mode === 'play' || G.mode === 'menu') && !e.repeat && /^[yYnN]$/.test(e.key)){ e.preventDefault(); netAnswer(NET.inbox[0], /^[yY]$/.test(e.key)); return; }   // Anfrage eines Ritters
   if (e.code === 'F1' || e.key === '?'){ e.preventDefault(); if (G.mode === 'menu' && !$('ovKeys').hidden) closePanel(); else if (G.mode === 'pause'){ resumeGame(); openKeys(); } else openKeys(); return; }
   // offene Fenster: Ziffern wählen, Pfeile wandern, Rücktaste zurück
   if (G.mode === 'menu' || G.mode === 'pause' || G.mode === 'dead'){
@@ -14972,6 +15101,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyI' || e.code === 'KeyB'){ if (G.mode === 'menu' && !$('ovBag').hidden) closePanel(); else openBag(); }
   else if (e.code === 'KeyL'){ if (G.mode === 'menu' && !$('ovQuests').hidden) closePanel(); else openQuests(); }
   else if (e.code === 'KeyK'){ if (G.mode === 'menu' && !$('ovMap').hidden) closePanel(); else openMap(); }
+  else if (e.code === 'KeyT'){ if (G.mode === 'menu' && G.talk && G.talk.key === 'party') closePanel(); else openParty(); }
   else if (e.code === 'KeyP' || e.code === 'Escape'){
     if (G.mode === 'menu') closePanel();
     else if (G.mode === 'play') pauseGame(); else if (G.mode === 'pause') resumeGame();
@@ -15073,8 +15203,8 @@ function loadLocal(){
 
 /* ============ Ruhmeshalle: die Ritter aller Spieler ============ */
 function fameBody(){
-  return { nm: HERO.name, f: HERO.f, lv: HERO.lvl, kills: HERO.kills, bosses: Object.keys(HERO.bosses).length, title: titleOf(HERO.lvl),
-    score: HERO.lvl * 100000 + Math.min(99999, HERO.xp) };
+  return Object.assign(fameExtra(), { nm: HERO.name, f: HERO.f, lv: HERO.lvl, kills: HERO.kills, bosses: Object.keys(HERO.bosses).length, title: titleOf(HERO.lvl),
+    score: HERO.lvl * 100000 + Math.min(99999, HERO.xp) });
 }
 function pushFame(){
   renderFameLocal();
@@ -15102,6 +15232,7 @@ function renderFame(rows){
   });
 }
 function renderFameLocal(){
+  if (fameTab !== 'ritter'){ renderFameTab(); return; }
   const h = HERO || SAVED;
   if (cloud.fameLive) return;
   renderFame(h ? [{ id: cloud.uid || 'local', nm: h.name, f: h.f, lv: h.lvl, kills: h.kills, bosses: Object.keys(h.bosses || {}).length, score: h.lvl * 100000 + h.xp }] : []);
@@ -15117,10 +15248,12 @@ function readPeer(p){
   if (!q){ q = { x: +s.x * (s.ws ? 1 : WS), y: +s.y * (s.ws ? 1 : WS), anim: 0, atkT: 0, atkLen: SWING, swA0: 0, swA1: 0, mult: 1, bashT: 0, inv: 0, slowT: 0, sw: s.sw, seen: 0 }; PEERS.set(p.peer, q); }
   const sc = s.ws ? 1 : WS;   // ältere Fassung sendet Weltpixel
   q.tx = num(s.x * sc, 0, GW, q.x); q.ty = num(s.y * sc, 0, GH, q.y);
-  if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || (INN_BY[s.in] ? s.in : 0) !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
+  const sin = INN_BY[s.in] || (typeof s.in === 'string' && /^dg:[a-z]+$/.test(s.in) && DG_DEF[s.in.slice(3)]) ? s.in : 0;   // Gasthaus oder Gewölbe
+  if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || sin !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
   q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead; q.lk = typeof s.lk === 'string' && LOOK_RE.test(s.lk) ? s.lk : ''; q.lance = s.ln ? 1 : 0;
-  q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = INN_BY[s.in] ? s.in : 0; q.ride = HORSES[s.ri] && !q.in ? s.ri : null;
+  q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = sin; q.ride = HORSES[s.ri] && !q.in ? s.ri : null;
   if (s.sw !== q.sw){ q.sw = s.sw; q.atkLen = num(s.sl, .1, 1, SWING); q.atkT = q.atkLen; q.swA0 = num(s.sa, -10, 10, 0); q.swA1 = num(s.se, -10, 10, 0); q.mult = num(s.m, .5, 2, 1); }
+  netRead(q, p, s);
   return q;
 }
 function updatePeers(dt){
@@ -15139,6 +15272,7 @@ function sendPresence(force){
   const k = G.knight;
   const pr = { ws: WS, x: Math.round(k.x), y: Math.round(k.y), d: k.dir, mv: k.moving ? 1 : 0, sw: k.swing, sa: +k.swA0.toFixed(2), se: +k.swA1.toFixed(2), sl: +k.atkLen.toFixed(2), m: k.mult,
     lv: HERO.lvl, nm: HERO.name, f: HERO.f, lk: lookOf(HERO.eq), ln: k.lance > 0 || (G.joust && G.joust.st === 'charge') ? 1 : 0, in: DG_ON ? 'dg:' + DG_ON.id : G.inside ? G.inside.id : 0, ri: G.joust ? 'streitross' : riding() ? HERO.horse : 0, dead: G.mode === 'dying' || G.mode === 'dead' ? 1 : 0, z: G.zone };
+  Object.assign(pr, netPres());
   const js = JSON.stringify(pr);
   if (js === presLast && !force) return;
   presLast = js; presT = t;
@@ -15159,12 +15293,12 @@ function setupRoom(room){
   $('btnChat').hidden = false;
   room.onPeers(ch => {
     const live = new Set();
-    for (const p of ch.peers){ if (p.sameTab || p.kind !== 'viewer') continue; if (readPeer(p)) live.add(p.peer); }
+    for (const p of ch.peers){ if (p.sameTab) NET.me = p.peer; if (p.sameTab || p.kind !== 'viewer') continue; if (readPeer(p)) live.add(p.peer); }
     for (const id of [...PEERS.keys()]) if (!live.has(id)) PEERS.delete(id);
     for (const p of ch.joined) if (!p.sameTab && p.kind === 'viewer' && p.presence && p.presence.nm && G && G.mode !== 'title') logLine(cleanName(p.presence.nm) + ' ist im Reichsland.', '#9cc8ff');
     const n = ch.peers.filter(p => p.kind === 'viewer').length;
     $('online').textContent = Math.max(1, n); $('onlineWrap').hidden = n < 2;
-  }, () => { PEERS.clear(); $('onlineWrap').hidden = true; });
+  }, () => { PEERS.clear(); $('onlineWrap').hidden = true; renderParty(); });
   room.on('chat', msg => {
     if (msg.sameTab) return;
     const d = msg.data || {}, t = cleanText(d.t, 120);
@@ -15194,8 +15328,14 @@ function initCloud(){
     }).catch(() => {});
     db.collection('heroes').orderBy('score', 'desc').limit(25).onSnapshot(snap => {
       cloud.fameLive = true;
-      renderFame(snap.docs.map(s => Object.assign({ id: s.id }, s.data() || {})));
-    }, () => { cloud.fameLive = false; renderFameLocal(); });
+      cloud.fameRows = snap.docs.map(s => Object.assign({ id: s.id }, s.data() || {}));
+      if (fameTab === 'ritter') renderFame(cloud.fameRows);
+    }, () => { cloud.fameLive = false; cloud.fameRows = null; renderFameLocal(); });
+    // die zuletzt gesehenen Ritter: für Turnier- und Festbestenlisten
+    db.collection('heroes').orderBy('at', 'desc').limit(200).onSnapshot(snap => {
+      cloud.allRows = snap.docs.map(s => Object.assign({ id: s.id }, s.data() || {}));
+      if (fameTab !== 'ritter') renderFameTab();
+    }, () => {});
     if (HERO && G.mode !== 'title'){ cloudSave(true); pushFame(); }
   };
   C.use('db').then(v => { db = v; ready(); }).catch(() => ready());
@@ -15204,6 +15344,967 @@ function initCloud(){
     if (!u){ ready(); return; }
     u.id().then(id => { uid = id && /^[A-Za-z0-9_\-.~:@+]{1,200}$/.test(id) ? id : null; ready(); }).catch(() => ready());
   }).catch(() => ready());
+}
+
+/* ============ Mehrspieler: Anfragen, Gruppe, gemeinsamer Kampf ============
+   Jeder Ritter beschreibt in seiner Anwesenheit nur sich selbst: eine offene Anfrage (q), eine Antwort (a),
+   seine Gruppe (pt), seinen Tjost (jo), sein Handelsangebot (tr), seine Würfel (dc), seinen Beitrag zum
+   Weltereignis (ev). Das ist fester Zustand statt einzelner Nachrichten: Geht etwas unterwegs verloren, gilt
+   beim nächsten Senden der neue Stand, und wer später kommt, sieht ihn auch. Monster rechnet jede Seite
+   selbst; die Hiebe der Mitspieler treffen sie hier genauso, und die Monster gehen auf den nächsten Ritter los.
+   So sehen alle ungefähr denselben Kampf. */
+const NET = { me: null, q: null, a: null, inbox: [], seen: {}, pt: null, ptT: 0, mem: {}, askKey: '', kx: { n: 0, s: 0, l: 1 }, kxSeen: {} };
+const rid = () => Math.random().toString(36).slice(2, 9);
+const PARTY_MAX = 4;
+const ASK = {
+  party: { ask: 'Ihr ladet % in Eure Gruppe ein.', them: '% lädt Euch in die Gruppe ein.' },
+  duel:  { ask: 'Ihr fordert % zum Tjost.', them: '% fordert Euch zum Tjost an der Schranke.' },
+  trade: { ask: 'Ihr bittet % zum Handel.', them: '% möchte mit Euch handeln.' },
+  dice:  { ask: 'Ihr bittet % an den Würfeltisch.', them: '% möchte mit Euch um # Gulden würfeln.' }
+};
+const hereId = () => DG_ON ? 'dg:' + DG_ON.id : G.inside ? G.inside.id : 0;
+const samePlace = q => (q.in || 0) === hereId();
+const peerDist = q => Math.hypot(q.x - G.knight.x, q.y - G.knight.y);
+const inParty = q => !!(q && NET.pt && q.pt && q.pt.id === NET.pt.id);
+const partyList = () => NET.pt ? [...PEERS.values()].filter(inParty).sort((a, b) => a.pt.t - b.pt.t) : [];
+/* Gruppenmitglieder in der Nähe (für Erfahrung und Beute) */
+const partyNear = () => partyList().filter(q => samePlace(q) && !q.dead && peerDist(q) < 900);
+const nearLists = (x, y) => LISTS && Math.hypot(x - LISTS.x, y - LISTS.y) < 620;
+/* Gebiete, in denen nicht gekämpft wird; Lindach nur, solange keine Raubritter im Dorf sind */
+const isSafe = z => !!SAFE[z] && !(z === 'weiler' && EVT.raid);
+
+/* ---------- Anwesenheit: lesen und schreiben ---------- */
+function netRead(q, p, s){
+  const obj = v => v && typeof v === 'object' && !Array.isArray(v) ? v : null;
+  q.peer = p.peer; q.by = p.by || null; q.z = typeof s.z === 'string' ? s.z.slice(0, 16) : '';
+  q.hp = num(s.hp, 0, 100, 100);
+  q.cb = Array.isArray(s.cb) ? [num(s.cb[0], 1, 400, 5), num(s.cb[1], 0, 60, 5)] : [Math.round(4 + q.lv * 2.5), 5];
+  q.rq = obj(s.q); q.an = obj(s.a); q.jo = obj(s.jo); q.tr = obj(s.tr); q.dc = obj(s.dc); q.ev = obj(s.ev); q.fr = obj(s.fr);
+  const pt = obj(s.pt); q.pt = pt && typeof pt.id === 'string' && /^[a-z0-9]{3,12}$/.test(pt.id) ? { id: pt.id, t: +pt.t || 0 } : null;
+  q.bz = typeof s.bz === 'string' ? s.bz.slice(0, 2) : '';
+  const kx = obj(s.kx); q.kx = kx ? { n: Math.max(0, kx.n | 0), s: Math.max(0, +kx.s || 0), l: num(kx.l, 1, MAX_LVL + 3, 1) } : null;
+  q.safeZ = isSafe(q.z); q.safe = q.safeZ || nearInn(q.x, q.y) || nearFest(q.x, q.y);
+}
+function netPres(){
+  const k = G.knight, o = { hp: ST && k ? clamp(Math.round(k.hp / ST.hp * 100), 0, 100) : 100, cb: ST ? [ST.dmg, ST.crit] : null };
+  o.q = NET.q ? { to: NET.q.to, k: NET.q.k, n: NET.q.n, x: NET.q.x } : null;
+  o.a = NET.a ? { to: NET.a.to, n: NET.a.n, ok: NET.a.ok } : null;
+  o.pt = NET.pt ? { id: NET.pt.id, t: NET.pt.t } : null;
+  o.kx = NET.pt ? NET.kx : null;
+  o.bz = G.joust ? 'j' : G.fgame ? 'f' : NET.tr ? 'h' : NET.dc ? 'w' : '';
+  o.jo = NET.jo ? duelPres() : null;
+  o.tr = NET.tr ? tradePres() : null;
+  o.dc = NET.dc ? dicePres() : null;
+  o.ev = EVT.cur && EVT.cur.part ? evPres() : null;
+  return o;
+}
+
+/* ---------- Anfragen und Antworten ---------- */
+function netAsk(q, kind, x){
+  if (!q || !cloud.room) return;
+  if (NET.q){ logLine('Ihr wartet noch auf die Antwort von ' + NET.q.nm + '.', '#d8c69c'); return; }
+  const why = netBusy(kind, q, true);
+  if (why){ logLine(why, '#d8c69c'); return; }
+  NET.q = { to: q.peer, k: kind, n: rid(), x: x || 0, t: nowS(), nm: q.nm };
+  logLine(ASK[kind].ask.replace('%', q.nm), '#9cc8ff'); Sound.choose();
+  sendPresence(true);
+}
+/* Warum geht es gerade nicht? (leer: es geht) */
+function netBusy(kind, q, mine){
+  const who = mine ? q.nm : 'Ihr';
+  if (G.mode !== 'play' && G.mode !== 'menu') return 'Gerade nicht.';
+  if (kind !== 'party' && (G.joust || G.fgame || NET.tr || NET.dc || NET.jo)) return 'Ihr seid gerade beschäftigt.';
+  if (mine && kind !== 'party' && q.bz) return q.nm + ' ist gerade beschäftigt.';
+  if (kind === 'party' && mine && q.pt && NET.pt && q.pt.id === NET.pt.id) return q.nm + ' ist schon in Eurer Gruppe.';
+  if (kind === 'party' && mine && NET.pt && partyList().length >= PARTY_MAX - 1) return 'Eure Gruppe ist voll.';
+  if (kind === 'duel' && (!nearLists(G.knight.x, G.knight.y) || !nearLists(q.x, q.y) || !samePlace(q))) return 'Zum Tjost müssen beide Ritter auf der Turnierwiese stehen.';
+  if (kind === 'duel' && (DG_ON || G.inside)) return 'Zum Tjost müssen beide Ritter auf der Turnierwiese stehen.';
+  if (kind === 'trade' && (!samePlace(q) || peerDist(q) > 260)) return who === 'Ihr' ? 'Zu weit weg.' : q.nm + ' ist zu weit weg.';
+  if (kind === 'dice'){
+    if (!G.inside || !samePlace(q)) return 'Gewürfelt wird im Gasthaus.';
+    const st = mine ? NET.diceStake || 0 : +q.rq.x || 0;
+    if (HERO.gold < st) return mine ? 'Ihr habt keine ' + st + ' Gulden.' : 'Ihr habt keine ' + st + ' Gulden.';
+  }
+  return '';
+}
+function netAnswer(i, ok){
+  const q = PEERS.get(i.peer); NET.inbox = NET.inbox.filter(x => x !== i); NET.askKey = null;
+  if (!q){ renderAsk(); return; }
+  if (ok){ const why = netBusy(i.r.k, q, false); if (why){ logLine(why, '#d8c69c'); ok = false; } }
+  NET.a = { to: q.peer, n: i.r.n, ok: ok ? 1 : 0, t: nowS() };
+  if (ok) netBegin(i.r.k, q, i.r, false); else logLine('Ihr lehnt ab.', '#d8c69c');
+  renderAsk(); sendPresence(true);
+}
+/* beide Seiten fangen an: wer gefragt hat, sobald die Zusage da ist; wer zusagt, sofort */
+function netBegin(kind, q, r, asker){
+  if (kind === 'party') partyJoin(q, r.x, asker);
+  else if (kind === 'duel') startDuel(q, r.n, asker);
+  else if (kind === 'trade') startTrade(q, r.n);
+  else if (kind === 'dice') startDicePvp(q, r.n, +r.x || 0);
+}
+function netTick(){
+  if (!HERO || !G || G.mode === 'title' || !cloud.room) return;
+  const t = nowS();
+  if (!NET.me){ const me = cloud.room.peers().find(p => p.sameTab); if (me) NET.me = me.peer; }
+  if (NET.q){
+    const q = PEERS.get(NET.q.to), an = q && q.an;
+    if (an && an.to === NET.me && an.n === NET.q.n){
+      const r = NET.q; NET.q = null;
+      if (an.ok) netBegin(r.k, q, r, true); else logLine(q.nm + ' lehnt ab.', '#d8c69c');
+    } else if (!q || t - NET.q.t > 30){ logLine(NET.q.nm + ' antwortet nicht.', '#d8c69c'); NET.q = null; }
+  }
+  if (NET.a && t - NET.a.t > 15) NET.a = null;
+  for (const q of PEERS.values()){
+    const r = q.rq;
+    if (!r || r.to !== NET.me || typeof r.n !== 'string' || !ASK[r.k]) continue;
+    const key = q.peer + ':' + r.n;
+    if (NET.seen[key]) continue;
+    NET.seen[key] = 1;
+    if (netBusy(r.k, q, false)){ NET.a = { to: q.peer, n: r.n, ok: 0, t }; continue; }   // beschäftigt: gleich ablehnen
+    NET.inbox.push({ peer: q.peer, r, t, nm: q.nm }); Sound.chat();
+  }
+  NET.inbox = NET.inbox.filter(i => { const q = PEERS.get(i.peer); return q && q.rq && q.rq.n === i.r.n && t - i.t < 30; });
+  renderAsk();
+  partyTick(t);
+  if (NET.tr) tradeTick(t);
+  if (NET.dc) diceTick(t);
+  evTick(t);
+  sendPresence();
+}
+/* Anfrage an mich: Kästchen oben mit Annehmen und Ablehnen (Tasten Y und N) */
+function renderAsk(){
+  const i = NET.inbox[0], key = i ? i.peer + i.r.n : '';
+  if (key === NET.askKey) return;
+  NET.askKey = key;
+  const box = $('ask'); box.hidden = !i;
+  if (!i) return;
+  $('askText').textContent = ASK[i.r.k].them.replace('%', i.nm).replace('#', i.r.x);
+  $('askYes').textContent = KBD.on ? 'Annehmen (Y)' : 'Annehmen';
+  $('askNo').textContent = KBD.on ? 'Ablehnen (N)' : 'Ablehnen';
+}
+$('askYes').addEventListener('click', () => { if (NET.inbox[0]) netAnswer(NET.inbox[0], true); });
+$('askNo').addEventListener('click', () => { if (NET.inbox[0]) netAnswer(NET.inbox[0], false); });
+
+/* ---------- Mit einem Ritter sprechen ---------- */
+function knightUrl(f, lk){ const set = knightSet(f, lk || undefined); return set.url || (set.url = urlOf(set.icon, 3)); }
+function nearPeer(r){
+  let best = null, bd = r || 40;
+  for (const q of PEERS.values()){ if (!samePlace(q) || q.dead) continue; const d = peerDist(q); if (d < bd){ bd = d; best = q; } }
+  return best;
+}
+function openPeer(q){
+  if (!q || !openPanel('ovTalk')) return;
+  G.talk = { peerTalk: true, peer: q.peer, name: q.nm, key: 'peer:' + q.peer };
+  $('talkImg').src = knightUrl(q.f, q.lk); $('talkName').textContent = q.nm;
+  $('talkRole').textContent = 'Stufe ' + q.lv + ' · ' + titleOf(q.lv) + ' · ' + KN_FACTIONS[q.f].knight;
+  renderTalk('peer');
+}
+function peerView(view, body, opts){
+  const q = PEERS.get(G.talk.peer);
+  if (view === 'trade') return tradeView(body, opts, q);
+  if (view === 'dicepvp') return diceViewPvp(body, opts, q);
+  if (view === 'party') return partyView(body, opts);
+  if (!q){ $('talkText').textContent = 'Der Ritter ist fortgeritten.'; opts.append(btn('Lebt wohl', closePanel, 'opt')); body.append(opts); return; }
+  if (view === 'dicestake'){
+    $('talkText').textContent = 'Drei Würfel, einmal nachwerfen, wer mehr hat, gewinnt den Einsatz des anderen. Ihr habt ' + HERO.gold + ' Gulden.';
+    for (const st of [5, 20, 50]){ const b = btn('Um ' + st + ' Gulden', () => { NET.diceStake = st; closePanel(); netAsk(q, 'dice', st); }, 'opt'); b.disabled = HERO.gold < st; opts.append(b); }
+    opts.append(btn('Zurück', () => renderTalk('peer'), 'tbtn'));
+    body.append(opts); return;
+  }
+  const same = inParty(q), J = q.jo, tr = q.tr;
+  $('talkText').textContent = same ? q.nm + ' reitet mit Euch in einer Gruppe.' : q.bz === 'j' ? q.nm + ' reitet gerade einen Tjost.' : q.bz ? q.nm + ' ist gerade beschäftigt.' : 'Ein Ritter wie Ihr. Was wollt Ihr von ' + q.nm + '?';
+  const ask = (label, kind, x, why) => { const b = btn(label, () => { closePanel(); netAsk(q, kind, x); }, 'opt'); if (why){ b.disabled = true; b.title = why; } opts.append(b); return b; };
+  if (!same) ask('In die Gruppe einladen', 'party', NET.pt ? NET.pt.id : rid(), NET.pt && partyList().length >= PARTY_MAX - 1 ? 'Die Gruppe ist voll.' : '');
+  else opts.append(btn('Gruppe ansehen', () => renderTalk('party'), 'opt'));
+  if (!G.inside && !DG_ON){
+    const okL = nearLists(G.knight.x, G.knight.y) && nearLists(q.x, q.y);
+    ask(okL ? 'Zum Tjost fordern' : 'Zum Tjost fordern (nur auf der Turnierwiese)', 'duel', 0, okL ? (q.bz ? 'beschäftigt' : '') : 'Beide müssen auf der Turnierwiese vor dem Osttor stehen.');
+  }
+  ask('Handeln', 'trade', 0, q.bz ? 'beschäftigt' : '');
+  if (G.inside){ const b = btn('Würfeln', () => renderTalk('dicestake'), 'opt'); b.disabled = !!q.bz; opts.append(b); }
+  else opts.append(el('p', 'hint', 'Gewürfelt wird im Gasthaus. Den Tjost reitet Ihr auf der Turnierwiese vor dem Osttor der Reichsstadt.'));
+  opts.append(btn('Lebt wohl', closePanel, 'opt'));
+  body.append(opts);
+}
+
+/* ---------- Gruppe: bis zu vier Ritter teilen Erfahrung, Beute und den Kampf ---------- */
+function partyJoin(q, id, asker){
+  id = typeof id === 'string' && /^[a-z0-9]{3,12}$/.test(id) ? id : rid();
+  if (!asker && NET.pt && NET.pt.id !== id) logLine('Ihr verlasst Eure alte Gruppe.', '#d8c69c');
+  if (!asker && [...PEERS.values()].filter(p => p.pt && p.pt.id === id).length >= PARTY_MAX){ logLine('Die Gruppe ist schon voll.', '#d8c69c'); return; }
+  if (!NET.pt || NET.pt.id !== id) NET.pt = { id, t: Date.now() };
+  HERO.pt = { id, t: NET.pt.t, at: Date.now() };
+  NET.ptT = nowS();
+  showBanner('Gruppe', asker ? q.nm + ' reitet nun mit Euch' : 'Ihr reitet nun mit ' + q.nm);
+  logLine(asker ? q.nm + ' schließt sich Eurer Gruppe an.' : 'Ihr schließt Euch der Gruppe von ' + q.nm + ' an. Die Erfahrung wird geteilt.', '#9fe08a');
+  Sound.quest(); renderParty(); sendPresence(true); markDirty();
+}
+function partyLeave(silent){
+  if (!NET.pt) return;
+  NET.pt = null; HERO.pt = null; NET.mem = {};
+  if (!silent){ logLine('Ihr verlasst die Gruppe.', '#d8c69c'); Sound.choose(); }
+  renderParty(); sendPresence(true); markDirty();
+}
+/* Wer kommt, wer geht, wer fällt, wer steigt hinab: Meldungen und die Liste oben links */
+function partyTick(t){
+  if (!NET.pt) return;
+  const now = {};
+  for (const q of partyList()){
+    const was = NET.mem[q.peer];
+    now[q.peer] = { nm: q.nm, dead: q.dead, in: q.in || 0, hp: q.hp, lv: q.lv };
+    if (!was){ if (t - NET.ptT > 3) logLine(q.nm + ' ist in der Gruppe.', '#9fe08a'); continue; }
+    if (q.dead && !was.dead) logLine(q.nm + ' ist gefallen!', '#ff9a8a');
+    if (q.in !== was.in && typeof q.in === 'string' && q.in.startsWith('dg:') && DG_DEF[q.in.slice(3)]) logLine(q.nm + ' steigt hinab: ' + DG_DEF[q.in.slice(3)].name + '.', '#c8b8ff');
+    if (q.lv > was.lv) logLine(q.nm + ' erreicht Stufe ' + q.lv + '.', '#ecd27a');
+  }
+  for (const id in NET.mem) if (!now[id]) logLine(NET.mem[id].nm + ' ist nicht mehr in der Gruppe.', '#d8c69c');
+  for (const q of partyList()){
+    const kx = q.kx, was = NET.kxSeen[q.peer]; if (!kx) continue;
+    NET.kxSeen[q.peer] = kx;
+    if (!was || kx.n <= was.n || kx.s <= was.s) continue;
+    if (!samePlace(q) || peerDist(q) > 900 || G.mode !== 'play' || G.knight.hp <= 0 || HERO.lvl >= MAX_LVL) continue;
+    const xp = Math.round(Math.min(kx.s - was.s, 4000) * Math.min(1, xpMul(kx.l - HERO.lvl)) * .75 * (1 + .1 * partyNear().length));
+    if (xp > 0){ gainXp(xp); floatText(G.knight.x, G.knight.y - KS.ay - 10, '+' + xp + ' EP Gruppe', '#c9a6ff', 1, 1.2); }
+  }
+  const changed = JSON.stringify(now) !== JSON.stringify(NET.mem);
+  NET.mem = now;
+  if (Object.keys(now).length) NET.ptT = Math.min(NET.ptT, t), NET.alone = 0;
+  else if (!NET.alone) NET.alone = t;
+  else if (t - NET.alone > 300){ logLine('Eure Gruppe hat sich aufgelöst.', '#d8c69c'); partyLeave(true); return; }
+  if (changed) renderParty();
+}
+function renderParty(){
+  $('btnParty').hidden = !NET.pt || !partyList().length;
+  renderTracker();
+}
+/* Zeilen über den Aufträgen: Name, Stufe, Leben */
+function partyRows(box){
+  const L = partyList(); if (!L.length) return;
+  const head = el('p', 'phead'); head.append(el('b', null, 'Gruppe'), ' ' + (L.length + 1) + ' Ritter'); box.append(head);
+  for (const q of L){
+    const p = el('p', 'pm' + (q.dead ? ' dead' : '')), bar = el('i', 'hpb'), fill = el('i');
+    fill.style.width = (q.dead ? 0 : q.hp) + '%'; bar.append(fill);
+    const where = !samePlace(q) ? (typeof q.in === 'string' && q.in.startsWith('dg:') ? ' unten' : q.in ? ' im Gasthaus' : ' anderswo') : '';
+    p.append(el('b', null, q.nm), ' ' + q.lv + ' ', bar, where); box.append(p);
+  }
+}
+function partyView(body, opts){
+  const L = partyList();
+  $('talkText').textContent = L.length ? 'Ihr reitet zu ' + (L.length + 1) + '. Erschlägt ein Gefährte in der Nähe ein Monster, bekommt Ihr drei Viertel seiner Erfahrung, und jeder Gefährte nahebei bringt ein Zehntel mehr.' : 'Ihr seid allein in der Gruppe.';
+  for (const q of L){
+    const r = el('div', 'shoprow'), ic = el('img'); ic.src = knightUrl(q.f, q.lk); ic.alt = '';
+    const t = el('div', 'stx');
+    t.append(el('b', null, q.nm), el('small', null, 'Stufe ' + q.lv + ' · ' + titleOf(q.lv) + ' · ' + (q.dead ? 'gefallen' : 'Leben ' + q.hp + ' %') + (samePlace(q) ? ' · ' + Math.round(peerDist(q) / 2 / 10) * 10 + ' Schritt entfernt' : '')));
+    r.append(ic, t); body.append(r);
+  }
+  opts.append(btn('Gruppe verlassen', () => { partyLeave(); closePanel(); }, 'opt'), btn(G.talk && G.talk.peerTalk && G.talk.peer ? 'Zurück' : 'Schließen', () => G.talk && G.talk.peer ? renderTalk('peer') : closePanel(), 'tbtn'));
+  body.append(opts);
+}
+function openParty(){
+  if (!NET.pt || !openPanel('ovTalk')) return;
+  G.talk = { peerTalk: true, peer: null, name: 'Gruppe', key: 'party' };
+  $('talkImg').src = knightUrl(HERO.f, lookOf(HERO.eq)); $('talkName').textContent = 'Eure Gruppe'; $('talkRole').textContent = HERO.name + ' und Gefährten';
+  renderTalk('party');
+}
+$('btnParty').addEventListener('click', () => { Sound.init(); G.mode === 'menu' && G.talk && G.talk.key === 'party' ? closePanel() : openParty(); });
+
+/* ---------- Gemeinsamer Kampf: Hiebe und Lanzen der Mitspieler treffen die Monster hier ---------- */
+function peerHits(){
+  if (G.inside || G.mode === 'title') return;
+  const here = hereId();
+  for (const q of PEERS.values()){
+    if ((q.in || 0) !== here || q.dead) continue;
+    if (q.atkT > 0) for (const m of G.mons.slice()){
+      if (!vulnerable(m) || (m.pHit && m.pHit[q.peer] === q.sw)) continue;
+      if (!bodyCircles(m).some(c => inSwing(q, c.x, c.y, c.hr))) continue;
+      (m.pHit = m.pHit || {})[q.peer] = q.sw;
+      const crit = Math.random() * 100 < q.cb[1];
+      damage(m, Math.max(1, Math.round(q.cb[0] * q.mult * rand(.9, 1.1) * (crit ? 1.75 : 1))), crit, 1, q);
+    }
+    if (q.lance && q.ride && q.moving){
+      if (!q.lanceOn){ q.lanceOn = true; q.lanceN = (q.lanceN || 0) + 1; }
+      const L = LANCE_TIP[q.dir], t = { x: q.x + L[0], y: q.y + L[1] };
+      for (const m of G.mons.slice()){
+        if (!vulnerable(m) || (m.pLance && m.pLance[q.peer] === q.lanceN)) continue;
+        if (!bodyCircles(m).some(c => Math.hypot(c.x - t.x, c.y - t.y) < c.hr + 10)) continue;
+        (m.pLance = m.pLance || {})[q.peer] = q.lanceN;
+        if (!MON[m.k].boss) m.stunT = 1.2;
+        const crit = Math.random() * 100 < q.cb[1];
+        damage(m, Math.max(1, Math.round(q.cb[0] * 1.8 * rand(.9, 1.1) * (crit ? 1.75 : 1))), crit, 2.6, q);
+      }
+    } else q.lanceOn = false;
+  }
+}
+/* Ziel eines Monsters: der nächste Ritter am selben Ort, der nicht in Sicherheit ist (der eigene oder ein Mitspieler) */
+function monTarget(m, c, selfOk, dt){
+  const k = G.knight, here = hereId();
+  const ok = T => T === k ? selfOk : !T.dead && !(m.ev ? T.safeZ : T.safe) && (T.in || 0) === here && PEERS.get(T.peer) === T;
+  m.tgtT = (m.tgtT || 0) - dt;
+  if (m.tgt && ok(m.tgt) && m.tgtT > 0) return m.tgt;
+  let best = selfOk ? k : null, bd = best ? Math.hypot(k.x - c.x, k.y - KBODY - c.y) : 1e9;
+  for (const q of PEERS.values()){
+    if (!ok(q)) continue;
+    const d = Math.hypot(q.x - c.x, q.y - KBODY - c.y);
+    if (d < bd * (q === m.tgt ? 1.3 : 1) && d < 700){ bd = d; best = q; }
+  }
+  if (m.tgt && best && m.tgt !== best && ok(m.tgt) && Math.hypot(m.tgt.x - c.x, m.tgt.y - KBODY - c.y) < bd * 1.3) best = m.tgt;
+  m.tgt = best; m.tgtT = .6;
+  return best;
+}
+/* Monster trifft einen Mitspieler: nur zu sehen, den Schaden rechnet dessen Seite */
+function hitT(T, m, dmg){
+  if (T === G.knight) return hurt(m, dmg);
+  burst(T.x, T.y - KBODY, ['#c8343c', '#f0a0a0', '#d4d8de'], 8, 80); Sound.hit();
+  return true;
+}
+/* Wer bekommt Lohn für ein Monster, das ein Mitspieler erschlagen hat? Wer mitgekämpft hat oder in der Gruppe nahebei steht. */
+function killCredit(m){
+  if (!m.by || m.by === 'me' || (m.mine || 0) > 0) return true;
+  const q = PEERS.get(m.by);
+  return !!(q && inParty(q) && samePlace(q) && peerDist(q) < 900);
+}
+
+/* ---------- Handel zwischen Rittern ----------
+   Jeder legt Gegenstände und Gulden hin. „Einverstanden“ gilt nur für genau die beiden Angebote, die man gerade
+   sieht: Ändert einer etwas, muss der andere neu zusagen. Haben beide für dieselben Angebote zugesagt, tauscht
+   jede Seite für sich: das Eigene fort, das Fremde in den Rucksack. */
+const TRADE_MAX = 6;
+const sigOf = o => { const s = JSON.stringify(o); let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
+function packItem(it){
+  const o = {}; for (const k of ['s', 'il', 'r', 'b', 'a', 'dmg', 'arm', 'n', 'u', 'v', 'up', 'base', 'w', 'q']) if (it[k] != null) o[k] = it[k];
+  return o;
+}
+/* Fremde Gegenstände prüfen: nur bekannte Arten, Werte in vernünftigen Grenzen, neue Kennung */
+function cleanItem(o){
+  if (!o || typeof o !== 'object') return null;
+  if (o.s === 'ware'){
+    if (!WARES[o.w]) return null;
+    const it = makeWare(o.w); it.q = clamp(o.q | 0, 1, WARE_MAX); it.v = clamp(o.v | 0, 1, WARES[o.w].v * 5); it.il = clamp(o.il | 0, 1, MAX_LVL); return it;
+  }
+  if (!SLOTS.includes(o.s)) return null;
+  const il = clamp(o.il | 0, 1, 22), r = clamp(o.r | 0, 0, 4), up = clamp(o.up | 0, 0, 5), M = RARITY[r].m * 1.1 * (1 + .12 * up) + .5;
+  const it = { s: o.s, il, r, b: clamp(o.b | 0, 0, 4), a: {} };
+  if (o.s === 'waffe') it.dmg = clamp(o.dmg | 0, 1, Math.round((3 + il * 1.3) * M) + 5);
+  else if (ARM_MUL[o.s]) it.arm = clamp(o.arm | 0, 1, Math.round((1 + il) * ARM_MUL[o.s] * M) + 5);
+  let n = 0;
+  for (const k in (o.a && typeof o.a === 'object' ? o.a : {})) if (AFFIX[k] && (!AFFIX[k].only || AFFIX[k].only === o.s) && n++ < 4) it.a[k] = clamp(o.a[k] | 0, 1, Math.round(AFFIX[k].v(il) * M) + 3);
+  it.n = cleanText(o.n, 40) || BASES[o.s][it.b];
+  if (o.u && UNIQUES[o.u]) it.u = o.u;
+  it.v = clamp(o.v | 0, 1, Math.round((4 + il * 1.6) * 25 * 3));
+  if (up){
+    it.up = up;
+    const B = o.base && typeof o.base === 'object' ? o.base : {};
+    it.base = { dmg: clamp(B.dmg | 0, 0, it.dmg || 0), arm: clamp(B.arm | 0, 0, it.arm || 0), a: {}, v: clamp(B.v | 0, 1, it.v) };
+    for (const k in it.a) it.base.a[k] = clamp((B.a && B.a[k]) | 0, 1, it.a[k]);
+  }
+  it.id = Date.now().toString(36) + (itemSeq++).toString(36);
+  return it;
+}
+function startTrade(q, id){
+  if (G.mode !== 'play' && G.mode !== 'menu') return;
+  NET.tr = { id, w: q.peer, nm: q.nm, idx: [], g: 0, ok: null, t: nowS(), seen: nowS(), done: 0, theirSig: '' };
+  if (G.mode === 'menu') showOverlay('ovTalk'); else openPanel('ovTalk');
+  G.mode = 'menu';
+  G.talk = { peerTalk: true, peer: q.peer, name: q.nm, key: 'trade' };
+  $('talkImg').src = knightUrl(q.f, q.lk); $('talkName').textContent = 'Handel mit ' + q.nm;
+  $('talkRole').textContent = 'Stufe ' + q.lv + ' · ' + titleOf(q.lv) + ' · ' + KN_FACTIONS[q.f].knight;
+  Sound.choose(); renderTalk('trade'); sendPresence(true);
+}
+function tradeOffer(){ const T = NET.tr; return { g: T.g, it: T.idx.map(i => HERO.inv[i]).filter(Boolean).map(packItem) }; }
+function tradePres(){ const T = NET.tr; if (T.frozen) return T.frozen; const o = tradeOffer(); return { id: T.id, w: T.w, g: o.g, it: o.it, ok: T.ok, dn: T.done ? 1 : 0 }; }
+/* das Angebot des anderen, wie er es zeigt */
+function tradeTheirs(){
+  const T = NET.tr, q = T && PEERS.get(T.w), tr = q && q.tr;
+  if (!tr || tr.id !== T.id || tr.w !== NET.me) return null;
+  const it = Array.isArray(tr.it) ? tr.it.slice(0, TRADE_MAX) : [];
+  return { raw: { g: tr.g, it: tr.it }, g: clamp(+tr.g | 0, 0, 1e7), it, items: it.map(cleanItem).filter(Boolean), ok: Array.isArray(tr.ok) ? tr.ok : null, dn: !!tr.dn };
+}
+function tradeFree(){ return HERO.inv.filter(x => !x).length + NET.tr.idx.length; }
+function tradeAgree(){
+  const T = NET.tr, th = tradeTheirs(); if (!T || T.done || !th) return;
+  if (T.ok){ T.ok = null; }
+  else {
+    if (th.items.length > tradeFree()){ logLine('Zu wenig Platz im Rucksack.', '#ff9a8a'); return; }
+    T.ok = [sigOf(tradeOffer()), sigOf(th.raw)];
+  }
+  Sound.choose(); sendPresence(true); renderTalk('trade');
+}
+function tradeChanged(){ const T = NET.tr; T.ok = null; sendPresence(true); renderTalk('trade'); }
+function tradeCancel(silent){
+  const T = NET.tr; if (!T) return;
+  NET.tr = null;
+  if (!silent) logLine(T.done ? 'Der Handel mit ' + T.nm + ' ist abgeschlossen.' : 'Der Handel mit ' + T.nm + ' ist abgebrochen.', '#d8c69c');
+  if (G.mode === 'menu' && G.talk && G.talk.key === 'trade') closePanel();
+  sendPresence(true);
+}
+function tradeTick(t){
+  const T = NET.tr, q = PEERS.get(T.w), th = tradeTheirs();
+  if (T.done){ if (t - T.doneT > 4) tradeCancel(true); return; }
+  if (th) T.seen = t;
+  if (!q || (!th && t - T.seen > 3 && t - T.t > 5) || (q && samePlace(q) && peerDist(q) > 420) || (q && !samePlace(q))){ logLine((q ? q.nm : T.nm) + ' hat den Handel verlassen.', '#d8c69c'); tradeCancel(true); return; }
+  if (!th) return;
+  const mine = sigOf(tradeOffer()), theirs = sigOf(th.raw);
+  if (T.ok && (T.ok[0] !== mine || T.ok[1] !== theirs)) T.ok = null;
+  const key = theirs + ':' + (th.ok ? th.ok.join() : '') + ':' + th.dn;
+  if (T.ok && th.ok && th.ok[0] === T.ok[1] && th.ok[1] === T.ok[0]) return tradeCommit(q, th);
+  if (key !== T.theirSig){ T.theirSig = key; if (G.talk && G.talk.key === 'trade') renderTalk('trade'); }
+}
+function tradeCommit(q, th){
+  const T = NET.tr, give = T.idx.map(i => HERO.inv[i]);
+  if (give.some(x => !x) || HERO.gold < T.g || th.items.length > tradeFree()){ logLine('Der Handel ist geplatzt.', '#ff9a8a'); tradeCancel(true); return; }
+  T.frozen = Object.assign(tradePres(), { dn: 1 });   // was der andere sah, bleibt stehen, bis auch er getauscht hat
+  for (const i of T.idx) HERO.inv[i] = null;
+  HERO.gold += th.g - T.g;
+  for (const it of th.items){ const j = HERO.inv.indexOf(null); HERO.inv[j] = it; logItem('Eingetauscht: ', it); }
+  if (th.g) logLine('Ihr erhaltet ' + th.g + ' Gulden von ' + q.nm + '.', '#ffd98a');
+  T.done = 1; T.doneT = nowS(); T.idx = []; T.got = th.items.length + (th.g ? 1 : 0);
+  showBanner('Handel', 'abgeschlossen mit ' + q.nm); Sound.gold(); updateHud(); markDirty(true);
+  if (G.talk && G.talk.key === 'trade') renderTalk('trade');
+}
+function tradeRow(it){
+  const r = el('div', 'trow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
+  const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
+  t.append(nm, el('small', null, it.s === 'ware' ? 'Handelsware' : 'Stufe ' + it.il + ' · ' + itemLines(it).join(' · ')));
+  r.append(ic, t); return r;
+}
+function tradeView(body, opts, q){
+  const T = NET.tr;
+  if (!T){ $('talkText').textContent = 'Der Handel ist vorbei.'; opts.append(btn('Schließen', closePanel, 'opt')); body.append(opts); return; }
+  const th = tradeTheirs(), agreed = !!T.ok, theyOk = th && th.ok && T.ok && th.ok[0] === T.ok[1] && th.ok[1] === T.ok[0], theyAgree = th && th.ok && th.ok[0] === sigOf(th.raw) && th.ok[1] === sigOf(tradeOffer());
+  if (T.done){
+    $('talkText').textContent = 'Handschlag! Der Tausch mit ' + T.nm + ' ist vollzogen.';
+    opts.append(btn('Schließen', () => tradeCancel(true), 'opt')); body.append(opts); return;
+  }
+  $('talkText').textContent = 'Legt hin, was Ihr gebt. Getauscht wird erst, wenn beide einverstanden sind. Wer danach noch etwas ändert, muss neu zustimmen.';
+  const cols = el('div', 'trade'), mine = el('div', 'tcol'), theirs = el('div', 'tcol');
+  mine.append(el('h4', null, 'Ihr gebt'));
+  const give = T.idx.map(i => HERO.inv[i]).filter(Boolean);
+  for (const it of give) mine.append(tradeRow(it));
+  mine.append(el('p', 'tg', T.g ? T.g + ' Gulden' : give.length ? '' : 'noch nichts'));
+  mine.append(el('p', 'tst' + (agreed ? ' ok' : ''), agreed ? 'Ihr seid einverstanden.' : 'Ihr überlegt noch.'));
+  theirs.append(el('h4', null, T.nm + ' gibt'));
+  if (!th) theirs.append(el('p', 'hint', 'Warte auf ' + T.nm + ' …'));
+  else {
+    for (const it of th.items) theirs.append(tradeRow(it));
+    theirs.append(el('p', 'tg', th.g ? th.g + ' Gulden' : th.items.length ? '' : 'noch nichts'));
+    theirs.append(el('p', 'tst' + (theyAgree ? ' ok' : ''), theyAgree ? T.nm + ' ist einverstanden.' : T.nm + ' überlegt noch.'));
+  }
+  cols.append(mine, theirs); body.append(cols);
+  body.append(el('p', 'hint', 'Aus dem Rucksack hinlegen (bis ' + TRADE_MAX + ' Stück), angelegte Ausrüstung bleibt bei Euch:'));
+  const grid = el('div', 'tgrid');
+  HERO.inv.forEach((it, i) => {
+    if (!it) return;
+    const sel = T.idx.includes(i), b = el('button', 'slot' + (sel ? ' sel' : '')); b.type = 'button'; b.dataset.slot = 'tr:' + i;
+    b.style.setProperty('--rc', RARITY[it.r].c);
+    const im = el('img'); im.src = itemUrl(it); im.alt = itemName(it); b.append(im);
+    if (it.q > 1) b.append(el('span', 'qty', it.q));
+    b.title = itemName(it) + (it.s === 'ware' ? '' : ': ' + itemLines(it).join(', '));
+    b.disabled = !sel && T.idx.length >= TRADE_MAX;
+    b.addEventListener('click', () => { if (sel) T.idx = T.idx.filter(x => x !== i); else if (T.idx.length < TRADE_MAX) T.idx.push(i); tradeChanged(); });
+    grid.append(b);
+  });
+  if (!grid.children.length) grid.append(el('p', 'hint', 'Euer Rucksack ist leer.'));
+  body.append(grid);
+  const gold = el('div', 'tgold');
+  gold.append(el('span', null, 'Gulden: ' + T.g + ' von ' + HERO.gold));
+  for (const d of [-50, -10, 10, 50]){ const b = btn((d > 0 ? '+' : '−') + Math.abs(d), () => { T.g = clamp(T.g + d, 0, HERO.gold); tradeChanged(); }, 'tbtn'); b.dataset.slot = 'trg:' + d; b.disabled = d < 0 ? T.g <= 0 : T.g >= HERO.gold; gold.append(b); }
+  body.append(gold);
+  const room = th ? tradeFree() - th.items.length : 0;
+  const ok = btn(agreed ? 'Doch nicht einverstanden' : 'Einverstanden', tradeAgree, 'opt' + (agreed ? '' : ' new'));
+  ok.dataset.slot = 'trok'; ok.disabled = !th || (!agreed && room < 0);
+  opts.append(ok);
+  if (th && room < 0) opts.append(el('p', 'hint', 'Für das, was ' + T.nm + ' gibt, fehlt Euch Platz im Rucksack.'));
+  if (theyOk) opts.append(el('p', 'hint', 'Beide sind einverstanden …'));
+  opts.append(btn('Abbrechen', () => tradeCancel(), 'tbtn'));
+  body.append(opts);
+}
+
+/* ---------- Würfeln gegen einen Ritter: beide werfen, jeder darf einmal nachwerfen ---------- */
+function startDicePvp(q, id, stake){
+  if (HERO.gold < stake){ logLine('Ihr habt keine ' + stake + ' Gulden.', '#d8c69c'); return; }
+  NET.dc = { id, w: q.peer, nm: q.nm, st: stake, r: roll3(), hold: [true, true, true], f: null, res: null, t: nowS(), seen: nowS(), key: '' };
+  if (G.mode === 'menu') showOverlay('ovTalk'); else openPanel('ovTalk');
+  G.mode = 'menu';
+  G.talk = { peerTalk: true, peer: q.peer, name: q.nm, key: 'dicepvp' };
+  $('talkImg').src = knightUrl(q.f, q.lk); $('talkName').textContent = 'Würfeln mit ' + q.nm; $('talkRole').textContent = 'Einsatz ' + stake + ' Gulden';
+  diceSound(); renderTalk('dicepvp'); sendPresence(true);
+}
+function dicePres(){ const D = NET.dc; return { id: D.id, w: D.w, st: D.st, r: D.r, f: D.f }; }
+const diceOk = d => Array.isArray(d) && d.length === 3 && d.every(v => Number.isInteger(v) && v >= 1 && v <= 6);
+function diceTheirs(){
+  const D = NET.dc, q = D && PEERS.get(D.w), dc = q && q.dc;
+  if (!dc || dc.id !== D.id || dc.w !== NET.me) return null;
+  return { r: diceOk(dc.r) ? dc.r : null, f: diceOk(dc.f) ? dc.f : null };
+}
+function diceTick(t){
+  const D = NET.dc, th = diceTheirs();
+  if (th) D.seen = t;
+  if (D.res == null && !th && t - D.seen > 4 && t - D.t > 6){ logLine(D.nm + ' ist vom Tisch aufgestanden.', '#d8c69c'); diceLeave(); return; }
+  if (D.res == null && D.f && th && th.f){
+    const a = diceRank(D.f).r, b = diceRank(th.f).r;
+    D.res = Math.sign(a - b); D.op = th.f;
+    if (D.res > 0){ HERO.gold += D.st; Sound.gold(); HERO.dicewins = (HERO.dicewins || 0) + 1; logLine('Ihr gewinnt ' + D.st + ' Gulden von ' + D.nm + '.', '#ffd98a'); }
+    else if (D.res < 0){ HERO.gold -= Math.min(D.st, HERO.gold); Sound.tone(180, .3, 'triangle', .04, -60); logLine(D.nm + ' gewinnt Euren Einsatz von ' + D.st + ' Gulden.', '#d8c69c'); }
+    updateHud(); markDirty(true);
+  }
+  const key = JSON.stringify(th) + D.res;
+  if (key !== D.key){ D.key = key; if (G.talk && G.talk.key === 'dicepvp') renderTalk('dicepvp'); }
+}
+function diceLeave(){
+  const D = NET.dc; NET.dc = null;
+  if (D && G.mode === 'menu' && G.talk && G.talk.key === 'dicepvp') closePanel();
+  sendPresence(true);
+}
+function diceViewPvp(body, opts, q){
+  const D = NET.dc;
+  if (!D){ $('talkText').textContent = 'Der Tisch ist leer.'; opts.append(btn('Schließen', closePanel, 'opt')); body.append(opts); return; }
+  const th = diceTheirs();
+  const row = (d, hold) => {
+    const r = el('div', 'dicerow');
+    d.forEach((v, i) => {
+      const b = el('button', 'die' + (hold && !hold[i] ? ' re' : '')); b.type = 'button';
+      const im = el('img'); im.src = DICE_URL[v]; im.alt = v + ' Augen'; b.append(im);
+      if (hold){ b.dataset.slot = 'die:' + i; b.title = hold[i] ? 'behalten (zum Neuwerfen wählen)' : 'wird neu geworfen'; b.addEventListener('click', () => { D.hold[i] = !D.hold[i]; renderTalk('dicepvp'); }); }
+      else b.disabled = true;
+      r.append(b);
+    });
+    return r;
+  };
+  const mine = D.f || D.r;
+  body.append(el('p', 'hint', 'Euer Wurf: ' + diceRank(mine).n + (D.f ? '' : ' (einmal nachwerfen erlaubt)')), row(mine, D.f ? null : D.hold));
+  const theirs = th ? th.f || th.r : null;
+  body.append(el('p', 'hint', D.nm + ': ' + (theirs ? diceRank(theirs).n + (th.f ? '' : ', überlegt noch') : 'wirft …')));
+  if (theirs) body.append(row(theirs));
+  if (D.res != null){
+    $('talkText').textContent = D.res > 0 ? 'Gewonnen! Ihr streicht ' + D.st + ' Gulden von ' + D.nm + ' ein.' : D.res < 0 ? 'Verloren. ' + D.nm + ' bekommt Euren Einsatz.' : 'Gleichstand, jeder behält seinen Einsatz.';
+    const again = btn('Noch eine Runde um ' + D.st, () => { const qq = PEERS.get(D.w), st = D.st; diceLeave(); if (qq){ NET.diceStake = st; netAsk(qq, 'dice', st); } }, 'opt');
+    again.disabled = HERO.gold < D.st || !PEERS.get(D.w);
+    opts.append(again, btn('Aufstehen', diceLeave, 'tbtn'));
+  } else if (!D.f){
+    $('talkText').textContent = 'Wählt die Würfel, die Ihr neu werfen wollt, oder lasst es so. Einsatz ' + D.st + ' Gulden.';
+    const re = D.hold.filter(h => !h).length;
+    const go = btn(re ? 'Neu werfen (' + re + ' Würfel)' : 'So lassen', () => { D.f = D.r.map((v, i) => D.hold[i] ? v : 1 + (Math.random() * 6 | 0)); if (re) diceSound(); sendPresence(true); renderTalk('dicepvp'); }, 'opt');
+    go.dataset.slot = 'dgo'; opts.append(go, btn('Aufstehen', diceLeave, 'tbtn'));
+  } else {
+    $('talkText').textContent = 'Warte auf ' + D.nm + ' …';
+    opts.append(btn('Aufstehen', diceLeave, 'tbtn'));
+  }
+  body.append(opts);
+}
+
+/* ---------- Tjost gegen einen Ritter ----------
+   Wer fordert, reitet die südliche Bahn und beginnt links; wer annimmt, die nördliche und beginnt rechts. Jeder
+   Durchgang beginnt erst, wenn beide bereit sind. Beim Zusammenprall zeigt jeder, wohin er die Lanze gesenkt hat;
+   aus beiden Zielen und einem Zufall, den beide gleich würfeln (Kennung des Tjosts und Durchgang), rechnen beide
+   Seiten dasselbe Ergebnis. */
+const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+function startDuel(q, id, asker){
+  if (G.mode === 'menu') closePanel();
+  if (!LISTS || G.joust || G.fgame || DG_ON || G.inside || G.mode !== 'play'){ logLine('Der Tjost kann jetzt nicht beginnen.', '#d8c69c'); return; }
+  HERO.joust = HERO.joust || { wins: 0, beat: {} };
+  NET.jo = { id, w: q.peer, nm: q.nm, side: asker ? 1 : -1, r: 0, L: [], ps: [HERO.lvl, Math.round(ST.block), Math.round(ST.mit * 100)], e: HERO.joust.elo || 1000, t: nowS(), seen: nowS(), s: [0, 0] };
+  const foe = { id: 'pvp', name: q.nm, short: q.nm, lvl: q.lv, f: q.f, look: q.lk || undefined, pvp: true, osc: 2 };   // osc: wie schnell das eigene Ziel wandert
+  G.joust = { foe, pvp: NET.jo, pass: 0, me: 0, op: 0, st: 'intro', t: 1.8, cx: LISTS.x, cy: LISTS.y - 60, cheer: 0, parts: [], text: '', textT: 0, fallen: null };
+  HERO.riding = false; renderSkills(); G.near = null; $('btnTalk').hidden = true; $('log').style.visibility = 'hidden';
+  for (const s of LIFE_SPOTS) if (s.crowd){ s.act = true; s.ents = []; lifeMake(s, true); }
+  showBanner('Tjost', HERO.name + ' gegen ' + q.nm);
+  Sound.horn(); Sound.cheer(.8);
+  joustPass();
+  G.joust.st = 'intro'; G.joust.t = 2.2;
+  sendPresence(true);
+}
+function duelPres(){ const D = NET.jo; return { id: D.id, w: D.w, sd: D.side, r: D.r, L: D.L, s: D.s, ps: D.ps, e: D.e, end: D.end ? 1 : 0 }; }
+function duelTheirs(D){ const q = PEERS.get(D.w), jo = q && q.jo; return jo && jo.id === D.id && jo.w === NET.me ? jo : null; }
+const duelReady = J => { const jo = duelTheirs(J.pvp); return !!jo && (jo.r | 0) >= J.pass; };
+/* jeden Schritt: ist der andere noch da? */
+function duelTick(J){
+  const D = J.pvp, jo = duelTheirs(D), t = nowS();
+  if (jo) D.seen = t;
+  else if (t - D.seen > 4 && t - D.t > 6 && !D.end){
+    G.joust = null; NET.jo = null; $('log').style.visibility = '';
+    const herold = NPCS.find(n => n.id === 'herold'), k = G.knight;
+    if (herold){ k.x = herold.x + 30; k.y = herold.y + 10; k.dir = 'left'; }
+    showBanner('Tjost', 'ohne Sieger'); logLine(D.nm + ' hat die Schranke verlassen. Der Tjost endet ohne Sieger.', '#d8c69c');
+    sendPresence(true); return false;
+  }
+  return true;
+}
+function duelLock(J){
+  J.pvp.L[J.pass - 1] = J.lock === null ? -9 : Math.round(J.lock * 1000) / 1000;
+  J.lock = J.lock === null ? null : J.pvp.L[J.pass - 1];
+  J.st = 'after'; J.t = 1.9; J.waitRes = nowS();
+  sendPresence(true);
+}
+function duelPeerLock(J){ const jo = duelTheirs(J.pvp), v = jo && Array.isArray(jo.L) ? jo.L[J.pass - 1] : null; return typeof v === 'number' && v >= -9 && v <= 1.01 ? v : null; }
+/* Stoß von a auf b; beide Seiten rufen in derselben Reihenfolge den gemeinsamen Zufall */
+function duelStrike(R, lock, a, b){
+  const zone = lock <= -2 ? 'zu spät' : joustZone(lock), o = { zone, pts: 0, fall: false, glance: false }, r1 = R(), r2 = R();
+  if (zone === 'Helm' || zone === 'Schild'){
+    const d = clamp(a[0] - b[0], -10, 10);
+    if (r1 < clamp(.78 + d * .03 - b[1] / 300, .35, .95)){
+      o.pts = zone === 'Helm' ? 2 : 1;
+      if (r2 < clamp((zone === 'Helm' ? .26 : .08) + d * .015 - b[2] / 500, .02, .45)) o.fall = true;
+    } else o.glance = true;
+  }
+  return o;
+}
+function duelImpact(J, opLock){
+  const D = J.pvp, jo = duelTheirs(D), myL = D.L[J.pass - 1], R = rng(hashStr(D.id + ':' + J.pass));
+  const sp = v => Array.isArray(v) && v.length === 3 ? v.map((x, i) => clamp(+x || 0, 0, i === 0 ? MAX_LVL : 100)) : [1, 0, 0];
+  const mine = D.ps, theirs = sp(jo && jo.ps);
+  const A = D.side > 0 ? [myL, mine] : [opLock, theirs], B = D.side > 0 ? [opLock, theirs] : [myL, mine];
+  const ra = duelStrike(R, A[0], A[1], B[1]), rb = duelStrike(R, B[0], B[1], A[1]);
+  const me = D.side > 0 ? ra : rb, op = D.side > 0 ? rb : ra;
+  J.me += me.pts; J.op += op.pts; D.s = [J.me, J.op];
+  const hitX = J.ox, hy = (J.py + J.oy) / 2 - 40;
+  if (me.pts || op.pts){ for (let i = 0; i < 18; i++) J.parts.push({ x: hitX + rand(-8, 8), y: hy + rand(-10, 10), vx: rand(-90, 90), vy: rand(-120, -20), life: rand(.5, 1), c: Math.random() < .5 ? '#e8d8b0' : '#b08a5a' }); G.shake = .35; Sound.hit(); Sound.parry(); J.cheer = 2; Sound.cheer(1); }
+  else Sound.swing();
+  const parts = [], f = J.foe;
+  parts.push(me.zone === 'zu spät' ? 'Zu spät!' : me.pts ? me.zone + '! +' + me.pts : me.glance ? 'Abgeglitten' : 'Daneben');
+  if (op.pts) parts.push(f.short + ' trifft' + (op.zone === 'Helm' ? ' den Helm' : '') + ' +' + op.pts);
+  else if (op.zone === 'zu spät') parts.push(f.short + ' zu spät');
+  const oFall = me.fall, iFall = op.fall;
+  if (oFall){ parts.push(f.short + ' fällt!'); J.fallen = { who: 'op', x: J.ox, y: J.oy, t: 0, dir: -J.dir }; }
+  if (iFall){ parts.push('Ihr fallt!'); J.fallen = { who: 'me', x: J.px, y: J.py, t: 0, dir: J.dir }; }
+  J.text = parts.join(',  '); J.textT = 2.4;
+  J.over = oFall || iFall || (J.pass >= 3 && J.me !== J.op) || J.pass >= 5;
+  J.t = Math.max(J.t, 1.2);
+  J.res = oFall !== iFall ? (oFall ? 1 : 0) : J.me === J.op ? .5 : J.me > J.op ? 1 : 0;
+  if (J.over){ D.end = 1; D.endT = nowS(); }
+  sendPresence(true);
+}
+function duelEnd(J){
+  const D = J.pvp, k = G.knight, jo = duelTheirs(D);
+  G.joust = null; $('log').style.visibility = '';
+  const herold = NPCS.find(n => n.id === 'herold');
+  if (herold){ k.x = herold.x + 30; k.y = herold.y + 10; k.dir = 'left'; if (!gOk(k.x, k.y)){ k.x = herold.x; k.y = herold.y + 26; } }
+  const H = HERO.joust = HERO.joust || { wins: 0, beat: {} };
+  const eMe = H.elo || 1000, eOp = clamp(jo ? +jo.e || 1000 : 1000, 100, 3000), exp = 1 / (1 + Math.pow(10, (eOp - eMe) / 400));
+  const score = J.res == null ? .5 : J.res;
+  H.elo = Math.round(eMe + 32 * (score - exp));
+  if (score === 1){
+    H.pw = (H.pw || 0) + 1;
+    const gold = 15 + HERO.lvl * 2, xp = Math.round(xpNeed(HERO.lvl) * .06 + 10);
+    HERO.gold += gold; gainXp(xp);
+    showBanner('Sieg im Tjost', J.me + ' : ' + J.op + ' gegen ' + D.nm);
+    logLine('Ihr besiegt ' + D.nm + ' im Tjost. Der Herold zahlt ' + gold + ' Gulden Ehrensold, ' + xp + ' EP. Turnierwertung: ' + H.elo + '.', '#ffd98a');
+    Sound.levelUp();
+  } else if (score === 0){
+    H.pl = (H.pl || 0) + 1;
+    showBanner('Niederlage im Tjost', J.me + ' : ' + J.op + ' gegen ' + D.nm);
+    logLine(D.nm + ' bleibt Sieger. Turnierwertung: ' + H.elo + '.', '#d8c69c');
+  } else {
+    showBanner('Unentschieden', J.me + ' : ' + J.op + ' gegen ' + D.nm);
+    logLine('Gleichstand mit ' + D.nm + ' nach fünf Durchgängen. Turnierwertung: ' + H.elo + '.', '#d8c69c');
+  }
+  D.end = 1; D.endT = D.endT || nowS();
+  setTimeout(() => { if (NET.jo === D) { NET.jo = null; sendPresence(true); } }, 5000);
+  updateHud(); pushFame(); markDirty(true); sendPresence(true);
+}
+/* Zuschauer: zwei Mitspieler reiten gegeneinander, oben steht der Stand */
+function duelWatch(){
+  let txt = '';
+  if (!G.joust && !G.inside && !DG_ON && nearLists(G.knight.x, G.knight.y)) for (const a of PEERS.values()){
+    const ja = a.jo; if (!ja || ja.sd !== 1 || !Array.isArray(ja.s)) continue;
+    const b = PEERS.get(ja.w); if (!b || !b.jo || b.jo.id !== ja.id) continue;
+    const sc = ja.s.map(v => clamp(v | 0, 0, 20));
+    txt = a.nm + ' gegen ' + b.nm + (ja.end ? ', Ausgang ' : ', Stand ') + sc[0] + ' : ' + sc[1];
+    if (!G.crowdOn){ G.crowdOn = true; for (const sp of LIFE_SPOTS) if (sp.crowd){ sp.act = true; sp.ents = []; lifeMake(sp, true); } }
+    break;
+  }
+  if (txt !== (G.watch || '')){ G.watch = txt; renderTracker(); }
+}
+/* ============ Weltereignisse: für alle Ritter zur selben Stunde ============
+   Die Uhr der Welt bestimmt, wann etwas geschieht: um 9 Uhr überfallen Raubritter das Dorf Lindach, um 22 Uhr zieht
+   die Wilde Jagd durchs Land (jede Nacht an einem anderen Ort). Jede Seite lässt dieselben Gegner zur selben Zeit an
+   denselben Orten erscheinen (Zufall aus der Kennung des Ereignisses). Wer welchen Gegner erschlagen hat, steht als
+   Bitliste in der Anwesenheit; zusammen ergibt das den Fortschritt aller. Das Leben des Anführers ist sein Höchstwert
+   weniger dem Schaden, den jeder Teilnehmer gemeldet hat; den Höchstwert bringt jeder Teilnehmer nach seiner Stufe mit. */
+const EV_N = 96;
+const EV_DEFS = [
+  { id: 'ueberfall', name: 'Überfall auf Lindach', at: 9, len: 5, boss: 'raubritter', bossName: 'Eppelein von Gailingen', where: 'in Dorf Lindach',
+    soon: 'In Lindach läutet die Sturmglocke: Eine Raubritterbande zieht heran!', start: 'Raubritter überfallen Dorf Lindach! Vertreibt die Bande, dann stellt sich ihr Hauptmann.',
+    won: 'Lindach ist gerettet', lost: 'Die Raubritter ziehen mit ihrer Beute ab. Lindach hat diesmal verloren.', prize: 'Dankkette von Lindach', aff: ['hp', 'arm', 'str'],
+    mobs: { pluend: 'Raubgeselle', armbrust: 'Bandenschütze' } },
+  { id: 'jagd', name: 'Die Wilde Jagd', at: 22, len: 5, boss: 'raubritter', bossName: 'Der Wilde Jäger', ghost: true, where: '',
+    soon: 'Ein fernes Horn in der Dämmerung: Heute Nacht zieht die Wilde Jagd!', start: 'Die Wilde Jagd braust heran! Der Wilde Jäger und seine Geisterhunde ziehen über das Land.',
+    won: 'Die Wilde Jagd ist gebannt', lost: 'Der Morgen graut, die Wilde Jagd verweht im Wind.', prize: 'Horn des Wilden Jägers', aff: ['crit', 'spd', 'str'],
+    mobs: { werwolf: 'Geisterhund' } }
+];
+const EV_JAGD = [['den Finsterwald', 640, 600], ['das Moor', 430, 2600], ['den Galgenberg', 3760, 1150]];
+const EV_RAID_IN = [[2700, 700], [2610, 850], [2380, 650], [2530, 500]];
+const EVT = { cur: null, raid: false, soonId: '', art: {} };
+/* Geisterhaft: blasses Blau, durchscheinend, leuchtet in der Nacht */
+function ghostArt(art){
+  const tint = (src, glow) => {
+    const c = canvasOf(src.width, src.height), g = c.getContext('2d'); g.drawImage(src, 0, 0);
+    const id = g.getImageData(0, 0, c.width, c.height), d = id.data;
+    for (let i = 0; i < d.length; i += 4){
+      if (!d[i + 3]) continue;
+      const l = (d[i] * .3 + d[i + 1] * .59 + d[i + 2] * .11) / 255;
+      if (glow){ d[i] = 120 + l * 80; d[i + 1] = 200 + l * 55; d[i + 2] = 240; d[i + 3] = Math.round(d[i + 3] * (.16 + l * .3)); }
+      else { d[i] = 36 + l * 160; d[i + 1] = 60 + l * 180; d[i + 2] = 100 + l * 150; d[i + 3] = Math.round(d[i + 3] * .84); }
+    }
+    g.putImageData(id, 0, 0); return c;
+  };
+  const fr = s => ({ img: tint(s.img), glow: tint(s.img, true), white: s.white });
+  const side = o => ({ r: o.r.map(fr), l: o.l.map(fr) });
+  return Object.assign({}, art, { move: side(art.move), idle: side(art.idle), act: side(art.act) });
+}
+const evArt = k => EVT.art[k] || (EVT.art[k] = ghostArt(artOf(k)));
+/* Wann ist was? Letzter Beginn vor jetzt; läuft es noch, oder kommt es in der nächsten Spielstunde? */
+function evInfo(d, now){
+  const s = Math.floor((now - d.at * 60) / DAY_LEN) * DAY_LEN + d.at * 60;
+  if (now < s + d.len * 60) return { st: 'on', t0: s, id: d.id + ':' + Math.floor(s / DAY_LEN) };
+  if (now > s + DAY_LEN - 60) return { st: 'soon', t0: s + DAY_LEN, id: d.id + ':' + Math.floor((s + DAY_LEN) / DAY_LEN) };
+  return null;
+}
+function evSite(d, t0){
+  if (d.id === 'ueberfall') return Object.assign(gNear(2530, 690), { name: 'Dorf Lindach' });
+  const J = EV_JAGD[Math.floor(t0 / DAY_LEN) % EV_JAGD.length];
+  return Object.assign(gNear(J[1], J[2]), { name: J[0] });
+}
+const evHex = a => { let s = ''; for (let i = 0; i < EV_N; i += 4) s += (a[i] | a[i + 1] << 1 | a[i + 2] << 2 | a[i + 3] << 3).toString(16); return s; };
+const evUnhex = (s, out) => { if (typeof s !== 'string') return; for (let j = 0; j < Math.min(s.length, EV_N / 4); j++){ const v = parseInt(s[j], 16) || 0; for (let b = 0; b < 4; b++) if (v >> b & 1) out[j * 4 + b] = 1; } };
+function evPres(){ const E = EVT.cur, k = evHex(E.killed), d = Math.round(E.dmg); HERO.evCur = { id: E.id, k, d, c: E.contrib ? 1 : 0 }; return { id: E.id, k, d, n: 1 }; }
+/* alle, die mitmachen: ich und die Mitspieler mit derselben Kennung; wer gegangen ist, zählt mit seinem letzten Stand weiter */
+function evParts(E){
+  for (const q of PEERS.values()){ const e = q.ev; if (e && e.id === E.id && e.n) E.seen.set(q.by || q.peer, { lv: q.lv, d: clamp(+e.d || 0, 0, 1e7), k: typeof e.k === 'string' ? e.k : '' }); }
+  return [{ lv: HERO.lvl, d: E.dmg, me: true }].concat([...E.seen.values()]);
+}
+function evTick(dt){
+  if (!HERO || G.mode === 'title') return;
+  const now = skyNow();
+  let act = null;
+  for (const d of EV_DEFS){
+    const i = evInfo(d, now); if (!i) continue;
+    if (i.st === 'on') act = Object.assign({ d }, i);
+    else if (EVT.soonId !== i.id){ EVT.soonId = i.id; if (G.mode === 'play' || G.mode === 'menu'){ logLine(d.soon, '#ff9a8a'); Sound.bell(); } }
+  }
+  if (act && (!EVT.cur || EVT.cur.id !== act.id)) evBegin(act, now);
+  if (!act && EVT.cur){ if (!EVT.cur.over) evEnd(false); EVT.cur = null; renderTracker(); }
+  if (EVT.cur) evRun(dt, now);
+  const raid = !!(EVT.cur && EVT.cur.d.id === 'ueberfall' && !EVT.cur.over);
+  if (raid !== EVT.raid){ EVT.raid = raid; if (!DG_ON) updateZone(false); }
+}
+function evBegin(a, now){
+  if (EVT.cur) evClear(EVT.cur);
+  const d = a.d, E = EVT.cur = { d, id: a.id, t0: a.t0, t1: a.t0 + d.len * 60, site: evSite(d, a.t0), killed: new Uint8Array(EV_N), all: new Uint8Array(EV_N),
+    dmg: 0, part: false, contrib: false, spawned: new Map(), boss: null, phase: d.id === 'jagd' ? 'boss' : 'raid', over: false, won: false, key: '', need: 20, seen: new Map() };
+  const C = HERO.evCur;   // nach dem Neuladen: eigener Beitrag zu diesem Ereignis
+  if (C && C.id === E.id){ evUnhex(C.k, E.killed); E.dmg = clamp(+C.d || 0, 0, 1e7); E.contrib = !!C.c; E.part = true; }
+  HERO.evDone = HERO.evDone || {};
+  if (HERO.evDone[E.id]){ E.over = true; E.won = HERO.evDone[E.id] === 2; }
+  if (!E.over && now - a.t0 < 40 && (G.mode === 'play' || G.mode === 'menu')){
+    showBanner(d.name, d.id === 'jagd' ? 'über ' + E.site.name : d.where);
+    logLine(d.start + (d.id === 'jagd' ? ' Sie zieht über ' + E.site.name + '.' : ''), '#ff9a8a');
+    if (d.id === 'jagd'){ Sound.howl(); setTimeout(() => Sound.horn(), 700); } else { Sound.bell(); setTimeout(() => Sound.bell(), 600); Sound.horn(); }
+  }
+  renderTracker();
+}
+/* Gegner Nummer i: Art, Eingang, Ziel im Dorf, alles aus dem gemeinsamen Zufall */
+function evSpawn(E, i, w){
+  const R = rng(hashStr(E.id + ':' + i)), d = E.d, k = G.knight;
+  let m;
+  if (d.id === 'ueberfall'){
+    const kind = R() < .32 ? 'armbrust' : 'pluend', e = EV_RAID_IN[(w + i) % EV_RAID_IN.length];
+    const p = gNear(e[0] + (R() - .5) * 60, e[1] + (R() - .5) * 50), goal = gNear(2530 + (R() - .5) * 150, 690 + (R() - .5) * 110);
+    m = createMonster(kind, p.x, p.y, clamp(HERO.lvl + (R() < .3 ? 1 : 0), 3, MAX_LVL), null);
+    m.hx = goal.x; m.hy = goal.y; m.tx = goal.x; m.ty = goal.y; m.walking = true; m.wT = 40; m.march = true;
+    m.nm = d.mobs[kind];
+  } else {
+    const a = R() * Math.PI * 2, r = 120 + R() * 90, c = E.boss || E.site;
+    const p = gNear((c.x + Math.cos(a) * r) / WS, (c.y + Math.sin(a) * r * .7) / WS);
+    m = createMonster('werwolf', p.x, p.y, clamp(HERO.lvl - 2, 4, MAX_LVL), null);
+    m.art = evArt('werwolf'); m.nm = 'Geisterhund'; m.hx = c.x; m.hy = c.y; m.ghost = true;
+    if (Math.hypot(k.x - m.x, k.y - m.y) < 400) engage(m, true);
+  }
+  m.zone = gZone(m.x, m.y).id; m.ev = { id: E.id, i };
+  E.spawned.set(i, m);
+  if (!d.ghost) for (let j = 0; j < 6; j++) G.parts.push({ x: m.x + rand(-8, 8), y: m.y, vx: rand(-20, 20), vy: rand(-30, -10), life: .5, c: '#6e5a42', g: 40 });
+  return m;
+}
+function evSpawnBoss(E, lvl){
+  const d = E.d, p = d.id === 'ueberfall' ? gNear(2540, 700) : E.site;
+  const m = createMonster(d.boss, p.x, p.y, lvl, null);
+  m.ev = { id: E.id, boss: true }; m.nm = d.bossName; m.summoned = true; m.hx = p.x; m.hy = p.y; m.zone = gZone(p.x, p.y).id;
+  if (d.ghost){ m.art = evArt(d.boss); m.ghost = true; }
+  E.boss = m; G.flash = .35; Sound.thunder();
+  for (let j = 0; j < 30; j++) G.parts.push({ x: m.x + rand(-16, 16), y: m.y - rand(0, 40), vx: rand(-40, 40), vy: rand(-80, -20), life: .9, c: d.ghost ? '#9fdcff' : '#b3202a', g: 30, glow: true });
+  return m;
+}
+function evRun(dt, now){
+  const E = EVT.cur, k = G.knight, d = E.d;
+  if (E.over){ evClear(E); return; }
+  const outside = !G.inside && !DG_ON, dist = Math.hypot(k.x - E.site.x, k.y - E.site.y), near = outside && dist < 1400;
+  if (((outside && dist < 800) || E.contrib) && G.mode === 'play' && !E.part){ E.part = true; sendPresence(true); }
+  // Fortschritt aller: eigene Bits und die der anderen
+  const parts = evParts(E);
+  E.all.set(E.killed);
+  for (const p of parts) if (p.k) evUnhex(p.k, E.all);
+  let killed = 0; for (let i = 0; i < EV_N; i++) killed += E.all[i];
+  E.killedN = killed; E.parts = parts.length;
+  if (d.id === 'ueberfall'){
+    E.need = window.__evNeed || Math.min(60, 20 + 8 * (parts.length - 1));   // __evNeed: zum Ausprobieren
+    if (E.phase === 'raid' && killed >= E.need){ E.phase = 'boss'; if (G.mode === 'play'){ showBanner(d.bossName, 'Der Hauptmann der Bande stellt sich'); logLine('Die Bande weicht! Da reitet ihr Hauptmann heran: ' + d.bossName + '.', '#ff9a8a'); Sound.horn(); } }
+    if (E.phase === 'raid' && near) for (let w = 0; w < 14; w++){
+      if (now < E.t0 + 10 + w * 25) break;
+      for (let j = 0; j < 5; j++){ const i = w * 5 + j; if (!E.all[i] && !E.spawned.has(i)) evSpawn(E, i, w); }
+    }
+  }
+  // Leben des Anführers aus dem Schaden aller
+  const maxHp = Math.round(parts.reduce((a, p) => a + monHp(d.boss, clamp(p.lv, 1, MAX_LVL)), 0) * (d.ghost ? .6 : .5));
+  const dealt = parts.reduce((a, p) => a + p.d, 0), hp = Math.max(0, maxHp - dealt);
+  E.bossHp = hp; E.bossMax = maxHp;
+  if (E.phase === 'boss'){
+    if (hp <= 0 && dealt > 0) return evEnd(true);
+    if (near && (!E.boss || !G.mons.includes(E.boss)) && (d.id === 'ueberfall' || now > E.t0 + 3)) evSpawnBoss(E, clamp(Math.max(...parts.map(p => p.lv)) + 1, 4, MAX_LVL + 2));
+    if (E.boss){ E.boss.max = maxHp; E.boss.hp = Math.max(1, hp); }
+    // Geisterhunde: alle 25 Sekunden zwei neue, solange der Jäger lebt
+    if (d.ghost && near && E.boss) for (let w = 0; w < 14; w++){
+      if (now < E.t0 + 8 + w * 25) break;
+      for (let j = 0; j < 2; j++){ const i = w * 2 + j; if (!E.all[i] && !E.spawned.has(i)) evSpawn(E, i, w); }
+    }
+  }
+  // anderswo Erschlagene verschwinden hier; Verschwundene (zu weit weg) dürfen wiederkommen
+  if (outside) for (const [i, m] of E.spawned){
+    const here = G.mons.includes(m);
+    if (here && E.all[i] && !E.killed[i]){ G.mons.splice(G.mons.indexOf(m), 1); burst(m.x, m.y - 14, d.ghost ? ['#9fdcff', '#e8f6ff'] : ['#6e5a42', '#c9c2ad'], 10, 60, d.ghost); }
+    if (!G.mons.includes(m) && !E.all[i]) E.spawned.delete(i);
+  }
+  const left = Math.max(0, E.t1 - now), key = E.phase + ':' + killed + '/' + E.need + ':' + Math.ceil(left) + ':' + Math.round(hp / Math.max(1, maxHp) * 100) + ':' + near;
+  if (key !== E.key){ E.key = key; renderTracker(); }
+}
+/* ein Gegner des Ereignisses fällt hier */
+function evMark(m){
+  const E = EVT.cur;
+  if (!E || m.ev.id !== E.id) return;
+  if (m.ev.boss){ E.boss = null; return; }
+  E.killed[m.ev.i] = 1; E.all[m.ev.i] = 1;
+  sendPresence(true);
+}
+function evEnd(won){
+  const E = EVT.cur, d = E.d, k = G.knight;
+  E.over = true; E.won = won;
+  HERO.evDone = HERO.evDone || {}; HERO.evDone[E.id] = won ? 2 : 1;
+  const ks = Object.keys(HERO.evDone); if (ks.length > 10) delete HERO.evDone[ks[0]];
+  evClear(E);
+  if (!won){ if (E.part) logLine(d.lost, '#d8c69c'); renderTracker(); return; }
+  if (E.contrib){
+    const gold = 25 + HERO.lvl * 5, xp = Math.round(xpNeed(HERO.lvl) * .2) + 20;
+    HERO.gold += gold; HERO.potions = Math.min(20, HERO.potions + 2);
+    HERO.evFirst = HERO.evFirst || {};
+    const first = !HERO.evFirst[d.id];
+    const it = first ? makeItem('kleinod', HERO.lvl + 1, 3, { name: d.prize, aff: d.aff }) : makeItem(pick(SLOTS), HERO.lvl + 1, Math.random() < .3 ? 3 : 2);
+    HERO.evFirst[d.id] = true;
+    const j = HERO.inv.indexOf(null);
+    if (j >= 0) HERO.inv[j] = it; else dropLoot(k, 'item', 0, it);
+    showBanner(d.won, gold + ' Gulden, ' + xp + ' EP und ' + it.n);
+    logLine(d.won + '! Ihr erhaltet ' + gold + ' Gulden, zwei Heiltränke und ' + it.n + (E.parts > 2 ? '. Mit Euch kämpften ' + (E.parts - 1) + ' Ritter.' : E.parts === 2 ? '. Ein zweiter Ritter kämpfte mit Euch.' : '.'), '#ffd98a');
+    logItem('Lohn: ', it);
+    gainXp(xp); Sound.levelUp(); Sound.cheer(1); G.flash = .3;
+    burst(k.x, k.y - KBODY, ['#c9a227', '#ecd27a', '#ffffff'], 36, 120, true);
+    updateHud(); pushFame(); markDirty(true);
+  } else if (E.part) logLine(d.won + '. Andere Ritter haben es geschafft.', '#ffd98a');
+  renderTracker();
+}
+/* übrige Gegner fliehen oder verwehen */
+function evClear(E){
+  const lists = DG_ON && DG_ON.world ? [G.mons, DG_ON.world.mons] : [G.mons];
+  for (const [, m] of E.spawned) for (const L of lists){ const i = L.indexOf(m); if (i >= 0){ L.splice(i, 1); if (L === G.mons) burst(m.x, m.y - 14, E.d.ghost ? ['#9fdcff', '#e8f6ff'] : ['#6e5a42', '#c9c2ad'], 8, 60, E.d.ghost); } }
+  E.spawned.clear();
+  if (E.boss) for (const L of lists){ const i = L.indexOf(E.boss); if (i >= 0) L.splice(i, 1); }
+  E.boss = null;
+}
+/* Zeilen oben links und die Marke auf den Karten */
+function evRows(box){
+  const now = skyNow();
+  const E = EVT.cur;
+  if (!E){
+    for (const d of EV_DEFS){ const i = evInfo(d, now); if (i && i.st === 'soon'){ const p = el('p', 'ev'); p.append(el('b', null, 'Gleich: ' + d.name), ' ' + (d.id === 'jagd' ? 'heute Nacht' : 'in Lindach')); box.append(p); } }
+    return;
+  }
+  if (E.over && !E.won) return;
+  const p = el('p', 'ev'), left = Math.max(0, E.t1 - now), mm = Math.floor(left / 60), ss = String(Math.floor(left % 60)).padStart(2, '0');
+  if (E.over){ p.append(el('b', null, E.d.won)); box.append(p); return; }
+  p.append(el('b', null, E.d.name), ' ' + mm + ':' + ss);
+  box.append(p);
+  const q = el('p', 'ev');
+  if (E.phase === 'raid') q.append(el('span', null, (E.killedN || 0) + ' von ' + E.need + ' Räubern vertrieben'));
+  else q.append(el('span', null, (E.d.id === 'jagd' ? 'über ' + E.site.name.replace(/^(den|das) /, '') + ', ' : '') + E.d.bossName.replace(/^Der /, '') + ' ' + Math.round((E.bossHp || 0) / Math.max(1, E.bossMax || 1) * 100) + ' %'));
+  if (E.parts > 1) q.append(' · ' + E.parts + ' Ritter');
+  box.append(q);
+}
+const evMark2 = () => EVT.cur && !EVT.cur.over ? EVT.cur.site : null;
+
+/* ---------- Ruhmeshalle: Ritter, Turnier, Feste ----------
+   Alles steht im eigenen Eintrag unter heroes/<Kennung>: Stufe und Ruhm wie bisher, dazu die Turnierwertung und die
+   besten Festspiele. Die Liste der zuletzt gesehenen Ritter liefert Turnier- und Festbestenlisten. */
+const FREC = [
+  { id: 'stein', f: 'fs', name: 'Steinstoßen', fmt: v => (v / 10).toFixed(1).replace('.', ',') + ' Ellen', hi: true },
+  { id: 'klettern', f: 'fk', name: 'Maibaumklettern', fmt: v => (v / 10).toFixed(1).replace('.', ',') + ' Sekunden', hi: false },
+  { id: 'springen', f: 'fj', name: 'Feuerspringen', fmt: v => v + ' Mutpunkte', hi: true },
+  { id: 'schnee', f: 'fb', name: 'Schneeballschlacht', fmt: v => v + ' Sekunden', hi: false }
+];
+const FREC_BY = Object.fromEntries(FREC.map(r => [r.id, r]));
+let fameTab = 'ritter';
+function fameExtra(){
+  const J = HERO.joust || {}, o = {};
+  if (J.pw || J.pl){ o.je = J.elo || 1000; o.jw = J.pw || 0; o.jl = J.pl || 0; }
+  for (const r of FREC){ const v = HERO.frec && HERO.frec[r.id]; if (v) o[r.f] = v; }
+  return o;
+}
+/* bester Wert aller bekannten Ritter für ein Festspiel */
+function festBest(id){
+  const r = FREC_BY[id]; let best = null;
+  const rows = (cloud.allRows || []).concat(HERO ? [Object.assign({ nm: HERO.name, id: cloud.uid || 'me' }, fameExtra())] : []);
+  for (const x of rows){ const v = +x[r.f]; if (!v || v < 0) continue; if (!best || (r.hi ? v > best.v : v < best.v)) best = { v, nm: cleanName(x.nm) || 'Unbekannt' }; }
+  return best;
+}
+/* ein Festspiel ist vorbei: eigenen Rekord merken, Rekord aller Ritter melden */
+function festRecord(id, v){
+  const r = FREC_BY[id]; if (!r || !(v > 0)) return;
+  v = Math.round(v);
+  HERO.frec = HERO.frec || {};
+  const old = HERO.frec[id], all = festBest(id);
+  if (old && (r.hi ? v <= old : v >= old)) return;
+  HERO.frec[id] = v;
+  const top = !all || all.nm === HERO.name || (r.hi ? v > all.v : v < all.v);
+  logLine((top ? 'Rekord aller Ritter im ' : 'Neuer eigener Rekord im ') + r.name + ': ' + r.fmt(v) + '!', top ? '#ffd541' : '#ffd98a');
+  if (top) Sound.cheer(1);
+  pushFame(); markDirty(true);
+}
+function renderFameTab(){
+  for (const b of document.querySelectorAll('[data-ft]')){ const on = b.dataset.ft === fameTab; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); }
+  if (fameTab === 'ritter'){ if (cloud.fameRows) renderFame(cloud.fameRows); else renderFameLocal(); return; }
+  const box = $('fameList'); box.textContent = '';
+  const me = HERO || SAVED, mine = me ? Object.assign({ id: cloud.uid || 'local', nm: me.name }, HERO ? fameExtra() : {}) : null;
+  const rows = (cloud.allRows || []).filter(r => r.id !== (cloud.uid || 'local')).concat(mine ? [mine] : []);
+  if (fameTab === 'tjost'){
+    const L = rows.filter(r => (r.jw | 0) + (r.jl | 0) > 0).map(r => ({ id: r.id, nm: cleanName(r.nm) || 'Unbekannt', e: clamp(r.je | 0, 100, 3000), w: Math.max(0, r.jw | 0), l: Math.max(0, r.jl | 0) })).sort((a, b) => b.e - a.e).slice(0, 15);
+    if (!L.length){ box.append(el('li', 'empty', 'Noch hat kein Ritter gegen einen anderen tjostiert.')); return; }
+    L.forEach((r, i) => { const li = el('li', r.id === (cloud.uid || 'local') ? 'me' : ''); li.append(el('span', 'fr', String(i + 1)), el('span', 'fn', r.nm), el('span', 'fl', 'Wertung ' + r.e), el('span', 'fk', r.w + (r.w === 1 ? ' Sieg' : ' Siege') + ', ' + r.l + (r.l === 1 ? ' Niederlage' : ' Niederlagen'))); box.append(li); });
+    return;
+  }
+  let any = false;
+  for (const f of FREC){
+    const L = rows.filter(r => +r[f.f] > 0).map(r => ({ id: r.id, nm: cleanName(r.nm) || 'Unbekannt', v: +r[f.f] })).sort((a, b) => f.hi ? b.v - a.v : a.v - b.v).slice(0, 3);
+    if (!L.length) continue;
+    any = true;
+    const li = el('li', 'frec'); li.append(el('span', 'fn', f.name));
+    L.forEach((r, i) => li.append(el('span', 'fk' + (r.id === (cloud.uid || 'local') ? ' me' : ''), (i + 1) + '. ' + r.nm + ', ' + f.fmt(r.v))));
+    box.append(li);
+  }
+  if (!any) box.append(el('li', 'empty', 'Noch keine Festspiele verzeichnet. Gefeiert wird am zweiten und dritten Tag jeder Jahreszeit.'));
+}
+for (const b of document.querySelectorAll('[data-ft]')) b.addEventListener('click', () => { fameTab = b.dataset.ft; renderFameTab(); });
+
+const peerAt = p => { if (!p.in) return null; const inn = INN_BY[p.in]; if (inn) return { x: inn.dx, y: inn.y }; const d = typeof p.in === 'string' && DG_DOORS.find(o => 'dg:' + o.dg === p.in); return d ? { x: d.x, y: d.y } : null; };
+function festRecordOf(g, ok){
+  if (g.kind === 'stein' && g.best) festRecord('stein', g.best * 10);
+  if (g.kind === 'klettern' && ok && g.clock) festRecord('klettern', g.clock * 10);
+  if (g.kind === 'springen' && g.pts && ok) festRecord('springen', g.pts);
+  if (g.kind === 'schnee' && ok) festRecord('schnee', 60 - g.time);
 }
 
 /* ============ Start ============ */
