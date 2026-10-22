@@ -431,6 +431,22 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 .sceneskip{position:absolute; right:8px; top:6px; z-index:7; font-family:var(--f-body); font-size:16px; color:var(--parchment); background:color-mix(in srgb, var(--ink) 70%, transparent); border:0; padding:3px 8px; cursor:pointer;}
 .scenebox[hidden],.scenecard[hidden],.sceneskip[hidden]{display:none;}
 .list img.stimg{image-rendering:pixelated;}
+.tracker p.post b{color:#9cc8ff;}
+.pin{display:block; width:100%; box-sizing:border-box; margin:2px 0; font-family:var(--f-body); font-size:19px; line-height:1.15; color:var(--parchment); background:var(--stone-lo); border:0; padding:5px 8px; box-shadow:inset 0 0 0 2px var(--gold-lo); resize:vertical;}
+.pin:focus{outline:3px dashed var(--ghost); outline-offset:2px;}
+.letter{background:var(--parchment); color:#2a1c12; padding:10px 14px; box-shadow:inset 0 0 0 2px var(--parchment-lo), 0 0 0 2px var(--ink);}
+.panel .letter p{margin:0; font-size:19px; line-height:1.25; color:#2a1c12;}
+.panel .letter .sig{margin-top:6px; text-align:right; font-style:italic;}
+.shoprow .seal{display:grid; place-items:center; width:36px; height:36px; font-size:22px; color:var(--blood-hi); background:var(--parchment);}
+.tbtn.on{background:var(--gold); color:var(--ink);}
+.hint.warn{color:#ff9a8a;}
+.lwbars{display:grid; gap:4px;}
+.lwrow{display:grid; grid-template-columns:auto 7em 1fr; gap:8px; align-items:center; padding:3px 6px; background:var(--stone-lo);}
+.lwrow.me{box-shadow:inset 0 0 0 2px var(--gold-lo);}
+.lwrow img{width:24px; height:24px; image-rendering:pixelated;}
+.lwrow b{font-weight:400; color:var(--gold-hi);}
+.perks{margin:2px 0; padding-left:4px; list-style:none; display:grid; gap:2px; font-size:16px; color:var(--parchment-lo);}
+.perks li.on{color:#9fe08a;}
 @media (max-width:700px){
   .scenebox{position:relative; left:auto; right:auto; bottom:auto; grid-template-columns:48px 1fr; gap:8px; padding:6px 8px;}
   .scenebox img{width:48px; height:48px;}
@@ -551,7 +567,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     <img class="seal" id="sealTop" alt="">
     <p class="eyebrow">Anno Domini MDXX · Sacrum Romanum Imperium</p>
     <h1>Der Apfelritter</h1>
-    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre von Luthers Auftritt in Worms bis zum Bauernkrieg und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den Kaiser, tjostiert im Großen Turnier, handelt und würfelt miteinander.</p>
+    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre von Luthers Auftritt in Worms bis zum Bauernkrieg und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den Kaiser, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der kaiserlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Landes.</p>
   </header>
 
   <section class="cabinet" aria-label="Spiel">
@@ -830,7 +846,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     </div>
     <div class="note">
       <h3>Ruhmeshalle</h3>
-      <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button></div>
+      <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button><button type="button" role="tab" data-ft="laender" aria-selected="false">Länder</button></div>
       <ol class="fame" id="fameList"></ol>
       <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Feste“ die besten Festspiele.</p>
     </div>
@@ -10536,6 +10552,7 @@ function cleanHero(h){
   if (h.frec){ const o = {}; for (const r of ['stein', 'klettern', 'springen', 'schnee']) if (+h.frec[r] > 0) o[r] = Math.round(+h.frec[r]); h.frec = o; }
   for (const key of ['evDone', 'evFirst', 'evCur']) if (h[key] && typeof h[key] !== 'object') h[key] = null;
   if (h.story) h.story = stCleanStory(h.story);
+  asHero(h);
   return h;
 }
 let HERO = null;
@@ -10554,6 +10571,8 @@ function heroStats(h){
   s.regen = 1;
   const fx = [(KN_FACTIONS[h.f] || KN_FACTIONS.reich).bonus].concat([h.food, h.drink].map(b => b && b.t > 0 && FARE_BY[b.id] ? FARE_BY[b.id].fx : null));
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
+  if (ASV && ASV.ord >= 4) s.dmg *= 1.03;   // Ordenshaus: Waffenkammer, Ordenshof
+  if (ASV && ASV.ord >= 5) s.hp *= 1.05;
   s.hp = Math.round(s.hp);
   s.dmg = Math.round(s.dmg); s.block = Math.min(60, s.block); s.crit = Math.min(50, s.crit);
   s.cd = .6 / (1 + s.spd / 100);
@@ -12288,7 +12307,7 @@ function huntHit(e, h){
 }
 function huntKill(e){
   const H = HUNT[e.k], b = huntBody(e);
-  orCount('wild'); stHunt(e.k);
+  orCount('wild'); stHunt(e.k); lwAdd(1);
   e.gone = true; e.spot.cool = 150;
   Sound.kill(); burst(b.x, b.y, ['#8a2a2a', '#6a4a30', '#c8a070', '#3a2a1e'], 14, 80);
   for (const [w, p] of H.drops) if (Math.random() < p) dropLoot({ x: e.x, y: e.y }, 'item', 0, makeWare(w));
@@ -12438,7 +12457,7 @@ function kill(m){
   if (m.ev && m.ev.boss){ burst(c.x, c.y, m.ghost ? ['#9fdcff', '#e8f6ff', '#ffffff'] : DEATH_COLORS[m.k], 50, 140, true); Sound.kill(); G.flash = .4; return; }   // Lohn kommt mit dem Ende des Ereignisses
   if (!killCredit(m)){ burst(c.x, c.y, DEATH_COLORS[m.k], 12, 70); Sound.kill(); if (m.slot){ m.slot.mon = null; m.slot.t = d.boss ? 240 : rand(40, 70); } return; }
   if (m.grp) return dgDrakeKill(m);
-  HERO.kills++; G.shake = Math.max(G.shake, .08); orCount('kills');
+  HERO.kills++; G.shake = Math.max(G.shake, .08); orCount('kills'); lwAdd(d.boss || m.elite ? 10 : 1);
   if (d.boss || m.elite) orCount('boss');
   Sound.kill();
   burst(c.x, c.y, DEATH_COLORS[m.k], d.boss ? 50 : 16, d.boss ? 140 : 80, m.k === 'irrlicht');
@@ -12508,8 +12527,9 @@ function updateLoot(dt){
 function pickUp(a){
   const k = G.knight;
   if (a.t === 'gold'){
-    HERO.gold += a.n; Sound.coin();
-    floatText(a.x, a.y - 14, '+' + a.n + ' Gulden', '#ffd541');
+    const gn = Math.round(a.n * (1 + asGoldBonus()));   // Ruhm des Landes, Ordenshaus
+    HERO.gold += gn; Sound.coin();
+    floatText(a.x, a.y - 14, '+' + gn + ' Gulden', '#ffd541');
   } else if (a.t === 'potion'){
     if (HERO.potions >= 20) return fullMsg('Kein Platz für mehr Tränke');
     HERO.potions++; Sound.coin();
@@ -12545,6 +12565,7 @@ function fullMsg(txt){
 function gainXp(n){
   if (HERO.lvl >= MAX_LVL) return;
   if (HERO.mood && HERO.mood.t > 0) n = Math.round(n * 1.1);
+  n = Math.round(n * (1 + asXpBonus()));   // Ruhm des Landes, Ordenshaus
   HERO.xp += n;
   while (HERO.lvl < MAX_LVL && HERO.xp >= xpNeed(HERO.lvl)){ HERO.xp -= xpNeed(HERO.lvl); HERO.lvl++; levelUp(); }
   if (HERO.lvl >= MAX_LVL) HERO.xp = 0;
@@ -12860,7 +12881,7 @@ function joustEnd(){
   if (herold){ k.x = herold.x + 30; k.y = herold.y + 10; k.dir = 'left'; if (!gOk(k.x, k.y)){ k.x = herold.x; k.y = herold.y + 26; } }
   HERO.joust = HERO.joust || { wins: 0, beat: {} };
   if (J.win){
-    HERO.gold += f.prize; HERO.joust.wins++;
+    HERO.gold += f.prize; HERO.joust.wins++; lwAdd(5);
     const xp = Math.round(xpNeed(HERO.lvl) * .12 + f.lvl * 6); gainXp(xp);
     let extra = '';
     if (!HERO.joust.beat[f.id]){
@@ -13231,7 +13252,7 @@ function dgOpenChest(){
   const elite = G.mons.find(m => m.elite);
   if (elite){ floatText(o.x, o.y - 40, elite.elite + ' wacht noch', '#ff9a8a', 1, 1.4); return; }
   if (HERO.dg[M.id] === dgDay()){ floatText(o.x, o.y - 40, 'leer', '#d8c69c'); logLine('Die Truhe ist leer. Morgen ist sie wieder gefüllt.', '#d8c69c'); return; }
-  HERO.dg[M.id] = dgDay(); M.chestOpen = true; orCount('chests');
+  HERO.dg[M.id] = dgDay(); M.chestOpen = true; orCount('chests'); lwAdd(5);
   const L = (M.lvl || M.D.lvl)[1] + 1, from = { x: o.x, y: o.y + 18 };
   for (let j = 0; j < 4; j++) dropLoot(from, 'gold', monGold(L) * 4);
   dropLoot(from, 'potion'); dropLoot(from, 'potion');
@@ -13665,7 +13686,7 @@ function festReward(f, ok, extra){
   const key = festKey(), first = ok && !HERO.festDone[key];
   if (!ok){ logLine(extra || 'Diesmal nicht. Versucht es noch einmal!', '#d8c69c'); return; }
   const gold = first ? 20 + HERO.lvl * 3 : 4 + HERO.lvl;
-  HERO.gold += gold; Sound.levelUp();
+  HERO.gold += gold; Sound.levelUp(); lwAdd(5);
   let txt = gold + ' Gulden';
   if (first){
     HERO.festDone[key] = true;
@@ -14080,6 +14101,7 @@ const inView = (x, y, cam, m) => { m = m || 60; return x > cam.x - m && x < cam.
 /* Leute: Bild, Name, Rolle, Zeichen für offene Aufträge */
 function npcMark(n){
   if (HERO && stWants(n.id)) return '!';
+  if (HERO && asMark(n)) return '!';
   if (n.fest && !n.festShop && HERO) return HERO.festDone && HERO.festDone[festKey()] ? '' : '!';
   if (!n.quest || !HERO) return '';
   if (HERO.quests.some(q => { const d = qInfo(q); return d && d.giver === n.id && q.n >= d.need; })) return '?';
@@ -14180,7 +14202,7 @@ function render(){
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
   for (const e of lifeL) list.push({ y: (e.sy || e.y) + .05, d: () => drawLife(e) });
   for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => { drawKnightAt(p, knightSet(p.f, p.lk), p.dead, 1); if (p.bk) drawBucket(p.x - 14, p.y - 14); } });
-  evList(cam, list); stList(cam, list);
+  evList(cam, list); stList(cam, list); asList(cam, list);
   if (G.bucket && !title) list.push({ y: k.y + .21, d: () => drawBucket(k.x - 14, k.y - 14) });
   if (!title) list.push({ y: k.y + .2, d: drawKnight });
   festList(cam, list);
@@ -14729,7 +14751,7 @@ function renderTracker(){
   box.textContent = '';
   if (!HERO) return;
   if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
-  stRows(box); evRows(box); tnRows(box); partyRows(box);
+  stRows(box); asRows(box); evRows(box); tnRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');
@@ -14790,6 +14812,7 @@ function renderBuffs(){
     chip.title = f.n + ': ' + fxText(f.fx);
     box.append(chip);
   }
+  asBuffs(box);
 }
 const cdShown = {};
 function updateSkillCd(){
@@ -15061,6 +15084,7 @@ function renderTalk0(view){
     if (n.stable) opts.append(btn('Pferde ansehen', () => renderTalk('stable'), 'opt'));
     if (n.smith) opts.append(btn('Ausrüstung verbessern', () => renderTalk('smith'), 'opt'));
     if (n.joust) opts.append(btn('Zum Tjost antreten', () => renderTalk('joust'), 'opt'), btn('Großes Turnier' + (tnView() ? ' (' + (tnView().T.st === 'an' ? 'Anmeldung' : 'läuft') + ')' : ''), () => renderTalk('turnier'), 'opt'), btn('Wappenrolle: Ritterorden' + (HERO.or ? ' (' + HERO.or.kz + ')' : ''), () => renderTalk('orden'), 'opt'));
+    asTalkOpts(n, opts);
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -15120,6 +15144,8 @@ function renderTalk0(view){
     turnierView(body, opts);
   } else if (typeof view === 'string' && view.startsWith('orden')){
     ordenView(view, body, opts);
+  } else if (typeof view === 'string' && /^(post|markt|lw$|ordh)/.test(view)){
+    asView(view, body, opts);
   } else if (view === 'joust'){
     $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
       + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';
@@ -15322,7 +15348,7 @@ function startGame(hero){
   G.knight.hp = ST.hp;
   for (const s of SPAWN_SLOTS){ s.mon = null; s.t = 0; }
   updateZone(); showOverlay(null); blurActive();
-  updateHud(); updateBossBar(); stStart(); renderTracker(); renderSkills();
+  updateHud(); updateBossBar(); stStart(); AS.seen.clear(); AS.first = true; asTick(); renderTracker(); renderSkills();
   $('btnPause').textContent = 'Pause';
   Sound.step = 0; Sound.startMusic();
   if (HERO.kills === 0 && HERO.lvl === 1){
@@ -15424,7 +15450,7 @@ const ATK_KEYS = ['Space', 'KeyJ'];
 const SKILL_KEYS = { KeyR:'rund', Digit1:'rund', KeyF:'stoss', Digit2:'stoss', KeyG:'ruf', Digit3:'ruf', KeyQ:'trank', Digit4:'trank', KeyH:'pferd', Digit5:'pferd' };
 addEventListener('keydown', e => {
   const t = e.target;
-  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
   if (!e.ctrlKey && !e.metaKey && !e.altKey) setKbd(true);
   if (G && G.mode === 'scene'){   // Zwischenszene: weiter oder überspringen
     if (e.code === 'Escape'){ e.preventDefault(); stSkip(); }
@@ -15580,7 +15606,7 @@ function pushFame(){
   cloud.db.doc('heroes/' + cloud.uid).set(Object.assign(body, { at: Date.now() }))
     .then(() => { cloud.fameLast = js; })
     .catch(e => { if (e && (e.code === 'invalid_argument' || e.code === 'revoked' || e.code === 'not_granted')) cloud.fameNoWrite = true; })
-    .finally(() => { cloud.fameBusy = false; });
+    .finally(() => { cloud.fameBusy = false; if (AS.again){ AS.again = false; cloud.fameT = 0; pushFame(); } });
 }
 function renderFame(rows){
   const box = $('fameList');
@@ -15704,6 +15730,7 @@ function initCloud(){
       if (fameTab !== 'ritter') renderFameTab();
     }, () => {});
     if (HERO && G.mode !== 'title'){ cloudSave(true); pushFame(); orSubscribe(); }
+    asSubscribe();
   };
   C.use('db').then(v => { db = v; ready(); }).catch(() => ready());
   C.use('user').then(u => {
@@ -16774,7 +16801,7 @@ function evEnd(won){
   evClear(E);
   if (!won){ if (E.part) logLine(d.lost, '#d8c69c'); renderTracker(); return; }
   if (E.contrib){
-    orCount('boss');
+    orCount('boss'); lwAdd(15);
     const gold = 25 + HERO.lvl * 5, xp = Math.round(xpNeed(HERO.lvl) * .2) + 20;
     HERO.gold += gold; HERO.potions = Math.min(20, HERO.potions + 2);
     HERO.evFirst = HERO.evFirst || {};
@@ -16841,7 +16868,7 @@ function fameExtra(){
   if (J.pw || J.pl){ o.je = J.elo || 1000; o.jw = J.pw || 0; o.jl = J.pl || 0; }
   if (HERO.tw) o.tw = HERO.tw;
   for (const r of FREC){ const v = HERO.frec && HERO.frec[r.id]; if (v) o[r.f] = v; }
-  return o;
+  return asFame(o);
 }
 /* bester Wert aller bekannten Ritter für ein Festspiel */
 function festBest(id){
@@ -16869,10 +16896,11 @@ function renderFameTab(){
   const box = $('fameList'); box.textContent = '';
   const me = HERO || SAVED, mine = me ? Object.assign({ id: cloud.uid || 'local', nm: me.name }, HERO ? fameExtra() : {}) : null;
   const rows = (cloud.allRows || []).filter(r => r.id !== (cloud.uid || 'local')).concat(mine ? [mine] : []);
+  if (fameTab === 'laender'){ asFameLw(box); return; }
   if (fameTab === 'orden'){
     const L = orKnown().slice(0, 12);
     if (!L.length){ box.append(el('li', 'empty', 'Noch steht kein Orden in der Wappenrolle. Gegründet wird beim Herold vor der Reichsstadt.')); return; }
-    L.forEach((o, i) => { const li = el('li', HERO && HERO.or && HERO.or.id === o.id ? 'me' : ''), nm = el('span', 'fn'), im = el('img', 'forb'); im.src = orUrl(o.wp, 2); im.alt = ''; nm.append(im, o.nm); li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', o.kz), el('span', 'fk', o.n + ' Ritter, zusammen Stufe ' + o.lv + (o.gm ? ' · Großmeister ' + o.gm : ''))); box.append(li); });
+    L.forEach((o, i) => { const li = el('li', HERO && HERO.or && HERO.or.id === o.id ? 'me' : ''), nm = el('span', 'fn'), im = el('img', 'forb'); im.src = orUrl(o.wp, 2); im.alt = ''; nm.append(im, o.nm); li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', o.kz), el('span', 'fk', o.n + ' Ritter, zusammen Stufe ' + o.lv + (o.gm ? ' · Großmeister ' + o.gm : '') + (o.oh >= OH_STEPS[0] ? ' · Ordenshaus Stufe ' + ohLvl(o.oh) : ''))); box.append(li); });
     return;
   }
   if (fameTab === 'tjost'){
@@ -17013,6 +17041,7 @@ function orKnown(){
     if (!o) continue;
     const e = map.get(o.id) || Object.assign(o, { n: 0, lv: 0, gm: '' });
     e.n++; e.lv += clamp(r.lv | 0, 1, MAX_LVL); if (r.ogm) e.gm = cleanName(r.nm) || '';
+    e.oh = (e.oh || 0) + (r.od && r.od.oid === o.id ? clamp(+r.od.g || 0, 0, 1e7) : 0);
     map.set(o.id, e);
   }
   return [...map.values()].sort((a, b) => b.lv - a.lv);
@@ -17222,7 +17251,7 @@ function tnFinish(gt){
   const fin = gt.br[gt.br.length - 1][0], second = fin && fin[0] === gt.ch ? fin[1] : fin ? fin[0] : -1;
   if (gt.ch === me){
     const gold = Math.round(pot * .6) + 40, xp = Math.round(xpNeed(HERO.lvl) * .2) + 20;
-    HERO.gold += gold; HERO.tw = (HERO.tw || 0) + 1;
+    HERO.gold += gold; HERO.tw = (HERO.tw || 0) + 1; lwAdd(20);
     const first = HERO.tw === 1, it = first ? makeItem('helm', HERO.lvl + 1, 3, { name: 'Goldener Turnierhelm', aff: ['hp', 'arm', 'crit'] }) : makeItem(pick(SLOTS), HERO.lvl + 1, 2);
     const j = HERO.inv.indexOf(null); if (j >= 0) HERO.inv[j] = it; else dropLoot(G.knight, 'item', 0, it);
     showBanner('Sieger des Großen Turniers', gold + ' Gulden und ' + it.n);
@@ -17713,7 +17742,7 @@ function stChapterEnd(C){
   const j = HERO.inv.indexOf(null);
   if (j >= 0) HERO.inv[j] = it; else dropLoot(G.knight, 'item', 0, it);
   HERO.gold += gold;
-  S.log.push('Kapitel ' + C.n + ' „' + C.t + '“ (' + C.year + ') abgeschlossen. Lohn: ' + r.n + '.');
+  S.log.push('Kapitel ' + C.n + ' „' + C.t + '“ (' + C.year + ') abgeschlossen. Lohn: ' + r.n + '.'); lwAdd(25);
   if (r.title){ S.f.titel = r.tid; S.log.push('Man nennt Euch nun: ' + r.title + '.'); }
   S.c++; S.s = 0; S.n = 0; S.b = 0; S.e = 0; S.a = 0;
   showBanner('Kapitel ' + C.n + ' abgeschlossen', C.t);
@@ -18447,6 +18476,553 @@ for (const [C, who] of ST_CH.map((C, i) => [C, ['bote', 'luther', 'sickingen', '
   im.src = stPortrait(ST_CAST[who]); im.alt = ''; im.className = 'stimg';
   wh.append(el('small', null, C.year + ', ab Stufe ' + C.lvl + '. ' + C.d)); li.append(im, wh); $('stList').append(li);
 }
+
+/* ============ Mehrspieler über die Zeit: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus ============
+   Jeder Ritter schreibt nur in sein eigenes Dokument der Ruhmeshalle (heroes/<id>), alle anderen lesen es mit.
+   Briefe liegen beim Absender (po, Empfänger in pto), der Empfänger bestätigt in seinem Dokument (pr, Absender in prf).
+   Angebote liegen beim Verkäufer (mk), Kaufansprüche beim Käufer (kf). Der früheste Anspruch gewinnt, der Käufer nimmt
+   die Ware gleich mit, der Verkäufer bekommt sein Geld beim nächsten Besuch. Gulden und Gegenstände gehen beim Absenden
+   fort (Treuhand) und kommen zurück, wenn ein Brief zurückgeholt oder ein Kauf verloren wird. Fremdes wird gesäubert. */
+var ASV = { ord: 0, glory: false };   // var: heroStats liest das schon, bevor dieses Modul geladen ist
+const AS = { post: [], ack: [], mk: [], kf: [], lw: [], subs: [], seen: new Set(), first: true, got: false, draft: null, mf: 'alle', sell: null, inbox: [], t: 0 };
+const UID_RE = /^[A-Za-z0-9_\-.~:@+]{1,200}$/, AID_RE = /^[a-z0-9]{4,16}$/;
+const PORTO = 3, POST_MAX = 8, POST_GOLD = 1000, POST_BACK = 3 * 86400000, MK_MAX = 6, KF_MAX = 6, MK_FEE = .05, DAY = 86400000;
+const asId = () => (Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36)).slice(0, 14);
+const asMe = () => cloud.uid || 'me';
+const asOnline = () => !!(cloud.db && cloud.uid && !cloud.fameNoWrite);
+function fameNow(){ cloud.fameT = 0; if (cloud.fameBusy){ AS.again = true; return; } pushFame(); }   // läuft gerade eine Speicherung, gleich danach noch einmal
+/* Briefe sind kein Staatsgeheimnis, aber auch nicht offen lesbar: einfache Verschiebung mit dem Empfänger als Schlüssel */
+const asKey = k => { const h = hashStr(String(k)); return i => (h >>> (i % 24)) & 15; };
+const asHide = (tx, k) => { const s = asKey(k); return [...String(tx || '')].map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ s(i))).join(''); };
+const asShow = asHide;
+function asHero(h){
+  h = h || HERO;
+  const arr = (a, n) => Array.isArray(a) ? a.filter(x => x && typeof x === 'object').slice(-n) : [];
+  h.po = arr(h.po, POST_MAX).filter(l => AID_RE.test(l.id) && UID_RE.test(l.to)).map(l => ({ id: l.id, to: l.to, tn: cleanName(l.tn) || 'Ritter', tx: cleanText(l.tx, 200), g: clamp(l.g | 0, 0, POST_GOLD), it: l.it && typeof l.it === 'object' ? l.it : null, t: +l.t || Date.now() }));
+  h.pr = arr(h.pr, 60).filter(x => typeof x.k === 'string' && x.k.length < 240 && Date.now() - (+x.t || 0) < 21 * DAY);
+  h.mk = arr(h.mk, MK_MAX).filter(l => AID_RE.test(l.id) && l.it && typeof l.it === 'object').map(l => ({ id: l.id, it: l.it, p: clamp(l.p | 0, 1, 99999), t: +l.t || Date.now() }));
+  h.mkd = arr(h.mkd, 20).filter(x => AID_RE.test(x.id) && Date.now() - (+x.t || 0) < 7 * DAY);
+  h.kf = arr(h.kf, KF_MAX).filter(c => UID_RE.test(c.s) && AID_RE.test(c.id) && c.it && typeof c.it === 'object').map(c => ({ s: c.s, snm: cleanName(c.snm) || 'Ritter', id: c.id, p: clamp(c.p | 0, 1, 99999), it: c.it, t: +c.t || Date.now(), got: c.got ? 1 : 0 }));
+  if (h.lw && (typeof h.lw !== 'object' || !(h.lw.w > 0))) h.lw = null;
+  if (h.lwp && (typeof h.lwp !== 'object' || !(h.lwp.w > 0))) h.lwp = null;
+  if (h.lw) h.lw = { w: h.lw.w | 0, p: clamp(h.lw.p | 0, 0, 1e6) };
+  if (h.lwp) h.lwp = { w: h.lwp.w | 0, p: clamp(h.lwp.p | 0, 0, 1e6) };
+  if (h.od && (typeof h.od !== 'object' || typeof h.od.oid !== 'string')) h.od = null;
+  if (h.od) h.od = { oid: h.od.oid, g: clamp(h.od.g | 0, 0, 1e7) };
+  return h;
+}
+/* was in das Dokument der Ruhmeshalle geht (fameExtra hängt das an) */
+function asFame(o){
+  if (!HERO) return o;
+  asHero();
+  if (HERO.po.length){ o.po = HERO.po.map(l => ({ id: l.id, to: l.to, tx: asHide(l.tx, l.to), g: l.g, it: l.it, t: l.t })); o.pto = [...new Set(HERO.po.map(l => l.to))]; }
+  if (HERO.pr.length){ o.pr = HERO.pr.map(x => x.k); o.prf = [...new Set(HERO.pr.map(x => x.k.split('|')[0]))]; }
+  if (HERO.mk.length) o.mk = HERO.mk.map(l => ({ id: l.id, it: l.it, p: l.p, t: l.t }));
+  if (HERO.mkd.length) o.mkd = HERO.mkd.map(x => ({ id: x.id, b: x.b, t: x.t }));
+  if (HERO.mk.length + HERO.mkd.length) o.mkn = HERO.mk.length + HERO.mkd.length;
+  if (HERO.kf.length){ o.kf = HERO.kf.map(c => ({ s: c.s, id: c.id, p: c.p, t: c.t, got: c.got })); o.kfn = HERO.kf.length; }
+  if (HERO.lw){ o.lw = HERO.lw; o.lww = HERO.lw.w; }
+  if (HERO.lwp) o.lwp = HERO.lwp;
+  if (HERO.od && HERO.or && HERO.od.oid === HERO.or.id && HERO.od.g > 0) o.od = HERO.od;
+  return o;
+}
+function asSubscribe(){
+  for (const u of AS.subs) try { u(); } catch(e){}
+  AS.subs = []; AS.got = false;
+  if (!cloud.db || !cloud.uid) return;
+  const C = cloud.db.collection('heroes'), me = cloud.uid;
+  const on = (q, key) => AS.subs.push(q.onSnapshot(snap => { AS[key] = snap.docs.map(s => Object.assign({ id: s.id }, s.data() || {})); AS.got = true; asTick(true); }, () => {}));
+  on(C.where('pto', 'array-contains', me).limit(100), 'post');
+  on(C.where('prf', 'array-contains', me).limit(100), 'ack');
+  on(C.where('mkn', '>', 0).limit(200), 'mk');
+  on(C.where('kfn', '>', 0).limit(300), 'kf');
+  on(C.where('lww', '>=', orWeek() - 1).limit(500), 'lw');
+}
+/* bekannte Ritter: Ruhmeshalle, Orden, Absender, die gerade im Land sind */
+function asKnown(){
+  const me = asMe(), map = new Map();
+  const add = (id, nm, lv, f, at) => { if (!id || id === me || !UID_RE.test(id)) return; const e = map.get(id) || { id, nm: cleanName(nm) || 'Ritter', lv: clamp(lv | 0, 1, MAX_LVL), f: KN_FACTIONS[f] ? f : 'reich', at: 0 }; e.at = Math.max(e.at, +at || 0); map.set(id, e); };
+  for (const r of (cloud.allRows || []).concat(cloud.orRows || [], AS.post, AS.mk)) add(r.id, r.nm, r.lv, r.f, r.at);
+  for (const q of PEERS.values()) add(q.by, q.nm, q.lv, q.f, Date.now());
+  return [...map.values()].sort((a, b) => b.at - a.at);
+}
+
+/* ---------- Botenpost ---------- */
+function asInbox(){
+  const me = asMe(), have = new Set(HERO.pr.map(x => x.k)), out = [];
+  for (const d of AS.post){
+    if (!UID_RE.test(d.id) || d.id === me || !Array.isArray(d.po)) continue;
+    for (const l of d.po.slice(0, POST_MAX)){
+      if (!l || l.to !== me || typeof l.id !== 'string' || !AID_RE.test(l.id)) continue;
+      const k = d.id + '|' + l.id; if (have.has(k)) continue;
+      out.push({ k, from: d.id, fnm: cleanName(d.nm) || 'Ein Ritter', id: l.id, tx: cleanText(asShow(l.tx, me), 200), g: clamp(l.g | 0, 0, POST_GOLD), raw: l.it && typeof l.it === 'object' ? l.it : null, t: +l.t || 0 });
+    }
+  }
+  return out.sort((a, b) => a.t - b.t);
+}
+function asTakeLetter(L){
+  const it = L.raw ? cleanItem(L.raw) : null, j = HERO.inv.indexOf(null);
+  if (it && j < 0){ logLine('Euer Rucksack ist voll. Macht erst Platz für die Beilage.', '#d8c69c'); return false; }
+  if (it) HERO.inv[j] = it;
+  HERO.gold += L.g;
+  HERO.pr.push({ k: L.k, t: Date.now() }); asHero();
+  if (L.g || it){ Sound.coin(); logLine('Aus dem Brief von ' + L.fnm + ': ' + [L.g ? L.g + ' Gulden' : '', it ? itemName(it) : ''].filter(Boolean).join(' und ') + '.', '#ffd98a'); }
+  AS.inbox = asInbox(); updateHud(); renderTracker(); markDirty(true); fameNow();
+  return true;
+}
+function asSend(D){
+  const to = asKnown().find(k => k.id === D.to);
+  if (!to) return 'Wählt einen Empfänger.';
+  const tx = cleanText(D.tx, 200), g = clamp(D.g | 0, 0, POST_GOLD), it = D.idx != null ? HERO.inv[D.idx] : null;
+  if (!tx && !g && !it) return 'Ein leerer Brief? Schreibt etwas oder legt etwas bei.';
+  if (HERO.po.length >= POST_MAX) return 'Ihr habt schon ' + POST_MAX + ' Briefe unterwegs.';
+  if (HERO.gold < g + PORTO) return 'Ihr braucht ' + (g + PORTO) + ' Gulden (mit Porto).';
+  HERO.gold -= g + PORTO;
+  if (it) HERO.inv[D.idx] = null;
+  HERO.po.push({ id: asId(), to: to.id, tn: to.nm, tx, g, it: it ? packItem(it) : null, t: Date.now() });
+  Sound.horn(); logLine('Der Postreiter bläst ins Horn und reitet los zu ' + to.nm + '.', '#ffd98a');
+  AS.draft = null; updateHud(); markDirty(true); fameNow();
+  return '';
+}
+function asRecall(l){
+  const it = l.it ? cleanItem(l.it) : null, j = HERO.inv.indexOf(null);
+  if (it && j < 0){ logLine('Euer Rucksack ist voll. Macht erst Platz für die Beilage.', '#d8c69c'); return; }
+  if (it) HERO.inv[j] = it;
+  HERO.gold += l.g; HERO.po = HERO.po.filter(x => x !== l);
+  logLine('Der Brief an ' + l.tn + ' kommt ungelesen zurück' + (l.g || it ? ', samt Beilage.' : '.'), '#d8c69c');
+  updateHud(); markDirty(true); fameNow();
+}
+
+/* ---------- Marktplatz ---------- */
+function asClaimsFor(s, id){
+  const me = asMe(), out = [];
+  for (const d of AS.kf){ if (d.id === me || !UID_RE.test(d.id) || !Array.isArray(d.kf)) continue; for (const c of d.kf.slice(0, KF_MAX)) if (c && c.s === s && c.id === id) out.push({ b: d.id, t: +c.t || 0, got: c.got ? 1 : 0 }); }
+  for (const c of HERO.kf) if (c.s === s && c.id === id) out.push({ b: me, t: c.t, got: c.got });
+  return out;
+}
+const asWinner = cs => cs.slice().sort((a, b) => (a.t - b.t) || (a.b < b.b ? -1 : a.b > b.b ? 1 : 0))[0] || null;
+function asListings(){
+  const me = asMe(), out = [];
+  for (const d of AS.mk){
+    if (d.id === me || !UID_RE.test(d.id) || !Array.isArray(d.mk)) continue;
+    for (const l of d.mk.slice(0, MK_MAX)){
+      if (!l || typeof l.id !== 'string' || !AID_RE.test(l.id)) continue;
+      const it = cleanItem(l.it); if (!it) continue;
+      const cs = asClaimsFor(d.id, l.id);
+      out.push({ s: d.id, snm: cleanName(d.nm) || 'Ein Ritter', id: l.id, it, raw: packItem(it), p: clamp(l.p | 0, 1, 99999), t: +l.t || 0, mine: cs.some(c => c.b === me), busy: cs.some(c => c.b !== me) });
+    }
+  }
+  return out.sort((a, b) => b.t - a.t);
+}
+function asBuy(L){
+  if (HERO.kf.length >= KF_MAX) return 'Ihr habt schon ' + KF_MAX + ' Käufe offen.';
+  if (L.busy || L.mine) return 'Dieses Stück wird gerade verkauft.';
+  if (HERO.gold < L.p) return 'Ihr habt keine ' + L.p + ' Gulden.';
+  HERO.gold -= L.p;
+  HERO.kf.push({ s: L.s, snm: L.snm, id: L.id, p: L.p, it: L.raw, t: Date.now(), got: 0 });
+  Sound.coin(); logLine('Ihr zahlt ' + L.p + ' Gulden für ' + itemName(L.it) + '. Der Marktvogt prüft, ob kein anderer schneller war.', '#ffd98a');
+  updateHud(); markDirty(true); fameNow();
+  setTimeout(() => asTick(), 6500);
+  return '';
+}
+function asOffer(idx, p){
+  const it = HERO.inv[idx];
+  if (!it) return 'Wählt etwas aus dem Rucksack.';
+  if (HERO.mk.length >= MK_MAX) return 'Ihr habt schon ' + MK_MAX + ' Angebote auf dem Markt.';
+  p = clamp(p | 0, 1, 99999);
+  HERO.inv[idx] = null;
+  HERO.mk.push({ id: asId(), it: packItem(it), p, t: Date.now() });
+  Sound.coin(); logLine('Der Marktvogt nimmt ' + itemName(it) + ' für ' + p + ' Gulden in sein Buch.', '#ffd98a');
+  AS.sell = null; updateHud(); markDirty(true); fameNow();
+  return '';
+}
+function asWithdraw(l){
+  if (asClaimsFor(asMe(), l.id).some(c => c.b !== asMe())) return 'Ein Käufer hat schon bezahlt.';
+  const it = cleanItem(l.it), j = HERO.inv.indexOf(null);
+  if (!it) { HERO.mk = HERO.mk.filter(x => x !== l); return ''; }
+  if (j < 0) return 'Euer Rucksack ist voll.';
+  HERO.inv[j] = it; HERO.mk = HERO.mk.filter(x => x !== l);
+  logLine('Ihr nehmt ' + itemName(it) + ' vom Markt zurück.', '#d8c69c');
+  updateHud(); markDirty(true); fameNow();
+  return '';
+}
+
+/* ---------- Länderwettstreit ---------- */
+function lwRoll(){
+  const w = orWeek();
+  if (HERO.lw && HERO.lw.w === w) return;
+  HERO.lwp = HERO.lw && HERO.lw.w === w - 1 ? HERO.lw : HERO.lwp && HERO.lwp.w === w - 1 ? HERO.lwp : null;
+  HERO.lw = { w, p: 0 };
+}
+function lwAdd(n){ if (!HERO || !(n > 0)) return; lwRoll(); HERO.lw.p = Math.min(1e6, HERO.lw.p + n); }
+const lwPts = (r, w) => r.lw && r.lw.w === w ? clamp(+r.lw.p || 0, 0, 1e6) : r.lwp && r.lwp.w === w ? clamp(+r.lwp.p || 0, 0, 1e6) : 0;
+function lwStand(w){
+  const me = asMe(), tot = {}, cnt = {};
+  for (const f of Object.keys(KN_FACTIONS)){ tot[f] = 0; cnt[f] = 0; }
+  if (HERO) lwRoll();
+  const rows = AS.lw.filter(r => r.id !== me).concat(HERO ? [{ id: me, f: HERO.f, lw: HERO.lw, lwp: HERO.lwp }] : []);
+  for (const r of rows){ if (!KN_FACTIONS[r.f]) continue; const p = lwPts(r, w); if (p > 0){ tot[r.f] += p; cnt[r.f]++; } }
+  return { tot, cnt };
+}
+function lwWinners(){ const { tot } = lwStand(orWeek() - 1), best = Math.max(0, ...Object.values(tot)); return best > 0 ? Object.keys(tot).filter(f => tot[f] === best) : []; }
+
+/* ---------- Ordenshaus ---------- */
+const LW_LAND = { reich: 'Das Reich', frankreich: 'Frankreich', england: 'England', spanien: 'Spanien' };
+const lwIn = f => f === 'reich' ? 'das Reich' : LW_LAND[f];   // mitten im Satz
+const OH_STEPS = [300, 1000, 2500, 5000, 9000];
+const OH_PERK = [['Ordensstube', '+5 % Gulden von allem, was Ihr aufhebt'], ['Ordenskammer', '+5 % Erfahrung'], ['Ordensapotheke', 'jeden Tag zwei Heiltränke beim Kämmerer'], ['Waffenkammer', '+3 % Schaden'], ['Ordenshof', '+5 % Leben']];
+function ohSum(){
+  if (!HERO || !HERO.or) return 0;
+  const id = HERO.or.id, me = asMe(); let s = 0;
+  for (const r of cloud.orRows || []) if (r.id !== me && r.oid === id && r.od && r.od.oid === id) s += clamp(+r.od.g || 0, 0, 1e7);
+  if (HERO.od && HERO.od.oid === id) s += HERO.od.g;
+  return s;
+}
+const ohLvl = s => OH_STEPS.filter(x => s >= x).length;
+function ohGive(n){
+  if (!HERO.or || HERO.gold < n) return;
+  if (!HERO.od || HERO.od.oid !== HERO.or.id) HERO.od = { oid: HERO.or.id, g: 0 };
+  HERO.gold -= n; HERO.od.g += n;
+  Sound.coin(); logLine('Ihr spendet ' + n + ' Gulden für das Ordenshaus des „' + HERO.or.nm + '“.', '#ffd98a');
+  updateHud(); markDirty(true); fameNow(); asTick();
+}
+const asXpBonus = () => (ASV.glory ? .05 : 0) + (ASV.ord >= 2 ? .05 : 0);
+const asGoldBonus = () => (ASV.glory ? .05 : 0) + (ASV.ord >= 1 ? .05 : 0);
+
+/* ---------- Abgleich: Zustellung, Auszahlung, Kaufentscheid, Hinweise ---------- */
+function asTick(fromSub){
+  if (!HERO || !G || G.mode === 'title') return;
+  asHero();
+  const me = asMe(), now = Date.now();
+  let changed = false;
+  // abgeholte Briefe
+  const acked = new Set();
+  for (const d of AS.ack) if (Array.isArray(d.pr)) for (const k of d.pr.slice(0, 60)) if (typeof k === 'string' && k.startsWith(me + '|')) acked.add(d.id + '|' + k.slice(me.length + 1));
+  for (const l of HERO.po.slice()) if (acked.has(l.to + '|' + l.id)){ HERO.po = HERO.po.filter(x => x !== l); changed = true; logLine('Der Postreiter meldet: ' + l.tn + ' hat Euren Brief erhalten.', '#9fe08a'); }
+  // neue Briefe
+  AS.inbox = asInbox();
+  const fresh = AS.inbox.filter(L => !AS.seen.has(L.k));
+  for (const L of fresh) AS.seen.add(L.k);
+  if (fresh.length && AS.got){
+    if (AS.first) logLine('Der Postmeister hat ' + (AS.inbox.length === 1 ? 'einen Brief' : AS.inbox.length + ' Briefe') + ' für Euch.', '#ffd98a');
+    else { logLine('Ein Postreiter bringt einen Brief von ' + fresh[fresh.length - 1].fnm + '. Der Postmeister hält ihn bereit.', '#ffd98a'); Sound.horn(); }
+  }
+  if (AS.got) AS.first = false;
+  // Verkäufer: bezahlt wird, wer den Zuschlag hat und die Ware genommen hat
+  for (const l of HERO.mk.slice()){
+    const w = asWinner(asClaimsFor(me, l.id).filter(c => c.b !== me));
+    if (!w || !w.got) continue;
+    const fee = Math.max(1, Math.round(l.p * MK_FEE)), it = cleanItem(l.it), who = asKnown().find(k => k.id === w.b);
+    HERO.gold += l.p - fee; HERO.mk = HERO.mk.filter(x => x !== l); HERO.mkd.push({ id: l.id, b: w.b, t: now });
+    Sound.coin(); logLine('Verkauft: ' + (it ? itemName(it) : 'ein Stück') + ' an ' + (who ? who.nm : 'einen Ritter') + ' für ' + l.p + ' Gulden (Marktgebühr ' + fee + ').', '#ffd98a');
+    changed = true;
+  }
+  // Käufer: Zuschlag prüfen, Ware nehmen oder Geld zurück
+  for (const c of HERO.kf.slice()){
+    const sd = AS.mk.find(d => d.id === c.s);
+    const listed = !!(sd && Array.isArray(sd.mk) && sd.mk.some(l => l && l.id === c.id));
+    const soldMe = !!(sd && Array.isArray(sd.mkd) && sd.mkd.some(x => x && x.id === c.id && x.b === me));
+    if (!c.got){
+      if (now - c.t < 6000 || !AS.got) continue;
+      const w = asWinner(asClaimsFor(c.s, c.id));
+      if (w && w.b === me && (listed || soldMe)){
+        const it = cleanItem(c.it), j = HERO.inv.indexOf(null);
+        if (!it){ c.got = 1; changed = true; continue; }
+        if (j < 0){ if (!c.full){ c.full = 1; logLine('Euer Rucksack ist voll. Macht Platz, dann gibt Euch der Marktvogt ' + itemName(it) + '.', '#d8c69c'); } continue; }
+        HERO.inv[j] = it; c.got = 1; changed = true;
+        Sound.loot(it.r); logLine('Gekauft: ' + itemName(it) + ' von ' + c.snm + '.', '#ffd98a');
+      } else if ((w && w.b !== me) || (!listed && !soldMe && now - c.t > 20000)){
+        HERO.gold += c.p; HERO.kf = HERO.kf.filter(x => x !== c); changed = true;
+        logLine('Ein anderer Ritter war schneller. Der Marktvogt gibt Euch ' + c.p + ' Gulden zurück.', '#d8c69c');
+      }
+    } else if (soldMe || now - c.t > 8 * DAY){ HERO.kf = HERO.kf.filter(x => x !== c); changed = true; }
+  }
+  // Ordenshaus und Länderwettstreit
+  if (HERO.or && (!HERO.od || HERO.od.oid !== HERO.or.id)){ HERO.od = { oid: HERO.or.id, g: 0 }; }
+  if (!HERO.or && HERO.od){ HERO.od = null; }
+  const ord = HERO.or ? ohLvl(ohSum()) : 0, glory = lwWinners().includes(HERO.f);
+  if (ord !== ASV.ord || glory !== ASV.glory){
+    if (ord > ASV.ord && !AS.firstOrd) logLine('Das Ordenshaus ist gewachsen: ' + OH_PERK[ord - 1][0] + '. ' + OH_PERK[ord - 1][1] + '.', '#ffd98a');
+    if (glory && !ASV.glory) logLine('Ruhm des Landes: ' + LW_LAND[HERO.f] + ' hat den Länderwettstreit der letzten Woche gewonnen. Diese Woche +5 % Erfahrung und Gulden.', '#ffd98a');
+    ASV.ord = ord; ASV.glory = glory; refreshStats(); renderBuffs();
+  }
+  AS.firstOrd = !AS.got;
+  if (changed){ asHero(); updateHud(); markDirty(true); fameNow(); }
+  if (changed || fromSub){
+    renderTracker();
+    const v = G.talk && G.talk.view;
+    if (G.mode === 'menu' && typeof v === 'string' && /^(post|markt|lw|ordh)/.test(v) && v !== 'postNeu' && v !== 'marktV') renderTalk(v);
+  }
+}
+setInterval(() => { try { asTick(); } catch(e){} }, 5000);
+
+/* ---------- Leute: Postmeister, Postreiter, Marktvogt, Ordenskämmerer ---------- */
+NPC_ART.postmeister = np_frames({ robe: 'short', hat: 'barett', belt: true, chain: true, parti: true, hair: ['h', 'j'] }, { 1: '#1c2a5a', 2: '#2a3e7e', 3: '#3e56a0', 4: '#5a74bc', 5: '#7a5a10', 6: '#b08a1e', 7: '#d8b030', 8: '#f0d460', R: '#b8281e' });
+NPC_ART.postreiter = np_frames({ robe: 'short', hat: 'filz', belt: true, parti: true, hair: ['h', 'j'] }, { 1: '#7a5a10', 2: '#b08a1e', 3: '#d8b030', 4: '#f0d460', 5: '#141218', 6: '#221e28', 7: '#322c3a', 8: '#463e50' });
+NPC_ART.marktvogt = np_frames({ robe: 'long', hat: 'barett', fur: true, beard: true, belt: true, hair: ['h', 'j'] }, { 1: '#16241c', 2: '#22362a', 3: '#30483a', 4: '#425e4c', 5: '#2a1a10', 6: '#3e2a1a', 7: '#56402a', 8: '#6e563c' });
+NPC_ART.kaemmerer = np_frames({ robe: 'long', hat: 'barett', chain: true, beard: true, hair: ['w', 'x'] }, { 1: '#3a0e12', 2: '#5a1a1e', 3: '#7a2a2a', 4: '#9a3a34', 5: '#141218', 6: '#221e28', 7: '#322c3a', 8: '#463e50', w: '#8a8478', x: '#c8c2b0' });
+for (const n of [
+  { id: 'postmeister', name: 'Postmeister Johann von Taxis', role: 'Kaiserliche Post', hub: 'stadt', at: gNear(2884, 2306), post: true,
+    greet: ['Die Post der Taxis reitet von Brüssel bis Innsbruck. Und von hier zu jedem Ritter im Reichsland.', 'Ein Brief, ein Beutel Gulden, ein gutes Schwert: Meine Reiter bringen alles.', 'Alle fünf Meilen ein frisches Pferd, so ist die kaiserliche Post schneller als jeder Bote.'] },
+  { id: 'postreiter', name: 'Postreiter Kilian', role: 'Kaiserliche Post', hub: 'burg', at: gNear(1850, 528), post: true,
+    greet: ['Das Horn am Gürtel, den Brief in der Tasche. Wohin soll es gehen, Herr Ritter?', 'Ich reite für die Taxis. Briefe holt Ihr bei mir oder beim Postmeister in der Stadt.'] },
+  { id: 'marktvogt', name: 'Marktvogt Sebald', role: 'Marktplatz', hub: 'stadt', at: gNear(3008, 2286), market: true,
+    greet: ['Auf diesem Markt kauft Ihr, was andere Ritter anbieten, auch wenn sie gerade nicht in der Stadt sind.', 'Ehrliches Maß, ehrlicher Preis. Und ein Zwanzigstel für die Stadt.', 'Wer zuerst zahlt, bekommt die Ware. So ist es Brauch.'] },
+  { id: 'kaemmerer', name: 'Ordenskämmerer Ruprecht', role: 'Ordenshaus', hub: 'stadt', at: gNear(3412, 2300), ordhaus: true,
+    greet: ['Jeder Gulden für das Ordenshaus macht alle Brüder stärker.', 'Ein Orden ohne Haus ist wie ein Ritter ohne Pferd.', 'Ich führe die Bücher aller Ordenshäuser des Reichslandes.'] }
+]){ n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; NPCS.push(n); }
+{ const k = NPCS.find(n => n.id === 'kaemmerer'); Object.defineProperty(k, 'role', { get: () => HERO && HERO.or && ASV.ord ? 'Ordenshaus · Stufe ' + ASV.ord : 'Ordenshaus' }); }
+/* Fahnenmast am Ordenshaus: zeigt das Banner des eigenen Ordens und seine Stufe */
+function asList(cam, list){
+  if (!HERO || !HERO.or) return;
+  const k = NPCS.find(n => n.id === 'kaemmerer'); if (!k) return;
+  const x = k.x - 34, y = k.y - 4;
+  if (!inView(x, y, cam, 60)) return;
+  list.push({ y, d: () => {
+    shadow(x, y, 8, .35);
+    ctx.fillStyle = OUT; ctx.fillRect(Math.round(x) - 2, Math.round(y) - 64, 4, 64); ctx.fillStyle = '#6e563c'; ctx.fillRect(Math.round(x) - 1, Math.round(y) - 63, 2, 62);
+    ctx.fillStyle = '#d8b030'; ctx.fillRect(Math.round(x) - 2, Math.round(y) - 66, 4, 3);
+    const b = orBanner(HERO.or.wp), sway = Math.round(Math.sin(G.t * 2) * 1);
+    ctx.drawImage(b, 0, 0, b.width, b.height, Math.round(x) + 2, Math.round(y) - 62 + sway, b.width * 2, b.height * 2);
+  } });
+}
+function asBuffs(box){
+  if (!HERO) return;
+  const chip = (icon, txt, title) => { const c = el('span', 'buff'), im = el('img'); im.src = icon; im.alt = ''; c.append(im, el('span', null, txt)); c.title = title; box.append(c); };
+  if (ASV.glory) chip(urlOf(ICONS.eagle, 2), 'Ruhm', 'Ruhm des Landes: Euer Land hat den Länderwettstreit der letzten Woche gewonnen. +5 % Erfahrung und Gulden.');
+  if (ASV.ord > 0 && HERO.or) chip(orUrl(HERO.or.wp, 2), 'Haus ' + ASV.ord, 'Ordenshaus Stufe ' + ASV.ord + ': ' + OH_PERK.slice(0, ASV.ord).map(p => p[1]).join(', ') + '.');
+}
+function asRows(box){
+  if (!HERO) return;
+  const n = AS.inbox.length;
+  if (n){ const p = el('p', 'post'); p.append(el('b', null, 'Botenpost: '), el('span', null, (n === 1 ? 'ein Brief' : n + ' Briefe') + ' beim Postmeister')); box.append(p); }
+  if (HERO.kf.some(c => !c.got)){ const p = el('p', 'post'); p.append(el('b', null, 'Markt: '), el('span', null, 'Kauf wird geprüft')); box.append(p); }
+}
+const asMark = n => (n.post && AS.inbox.length) ? '!' : '';
+
+/* ---------- Gespräche: Botenpost, Markt, Länderwettstreit, Ordenshaus ---------- */
+function asTalkOpts(n, opts){
+  if (n.post){
+    const k = AS.inbox.length;
+    opts.append(btn('Botenpost: Eure Briefe' + (k ? ' (' + k + ' neu)' : ''), () => renderTalk('post'), 'opt' + (k ? ' new' : '')));
+    opts.append(btn('Einen Brief schreiben (' + PORTO + ' Gulden Porto)', () => { AS.draft = AS.draft || { to: '', tx: '', g: 0, idx: null }; renderTalk('postNeu'); }, 'opt'));
+  }
+  if (n.market) opts.append(btn('Markt: Angebote der Ritter', () => renderTalk('markt'), 'opt'), btn('Etwas verkaufen', () => { AS.sell = { idx: null, p: 0 }; renderTalk('marktV'); }, 'opt'), btn('Meine Angebote und Käufe', () => renderTalk('marktM'), 'opt'));
+  if (n.joust) opts.append(btn('Länderwettstreit', () => renderTalk('lw'), 'opt'));
+  if (n.ordhaus) opts.append(btn('Ordenshaus' + (HERO.or ? ' des „' + HERO.or.nm + '“' : ''), () => renderTalk('ordh'), 'opt'));
+}
+/* eine Zeile mit Gegenstand: Bild, Name in der Farbe der Seltenheit, Werte, darunter ein Zusatz */
+function asItemRow(it, sub){
+  const r = el('div', 'shoprow'), ic = el('img'), t = el('div', 'stx'), nm = el('b', null, itemName(it));
+  ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c; nm.style.color = RARITY[it.r].c;
+  t.append(nm, el('small', null, it.s === 'ware' ? 'Handelsware' : 'Stufe ' + it.il + ' · ' + itemLines(it).join(' · ')));
+  if (sub) t.append(el('small', null, sub));
+  r.append(ic, t);
+  return r;
+}
+function asPick(grid, sel, view, onPick){
+  HERO.inv.forEach((it, i) => {
+    if (!it) return;
+    const b = el('button', 'slot' + (sel === i ? ' sel' : '')); b.type = 'button'; b.dataset.slot = view + ':' + i;
+    b.style.setProperty('--rc', RARITY[it.r].c);
+    const im = el('img'); im.src = itemUrl(it); im.alt = itemName(it); b.append(im);
+    if (it.q > 1) b.append(el('span', 'qty', it.q));
+    b.title = itemName(it) + (it.s === 'ware' ? '' : ': ' + itemLines(it).join(', '));
+    b.addEventListener('click', () => onPick(i));
+    grid.append(b);
+  });
+}
+function asLwBars(w){
+  const st = lwStand(w), max = Math.max(1, ...Object.values(st.tot)), box = el('div', 'lwbars');
+  for (const f of Object.keys(st.tot).sort((a, b) => st.tot[b] - st.tot[a])){
+    const r = el('div', 'lwrow' + (HERO && f === HERO.f ? ' me' : '')), im = el('img'), bar = el('div', 'orbar'), fill = el('i');
+    im.src = urlOf(knightSet(f).icon, 2); im.alt = '';
+    fill.style.width = (st.tot[f] / max * 100) + '%';
+    bar.append(fill, el('span', null, st.tot[f] + ' Punkte · ' + st.cnt[f] + (st.cnt[f] === 1 ? ' Ritter' : ' Ritter')));
+    r.append(im, el('b', null, LW_LAND[f]), bar); box.append(r);
+  }
+  return box;
+}
+function asLwClaim(){
+  const w = orWeek();
+  if (!lwWinners().includes(HERO.f) || HERO.lwClaim === w) return;
+  HERO.lwClaim = w;
+  const gold = 30 + HERO.lvl * 8;
+  HERO.gold += gold; HERO.potions = Math.min(20, HERO.potions + 2);
+  showBanner('Wochenlohn des Landes', gold + ' Gulden und zwei Heiltränke');
+  logLine('Der Herold zahlt den Wochenlohn für ' + lwIn(HERO.f) + ': ' + gold + ' Gulden und zwei Heiltränke.', '#ffd98a');
+  Sound.levelUp(); updateHud(); markDirty(true);
+}
+const asDay = () => Math.floor(Date.now() / DAY);
+function asView(view, body, opts){
+  G.talk.view = view;
+  const back = to => opts.append(btn('Zurück', () => renderTalk(to || 'main'), 'tbtn'));
+  if (!asOnline() && view !== 'lw' && view !== 'ordh'){
+    $('talkText').textContent = 'Die kaiserliche Post und der Markt verbinden Euch mit den anderen Rittern. Ohne Anmeldung bleibt Ihr hier für Euch.';
+    back(); body.append(opts); return;
+  }
+  if (view === 'post'){
+    const L = AS.inbox;
+    $('talkText').textContent = L.length ? 'Für Euch ' + (L.length === 1 ? 'liegt ein Brief' : 'liegen ' + L.length + ' Briefe') + ' bereit.' : 'Für Euch liegt kein Brief da.';
+    for (const x of L){
+      const r = el('div', 'shoprow'), t = el('div', 'stx'), seal = el('span', 'seal', '✉');
+      t.append(el('b', null, 'Von ' + x.fnm), el('small', null, 'vor ' + agoText(Date.now() - x.t) + (x.tx ? ' · „' + x.tx.slice(0, 48) + (x.tx.length > 48 ? '…' : '') + '“' : '') + (x.g ? ' · ' + x.g + ' Gulden' : '') + (x.raw ? ' · mit Beilage' : '')));
+      const b = btn('Öffnen', () => renderTalk('postL:' + x.k), 'tbtn'); b.dataset.slot = 'pl:' + x.k;
+      r.append(seal, t, b); body.append(r);
+    }
+    if (HERO.po.length){
+      body.append(el('p', 'hint', 'Eure Briefe unterwegs:'));
+      for (const l of HERO.po){
+        const r = el('div', 'shoprow'), t = el('div', 'stx'), old = Date.now() - l.t > POST_BACK;
+        t.append(el('b', null, 'An ' + l.tn), el('small', null, 'vor ' + agoText(Date.now() - l.t) + (l.g ? ' · ' + l.g + ' Gulden' : '') + (l.it ? ' · mit Beilage' : '') + ' · noch nicht abgeholt'));
+        r.append(el('span', 'seal', '✉'), t);
+        if (old){ const b = btn('Zurückholen', () => { asRecall(l); renderTalk('post'); }, 'tbtn'); b.dataset.slot = 'pr:' + l.id; r.append(b); } else r.append(el('span'));
+        body.append(r);
+      }
+      body.append(el('p', 'hint', 'Holt der Empfänger einen Brief drei Tage lang nicht ab, könnt Ihr ihn samt Beilage zurückholen.'));
+    }
+    opts.append(btn('Einen Brief schreiben', () => { AS.draft = AS.draft || { to: '', tx: '', g: 0, idx: null }; renderTalk('postNeu'); }, 'opt'));
+    back(); body.append(opts); return;
+  }
+  if (view.startsWith('postL:')){
+    const x = AS.inbox.find(L => L.k === view.slice(6));
+    if (!x){ $('talkText').textContent = 'Diesen Brief habt Ihr schon geöffnet.'; back('post'); body.append(opts); return; }
+    $('talkText').textContent = 'Ein Brief von ' + x.fnm + ', vor ' + agoText(Date.now() - x.t) + ' geschrieben.';
+    const card = el('div', 'letter'); card.append(el('p', null, x.tx || '(Der Brief ist leer, nur die Beilage liegt darin.)'), el('p', 'sig', x.fnm)); body.append(card);
+    const it = x.raw ? cleanItem(x.raw) : null;
+    if (x.g) body.append(el('p', 'tg', 'Beigelegt: ' + x.g + ' Gulden'));
+    if (it) body.append(asItemRow(it, 'Beigelegt'));
+    opts.append(btn(x.g || it ? 'Beilage annehmen' : 'Gelesen', () => { if (asTakeLetter(x)) renderTalk('post'); }, 'opt ready'));
+    opts.append(btn('Antworten', () => { if (!x.raw || HERO.inv.includes(null)) asTakeLetter(x); AS.draft = { to: x.from, tx: '', g: 0, idx: null }; renderTalk('postNeu'); }, 'opt'));
+    back('post'); body.append(opts); return;
+  }
+  if (view === 'postNeu'){
+    const D = AS.draft || (AS.draft = { to: '', tx: '', g: 0, idx: null }), K = asKnown();
+    if (D.idx != null && !HERO.inv[D.idx]) D.idx = null;
+    D.g = clamp(D.g, 0, Math.max(0, Math.min(POST_GOLD, HERO.gold - PORTO)));
+    $('talkText').textContent = 'Wem soll der Postreiter einen Brief bringen? Er findet jeden Ritter, auch wenn der gerade nicht im Land ist. Porto: ' + PORTO + ' Gulden.';
+    const sel = el('select', 'pin'); sel.setAttribute('aria-label', 'Empfänger');
+    sel.append(new Option('Empfänger wählen …', ''));
+    for (const k of K.slice(0, 80)) sel.append(new Option(k.nm + ' (Stufe ' + k.lv + ', ' + LW_LAND[k.f] + ')', k.id));
+    sel.value = D.to; sel.addEventListener('change', () => { D.to = sel.value; });
+    const ta = el('textarea', 'pin'); ta.maxLength = 200; ta.rows = 3; ta.placeholder = 'Euer Brief, bis 200 Zeichen'; ta.value = D.tx; ta.setAttribute('aria-label', 'Brieftext');
+    const cnt = el('small', 'hint', D.tx.length + ' / 200');
+    ta.addEventListener('input', () => { D.tx = ta.value; cnt.textContent = ta.value.length + ' / 200'; });
+    body.append(sel, ta, cnt);
+    if (!K.length) body.append(el('p', 'hint', 'Noch kennt der Postmeister keinen anderen Ritter. Wer einmal im Reichsland war, steht in seinem Buch.'));
+    const gold = el('div', 'tgold'); gold.append(el('span', null, 'Gulden beilegen: ' + D.g));
+    for (const d of [-50, -10, 10, 50]){ const b = btn((d > 0 ? '+' : '−') + Math.abs(d), () => { D.g = clamp(D.g + d, 0, Math.max(0, Math.min(POST_GOLD, HERO.gold - PORTO))); renderTalk('postNeu'); }, 'tbtn'); b.dataset.slot = 'pg:' + d; gold.append(b); }
+    body.append(gold, el('p', 'hint', 'Einen Gegenstand beilegen (antippen, noch einmal antippen: keiner):'));
+    const grid = el('div', 'tgrid'); asPick(grid, D.idx, 'pi', i => { D.idx = D.idx === i ? null : i; renderTalk('postNeu'); });
+    if (grid.children.length) body.append(grid);
+    if (D.idx != null) body.append(asItemRow(HERO.inv[D.idx], 'liegt bei'));
+    const err = el('p', 'hint warn');
+    const send = btn('Absenden (' + (PORTO + D.g) + ' Gulden)', () => { const e = asSend(D); if (e){ err.textContent = e; } else renderTalk('post'); }, 'opt ready'); send.dataset.slot = 'psend';
+    opts.append(send); back('post'); body.append(err, opts); return;
+  }
+  if (view === 'markt'){
+    const all = asListings(), f = AS.mf, L = all.filter(x => f === 'alle' || (f === 'ware' ? x.it.s === 'ware' : x.it.s === f));
+    $('talkText').textContent = all.length ? 'Auf dem Markt ' + (all.length === 1 ? 'liegt ein Angebot' : 'liegen ' + all.length + ' Angebote') + '. Ihr habt ' + HERO.gold + ' Gulden.' : 'Noch bietet kein Ritter etwas an. Wer etwas verkaufen will, kommt zu mir.';
+    if (all.length){
+      const fl = el('div', 'tgold');
+      for (const [k, nm] of [['alle', 'Alle'], ['waffe', 'Waffen'], ['helm', 'Helme'], ['ruestung', 'Rüstungen'], ['schild', 'Schilde'], ['beine', 'Beine'], ['kleinod', 'Kleinode'], ['ware', 'Waren']]){ const b = btn(nm, () => { AS.mf = k; renderTalk('markt'); }, 'tbtn' + (f === k ? ' on' : '')); b.dataset.slot = 'mf:' + k; fl.append(b); }
+      body.append(fl);
+    }
+    for (const x of L.slice(0, 30)){
+      const better = x.it.s !== 'ware' && itemGain(x.it) > 0;
+      const r = asItemRow(x.it, 'von ' + x.snm + ' · vor ' + agoText(Date.now() - x.t) + (better ? ' · besser als Eures' : ''));
+      const b = btn(x.mine ? 'Bezahlt' : x.busy ? 'Verkauft' : x.p + ' Gulden', () => { const e = asBuy(x); if (e) logLine(e, '#d8c69c'); renderTalk('markt'); }, 'tbtn');
+      b.dataset.slot = 'mb:' + x.s + ':' + x.id; b.disabled = x.mine || x.busy || HERO.gold < x.p;
+      r.append(b); body.append(r);
+    }
+    if (all.length && !L.length) body.append(el('p', 'hint', 'Davon liegt gerade nichts aus.'));
+    opts.append(btn('Etwas verkaufen', () => { AS.sell = { idx: null, p: 0 }; renderTalk('marktV'); }, 'opt'), btn('Meine Angebote und Käufe', () => renderTalk('marktM'), 'opt'));
+    back(); body.append(opts); return;
+  }
+  if (view === 'marktV'){
+    const S = AS.sell || (AS.sell = { idx: null, p: 0 }), it = S.idx != null ? HERO.inv[S.idx] : null;
+    $('talkText').textContent = 'Was wollt Ihr anbieten? Ich verwahre die Ware, bis ein Ritter sie kauft, auch wenn Ihr dann nicht in der Stadt seid. Beim Verkauf behält die Stadt ein Zwanzigstel.';
+    const grid = el('div', 'tgrid'); asPick(grid, S.idx, 'mv', i => { S.idx = i; S.p = Math.max(1, Math.round(itemValue(HERO.inv[i]) * 2)); renderTalk('marktV'); });
+    body.append(grid.children.length ? grid : el('p', 'hint', 'Euer Rucksack ist leer.'));
+    if (it){
+      body.append(asItemRow(it, 'Der Krämer zahlt ' + itemValue(it) + ' Gulden'));
+      const pr = el('div', 'tgold'); pr.append(el('span', null, 'Preis: ' + S.p + ' Gulden'));
+      for (const d of [-100, -10, -1, 1, 10, 100]){ const b = btn((d > 0 ? '+' : '−') + Math.abs(d), () => { S.p = clamp(S.p + d, 1, 99999); renderTalk('marktV'); }, 'tbtn'); b.dataset.slot = 'mp:' + d; pr.append(b); }
+      body.append(pr);
+      const go = btn('Anbieten für ' + S.p + ' Gulden', () => { const e = asOffer(S.idx, S.p); if (e) logLine(e, '#d8c69c'); else renderTalk('marktM'); }, 'opt ready'); go.dataset.slot = 'moffer';
+      opts.append(go);
+    }
+    opts.append(btn('Zum Markt', () => renderTalk('markt'), 'opt')); back(); body.append(opts); return;
+  }
+  if (view === 'marktM'){
+    const me = asMe();
+    $('talkText').textContent = 'Euer Eintrag im Buch des Marktvogts.';
+    body.append(el('p', 'hint', HERO.mk.length ? 'Eure Angebote:' : 'Ihr bietet gerade nichts an.'));
+    for (const l of HERO.mk){
+      const it = cleanItem(l.it); if (!it) continue;
+      const busy = asClaimsFor(me, l.id).some(c => c.b !== me), r = asItemRow(it, l.p + ' Gulden · ' + (busy ? 'ein Käufer hat bezahlt' : 'seit ' + agoText(Date.now() - l.t)));
+      const b = btn('Zurücknehmen', () => { const e = asWithdraw(l); if (e) logLine(e, '#d8c69c'); renderTalk('marktM'); }, 'tbtn'); b.dataset.slot = 'mw:' + l.id; b.disabled = busy;
+      r.append(b); body.append(r);
+    }
+    if (HERO.kf.length){ body.append(el('p', 'hint', 'Eure Käufe:')); for (const c of HERO.kf){ const it = cleanItem(c.it); if (it) body.append(asItemRow(it, 'von ' + c.snm + ' · ' + c.p + ' Gulden · ' + (c.got ? 'erhalten' : 'wird geprüft'))); } }
+    if (HERO.mkd.length) body.append(el('p', 'hint', 'In den letzten sieben Tagen verkauft: ' + HERO.mkd.length + (HERO.mkd.length === 1 ? ' Stück.' : ' Stücke.')));
+    opts.append(btn('Zum Markt', () => renderTalk('markt'), 'opt'), btn('Etwas verkaufen', () => { AS.sell = { idx: null, p: 0 }; renderTalk('marktV'); }, 'opt'));
+    back(); body.append(opts); return;
+  }
+  if (view === 'lw'){
+    const w = orWeek(), win = lwWinners(); lwRoll();
+    $('talkText').textContent = 'Hört, hört! Jede Woche wetteifern die Ritter des Reiches, Frankreichs, Englands und Spaniens um den Ruhm ihres Landes. Punkte bringt alles, was ein Ritter vollbringt: Monster und Anführer, Weltereignisse, Tjost, Feste, Jagd, Gewölbe und die Hauptgeschichte.';
+    body.append(el('p', 'hint', 'Diese Woche, Stand jetzt:'), asLwBars(w));
+    body.append(el('p', 'hint', 'Euer Beitrag: ' + HERO.lw.p + ' Punkte für ' + lwIn(HERO.f) + '. ' + (win.length ? 'Letzte Woche gewann ' + win.map(lwIn).join(' und ') + '.' : 'Letzte Woche hat kein Land gewonnen.') + ' Die Ritter des Siegerlandes haben eine Woche lang +5 % Erfahrung und Gulden und holen hier einen Wochenlohn ab.'));
+    if (win.includes(HERO.f)){ const done = HERO.lwClaim === w, b = btn(done ? 'Wochenlohn dieser Woche erhalten' : 'Wochenlohn des Landes abholen', () => { asLwClaim(); renderTalk('lw'); }, 'opt' + (done ? '' : ' ready')); b.disabled = done; opts.append(b); }
+    if (!asOnline()) body.append(el('p', 'hint', 'Ohne Anmeldung zählen nur Eure eigenen Punkte.'));
+    back(); body.append(opts); return;
+  }
+  if (view === 'ordh'){
+    if (!HERO.or){ $('talkText').textContent = 'Das Ordenshaus gehört den Ritterorden. Gründet beim Herold einen Orden oder lasst Euch von einem Ordensritter aufnehmen, dann baut Ihr hier gemeinsam.'; back(); body.append(opts); return; }
+    const sum = ohSum(), L = ohLvl(sum), next = OH_STEPS[L];
+    $('talkText').textContent = 'Das Haus des Ordens „' + HERO.or.nm + '“ ' + (L ? 'hat die Stufe ' + L + ': ' + OH_PERK[L - 1][0] + '.' : 'ist noch eine leere Halle.') + ' Jeder Gulden, den ein Ordensritter spendet, zählt für alle, und die Vorteile gelten für jeden im Orden.';
+    const head = el('div', 'shoprow'), ic = el('img'), t = el('div', 'stx'); ic.src = orUrl(HERO.or.wp, 4); ic.alt = ''; ic.className = 'orbig';
+    t.append(el('b', null, HERO.or.nm), el('small', null, 'Gespendet: ' + sum + ' Gulden · davon von Euch ' + (HERO.od ? HERO.od.g : 0)));
+    head.append(ic, t, el('span')); body.append(head);
+    const bar = el('div', 'orbar'), fill = el('i'); fill.style.width = (next ? Math.min(100, sum / next * 100) : 100) + '%';
+    bar.append(fill, el('span', null, next ? 'Stufe ' + (L + 1) + ' bei ' + next + ' Gulden (' + sum + ' / ' + next + ')' : 'Höchste Stufe erreicht')); body.append(bar);
+    const ul = el('ul', 'perks');
+    OH_PERK.forEach((p, i) => { const li = el('li', i < L ? 'on' : '', (i < L ? '✓ ' : '· ') + 'Stufe ' + (i + 1) + ', ' + p[0] + ' (' + OH_STEPS[i] + ' Gulden): ' + p[1]); ul.append(li); });
+    body.append(ul);
+    const donors = (cloud.orRows || []).filter(r => r.id !== asMe() && r.oid === HERO.or.id && r.od && r.od.oid === HERO.or.id).map(r => [cleanName(r.nm) || 'Ritter', clamp(+r.od.g || 0, 0, 1e7)]).concat([[HERO.name, HERO.od ? HERO.od.g : 0]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (donors.length) body.append(el('p', 'hint', 'Die größten Spender: ' + donors.map(d => d[0] + ' ' + d[1]).join(', ') + '.'));
+    const gold = el('div', 'tgold'); gold.append(el('span', null, 'Spenden (Ihr habt ' + HERO.gold + '):'));
+    for (const n of [10, 50, 100, 500]){ const b = btn(n + ' Gulden', () => { ohGive(n); renderTalk('ordh'); }, 'tbtn'); b.dataset.slot = 'og:' + n; b.disabled = HERO.gold < n; gold.append(b); }
+    body.append(gold);
+    if (L >= 3){ const done = HERO.ohDay === asDay(), b = btn(done ? 'Heute schon Heiltränke geholt' : 'Zwei Heiltränke aus der Ordensapotheke', () => { HERO.ohDay = asDay(); HERO.potions = Math.min(20, HERO.potions + 2); Sound.coin(); logLine('Aus der Ordensapotheke: zwei Heiltränke.', '#ffd98a'); updateHud(); markDirty(true); renderTalk('ordh'); }, 'opt' + (done ? '' : ' ready')); b.disabled = done || HERO.potions >= 20; opts.append(b); }
+    if (!asOnline()) body.append(el('p', 'hint', 'Ohne Anmeldung zählen nur Eure eigenen Spenden.'));
+    back(); body.append(opts); return;
+  }
+  back(); body.append(opts);
+}
+/* Ruhmeshalle: Länderwettstreit */
+function asFameLw(box){
+  const w = orWeek(), st = lwStand(w), win = lwWinners();
+  Object.keys(st.tot).sort((a, b) => st.tot[b] - st.tot[a]).forEach((f, i) => {
+    const li = el('li', HERO && HERO.f === f ? 'me' : ''), nm = el('span', 'fn'), im = el('img', 'forb'); im.src = urlOf(knightSet(f).icon, 2); im.alt = ''; nm.append(im, LW_LAND[f]);
+    li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', st.tot[f] + ' Punkte'), el('span', 'fk', st.cnt[f] + ' Ritter diese Woche' + (win.includes(f) ? ' · Sieger der letzten Woche' : '')));
+    box.append(li);
+  });
+  box.append(el('li', 'empty', 'Jede Woche ab Montag beginnt der Wettstreit neu. Punkte bringt alles, was ein Ritter vollbringt; den Stand verkündet der Herold vor der Reichsstadt.'));
+}
+
+/* Tafel unter dem Spiel */
+queueMicrotask(() => {
+  for (const [img, name, desc] of [[NPC_ART.postmeister.frames[0], 'Kaiserliche Post', 'beim Postmeister in der Reichsstadt oder beim Postreiter in der Reichsburg: Briefe an jeden Ritter, auch wenn er gerade nicht spielt, mit bis zu ' + POST_GOLD + ' Gulden und einem Gegenstand als Beilage. Porto ' + PORTO + ' Gulden.'],
+    [NPC_ART.marktvogt.frames[0], 'Marktplatz', 'beim Marktvogt in der Reichsstadt: Waren für andere Ritter einstellen und ihre Angebote kaufen. Wer zuerst zahlt, bekommt die Ware; der Verkäufer erhält sein Geld beim nächsten Besuch, die Stadt behält ein Zwanzigstel.'],
+    [knightSet('england').icon, 'Länderwettstreit', 'jede Woche: Alles, was ein Ritter vollbringt, bringt seinem Land Punkte. Die Ritter des Siegerlandes haben in der folgenden Woche +5 % Erfahrung und Gulden und holen beim Herold einen Wochenlohn ab.'],
+    [NPC_ART.kaemmerer.frames[0], 'Ordenshaus', 'beim Ordenskämmerer neben dem Herold: Die Ritter eines Ordens spenden Gulden und bauen ihr Haus in fünf Stufen aus, jede bringt allen einen Vorteil.']]){
+    const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+    im.src = urlOf(img, img.width > 20 ? 2 : 3); im.alt = '';
+    wh.append(el('small', null, desc)); li.append(im, wh); $('mpList').append(li);
+  }
+});
 
 let last = performance.now();
 function frame(now){
