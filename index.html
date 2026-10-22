@@ -322,7 +322,20 @@ img.horseimg,.shoprow img.horseimg{width:66px; height:auto; image-rendering:pixe
 .tgrid .slot{width:44px; height:44px;}
 .tgold{display:flex; gap:6px; align-items:center; flex-wrap:wrap; color:var(--parchment);}
 .tgold .tbtn{font-size:18px; padding:4px 10px 3px;}
-.ftabs{display:flex; gap:6px; margin:0 0 6px;}
+.ftabs{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 6px;}
+img.orbig{width:52px; height:68px; image-rendering:pixelated;}
+.orbar{position:relative; height:22px; margin:4px 0; background:var(--stone-lo); box-shadow:inset 0 0 0 1px var(--ink);}
+.orbar span{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:18px; color:var(--parchment); text-shadow:0 1px 0 #000;}
+.orbar i{display:block; height:100%; background:var(--gold);}
+.orform{display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:start;}
+.orfields{display:grid; gap:6px;}
+.orfields input{font-family:var(--f-body); font-size:20px; color:var(--parchment); background:var(--ink); border:0; padding:4px 8px; box-shadow:0 0 0 2px var(--gold-lo); min-width:0;}
+.orfields input:focus-visible{outline:2px solid var(--ghost);}
+.tnround{display:grid; gap:2px; padding:4px 8px; background:var(--stone-lo);}
+.tnround b{font-weight:400; color:var(--gold);}
+.tnround p{margin:0; font-size:17px; color:var(--parchment);}
+.tnround p.done{color:var(--parchment-lo);}
+.fame .forb{width:13px; height:17px; image-rendering:pixelated; vertical-align:middle; margin-right:4px;}
 .ftabs button{font-family:var(--f-body); font-size:17px; color:#5a4a34; background:none; border:0; border-bottom:2px solid transparent; padding:2px 4px; cursor:pointer;}
 .ftabs button.on{color:var(--blood); border-bottom-color:var(--blood);}
 .ftabs button:focus-visible{outline:2px solid var(--blood);}
@@ -501,7 +514,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     <img class="seal" id="sealTop" alt="">
     <p class="eyebrow">Anno Domini MDXX · Sacrum Romanum Imperium</p>
     <h1>Der Apfelritter</h1>
-    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in einer Gruppe, kämpft gemeinsam gegen Raubritter und die Wilde Jagd, tjostiert, handelt und würfelt miteinander.</p>
+    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den Kaiser, tjostiert im Großen Turnier, handelt und würfelt miteinander.</p>
   </header>
 
   <section class="cabinet" aria-label="Spiel">
@@ -775,7 +788,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     </div>
     <div class="note">
       <h3>Ruhmeshalle</h3>
-      <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button></div>
+      <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button></div>
       <ol class="fame" id="fameList"></ol>
       <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Feste“ die besten Festspiele.</p>
     </div>
@@ -6687,6 +6700,94 @@ function wp_kWeinfass(s, v){
   return wp_xRes(B, [[-15, -8, 15, 1]], null, {});
 }
 
+/* ---------- Bergwerk: Stolleneingang, Hebel, Fallgitter, Lore, Erzhaufen ---------- */
+/* Stolleneingang im Fels: Zimmerung aus Eichenbalken, Gleise führen heraus */
+function wp_kStollen(s){
+  const B = wp_img(72, 62, 57), ax = B.ax, ay = B.ay, R = wp_P.grey;
+  wp_groundShadow(B, ax + 3, ay + 1, 33, 4);
+  const inRock = (x, y) => { const dx = (x + .5 - ax) / 33, dy = (y + .5 - (ay - 20)) / 34; return dx * dx + (dy < 0 ? dy * dy * 1.1 : dy * dy * .25) + (wp_vn(x * .22, y * .22, s) - .5) * .42 < 1 && y < ay - 1; };
+  wp_rect(B, ax - 35, ay - 56, ax + 35, ay - 1, (x, y) => {
+    if (!inRock(x, y)) return 0;
+    const n = wp_vn(x * .35, y * .35, s + 1), crack = wp_vn(x * .9, y * .25, s + 2) < .1;
+    return wp_tone(R, .5 - (x - ax) * .007 - (y - ay + 50) * .002 + (n - .5) * .4 + (crack ? -.3 : 0), x, y);
+  });
+  for (let k = 0; k < 18; k++){   // Flechten und Moos auf dem Fels
+    const x = ax - 26 + wp_h(k, 1, s) * 52, y = ay - 48 + wp_h(k, 2, s) * 30;
+    if (inRock(x, y)) wp_ell(B, x, y, 2 + wp_h(k, 3, s) * 2, 1.2, (xx, yy) => inRock(xx, yy) ? wp_tone(k & 1 ? wp_P.moss : wp_P.lichen, .45, xx, yy) : 0);
+  }
+  // Schacht: dunkel, nach hinten schwärzer
+  wp_rect(B, ax - 11, ay - 34, ax + 11, ay - 2, (x, y) => wp_tone(wp_P.dark, Math.max(0, .34 - (ay - 2 - y) * .012) + (Math.abs(x - ax) > 8 ? .08 : 0), x, y));
+  // Zimmerung: zwei Stempel und eine Kappe
+  for (const sx of [-1, 1]) wp_rect(B, ax + sx * 12 - 2, ay - 36, ax + sx * 12 + 2, ay - 1, (x, y) => wp_tone(wp_P.oak, .62 - (x - (ax + sx * 12 - 2)) * .1 + (wp_h(x, y >> 2, s + 4) - .5) * .12, x, y));
+  wp_rect(B, ax - 17, ay - 40, ax + 17, ay - 35, (x, y) => wp_tone(wp_P.oak, (y === ay - 40 ? .78 : .55) - (y - ay + 40) * .05 + (wp_h(x >> 2, y, s + 5) - .5) * .1, x, y));
+  for (const sx of [-1, 1]) wp_rect(B, ax + sx * 15 - 1, ay - 39, ax + sx * 15 + 1, ay - 37, wp_P.iron[2]);
+  // Gleise mit Schwellen
+  for (let i = 0; i < 4; i++){ const y = ay - 26 + i * 8; wp_rect(B, ax - 8 - i * .6, y, ax + 8 + i * .6, y + 2, (x, yy) => wp_tone(wp_P.wood, .3 + i * .1, x, yy)); }
+  for (const sx of [-1, 1]) wp_line(B, ax + sx * 5, ay - 30, ax + sx * 7, ay + 3, (x, y, t) => wp_P.iron[2 + (t > .5 ? 1 : 0)]);
+  // Laterne am Stempel
+  wp_rect(B, ax + 15, ay - 30, ax + 19, ay - 25, wp_P.iron[1]); wp_rect(B, ax + 16, ay - 29, ax + 18, ay - 26, wp_c('#e8a040'));
+  return wp_xRes(B, [[-31, -30, -13, -4], [13, -30, 31, -4], [-31, -48, 31, -30]], null, { lamp: [ax + 17, ay - 27] });
+}
+/* Hebel an der Wand: v 0 oben (los), v 1 unten (gezogen) */
+function wp_kHebel(s, v){
+  const B = wp_img(24, 40, 36), ax = B.ax, ay = B.ay;
+  wp_groundShadow(B, ax + 2, ay + 1, 9, 2);
+  // Kette hinauf in die Decke
+  for (let y = ay - 36; y < ay - 16; y += 3) wp_rect(B, ax - 1, y, ax + 1, y + 2, (x, yy) => wp_P.iron[(y >> 1) & 1 ? 3 : 2]);
+  // Sockel aus Holz mit Eisenband
+  wp_rect(B, ax - 7, ay - 16, ax + 7, ay, wp_hplanks(wp_P.oak, s, 4, { oy: ay - 16 }));
+  wp_rect(B, ax - 7, ay - 16, ax + 7, ay - 15, wp_P.oak[5]);
+  for (const yy of [ay - 12, ay - 4]) wp_rect(B, ax - 7, yy, ax + 7, yy + 1, wp_P.iron[2]);
+  wp_rect(B, ax - 2, ay - 15, ax + 2, ay - 13, wp_P.dark[0]);
+  // Hebelarm mit Griff
+  const tx = v ? ax + 9 : ax - 6, ty = v ? ay - 9 : ay - 30;
+  wp_seg(B, ax, ay - 14, tx, ty, 1.6, (x, y, t) => wp_P.iron[t > .5 ? 4 : 3]);
+  wp_ell(B, tx, ty, 2.2, 2.2, (x, y) => wp_tone(wp_P.oakred, .7 - (x - tx) * .1, x, y));
+  return wp_xRes(B, [[-7, -6, 7, 1]], null, {});
+}
+/* Fallgitter über einem Gang von zwei Feldern: v 0 unten (zu), v 1 hochgezogen */
+function wp_kGitter(s, v){
+  const B = wp_img(66, 64, 60), ax = B.ax, ay = B.ay, bot = v ? ay - 46 : ay;
+  if (!v) wp_groundShadow(B, ax + 2, ay + 1, 30, 2.5);
+  // Balken oben, aus dem das Gitter kommt
+  wp_rect(B, ax - 33, ay - 64, ax + 33, ay - 55, (x, y) => wp_tone(wp_P.oak, .55 - (y - ay + 64) * .03 + (wp_h(x >> 2, y, s) - .5) * .1, x, y));
+  wp_rect(B, ax - 33, ay - 55, ax + 33, ay - 54, wp_P.dark[0]);
+  // senkrechte Stäbe mit Spitzen, waagrechte Riegel
+  for (let i = -28; i <= 28; i += 7){
+    wp_rect(B, ax + i - 1, ay - 54, ax + i + 2, bot - 3, (x, y) => wp_tone(wp_P.iron, .62 - (x - (ax + i - 1)) * .14, x, y));
+    wp_poly(B, [[ax + i - 1, bot - 3], [ax + i + 2, bot - 3], [ax + i + .5, bot]], wp_P.iron[4]);
+  }
+  for (let y = ay - 50; y < bot - 6; y += 12) wp_rect(B, ax - 30, y, ax + 31, y + 2, (x, yy) => wp_tone(wp_P.iron, yy === y ? .55 : .35, x, yy));
+  return wp_xRes(B, [[-32, -6, 32, 1]], null, {});
+}
+/* Lore (Hunt) mit Erz auf vier kleinen Rädern */
+function wp_kLore(s, v){
+  const B = wp_img(32, 28, 25), ax = B.ax, ay = B.ay;
+  wp_groundShadow(B, ax + 2, ay + 1, 14, 2.5);
+  for (const sx of [-9, 7]) wp_ell(B, ax + sx, ay - 3, 3, 3, (x, y) => wp_tone(wp_P.iron, .45 - Math.hypot(x - ax - sx, y - ay + 3) * .08, x, y));
+  wp_poly(B, [[ax - 14, ay - 17], [ax + 14, ay - 17], [ax + 12, ay - 5], [ax - 12, ay - 5]], wp_hplanks(wp_P.wood, s, 4, { oy: ay - 17 }));
+  for (const xx of [ax - 11, ax + 9]) wp_rect(B, xx, ay - 17, xx + 2, ay - 5, wp_P.iron[2]);
+  wp_rect(B, ax - 14, ay - 17, ax + 14, ay - 16, wp_P.iron[3]);
+  for (let k = 0; k < 9; k++){   // Erzbrocken obenauf
+    const x = ax - 11 + wp_h(k, 1, s) * 22, y = ay - 18 - wp_h(k, 2, s) * 4;
+    wp_ell(B, x, y, 2.5, 2, (xx, yy) => wp_tone(wp_P.grey, .45 + (x - xx) * .08 + (y - yy) * .06, xx, yy));
+    if (k % 3 === 0) wp_set(B, x, y - 1, v ? wp_c('#d8b058') : wp_c('#c8d4e0'));
+  }
+  return wp_xRes(B, [[-12, -7, 12, 1]], null, {});
+}
+/* Erzhaufen: v 0 Silbererz (blaugrau glänzend), v 1 Kupfererz (grün und golden) */
+function wp_kErz(s, v){
+  const B = wp_img(30, 22, 19), ax = B.ax, ay = B.ay;
+  wp_groundShadow(B, ax + 2, ay + 1, 13, 2.5);
+  for (let k = 0; k < 16; k++){
+    const a = wp_h(k, 1, s) * Math.PI, r = wp_h(k, 2, s), x = ax + Math.cos(a) * 11 * r * (k & 1 ? 1 : -1), y = ay - 3 - Math.sin(a) * 8 * (1 - r) - (k > 10 ? 4 : 0);
+    const rr = 2.5 + wp_h(k, 3, s) * 2;
+    wp_ell(B, x, y, rr, rr * .8, (xx, yy) => wp_tone(wp_P.grey, .42 + (x - xx) * .07 + (y - yy) * .07 + (wp_h(xx | 0, yy | 0, s) - .5) * .1, xx, yy));
+    if (wp_h(k, 4, s) < .55){ const c = v ? (k % 2 ? wp_c('#4f9a6a') : wp_c('#d8b058')) : (k % 2 ? wp_c('#a8bccc') : wp_c('#e8f0f8')); wp_set(B, x - 1, y - 1, c); if (k % 3 === 0) wp_set(B, x, y - 1, c); }
+  }
+  return wp_xRes(B, [[-11, -6, 11, 1]], null, {});
+}
+
 
 /* ---------- Feste: Tisch mit Bänken, Holzstoß fürs Johannisfeuer, Erntekrone, Laterne, Garbe, Christbaum ---------- */
 function wp_kFesttisch(s){
@@ -6773,6 +6874,7 @@ const wp_K = {
   kisten: [(s, v) => wp_kKisten(s, v), 4], wegweiser: [(s, v) => wp_kWegweiser(s, v), 3], banner: [(s, v) => wp_kBanner(s, v), 2],
   marktstand: [(s, v) => wp_kMarktstand(s, v), 6], maibaum: [(s, v) => wp_kMaibaum(s), 1], schranke: [(s, v) => wp_kSchranke(s), 1], tribuene: [(s, v) => wp_kTribuene(s), 1],
   abgang: [(s, v) => wp_kAbgang(s, v), 2], saeule: [(s, v) => wp_kSaeule(s, v), 2], sarg: [(s, v) => wp_kSarg(s, v), 2], truhe: [(s, v) => wp_kTruhe(s, v), 2], becken: [(s, v) => wp_kBecken(s), 1], weinfass: [(s, v) => wp_kWeinfass(s, v), 1],
+  stollen: [(s, v) => wp_kStollen(s), 1], hebel: [(s, v) => wp_kHebel(s, v), 2], gitter: [(s, v) => wp_kGitter(s, v), 2], lore: [(s, v) => wp_kLore(s, v), 2], erz: [(s, v) => wp_kErz(s, v), 2],
   festtisch: [(s, v) => wp_kFesttisch(s), 1], feuerholz: [(s, v) => wp_kFeuerholz(s), 1], erntekrone: [(s, v) => wp_kErntekrone(s), 1], laterne: [(s, v) => wp_kLaterne(s), 1], garbe: [(s, v) => wp_kGarbe(s), 1], christbaum: [(s, v) => wp_kChristbaum(s), 1],
   gasthaus_adler: [(s, v) => wp_bStadthaus(s + 31, 0, 'adler'), 1], gasthaus_krone: [(s, v) => wp_bHaus(s + 17, 1, 'krone'), 1], gasthaus_ochse: [(s, v) => wp_bHaus(s + 5, 3, 'ochse'), 1]
 };
@@ -8187,6 +8289,16 @@ const wo_CLEAR = [[620, 1000, 210, 170], [330, 640, 120, 90], [1040, 480, 110, 9
 })();
 
 /* ---------- Finsterwald ---------- */
+/* ---------- Verlassenes Bergwerk im Finsterwald (feste Bildnummern, damit der Wald sonst gleich bleibt) ---------- */
+(function wo_mine(){
+  const cx = 330, cy = 300;
+  wo_feat({ m: WM.ROCK, e: [cx, cy + 18, 120, 76] });
+  const e = wo_tryNear('stollen', cx, cy, 1, 2, 4);
+  if (!e) return;
+  wo_DGDOORS.push({ dg: 'bergwerk', x: e.x, y: e.y });
+  for (const [k, dx, dy, sd] of [['lore', 50, 24, 3], ['erz', -48, 20, 5], ['erz', 38, 50, 6], ['kisten', -42, 46, 7], ['fass', 60, 2, 8], ['lagerfeuer', -60, 62, 2]]) wo_try(k, e.x + dx, e.y + dy, sd, 0, 2);
+  wo_reserve(e.x - 76, e.y - 64, e.x + 76, e.y + 72);   // Halde vor dem Stollen bleibt frei
+})();
 (function wo_forest(){
   const R = rng(1200), S = 34;
   for (let gy = 0; gy < WH; gy += S) for (let gx = 0; gx < 1500; gx += S){
@@ -9358,7 +9470,7 @@ function musicFor(){
   const f = typeof festNear === 'function' ? festNear() : null;
   if (f) return f.tune;
   if (isNight()) return 'nacht';
-  if (EVT.cur && !EVT.cur.over && Math.hypot(G.knight.x - EVT.cur.site.x, G.knight.y - EVT.cur.site.y) < 1400) return EVT.cur.d.ghost ? 'nacht' : 'dunkel';
+  if (EVT.cur && !EVT.cur.over && Math.hypot(G.knight.x - (EVT.cur.pos || EVT.cur.site).x, G.knight.y - (EVT.cur.pos || EVT.cur.site).y) < 1400) return EVT.cur.d.ghost ? 'nacht' : EVT.cur.d.kind === 'escort' && !EVT.cur.halt ? 'stadt' : 'dunkel';
   if (isSafe(G.zone)) return 'stadt';
   if ({ obstgarten: 1, fluss: 1, dorf: 1, lager: 1 }[G.zone]) return 'land';
   return 'dunkel';
@@ -10375,6 +10487,9 @@ function cleanHero(h){
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
   h.riding = !!(h.horse && h.riding);
   if (h.joust){ const j = h.joust, b = {}; for (const id of ['konrad', 'bayard', 'goetz']) if (j.beat && j.beat[id]) b[id] = true; h.joust = { wins: Math.max(0, j.wins | 0), beat: b, elo: clamp(j.elo | 0 || 1000, 100, 3000), pw: Math.max(0, j.pw | 0), pl: Math.max(0, j.pl | 0) }; }
+  if (h.or){ const o = orClean(h.or); h.or = o ? Object.assign(o, { gm: h.or.gm ? 1 : 0, t: +h.or.t || 0 }) : null; }
+  if (h.ow && (typeof h.ow !== 'object' || h.ow.w !== orWeek())) h.ow = null;
+  h.tw = Math.max(0, h.tw | 0);
   h.pt = h.pt && typeof h.pt.id === 'string' && /^[a-z0-9]{3,12}$/.test(h.pt.id) && Date.now() - (+h.pt.at || 0) < 1800000 ? { id: h.pt.id, t: +h.pt.t || Date.now(), at: +h.pt.at } : null;   // Gruppe: eine halbe Stunde lang
   if (h.frec){ const o = {}; for (const r of ['stein', 'klettern', 'springen', 'schnee']) if (+h.frec[r] > 0) o[r] = Math.round(+h.frec[r]); h.frec = o; }
   for (const key of ['evDone', 'evFirst', 'evCur']) if (h[key] && typeof h[key] !== 'object') h[key] = null;
@@ -11479,6 +11594,7 @@ function skyLights(cam){
   const L = [], k = G.knight, v = (x, y, m) => x > cam.x - m && x < cam.x + W + m && y > cam.y - m && y < cam.y + H + m;
   if (G.mode !== 'title') L.push([k.x, k.y - 22, 210, .9, 0]);
   for (const p of PEERS.values()) if (!p.in && v(p.x, p.y, 200)) L.push([p.x, p.y - 22, 170, .8, 0]);
+  evLights(v, L);
   for (const f of GFIRES) if (v(f.x, f.y, 260)) L.push([f.x, f.y - 8, f.big ? 300 : 210, 1, 1]);
   for (const inn of INNS) if (v(inn.dx, inn.y, 200)) L.push([inn.dx, inn.y - 30, 150, .85, 1]);
   for (const p of propsInView(cam)) if (p.lights) for (const [x, y] of p.lights) L.push([x, y, 96, .6, 1]);
@@ -11667,7 +11783,7 @@ const WURM_PARTS = BOSS_ART.lindwurm.segs.concat(BOSS_ART.lindwurm.tail ? [BOSS_
 const WURM_STEP = 3, WURM_OFF = (() => { const o = []; let acc = 0, prev = 34; for (const s of WURM_PARTS){ acc += (prev / 2 + s.w / 2) * .62; o.push(Math.round(acc / WURM_STEP)); prev = s.w; } return o; })();
 function wurmSegs(m){
   const tr = m.trail || [], out = [];
-  WURM_PARTS.forEach((s, i) => {
+  (m.parts || WURM_PARTS).forEach((s, i) => {
     const p = tr[tr.length - 1 - WURM_OFF[i]];
     if (p) out.push({ x: p[0], y: p[1], cy: p[1] - s.h * .45, r: s.w / 2, s });
   });
@@ -11937,7 +12053,7 @@ function updateMons(dt){
     }
     if (m.mode === 'fight' && ['wieder', 'moor', 'ratte', 'irrlicht'].includes(m.k) && Math.abs(mvx) > 1) m.dir = mvx > 0 ? 1 : -1;
     if (m.mode === 'fight' && m.k === 'werwolf' && m.st === 'go' && Math.abs(mvx) > 1) m.dir = mvx > 0 ? 1 : -1;
-    const ground = !d.fly && m.k !== 'lindwurm';
+    const ground = !d.fly && (m.k !== 'lindwurm' || DG_ON);
     if (ground && m.st !== 'dash' && m.st !== 'charge') [mvx, mvy] = steer(m, mvx, mvy, d.wade);
     const ox = m.x, oy = m.y;
     m.x += (mvx + m.vx) * dt; m.y += (mvy + m.vy) * dt;
@@ -12129,6 +12245,7 @@ function huntHit(e, h){
 }
 function huntKill(e){
   const H = HUNT[e.k], b = huntBody(e);
+  orCount('wild');
   e.gone = true; e.spot.cool = 150;
   Sound.kill(); burst(b.x, b.y, ['#8a2a2a', '#6a4a30', '#c8a070', '#3a2a1e'], 14, 80);
   for (const [w, p] of H.drops) if (Math.random() < p) dropLoot({ x: e.x, y: e.y }, 'item', 0, makeWare(w));
@@ -12251,7 +12368,8 @@ function bashHits(){
 function damage(m, dmg, crit, kbMul, src){
   const mine = !src || src === G.knight, k = mine ? G.knight : src, c = centerOf(m);
   // Anführer eines Weltereignisses: sein Leben kommt aus dem gemeldeten Schaden aller, Hiebe anderer hier nur zu sehen
-  if (m.ev && m.ev.boss && !mine){ m.fl = .12; burst(c.x, c.y, ['#ffffff', '#c3ccd8'], 4, 60, true); return; }
+  if (((m.ev && m.ev.boss) || m.grp) && !mine){ m.fl = .12; burst(c.x, c.y, ['#ffffff', '#c3ccd8'], 4, 60, true); return; }
+  if (m.grp && DG_ON){ DG_ON.bossDmg = (DG_ON.bossDmg || 0) + dmg; HERO.dgDmg = { k: DG_ON.id + ':' + dgDay(), d: Math.round(DG_ON.bossDmg) }; }
   m.hp -= dmg; m.fl = .12; m.by = mine ? 'me' : src.peer;
   if (mine){ G.combatT = 0; m.mine = (m.mine || 0) + dmg; if (m.ev && EVT.cur && m.ev.id === EVT.cur.id){ EVT.cur.contrib = true; if (m.ev.boss) EVT.cur.dmg += dmg; } }
   if (m.mode === 'idle') engage(m);
@@ -12275,7 +12393,9 @@ function kill(m){
   if (m.ev) evMark(m);
   if (m.ev && m.ev.boss){ burst(c.x, c.y, m.ghost ? ['#9fdcff', '#e8f6ff', '#ffffff'] : DEATH_COLORS[m.k], 50, 140, true); Sound.kill(); G.flash = .4; return; }   // Lohn kommt mit dem Ende des Ereignisses
   if (!killCredit(m)){ burst(c.x, c.y, DEATH_COLORS[m.k], 12, 70); Sound.kill(); if (m.slot){ m.slot.mon = null; m.slot.t = d.boss ? 240 : rand(40, 70); } return; }
-  HERO.kills++; G.shake = Math.max(G.shake, .08);
+  if (m.grp) return dgDrakeKill(m);
+  HERO.kills++; G.shake = Math.max(G.shake, .08); orCount('kills');
+  if (d.boss || m.elite) orCount('boss');
   Sound.kill();
   burst(c.x, c.y, DEATH_COLORS[m.k], d.boss ? 50 : 16, d.boss ? 140 : 80, m.k === 'irrlicht');
   if (m.k === 'lindwurm') for (const s of wurmSegs(m)) burst(s.x, s.cy, DEATH_COLORS.lindwurm, 8, 70);
@@ -12802,7 +12922,16 @@ const DG_DEF = {
     rooms:[[17, 2, 8, 6, 'entry'], [14, 11, 14, 9, 'nave'], [2, 12, 9, 8, 'ossuary'], [31, 12, 9, 8, 'chapel'], [3, 23, 11, 7, 'crypt'], [18, 23, 12, 7, 'vault']],
     links:[[0, 1], [1, 2], [1, 3], [2, 4], [1, 5], [4, 5], [3, 5]],
     mobs:{ nave:[['wieder', 3]], ossuary:[['wieder', 2], ['ratte', 2]], chapel:[['irrlicht', 2]], crypt:[['wieder', 3]], vault:[['irrlicht', 2]] },
-    elite:{ k:'wieder', name:'Der bleiche Abt' }, chest:'den Kirchenschatz der Krypta', chestN:'der Kirchenschatz der Krypta' }
+    elite:{ k:'wieder', name:'Der bleiche Abt' }, chest:'den Kirchenschatz der Krypta', chestN:'der Kirchenschatz der Krypta' },
+  /* Gruppen-Gewölbe: jedes Fallgitter öffnet sich nur, wenn die beiden Hebel in den Seitenstollen zugleich gezogen sind */
+  bergwerk: { name:'Das verlassene Bergwerk', group: true, lvl:[0, 2], cols:46, rows:46, style: 2, dark: .92, seed: 4403,
+    rooms:[[19, 2, 8, 6, 'entry'], [14, 11, 18, 8, 'grube'], [3, 12, 8, 7, 'stollen'], [36, 12, 8, 7, 'stollen'], [17, 24, 12, 8, 'grube'], [3, 25, 8, 7, 'stollen'], [36, 25, 8, 7, 'stollen'], [13, 36, 20, 9, 'vault']],
+    links:[[0, 1], [1, 2], [1, 3], [1, 4], [4, 5], [4, 6], [4, 7]],
+    gates:[{ a: 1, row: 21 }, { a: 4, row: 33 }],
+    levers:[{ room: 2, gate: 0 }, { room: 3, gate: 0 }, { room: 5, gate: 1 }, { room: 6, gate: 1 }],
+    mobs:{ grube:[['wieder', 3], ['ratte', 2]], stollen:[['wieder', 2], ['irrlicht', 1]], vault:[['ratte', 2]] },
+    names:{ wieder:'Toter Bergknappe', irrlicht:'Grubenlicht', ratte:'Grubenratte' },
+    elite:{ k:'lindwurm', name:'Der Bergdrache', grp: true }, chest:'den Schatz der Bergleute', chestN:'der Schatz der Bergleute' }
 };
 const DG_CACHE = {};
 const dgGet = id => DG_CACHE[id] || (DG_CACHE[id] = dgBuild(id));
@@ -12828,7 +12957,7 @@ function dgBuild(id){
     let free = 0; for (let i = 0; i < C * Rn; i++) if (!g[i] && !blk[i]) free++;
     return n === free;
   };
-  const objs = [], decals = [], spawns = [], torches = [], lights = [];
+  const objs = [], decals = [], spawns = [], torches = [], lights = [], levers = [];
   const place = (kind, v, tx, ty, w, opt) => {
     for (let i = 0; i < w; i++){ const k = ty * C + tx + i; if (at(tx + i, ty) || blk[k] || corr[k] || (Math.abs(tx + i - sx) < 2 && ty - sy < 3)) return null; }
     for (let i = 0; i < w; i++) blk[ty * C + tx + i] = 1;
@@ -12856,8 +12985,14 @@ function dgBuild(id){
     if (role === 'vault'){
       for (const dx of [0, 1, -1, 2, -2, 3, -3]){ chest = place('truhe', 0, cx + dx, r[1] + 1, 1, { chest: true }); if (chest) break; }
       place('becken', 0, cx - 2, r[1] + 1, 1, { fire: true }); place('becken', 0, cx + 2, r[1] + 1, 1, { fire: true });
-      if (D.style === 0) tryAll('kisten', 0, side, 2); else tryAll('sarg', 0, side, 1, 2);
+      if (D.style === 1) tryAll('sarg', 0, side, 1, 2); else tryAll('kisten', 0, side, 2);
+      if (D.style === 2) tryAll('erz', 1, side, 3);
     }
+    if (role === 'grube'){ place('becken', 0, cx, cy, 1, { fire: true }); tryAll('lore', 0, side, 2); tryAll('erz', 0, side, 3); tryAll('erz', 1, side, 1); tryAll('kisten', 0, side, 2); tryAll('fass', 0, side, 2); }
+    if (role === 'stollen'){ tryAll('erz', (cx + cy) & 1, side, 3); tryAll('lore', 1, side, 1); tryAll('fass', 0, side, 1); place('becken', 0, cx, cy + 1, 1, { fire: true }); }
+    // Hebel an der Nordwand des Raums
+    for (const [li, L] of (D.levers || []).entries()) if (D.rooms[L.room] === r)
+      for (const dx of [0, 1, -1, 2, -2, 3, -3]){ const o = place('hebel', 0, cx + dx, r[1], 1, { lever: li, gate: L.gate }); if (o){ levers[li] = { o, gate: L.gate }; break; } }
     // Bodenschmuck: Knochen, Schutt, Pfützen
     const nDec = role === 'ossuary' ? 14 : role === 'cells' || role === 'crypt' ? 7 : 3;
     for (const [i, j] of pickN(inRoom(r, (i, j) => !blk[j * C + i]), nDec)) decals.push([i, j, role === 'ossuary' || role === 'cells' || role === 'crypt' || R() < .4 ? 'bone' : D.style === 0 && R() < .5 ? 'puddle' : 'rubble', R()]);
@@ -12866,9 +13001,17 @@ function dgBuild(id){
     for (const [kind, n] of (D.mobs[role] || [])) for (const [i, j] of pickN(free, n)) spawns.push([kind, X(i) + T / 2, Y(j) + T - 4, D.lvl[0] + ((R() * (D.lvl[1] - D.lvl[0] + 1)) | 0), null]);
     if (role === 'vault'){ const [i, j] = [cx, r[1] + 3]; spawns.push([D.elite.k, X(i) + T / 2, Y(j) + T - 4, D.lvl[1] + 1, D.elite.name]); }
   }
+  // Fallgitter mitten im Gang zwischen zwei Räumen (zwei Felder breit, zu Beginn geschlossen)
+  const gates = (D.gates || []).map((gd, gi) => {
+    const ra = D.rooms[gd.a], gx = ra[0] + (ra[2] >> 1), j = gd.row, P0 = wp_paintV('gitter', 0, 1), tiles = [j * C + gx, j * C + gx + 1];
+    for (const t of tiles) blk[t] = 1;
+    const o = { kind: 'gitter', v: 0, gate: gi, tx: gx, ty: j, w: 2, x: X(gx) + T, y: Y(j + 1) - 4, img: P0.img, ax: P0.ax * WS, ay: P0.ay * WS };
+    objs.push(o);
+    return { tiles, o, levers: levers.map((L, li) => L && L.gate === gi ? li : -1).filter(li => li >= 0), open: false };
+  });
   // Fackeln an den Mauerseiten (Wand mit Boden darunter), etwa alle vier Felder
   for (let j = 1; j < Rn - 1; j++) for (let i = 1; i < C - 1; i++) if (at(i, j) && !at(i, j + 1) && (i * 7 + j * 3) % 4 === 0 && !(i === sx && j === sy - 1)) torches.push([X(i) + T / 2, Y(j + 1) - DG_FH * .62]);
-  const out = { id, D, C, Rn, g, blk, sx, sy, objs, decals, spawns, torches, chest, seen: new Uint8Array(C * Rn),
+  const out = { id, D, C, Rn, g, blk, sx, sy, objs, decals, spawns, torches, chest, gates, levers, seen: new Uint8Array(C * Rn),
     ox: DG_OX, oy: DG_OY, W: C * T, H: Rn * T, start: { x: X(sx) + T / 2, y: Y(sy) + T + 10 }, stair: { x: X(sx) + T / 2, y: Y(sy) + 6 } };
   dgPaint(out);
   return out;
@@ -12878,8 +13021,9 @@ function dgPaint(M){
   const { C, Rn, g, D } = M, T = DG_T, FH = DG_FH, P = DG_PAD, W = C * T + 2 * P, Hh = Rn * T + 2 * P, st = D.style;
   const wall = (i, j) => i < 0 || j < 0 || i >= C || j >= Rn ? true : !!g[j * C + i];
   const tall = (i, j) => wall(i, j) && !wall(i, j + 1);
-  const pk = (h) => wo_c(h), FL = (st ? ['#34343a', '#3c3c42', '#45454b', '#4e4e54', '#58585e', '#626268'] : ['#2a2622', '#322d28', '#3a342e', '#433c35', '#4c443c', '#554c43']).map(pk);
-  const MS = (st ? ['#3a3c42', '#44464c', '#4e5056', '#5a5c62', '#66686e'] : ['#332e28', '#3e3730', '#4a4239', '#554c42', '#61574b']).map(pk);
+  const pk = (h) => wo_c(h), FL = [['#2a2622', '#322d28', '#3a342e', '#433c35', '#4c443c', '#554c43'], ['#34343a', '#3c3c42', '#45454b', '#4e4e54', '#58585e', '#626268'], ['#26221d', '#2d2822', '#352f28', '#3d362e', '#463e35', '#50473c']][st].map(pk);
+  const MS = [['#332e28', '#3e3730', '#4a4239', '#554c42', '#61574b'], ['#3a3c42', '#44464c', '#4e5056', '#5a5c62', '#66686e'], ['#29251f', '#322d27', '#3c362f', '#463f37', '#514940']][st].map(pk);
+  const OAK = ['#1c1612', '#3d3024', '#4f3e2e', '#624e3a'].map(pk), ORE = pk('#93a6b4');
   const SEAM = pk(st ? '#222228' : '#1a1714'), CAP = pk('#131116'), RIM = pk('#29262d'), MOSS = pk('#34402c'), PUD = pk('#1a2026');
   // Boden
   const fc = canvasOf(W, Hh), fg = fc.getContext('2d'), id = fg.createImageData(W, Hh), d32 = new Uint32Array(id.data.buffer);
@@ -12887,7 +13031,12 @@ function dgPaint(M){
   for (let y = 0; y < Rn * T; y++) for (let x = 0; x < C * T; x++){
     const i = x >> 5, j = y >> 5; if (g[j * C + i]) continue;
     let c;
-    if (st){ // Krypta: Platten 32 × 16, versetzt
+    if (st === 2){ // Bergwerk: gewachsener Fels mit Kies und Erzadern
+      const v = wo_h(x >> 2, y >> 2, 81) * 1.5 + wo_h(x >> 3, y >> 3, 82) * 2.1 + wo_h(x >> 4, y >> 4, 83) * 1.6 - 1.1;
+      c = FL[clamp(Math.floor(v), 0, 5)];
+      if (wo_h(x >> 1, y >> 1, 84) < .02) c = FL[5];
+      if (wo_h(x >> 1, y >> 1, 85) < .004) c = ORE;
+    } else if (st){ // Krypta: Platten 32 × 16, versetzt
       const row = y >> 4, ox = (row & 1) * 16, cell = ((x + ox) >> 5) * 7919 + row * 131, sx = (x + ox) & 31, sy = y & 15;
       const v = wo_h(cell, 3, 77) * 3.2 + wo_h(x >> 2, y >> 2, 78) * .9 + (sy === 0 || sx === 0 ? -9 : sy === 1 || sx === 1 ? .8 : 0);
       c = v < -5 ? SEAM : FL[clamp(Math.floor(v + 1), 0, 5)];
@@ -12941,6 +13090,13 @@ function dgPaint(M){
           const fy = y - T, crs = fy >> 3, bo = (crs * 11) % 3 === 0 ? 0 : (crs & 1) * 9, bx = (gx + bo) % 20, brick = Math.floor((gx + bo) / 20) * 31 + crs * 17;
           const mortar = (fy & 7) === 0 || bx === 0, v = wo_h(brick, 9, 91) * 2.4 + wo_h(gx >> 1, gy >> 1, 92) * .8 - (fy > FH - 6 ? 1.6 : 0) + (fy < 3 ? .8 : 0);
           col = mortar ? SEAM : MS[clamp(Math.floor(v + .4), 0, 4)];
+          if (st === 2){   // Fels statt Mauer, alle vier Felder ein Stempel, oben die Kappe
+            const rv = wo_h(gx >> 2, gy >> 2, 94) * 2 + wo_h(gx >> 3, gy >> 3, 95) * 1.4 - (fy > FH - 6 ? 1.4 : 0) + (fy < 3 ? .7 : 0) - .5, px = gx % 128;
+            col = MS[clamp(Math.floor(rv), 0, 4)];
+            if (wo_h(gx >> 1, gy >> 1, 96) < .006) col = ORE;
+            if (px < 7) col = px === 0 || px === 6 ? OAK[0] : px < 3 ? OAK[3] : OAK[2];
+            else if (fy < 5) col = fy === 4 ? OAK[0] : fy < 2 ? OAK[3] : OAK[1];
+          }
           if (!st && !mortar && wo_h(gx >> 2, crs, 93) < .08) col = wo_mix(col, 0xff1a2016, .35);       // Feuchtigkeit
         }
         s32[y * w + x] = col;
@@ -12985,14 +13141,23 @@ function enterDungeon(door){
   DG_ON = M; G.dg = M;
   k.x = M.start.x; k.y = M.start.y; k.dir = 'down'; k.kbx = k.kby = 0; k.lance = 0;
   M.seen.fill(0); M.chestOpen = HERO.dg && HERO.dg[M.id] === dgDay();
+  const D = M.D, base = D.group ? clamp(Math.max(HERO.lvl, ...partyList().map(q => q.lv)), 8, MAX_LVL - 2) : 0;   // Gruppen-Gewölbe: nach dem stärksten Gefährten
+  M.lvl = D.group ? [base, base + 2] : D.lvl;
+  const slain = D.group && HERO.dgBoss && HERO.dgBoss[M.id] === dgDay();
   for (const [kind, x, y, lvl, elite] of M.spawns){
-    const m = createMonster(kind, x, y, lvl, null); m.zone = gZone(door.x, door.y).id;
-    if (elite){ m.elite = elite; m.hp = m.max = m.max * 5; }
+    if (elite && slain) continue;
+    const m = createMonster(kind, x, y, lvl + base, null); m.zone = gZone(door.x, door.y).id;
+    if (D.names && D.names[kind]) m.nm = D.names[kind];
+    if (elite){ m.elite = elite; if (D.elite.grp){ m.grp = true; m.nm = elite; m.art = drakeArt(); m.parts = drakeParts(); m.summoned = true; } else m.hp = m.max = m.max * 5; }
   }
+  for (const gt of M.gates || []){ gt.open = false; for (const t of gt.tiles) M.blk[t] = 1; }
+  M.openG = []; M.ddSeen = new Map(); G.lever = null;
+  M.bossDmg = HERO.dgDmg && HERO.dgDmg.k === M.id + ':' + dgDay() ? +HERO.dgDmg.d || 0 : 0;
   G.zone = 'gewoelbe'; G.near = null; G.nearDoor = null; G.dgNear = null; $('btnTalk').hidden = true;
-  const z = $('zone'); z.textContent = M.D.name; z.append(el('small', null, 'Stufe ' + M.D.lvl[0] + '–' + M.D.lvl[1]));
-  showBanner(M.D.name, 'Stufe ' + M.D.lvl[0] + '–' + M.D.lvl[1] + ', ' + M.D.elite.name + ' bewacht ' + M.D.chest);
+  const z = $('zone'); z.textContent = M.D.name; z.append(el('small', null, 'Stufe ' + M.lvl[0] + '–' + M.lvl[1]));
+  showBanner(M.D.name, 'Stufe ' + M.lvl[0] + '–' + M.lvl[1] + ', ' + (slain ? 'der Drache ist heute schon erschlagen' : M.D.elite.name + ' bewacht ' + M.D.chest));
   logLine('Ihr steigt hinab: ' + M.D.name + '. Am Ende wartet ' + M.D.chestN + '. Über die Treppe kommt Ihr wieder hinauf.', '#c8b8ff');
+  if (D.group) logLine('Hier unten braucht Ihr Gefährten: Ein Fallgitter geht nur auf, wenn die beiden Hebel in den Seitenstollen zugleich gezogen werden.', '#ffd98a');
   Sound.tone(98, .8, 'sine', .05); Sound.tone(73, 1.2, 'sine', .04, 0, .2);
   sendPresence(true); markDirty(true);
 }
@@ -13014,8 +13179,8 @@ function dgOpenChest(){
   const elite = G.mons.find(m => m.elite);
   if (elite){ floatText(o.x, o.y - 40, elite.elite + ' wacht noch', '#ff9a8a', 1, 1.4); return; }
   if (HERO.dg[M.id] === dgDay()){ floatText(o.x, o.y - 40, 'leer', '#d8c69c'); logLine('Die Truhe ist leer. Morgen ist sie wieder gefüllt.', '#d8c69c'); return; }
-  HERO.dg[M.id] = dgDay(); M.chestOpen = true;
-  const L = M.D.lvl[1] + 1, from = { x: o.x, y: o.y + 18 };
+  HERO.dg[M.id] = dgDay(); M.chestOpen = true; orCount('chests');
+  const L = (M.lvl || M.D.lvl)[1] + 1, from = { x: o.x, y: o.y + 18 };
   for (let j = 0; j < 4; j++) dropLoot(from, 'gold', monGold(L) * 4);
   dropLoot(from, 'potion'); dropLoot(from, 'potion');
   dropLoot(from, 'item', 0, makeItem(pick(SLOTS), L, rollRarity(true)));
@@ -13030,16 +13195,18 @@ function dgNear(){
   let near = null;
   if (Math.abs(k.x - M.stair.x) < 30 && k.y - M.stair.y < 62) near = 'stair';
   else if (M.chest && !M.chestOpen && Math.abs(k.x - M.chest.x) < 30 && Math.abs(k.y - M.chest.y - 14) < 26) near = 'chest';
+  else for (const [li, L] of (M.levers || []).entries()) if (L && Math.abs(k.x - L.o.x) < 30 && k.y - L.o.y > -8 && k.y - L.o.y < 42){ near = 'lever:' + li; break; }
   if (near !== G.dgNear){
     G.dgNear = near;
     const b = $('btnTalk'); b.hidden = !near;
-    b.textContent = near === 'stair' ? 'Hinaufsteigen' : 'Truhe öffnen';
+    b.textContent = near === 'stair' ? 'Hinaufsteigen' : near === 'chest' ? 'Truhe öffnen' : near && G.lever === +near.slice(6) ? 'Hebel loslassen' : 'Hebel ziehen';
   }
 }
 function dgInteract(){
   if (G.mode !== 'play') return;
   if (G.dgNear === 'stair') leaveDungeon();
   else if (G.dgNear === 'chest'){ dgOpenChest(); G.dgNear = 'neu'; dgNear(); }
+  else if (G.dgNear && G.dgNear.startsWith('lever:')) dgPull(+G.dgNear.slice(6));
 }
 function updateDungeon(dt){
   const M = DG_ON, k = G.knight;
@@ -13048,6 +13215,7 @@ function updateDungeon(dt){
   updateLoot(dt);
   if (G.mode === 'play'){ updateMons(dt); updateShots(dt); }
   updateFx(dt); updateBossBar(); dgNear();
+  if (M.D.group) dgGroupTick(M);
   // erkundete Felder (für die kleine Karte)
   const ti = Math.floor((k.x - M.ox) / DG_T), tj = Math.floor((k.y - M.oy) / DG_T);
   for (let j = tj - 6; j <= tj + 6; j++) for (let i = ti - 8; i <= ti + 8; i++) if (i >= 0 && j >= 0 && i < M.C && j < M.Rn) M.seen[j * M.C + i] = 1;
@@ -13056,6 +13224,86 @@ function updateDungeon(dt){
   if (G.dripT <= 0){ G.dripT = rand(2.5, 6); Sound.tone(rand(1500, 2100), .06, 'sine', .012, -400); }
   sendPresence(); HERO.played += dt; G.saveT += dt;
   if (G.saveT > 8){ G.saveT = 0; saveHero(); }
+}
+/* ---------- Gruppen-Gewölbe: Hebel halten, Fallgitter, Bergdrache ----------
+   Wer einen Hebel zieht, hält ihn, solange er daneben steht; das steht in seiner Anwesenheit (hl). Sind alle Hebel
+   eines Gitters zugleich gezogen, geht es auf; wer es offen gesehen hat, meldet das (go), so sehen es alle im Bergwerk.
+   Das Leben des Drachen ist die Summe der Stufenanteile aller Kämpfer weniger dem gemeldeten Schaden (dd). */
+const dgLeverDown = li => G.lever === li || [...PEERS.values()].some(q => q.in === 'dg:' + DG_ON.id && q.hl === li && !q.dead);
+function dgPull(li){
+  const M = DG_ON, L = M.levers[li]; if (!L) return;
+  if (G.lever === li){ G.lever = null; Sound.tone(220, .1, 'square', .03); }
+  else {
+    G.lever = li; Sound.tone(160, .25, 'sawtooth', .04, -40); G.shake = .1;
+    const gt = M.gates[L.gate], other = gt.levers.find(x => x !== li);
+    const held = other != null && dgLeverDown(other);
+    floatText(L.o.x, L.o.y - 46, held ? 'Beide Hebel!' : 'Haltet den Hebel …', held ? '#9fe08a' : '#ffd98a', 1, 1.6);
+    if (!held && !gt.open) logLine('Ihr haltet den Hebel. Ein Gefährte muss zugleich den zweiten Hebel im anderen Seitenstollen ziehen.', '#ffd98a');
+  }
+  G.dgNear = 'neu'; dgNear(); sendPresence(true);
+}
+function dgOpenGate(M, gi, byLever){
+  const gt = M.gates[gi]; if (gt.open) return;
+  gt.open = true;
+  for (const t of gt.tiles) M.blk[t] = 0;
+  M.openG = M.gates.map((g, i) => g.open ? i : -1).filter(i => i >= 0);
+  burst(gt.o.x, gt.o.y - 20, ['#6e5a42', '#9a948a', '#c9c2ad'], 24, 90); G.shake = .35;
+  Sound.tone(70, .9, 'sawtooth', .05, 30); Sound.tone(110, .6, 'square', .02, 60, .15);
+  logLine(byLever ? 'Mit Rasseln fährt das Fallgitter hoch!' : 'Ein Fallgitter steht offen.', '#ffd98a');
+  if (byLever) showBanner('Fallgitter offen', gi === M.gates.length - 1 ? 'Dahinter liegt der Hort des Drachen' : 'Weiter in die Tiefe');
+  sendPresence(true);
+}
+function dgGroupTick(M){
+  const k = G.knight, here = 'dg:' + M.id, peers = [...PEERS.values()].filter(q => q.in === here);
+  if (G.lever != null){ const L = M.levers[G.lever]; if (!L || G.mode !== 'play' || k.hp <= 0 || Math.hypot(k.x - L.o.x, k.y - L.o.y - 20) > 52){ G.lever = null; G.dgNear = 'neu'; sendPresence(true); } }
+  M.gates.forEach((gt, gi) => {
+    if (gt.open) return;
+    const held = gt.levers.length > 1 && gt.levers.every(li => dgLeverDown(li));
+    if (held || peers.some(q => q.go && q.go.includes(gi))) dgOpenGate(M, gi, held);
+  });
+  const boss = G.mons.find(m => m.grp); if (!boss) return;
+  const key = M.id + ':' + dgDay();
+  for (const q of peers){ const dd = q.dd; if (dd && dd.k === key) M.ddSeen.set(q.by || q.peer, { lv: q.lv, d: clamp(+dd.d || 0, 0, 1e7) }); }
+  const parts = [{ lv: HERO.lvl, d: M.bossDmg || 0 }].concat([...M.ddSeen.values()]);
+  const maxHp = Math.round(parts.reduce((a, p) => a + monHp('lindwurm', clamp(p.lv, 1, MAX_LVL)), 0) * 1.2), dealt = parts.reduce((a, p) => a + p.d, 0);
+  boss.max = maxHp; boss.hp = Math.max(1, maxHp - dealt);
+  if (dealt >= maxHp){ if (M.bossDmg > 0) boss.by = 'me'; kill(boss); }
+}
+/* der Bergdrache: rot und bronzen statt grün */
+function tintArt(art, f){
+  const tint = src => {
+    const c = canvasOf(src.width, src.height), g = c.getContext('2d'); g.drawImage(src, 0, 0);
+    const id = g.getImageData(0, 0, c.width, c.height), d = id.data;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3]){ const o = f(d[i], d[i + 1], d[i + 2]); d[i] = o[0]; d[i + 1] = o[1]; d[i + 2] = o[2]; }
+    g.putImageData(id, 0, 0); return c;
+  };
+  const fr = s => ({ img: tint(s.img), glow: s.glow ? tint(s.glow) : null, white: s.white });
+  const side = o => ({ r: o.r.map(fr), l: o.l.map(fr) });
+  const out = Object.assign({}, art, { move: side(art.move), idle: side(art.idle), act: side(art.act) });
+  if (art.segs) out.segs = art.segs.map(s => Object.assign({}, s, { img: tint(s.img) }));
+  if (art.tail) out.tail = Object.assign({}, art.tail, { img: tint(art.tail.img) });
+  return out;
+}
+let DRAKE = null;
+const drakeArt = () => DRAKE || (DRAKE = tintArt(BOSS_ART.lindwurm, (r, g, b) => [Math.min(255, g * 1.2 + 16), r * .62 + b * .2 + 6, b * .55]));
+const drakeParts = () => drakeArt().segs.concat(drakeArt().tail ? [drakeArt().tail] : []);
+function dgDrakeKill(m){
+  const M = DG_ON, c = centerOf(m), from = { x: m.x, y: m.y };
+  HERO.kills++; HERO.dgBoss = HERO.dgBoss || {}; HERO.dgBoss[M.id] = dgDay(); orCount('kills'); orCount('boss');
+  Sound.kill(); Sound.thunder(); G.flash = .5; G.shake = .4;
+  burst(c.x, c.y, ['#a84020', '#e0a040', '#401810', '#ffd36a'], 50, 140, true);
+  for (const sg of wurmSegs(m)) burst(sg.x, sg.cy, ['#a84020', '#e0a040', '#401810'], 8, 70);
+  for (let j = 0; j < 5; j++) dropLoot(from, 'gold', monGold(m.lvl) * 4);
+  dropLoot(from, 'potion'); dropLoot(from, 'potion');
+  HERO.dgFirst = HERO.dgFirst || {};
+  if (!HERO.dgFirst.drache){ HERO.dgFirst.drache = true; dropLoot(from, 'item', 0, makeItem('waffe', m.lvl + 1, 4, { name: 'Drachenzahn', aff: ['str', 'crit', 'spd'] })); }
+  else dropLoot(from, 'item', 0, makeItem(pick(SLOTS), m.lvl, 3));
+  dropLoot(from, 'item', 0, makeItem(pick(SLOTS), m.lvl, rollRarity(true)));
+  if (m.by === 'me') NET.kx = { n: NET.kx.n + 1, s: NET.kx.s + monXp('lindwurm', m.lvl), l: m.lvl };
+  const xp = Math.round(monXp('lindwurm', m.lvl) * 1.5 * xpMul(m.lvl - HERO.lvl)); if (xp > 0) gainXp(xp);
+  showBanner('Der Bergdrache ist erschlagen', 'Die Truhe im Hort ist frei');
+  logLine('Der Bergdrache ist erschlagen! ' + M.D.chestN[0].toUpperCase() + M.D.chestN.slice(1) + ' gehört Euch.', '#ecd27a');
+  pushFame(); updateHud(); markDirty(true);
 }
 /* ---------- Zeichnen ---------- */
 function dgSeg(s, k){
@@ -13067,7 +13315,12 @@ function dgSeg(s, k){
   if (b > a){ ctx.globalAlpha = .45; ctx.drawImage(s.c, a, 0, b - a, h, s.x0 + a, s.y0, b - a, h); ctx.globalAlpha = 1; }
   if (b < s.c.width) ctx.drawImage(s.c, b, 0, s.c.width - b, h, s.x0 + b, s.y0, s.c.width - b, h);
 }
-function dgObjImg(o){ return o.chest && DG_ON.chestOpen ? (o.openImg || (o.openImg = wp_paintV('truhe', 1, 1).img)) : o.img; }
+function dgObjImg(o){
+  if (o.chest && DG_ON.chestOpen) return o.openImg || (o.openImg = wp_paintV('truhe', 1, 1).img);
+  if (o.lever != null && dgLeverDown(o.lever)) return o.downImg || (o.downImg = wp_paintV('hebel', 1, 1).img);
+  if (o.gate != null && DG_ON.gates[o.gate].open) return o.openImg || (o.openImg = wp_paintV('gitter', 1, 1).img);
+  return o.img;
+}
 function dgLights(cam){
   const M = DG_ON, k = G.knight, L = [], v = (x, y, m) => x > cam.x - m && x < cam.x + W + m && y > cam.y - m && y < cam.y + H + m;
   L.push([k.x, k.y - 24, 210, .95, 0]);
@@ -13148,10 +13401,12 @@ function renderDungeon(){
 }
 /* kleine Karte: erkundete Felder, Treppe, Truhe, Monster im Kampf */
 function dgMiniMap(){
-  const M = DG_ON, k = G.knight, g = mmG, s = 2, mw = M.C * s, mh = M.Rn * s, mx = 2 + Math.max(0, (MM_W - mw) >> 1), my = 2 + Math.max(0, (MM_H - mh) >> 1);
+  const M = DG_ON, k = G.knight, g = mmG, s = 2, mw = M.C * s, mh = M.Rn * s, mx = 2 + Math.max(0, (MM_W - mw) >> 1);
+  const my = 2 + (mh <= MM_H ? (MM_H - mh) >> 1 : clamp(Math.round(MM_H / 2 - (k.y - M.oy) / DG_T * s), MM_H - mh, 0));   // höher als die Karte: mit dem Ritter wandern
   g.fillStyle = OUT; g.fillRect(0, 0, MM_W + 4, MM_H + 4);
   g.fillStyle = '#7d6414'; g.fillRect(1, 1, MM_W + 2, MM_H + 2);
   g.fillStyle = '#0e0d12'; g.fillRect(2, 2, MM_W, MM_H);
+  g.save(); g.beginPath(); g.rect(2, 2, MM_W, MM_H); g.clip();
   for (let j = 0; j < M.Rn; j++) for (let i = 0; i < M.C; i++){
     const q = j * M.C + i; if (!M.seen[q]) continue;
     g.fillStyle = M.g[q] ? '#2a2630' : M.blk[q] ? '#4a4450' : '#6a6270'; g.fillRect(mx + i * s, my + j * s, s, s);
@@ -13161,7 +13416,10 @@ function dgMiniMap(){
   if (M.chest && M.seen[M.chest.ty * M.C + M.chest.tx]){ q = P(M.chest.x, M.chest.y); g.fillStyle = M.chestOpen ? '#7a6a40' : '#ffd541'; g.fillRect(q[0] - 1, q[1] - 2, 3, 3); }
   for (const m of G.mons) if (m.mode === 'fight' || m.elite){ q = P(m.x, m.y); g.fillStyle = m.elite ? '#ff7a40' : '#d0343c'; g.fillRect(q[0], q[1], 2, 2); }
   for (const p of PEERS.values()) if (p.in === 'dg:' + M.id){ q = P(p.x, p.y); g.fillStyle = inParty(p) ? '#7fe08a' : '#9cc8ff'; g.fillRect(q[0], q[1], 2, 2); }
+  for (const gt of M.gates || []){ q = P(gt.o.x, gt.o.y - 16); g.fillStyle = gt.open ? '#5a9a4a' : '#d0343c'; g.fillRect(q[0] - 2, q[1], 5, 2); }
+  for (const L of M.levers || []) if (L && M.seen[L.o.ty * M.C + L.o.tx]){ q = P(L.o.x, L.o.y); g.fillStyle = dgLeverDown(M.levers.indexOf(L)) ? '#ffd541' : '#a8862a'; g.fillRect(q[0] - 1, q[1] - 1, 2, 2); }
   q = P(k.x, k.y); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3);
+  g.restore();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(mmCv, Math.round(W - (MM_W + 4) * MM_Z - 6), Math.round(H - (MM_H + 4) * MM_Z - 6), Math.round((MM_W + 4) * MM_Z), Math.round((MM_H + 4) * MM_Z));
 }
@@ -13675,7 +13933,7 @@ function monFrame(m){
   return set[i];
 }
 function monXY(m){
-  const art = artOf(m.k);
+  const art = m.art || artOf(m.k);
   let ox = 0, oy = 0;
   if (m.k === 'raubritter' && m.st === 'wind' && m.sT > .3) ox = (G.t * 30 | 0) % 2 ? 1 : -1;
   if (m.k === 'werwolf' && m.st === 'aim' && m.sT > .25) ox = (G.t * 24 | 0) % 2;
@@ -13865,7 +14123,9 @@ function render(){
   for (const m of G.mons) if (!MON[m.k].fly && inView(m.x, m.y, cam, 120)) list.push({ y: m.y + .1, d: () => drawMon(m) });
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
   for (const e of lifeL) list.push({ y: (e.sy || e.y) + .05, d: () => drawLife(e) });
-  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => drawKnightAt(p, knightSet(p.f, p.lk), p.dead, 1) });
+  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => { drawKnightAt(p, knightSet(p.f, p.lk), p.dead, 1); if (p.bk) drawBucket(p.x - 14, p.y - 14); } });
+  evList(cam, list);
+  if (G.bucket && !title) list.push({ y: k.y + .21, d: () => drawBucket(k.x - 14, k.y - 14) });
   if (!title) list.push({ y: k.y + .2, d: drawKnight });
   festList(cam, list);
   list.sort((p, q) => p.y - q.y);
@@ -13895,7 +14155,7 @@ function render(){
 
   ctx.setTransform(1, 0, 0, 1, sx - cam.x, sy - cam.y);
   for (const f of GFIRES) if (inView(f.x, f.y, cam)) flameHD(f.x, f.y, G.t + f.x * .01, f.big);
-  festFlames(cam);
+  festFlames(cam); evFlames(cam);
   for (const m of G.mons) if (inView(m.x, m.y, cam, 120)) drawMon(m, true);
   for (const m of G.mons) if (m.k === 'lindwurm' && m.st === 'breath' && (G.t * 18 | 0) % 2){
     const mz = mouthOf(m); ctx.fillStyle = '#ffd36a'; ctx.fillRect(Math.round(mz.x) - 2, Math.round(mz.y) - 1, 4, 3);
@@ -13920,6 +14180,7 @@ function render(){
       const up = p.ride ? 15 : 0;
       const pal = inParty(p);
       drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15 - up, pal ? '#9fe08a' : '#9cc8ff');
+      if (p.or){ const tw = textImg(p.nm + ' ' + p.lv, '#ffffff').width; ctx.drawImage(orBanner(p.or.wp), Math.round(p.x - tw / 2 - 16), Math.round(p.y - KS.ay - 21 - up)); }
       if (pal){ const x0 = Math.round(p.x - 12), y0 = Math.round(p.y - KS.ay - 3 - up); ctx.fillStyle = OUT; ctx.fillRect(x0, y0, 24, 4); ctx.fillStyle = '#3a1416'; ctx.fillRect(x0 + 1, y0 + 1, 22, 2); ctx.fillStyle = '#7fd65f'; ctx.fillRect(x0 + 1, y0 + 1, Math.round(22 * p.hp / 100), 2); }
       if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11 - up, p.say);
     }
@@ -14246,12 +14507,30 @@ for (const [f, name, desc] of [['reich', 'Gruppe', 'bis zu vier Ritter. Erschlä
 { const li = el('li'), im = el('img'), wh = el('span', 'what', 'Würfeln gegen einen Ritter');
   im.src = urlOf(INN_ART.landsknecht.frames[0], 2); im.alt = '';
   wh.append(el('small', null, 'im Gasthaus um 5, 20 oder 50 Gulden: beide werfen drei Würfel und dürfen einmal nachwerfen, der bessere Wurf gewinnt den Einsatz des anderen.')); li.append(im, wh); $('mpList').append(li); }
+queueMicrotask(() => {   // Ordensbanner erst, wenn das Ordensmodul geladen ist
+for (const [src, name, desc] of [[orBanner([3, 7, 0]), 'Ritterorden', 'beim Herold gegründet (100 Gulden) mit Namen, Kürzel und Wappen; Ordensritter nehmen andere auf, die vor ihnen stehen. Jede Woche eine gemeinsame Aufgabe mit Ordenslohn, „/o“ vor einer Nachricht schreibt nur an den Orden.'],
+  [knightSet('frankreich').icon, 'Großes Turnier', 'beim Herold ausgerufen: bis zu acht Ritter im K.-o.-System, ein Tjost nach dem anderen. Startgeld 20 Gulden, der Sieger bekommt drei Fünftel des Topfs, beim ersten Mal den Goldenen Turnierhelm.']]){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+  im.src = urlOf(src, 3); im.alt = '';
+  wh.append(el('small', null, desc)); li.append(im, wh); $('mpList').append(li);
+}
+});
 for (const [art, name, desc] of [[BOSS_ART.raubritter, 'Überfall auf Lindach', 'jeden Spieltag um 9 Uhr, also alle 24 Minuten: Eine Raubritterbande zieht ins Dorf, das dann nicht mehr sicher ist. Sind genug Räuber vertrieben (je mehr Ritter, desto mehr), stellt sich ihr Hauptmann Eppelein von Gailingen.'],
   [ghostArt(MON_ART.werwolf), 'Die Wilde Jagd', 'jede Spielnacht um 22 Uhr, im Wechsel über dem Finsterwald, dem Moor und dem Galgenberg: der Wilde Jäger mit seinen Geisterhunden. Bis zum Morgengrauen muss er gebannt sein.']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
   im.src = urlOf(art.idle.r[0].img, 1); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh); $('evList').append(li);
 }
+/* Nachmittags im Dreitagewechsel (Bilder: Eimer, Rattenkönig, Kaiser) */
+queueMicrotask(() => {   // Eimer und Rattenbild sind weiter unten erklärt
+  const BK = canvasOf(14, 17); BK.getContext('2d').drawImage(BUCKET, 0, 0);
+  for (const [src, name, desc] of [[BK, 'Brand der Reichsstadt', 'jeden dritten Spieltag um 15 Uhr: Acht Häuser fangen nacheinander Feuer. Füllt am Brunnen einen Eimer (E) und löscht am brennenden Haus; je mehr Ritter, desto mehr Eimer braucht ein Feuer.'],
+    [null, 'Der Rattenkönig', 'am folgenden Spieltag um 15 Uhr im Dorf am Fluss: Pestratten in Scharen, dann kriecht der Rattenkönig aus dem Kornspeicher. Sein Leben teilen sich alle Kämpfer.'],
+    [knightSet('reich', '44444').icon, 'Der Kaiser kommt', 'am dritten Spieltag um 15 Uhr: Kaiser Karl zieht mit zwei Reichsrittern von der Reichsburg in die Reichsstadt. An drei Stellen lauern Strauchdiebe, der Zug wartet, bis sie vertrieben sind.']]){
+    const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+    im.src = urlOf(src || MON_ART.ratte.idle.r[0].img, src === BK ? 3 : 2); im.alt = '';
+    wh.append(el('small', null, desc)); li.append(im, wh); $('evList').append(li);
+  } });
 /* Jahreszeiten, Gewölbe, Jagd: Tafeln */
 const SEA_ICON = {
   bluete: makeSprite(['...a...', '.a.a.a.', '..aaa..', 'aaabaaa', '..aaa..', '.a.a.a.', '...a...'], { a:'#f0c8d4', b:'#f0d050' }, OUT),
@@ -14270,6 +14549,10 @@ for (const id of ['krypta', 'keller']){
   wh.append(el('small', null, 'Stufe ' + D.lvl[0] + '–' + D.lvl[1] + ', ' + (id === 'krypta' ? 'neben der Klosterkirche' : 'im Hof der Raubritterburg') + '. ' + D.elite.name + ' bewacht ' + D.chest + '.'));
   li.append(im, wh); $('dgList').append(li);
 }
+{ const D = DG_DEF.bergwerk, li = el('li'), im = el('img'), wh = el('span', 'what', D.name);
+  im.src = urlOf(wp_paintV('stollen', 0, 1).img, 1); im.alt = ''; im.className = 'horseimg';
+  wh.append(el('small', null, 'im Finsterwald, für Gruppen: Die Stufe richtet sich nach dem stärksten Gefährten (ab 8). Zwei Fallgitter öffnen sich nur, wenn zwei Ritter die Hebel in den Seitenstollen zugleich ziehen. Der Bergdrache bewacht ' + D.chest + ', sein Leben teilen sich alle Kämpfer.'));
+  li.append(im, wh); $('dgList').append(li); }
 for (const [kind, name, wares] of [['hase', 'Hase', ['hasenbalg', 'wildbret']], ['reh', 'Reh', ['rehfell', 'wildbret']], ['hirsch', 'Hirsch', ['geweih', 'hirschfell', 'wildbret']],
   ['fuchs', 'Fuchs', ['fuchsbalg']], ['wildschwein', 'Wildschwein', ['hauer', 'schwarte', 'wildbret']]]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name + (kind === 'wildschwein' ? ' (wehrt sich)' : ''));
@@ -14385,7 +14668,7 @@ function renderTracker(){
   box.textContent = '';
   if (!HERO) return;
   if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
-  evRows(box); partyRows(box);
+  evRows(box); tnRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');
@@ -14622,18 +14905,22 @@ function updateNear(){
   if (G.inside) exit = !best && k.y > ROOM_DOOR.y - 26 && Math.abs(k.x - ROOM_DOOR.x) < 24;
   else if (!best) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 18 && k.y > inn.y && k.y - inn.y < 44) door = inn;
   if (!best && !door && !G.inside) for (const d of DG_DOORS) if (Math.abs(k.x - d.x) < 28 && k.y > d.y - 8 && k.y - d.y < 46) door = d;
-  const pq = !door && cloud.room ? nearPeer(bd) : null;   // ein Ritter steht näher als jeder andere
+  let pq = !door && cloud.room ? nearPeer(bd) : null;   // ein Ritter steht näher als jeder andere
   if (pq){ best = null; exit = false; }
-  if (best !== G.near || door !== G.nearDoor || exit !== G.nearExit || pq !== G.nearPeer){
-    G.near = best; G.nearDoor = door; G.nearExit = exit; G.nearPeer = pq;
+  const ea = G.inside ? null : evAction();   // Weltereignis: Eimer füllen, Feuer löschen
+  if (ea){ best = null; door = null; exit = false; pq = null; }
+  const eaKey = ea ? ea.key : '';
+  if (best !== G.near || door !== G.nearDoor || exit !== G.nearExit || pq !== G.nearPeer || eaKey !== (G.evActKey || '')){
+    G.near = best; G.nearDoor = door; G.nearExit = exit; G.nearPeer = pq; G.evAct = ea; G.evActKey = eaKey;
     const b = $('btnTalk');
-    b.hidden = !best && !door && !exit && !pq;
-    b.textContent = pq ? 'Ritter ansprechen: ' + pq.nm : best ? 'Sprechen: ' + best.name : door ? (door.dg ? 'Hinabsteigen: ' : 'Eintreten: ') + door.name : 'Hinausgehen';
+    b.hidden = !best && !door && !exit && !pq && !ea;
+    b.textContent = ea ? ea.label : pq ? 'Ritter ansprechen: ' + pq.nm : best ? 'Sprechen: ' + best.name : door ? (door.dg ? 'Hinabsteigen: ' : 'Eintreten: ') + door.name : 'Hinausgehen';
   }
 }
 function talk(){
   if (G.mode !== 'play') return;
   if (DG_ON) return dgInteract();
+  if (G.evAct) return evDo(G.evAct);
   if (G.nearPeer && PEERS.get(G.nearPeer.peer) === G.nearPeer) openPeer(G.nearPeer);
   else if (G.near) openTalk(G.near);
   else if (G.nearDoor) (G.nearDoor.dg ? enterDungeon : enterInn)(G.nearDoor);
@@ -14707,7 +14994,7 @@ function renderTalk0(view){
     if (n.shop){ opts.append(btn('Handeln: kaufen', () => renderTalk('buy'), 'opt'), btn('Handeln: verkaufen', () => renderTalk('sell'), 'opt')); }
     if (n.stable) opts.append(btn('Pferde ansehen', () => renderTalk('stable'), 'opt'));
     if (n.smith) opts.append(btn('Ausrüstung verbessern', () => renderTalk('smith'), 'opt'));
-    if (n.joust) opts.append(btn('Zum Tjost antreten', () => renderTalk('joust'), 'opt'));
+    if (n.joust) opts.append(btn('Zum Tjost antreten', () => renderTalk('joust'), 'opt'), btn('Großes Turnier' + (tnView() ? ' (' + (tnView().T.st === 'an' ? 'Anmeldung' : 'läuft') + ')' : ''), () => renderTalk('turnier'), 'opt'), btn('Wappenrolle: Ritterorden' + (HERO.or ? ' (' + HERO.or.kz + ')' : ''), () => renderTalk('orden'), 'opt'));
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -14763,6 +15050,10 @@ function renderTalk0(view){
     festTalkView(view, body, opts);
   } else if (view === 'dice'){
     diceView(body, opts);
+  } else if (view === 'turnier'){
+    turnierView(body, opts);
+  } else if (typeof view === 'string' && view.startsWith('orden')){
+    ordenView(view, body, opts);
   } else if (view === 'joust'){
     $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
       + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';
@@ -14960,6 +15251,7 @@ function startGame(hero){
   refreshStats();
   G = freshState('play');
   NET.pt = HERO.pt ? { id: HERO.pt.id, t: HERO.pt.t } : null; NET.ptT = nowS(); NET.alone = 0; NET.mem = {};
+  orSubscribe();
   EVT.cur = null;
   G.knight.hp = ST.hp;
   for (const s of SPAWN_SLOTS){ s.mon = null; s.t = 0; }
@@ -15183,7 +15475,7 @@ function saveHero(){
   HERO.savedAt = Date.now();
   store.set(SAVE_KEY, JSON.stringify(HERO));
   dirty = false;
-  cloudSave();
+  cloudSave(); pushFame();
 }
 function cloudSave(force){
   if (!cloud.db || !cloud.uid || cloud.noWrite || !HERO) return;
@@ -15279,9 +15571,11 @@ function sendPresence(force){
   cloud.room.presence(pr).catch(() => {});
 }
 function sendChat(text){
-  G.say = text; G.sayT = nowS() + 6;
-  logChat(HERO.name, text, true); Sound.chat();
-  if (cloud.room && cloud.room.connected()) cloud.room.emit('chat', { nm: HERO.name, t: text }).catch(() => {});
+  const om = /^\/o\s+/i.test(text) && HERO.or ? text.replace(/^\/o\s+/i, '') : null;   // „/o …“: nur an den eigenen Orden
+  if (om !== null && !om) return;
+  if (om === null){ G.say = text; G.sayT = nowS() + 6; }
+  logChat(om !== null ? '[' + HERO.or.kz + '] ' + HERO.name : HERO.name, om !== null ? om : text, true); Sound.chat();
+  if (cloud.room && cloud.room.connected()) cloud.room.emit('chat', om !== null ? { nm: HERO.name, t: om, or: HERO.or.id } : { nm: HERO.name, t: text }).catch(() => {});
 }
 function logChat(nm, text, me){
   const n = el('b', null, nm + ': '); n.style.color = me ? '#ecd27a' : '#9cc8ff';
@@ -15303,9 +15597,10 @@ function setupRoom(room){
     if (msg.sameTab) return;
     const d = msg.data || {}, t = cleanText(d.t, 120);
     if (!t) return;
+    if (d.or && (!HERO || !HERO.or || d.or !== HERO.or.id)) return;   // Ordensgespräch eines anderen Ordens
     const q = PEERS.get(msg.peer), nm = q ? q.nm : (cleanName(d.nm) || 'Ritter');
-    if (q){ q.say = t; q.sayT = nowS() + 6; }
-    logChat(nm, t, false); Sound.chat();
+    if (q && !d.or){ q.say = t; q.sayT = nowS() + 6; }
+    logChat(d.or ? '[' + HERO.or.kz + '] ' + nm : nm, t, false); Sound.chat();
   }, () => {});
   if (HERO && G && G.mode !== 'title') sendPresence(true);
 }
@@ -15336,7 +15631,7 @@ function initCloud(){
       cloud.allRows = snap.docs.map(s => Object.assign({ id: s.id }, s.data() || {}));
       if (fameTab !== 'ritter') renderFameTab();
     }, () => {});
-    if (HERO && G.mode !== 'title'){ cloudSave(true); pushFame(); }
+    if (HERO && G.mode !== 'title'){ cloudSave(true); pushFame(); orSubscribe(); }
   };
   C.use('db').then(v => { db = v; ready(); }).catch(() => ready());
   C.use('user').then(u => {
@@ -15360,7 +15655,9 @@ const ASK = {
   party: { ask: 'Ihr ladet % in Eure Gruppe ein.', them: '% lädt Euch in die Gruppe ein.' },
   duel:  { ask: 'Ihr fordert % zum Tjost.', them: '% fordert Euch zum Tjost an der Schranke.' },
   trade: { ask: 'Ihr bittet % zum Handel.', them: '% möchte mit Euch handeln.' },
-  dice:  { ask: 'Ihr bittet % an den Würfeltisch.', them: '% möchte mit Euch um # Gulden würfeln.' }
+  dice:  { ask: 'Ihr bittet % an den Würfeltisch.', them: '% möchte mit Euch um # Gulden würfeln.' },
+  tourn: { ask: 'Ihr meldet Euch beim Großen Turnier von % an.', them: '' },
+  order: { ask: 'Ihr bietet % die Aufnahme in Euren Orden an.', them: '% bietet Euch die Aufnahme in den Orden „#“ an.' }
 };
 const hereId = () => DG_ON ? 'dg:' + DG_ON.id : G.inside ? G.inside.id : 0;
 const samePlace = q => (q.in || 0) === hereId();
@@ -15382,6 +15679,9 @@ function netRead(q, p, s){
   q.rq = obj(s.q); q.an = obj(s.a); q.jo = obj(s.jo); q.tr = obj(s.tr); q.dc = obj(s.dc); q.ev = obj(s.ev); q.fr = obj(s.fr);
   const pt = obj(s.pt); q.pt = pt && typeof pt.id === 'string' && /^[a-z0-9]{3,12}$/.test(pt.id) ? { id: pt.id, t: +pt.t || 0 } : null;
   q.bz = typeof s.bz === 'string' ? s.bz.slice(0, 2) : '';
+  q.or = orClean(s.or);
+  q.gt = obj(s.gt); q.bk = !!s.bk;
+  q.hl = Number.isInteger(s.hl) ? s.hl : null; q.go = Array.isArray(s.go) ? s.go.filter(Number.isInteger).slice(0, 8) : null; q.dd = obj(s.dd);
   const kx = obj(s.kx); q.kx = kx ? { n: Math.max(0, kx.n | 0), s: Math.max(0, +kx.s || 0), l: num(kx.l, 1, MAX_LVL + 3, 1) } : null;
   q.safeZ = isSafe(q.z); q.safe = q.safeZ || nearInn(q.x, q.y) || nearFest(q.x, q.y);
 }
@@ -15391,6 +15691,13 @@ function netPres(){
   o.a = NET.a ? { to: NET.a.to, n: NET.a.n, ok: NET.a.ok } : null;
   o.pt = NET.pt ? { id: NET.pt.id, t: NET.pt.t } : null;
   o.kx = NET.pt ? NET.kx : null;
+  o.or = HERO.or ? { id: HERO.or.id, nm: HERO.or.nm, kz: HERO.or.kz, wp: HERO.or.wp } : null;
+  o.gt = NET.gt ? tnPres() : null;
+  o.bk = G.bucket ? 1 : null;
+  const M = DG_ON && DG_ON.D.group ? DG_ON : null;
+  o.hl = M && G.lever != null ? G.lever : null;
+  o.go = M && M.openG.length ? M.openG : null;
+  o.dd = M ? { k: M.id + ':' + dgDay(), d: Math.round(M.bossDmg || 0) } : null;
   o.bz = G.joust ? 'j' : G.fgame ? 'f' : NET.tr ? 'h' : NET.dc ? 'w' : '';
   o.jo = NET.jo ? duelPres() : null;
   o.tr = NET.tr ? tradePres() : null;
@@ -15419,6 +15726,12 @@ function netBusy(kind, q, mine){
   if (kind === 'party' && mine && NET.pt && partyList().length >= PARTY_MAX - 1) return 'Eure Gruppe ist voll.';
   if (kind === 'duel' && (!nearLists(G.knight.x, G.knight.y) || !nearLists(q.x, q.y) || !samePlace(q))) return 'Zum Tjost müssen beide Ritter auf der Turnierwiese stehen.';
   if (kind === 'duel' && (DG_ON || G.inside)) return 'Zum Tjost müssen beide Ritter auf der Turnierwiese stehen.';
+  if (kind === 'order' && mine && !HERO.or) return 'Ihr gehört keinem Orden an.';
+  if (kind === 'tourn' && mine && NET.tj) return 'Ihr seid schon gemeldet.';
+  if (kind === 'tourn' && mine && HERO.gold < TN_FEE) return 'Das Startgeld beträgt ' + TN_FEE + ' Gulden.';
+  if (kind === 'duel' && NET.tj) return mine ? 'Ihr seid zum Großen Turnier gemeldet.' : 'Gerade nicht.';
+  if (kind === 'order' && mine && q.or && q.or.id === HERO.or.id) return q.nm + ' ist schon in Eurem Orden.';
+  if (kind === 'order' && !mine && !(q.or && q.or.id === q.rq.x)) return 'Gerade nicht.';
   if (kind === 'trade' && (!samePlace(q) || peerDist(q) > 260)) return who === 'Ihr' ? 'Zu weit weg.' : q.nm + ' ist zu weit weg.';
   if (kind === 'dice'){
     if (!G.inside || !samePlace(q)) return 'Gewürfelt wird im Gasthaus.';
@@ -15441,6 +15754,16 @@ function netBegin(kind, q, r, asker){
   else if (kind === 'duel') startDuel(q, r.n, asker);
   else if (kind === 'trade') startTrade(q, r.n);
   else if (kind === 'dice') startDicePvp(q, r.n, +r.x || 0);
+  else if (kind === 'tourn' && asker){
+    if (HERO.gold >= TN_FEE){ HERO.gold -= TN_FEE; updateHud(); markDirty(true); }
+    NET.tj = { id: r.x, host: q.peer, paid: true };
+    logLine('Ihr seid zum Großen Turnier gemeldet. Bleibt auf der Turnierwiese, bis ' + q.nm + ' beginnt.', '#ffd98a'); Sound.coin();
+    if (G.talk && G.talk.view === 'turnier') renderTalk('turnier');
+  }
+  else if (kind === 'order'){
+    if (asker){ if (HERO.or){ logLine(q.nm + ' ist nun Ritter Eures Ordens.', '#ffd98a'); Sound.quest(); } }
+    else if (q.or){ if (HERO.or && HERO.or.id !== q.or.id) logLine('Ihr verlasst den Orden „' + HERO.or.nm + '“.', '#d8c69c'); orJoin(q.or, false); showBanner(q.or.nm, 'Ihr seid aufgenommen'); logLine('Ihr seid nun Ritter des Ordens „' + q.or.nm + '“. Beim Herold steht die Wochenaufgabe des Ordens.', '#ffd98a'); Sound.quest(); }
+  }
 }
 function netTick(){
   if (!HERO || !G || G.mode === 'title' || !cloud.room) return;
@@ -15460,6 +15783,11 @@ function netTick(){
     const key = q.peer + ':' + r.n;
     if (NET.seen[key]) continue;
     NET.seen[key] = 1;
+    if (r.k === 'tourn'){   // Anmeldung zum Großen Turnier: der Marschall nimmt an, solange Platz ist
+      const T = NET.gt, ok = T && T.st === 'an' && r.x === T.id && T.pl.length < TN_MAX && !T.pl.includes(q.peer);
+      if (ok){ T.pl.push(q.peer); T.nm.push(q.nm); logLine(q.nm + ' meldet sich zum Großen Turnier.', '#ffd98a'); Sound.chat(); }
+      NET.a = { to: q.peer, n: r.n, ok: ok ? 1 : 0, t }; continue;
+    }
     if (netBusy(r.k, q, false)){ NET.a = { to: q.peer, n: r.n, ok: 0, t }; continue; }   // beschäftigt: gleich ablehnen
     NET.inbox.push({ peer: q.peer, r, t, nm: q.nm }); Sound.chat();
   }
@@ -15468,6 +15796,7 @@ function netTick(){
   partyTick(t);
   if (NET.tr) tradeTick(t);
   if (NET.dc) diceTick(t);
+  tnTick(t);
   evTick(t);
   sendPresence();
 }
@@ -15478,7 +15807,8 @@ function renderAsk(){
   NET.askKey = key;
   const box = $('ask'); box.hidden = !i;
   if (!i) return;
-  $('askText').textContent = ASK[i.r.k].them.replace('%', i.nm).replace('#', i.r.x);
+  const oq = i.r.k === 'order' ? PEERS.get(i.peer) : null;
+  $('askText').textContent = ASK[i.r.k].them.replace('%', i.nm).replace('#', oq && oq.or ? oq.or.nm : i.r.x);
   $('askYes').textContent = KBD.on ? 'Annehmen (Y)' : 'Annehmen';
   $('askNo').textContent = KBD.on ? 'Ablehnen (N)' : 'Ablehnen';
 }
@@ -15521,6 +15851,7 @@ function peerView(view, body, opts){
     ask(okL ? 'Zum Tjost fordern' : 'Zum Tjost fordern (nur auf der Turnierwiese)', 'duel', 0, okL ? (q.bz ? 'beschäftigt' : '') : 'Beide müssen auf der Turnierwiese vor dem Osttor stehen.');
   }
   ask('Handeln', 'trade', 0, q.bz ? 'beschäftigt' : '');
+  if (HERO.or && !(q.or && q.or.id === HERO.or.id)) ask('In Euren Orden aufnehmen (' + HERO.or.kz + ')', 'order', HERO.or.id, '');
   if (G.inside){ const b = btn('Würfeln', () => renderTalk('dicestake'), 'opt'); b.disabled = !!q.bz; opts.append(b); }
   else opts.append(el('p', 'hint', 'Gewürfelt wird im Gasthaus. Den Tjost reitet Ihr auf der Turnierwiese vor dem Osttor der Reichsstadt.'));
   opts.append(btn('Lebt wohl', closePanel, 'opt'));
@@ -15913,7 +16244,7 @@ function startDuel(q, id, asker){
   G.joust.st = 'intro'; G.joust.t = 2.2;
   sendPresence(true);
 }
-function duelPres(){ const D = NET.jo; return { id: D.id, w: D.w, sd: D.side, r: D.r, L: D.L, s: D.s, ps: D.ps, e: D.e, end: D.end ? 1 : 0 }; }
+function duelPres(){ const D = NET.jo; return { id: D.id, w: D.w, sd: D.side, r: D.r, L: D.L, s: D.s, ps: D.ps, e: D.e, end: D.end ? 1 : 0, res: D.end ? D.res : null }; }
 function duelTheirs(D){ const q = PEERS.get(D.w), jo = q && q.jo; return jo && jo.id === D.id && jo.w === NET.me ? jo : null; }
 const duelReady = J => { const jo = duelTheirs(J.pvp); return !!jo && (jo.r | 0) >= J.pass; };
 /* jeden Schritt: ist der andere noch da? */
@@ -15970,7 +16301,7 @@ function duelImpact(J, opLock){
   J.over = oFall || iFall || (J.pass >= 3 && J.me !== J.op) || J.pass >= 5;
   J.t = Math.max(J.t, 1.2);
   J.res = oFall !== iFall ? (oFall ? 1 : 0) : J.me === J.op ? .5 : J.me > J.op ? 1 : 0;
-  if (J.over){ D.end = 1; D.endT = nowS(); }
+  if (J.over){ D.end = 1; D.endT = nowS(); D.res = J.res; }
   sendPresence(true);
 }
 function duelEnd(J){
@@ -15981,6 +16312,7 @@ function duelEnd(J){
   const H = HERO.joust = HERO.joust || { wins: 0, beat: {} };
   const eMe = H.elo || 1000, eOp = clamp(jo ? +jo.e || 1000 : 1000, 100, 3000), exp = 1 / (1 + Math.pow(10, (eOp - eMe) / 400));
   const score = J.res == null ? .5 : J.res;
+  NET.lastDuel = { id: D.id, res: score };
   H.elo = Math.round(eMe + 32 * (score - exp));
   if (score === 1){
     H.pw = (H.pw || 0) + 1;
@@ -16022,15 +16354,32 @@ function duelWatch(){
    weniger dem Schaden, den jeder Teilnehmer gemeldet hat; den Höchstwert bringt jeder Teilnehmer nach seiner Stufe mit. */
 const EV_N = 96;
 const EV_DEFS = [
-  { id: 'ueberfall', name: 'Überfall auf Lindach', at: 9, len: 5, boss: 'raubritter', bossName: 'Eppelein von Gailingen', where: 'in Dorf Lindach',
+  { id: 'ueberfall', kind: 'raid', name: 'Überfall auf Lindach', at: 9, len: 5, boss: 'raubritter', bossName: 'Eppelein von Gailingen', where: 'in Dorf Lindach',
+    siteAt: [2530, 690, 'Dorf Lindach'], bossAt: [2540, 700], goal: [2530, 690, 150, 110], wave: [5, 25, 14], need: [20, 8, 60], hpf: .5, unit: 'Räubern vertrieben',
+    pick: R => R() < .32 ? 'armbrust' : 'pluend',
     soon: 'In Lindach läutet die Sturmglocke: Eine Raubritterbande zieht heran!', start: 'Raubritter überfallen Dorf Lindach! Vertreibt die Bande, dann stellt sich ihr Hauptmann.',
-    won: 'Lindach ist gerettet', lost: 'Die Raubritter ziehen mit ihrer Beute ab. Lindach hat diesmal verloren.', prize: 'Dankkette von Lindach', aff: ['hp', 'arm', 'str'],
+    won: 'Lindach ist gerettet', lost: 'Die Raubritter ziehen mit ihrer Beute ab. Lindach hat diesmal verloren.', prize: 'Dankkette von Lindach', prizeAcc: 'die Dankkette von Lindach', aff: ['hp', 'arm', 'str'],
     mobs: { pluend: 'Raubgeselle', armbrust: 'Bandenschütze' } },
-  { id: 'jagd', name: 'Die Wilde Jagd', at: 22, len: 5, boss: 'raubritter', bossName: 'Der Wilde Jäger', ghost: true, where: '',
+  { id: 'jagd', kind: 'hunt', name: 'Die Wilde Jagd', at: 22, len: 5, boss: 'raubritter', bossName: 'Der Wilde Jäger', ghost: true, where: '', hpf: .6,
     soon: 'Ein fernes Horn in der Dämmerung: Heute Nacht zieht die Wilde Jagd!', start: 'Die Wilde Jagd braust heran! Der Wilde Jäger und seine Geisterhunde ziehen über das Land.',
-    won: 'Die Wilde Jagd ist gebannt', lost: 'Der Morgen graut, die Wilde Jagd verweht im Wind.', prize: 'Horn des Wilden Jägers', aff: ['crit', 'spd', 'str'],
-    mobs: { werwolf: 'Geisterhund' } }
+    won: 'Die Wilde Jagd ist gebannt', lost: 'Der Morgen graut, die Wilde Jagd verweht im Wind.', prize: 'Horn des Wilden Jägers', prizeAcc: 'das Horn des Wilden Jägers', aff: ['crit', 'spd', 'str'],
+    mobs: { werwolf: 'Geisterhund' } },
+  /* nachmittags im Wechsel von drei Spieltagen */
+  { id: 'brand', kind: 'fire', name: 'Brand der Reichsstadt', at: 15, len: 4, cyc: [3, 0], where: 'in der Reichsstadt', siteAt: [2966, 2300, 'die Reichsstadt'],
+    soon: 'Über den Dächern der Reichsstadt steigt Rauch auf. Ein Funke ist in ein Strohlager gefallen!', start: 'Feuer in der Reichsstadt! Füllt Eimer an den Brunnen und löscht die brennenden Häuser, bevor die Gassen in Flammen stehen.',
+    won: 'Die Reichsstadt ist gerettet', lost: 'Das Feuer frisst sich durch die Gassen, mehrere Häuser brennen nieder.', prize: 'Zunftmedaille der Reichsstadt', prizeAcc: 'die Zunftmedaille der Reichsstadt', aff: ['hp', 'arm', 'spd'] },
+  { id: 'pest', kind: 'raid', name: 'Der Rattenkönig', at: 15, len: 4, cyc: [3, 1], boss: 'werwolf', bossName: 'Der Rattenkönig', where: 'im Dorf am Fluss', ratKing: true,
+    siteAt: [1760, 2340, 'das Dorf am Fluss'], bossAt: [1770, 2330], goal: [1760, 2350, 170, 110], wave: [8, 15, 12], need: [30, 10, 90], hpf: .45, unit: 'Pestratten erschlagen',
+    ins: [[1590, 2300], [1960, 2240], [1760, 2530], [1900, 2450]], pick: () => 'ratte',
+    soon: 'In den Kornspeichern des Dorfes am Fluss raschelt und quiekt es. Die Pestratten kommen!', start: 'Pestratten überschwemmen das Dorf am Fluss! Erschlagt sie, bis der Rattenkönig selbst aus dem Speicher kriecht.',
+    won: 'Der Rattenkönig ist erschlagen', lost: 'Die Ratten verschwinden in den Gräben, die Pest bleibt im Dorf.', prize: 'Pfeife des Rattenfängers', prizeAcc: 'die Pfeife des Rattenfängers', aff: ['spd', 'crit', 'hp'], mobs: { ratte: 'Pestratte' } },
+  { id: 'kaiser', kind: 'escort', name: 'Der Kaiser kommt', at: 15, len: 5, cyc: [3, 2], where: 'von der Reichsburg zur Reichsstadt', siteAt: [1900, 640, 'die Reichsburg'],
+    soon: 'Ein Bote reitet durchs Land: Heute zieht Kaiser Karl von der Reichsburg in die Reichsstadt!', start: 'Der Zug des Kaisers bricht von der Reichsburg auf! Schützt ihn auf dem Weg in die Reichsstadt vor Strauchdieben und Wegelagerern.',
+    won: 'Der Kaiser ist in der Reichsstadt', lost: 'Der Kaiser kehrt um, der Weg war zu unsicher.', prize: 'Kaiserlicher Gnadenpfennig', prizeAcc: 'den Kaiserlichen Gnadenpfennig', aff: ['hp', 'str', 'crit'],
+    pick: R => R() < .35 ? 'armbrust' : 'pluend', mobs: { pluend: 'Strauchdieb', armbrust: 'Wegelagerer' } }
 ];
+const EV_KAISER = [[1900, 600], [1904, 700], [1940, 744], [1970, 790], [1946, 836], [1890, 874], [1860, 930], [1876, 1010], [1898, 1100], [1900, 1200], [1900, 1310], [2150, 1330], [2350, 1372], [2470, 1400], [2620, 1404], [2760, 1384], [2830, 1480], [2900, 1600], [2950, 1720], [2966, 1800], [2966, 1880], [2966, 1990], [2966, 2120]];
+const EV_AMBUSH = [.24, .5, .77], EV_KSPEED = 34;
 const EV_JAGD = [['den Finsterwald', 640, 600], ['das Moor', 430, 2600], ['den Galgenberg', 3760, 1150]];
 const EV_RAID_IN = [[2700, 700], [2610, 850], [2380, 650], [2530, 500]];
 const EVT = { cur: null, raid: false, soonId: '', art: {} };
@@ -16054,22 +16403,28 @@ function ghostArt(art){
 const evArt = k => EVT.art[k] || (EVT.art[k] = ghostArt(artOf(k)));
 /* Wann ist was? Letzter Beginn vor jetzt; läuft es noch, oder kommt es in der nächsten Spielstunde? */
 function evInfo(d, now){
-  const s = Math.floor((now - d.at * 60) / DAY_LEN) * DAY_LEN + d.at * 60;
-  if (now < s + d.len * 60) return { st: 'on', t0: s, id: d.id + ':' + Math.floor(s / DAY_LEN) };
-  if (now > s + DAY_LEN - 60) return { st: 'soon', t0: s + DAY_LEN, id: d.id + ':' + Math.floor((s + DAY_LEN) / DAY_LEN) };
+  const s = Math.floor((now - d.at * 60) / DAY_LEN) * DAY_LEN + d.at * 60, day = Math.floor(s / DAY_LEN);
+  const ok = n => !d.cyc || n % d.cyc[0] === d.cyc[1];   // manche Ereignisse nur an jedem dritten Spieltag
+  if (ok(day) && now < s + d.len * 60) return { st: 'on', t0: s, id: d.id + ':' + day };
+  if (ok(day + 1) && now > s + DAY_LEN - 60) return { st: 'soon', t0: s + DAY_LEN, id: d.id + ':' + (day + 1) };
   return null;
 }
 function evSite(d, t0){
-  if (d.id === 'ueberfall') return Object.assign(gNear(2530, 690), { name: 'Dorf Lindach' });
+  if (d.siteAt) return Object.assign(gNear(d.siteAt[0], d.siteAt[1]), { name: d.siteAt[2] });
   const J = EV_JAGD[Math.floor(t0 / DAY_LEN) % EV_JAGD.length];
   return Object.assign(gNear(J[1], J[2]), { name: J[0] });
 }
 const evHex = a => { let s = ''; for (let i = 0; i < EV_N; i += 4) s += (a[i] | a[i + 1] << 1 | a[i + 2] << 2 | a[i + 3] << 3).toString(16); return s; };
 const evUnhex = (s, out) => { if (typeof s !== 'string') return; for (let j = 0; j < Math.min(s.length, EV_N / 4); j++){ const v = parseInt(s[j], 16) || 0; for (let b = 0; b < 4; b++) if (v >> b & 1) out[j * 4 + b] = 1; } };
-function evPres(){ const E = EVT.cur, k = evHex(E.killed), d = Math.round(E.dmg); HERO.evCur = { id: E.id, k, d, c: E.contrib ? 1 : 0 }; return { id: E.id, k, d, n: 1 }; }
+function evPres(){
+  const E = EVT.cur, k = evHex(E.killed), d = Math.round(E.dmg), f = E.fb ? E.fb.slice() : null, sw = E.path ? Math.round(E.s) : null;
+  HERO.evCur = { id: E.id, k, d, c: E.contrib ? 1 : 0, f, s: sw };
+  return { id: E.id, k, d, n: 1, f, s: sw };
+}
 /* alle, die mitmachen: ich und die Mitspieler mit derselben Kennung; wer gegangen ist, zählt mit seinem letzten Stand weiter */
 function evParts(E){
-  for (const q of PEERS.values()){ const e = q.ev; if (e && e.id === E.id && e.n) E.seen.set(q.by || q.peer, { lv: q.lv, d: clamp(+e.d || 0, 0, 1e7), k: typeof e.k === 'string' ? e.k : '' }); }
+  for (const q of PEERS.values()){ const e = q.ev; if (e && e.id === E.id && e.n) E.seen.set(q.by || q.peer, { lv: q.lv, d: clamp(+e.d || 0, 0, 1e7), k: typeof e.k === 'string' ? e.k : '',
+    f: Array.isArray(e.f) ? e.f.slice(0, 8).map(v => clamp(v | 0, 0, 50)) : null, s: Number.isFinite(+e.s) ? +e.s : 0 }); }
   return [{ lv: HERO.lvl, d: E.dmg, me: true }].concat([...E.seen.values()]);
 }
 function evTick(dt){
@@ -16090,15 +16445,17 @@ function evTick(dt){
 function evBegin(a, now){
   if (EVT.cur) evClear(EVT.cur);
   const d = a.d, E = EVT.cur = { d, id: a.id, t0: a.t0, t1: a.t0 + d.len * 60, site: evSite(d, a.t0), killed: new Uint8Array(EV_N), all: new Uint8Array(EV_N),
-    dmg: 0, part: false, contrib: false, spawned: new Map(), boss: null, phase: d.id === 'jagd' ? 'boss' : 'raid', over: false, won: false, key: '', need: 20, seen: new Map() };
+    dmg: 0, part: false, contrib: false, spawned: new Map(), boss: null, phase: { hunt: 'boss', fire: 'fire', escort: 'walk' }[d.kind] || 'raid', over: false, won: false, key: '', need: 20, seen: new Map() };
+  if (d.kind === 'fire'){ E.fires = evFires(); E.fb = E.fires.map(() => 0); }
+  if (d.kind === 'escort'){ E.path = EV_KAISER.map(q => gNear(q[0], q[1])); E.cum = [0]; for (let i = 1; i < E.path.length; i++) E.cum.push(E.cum[i - 1] + Math.hypot(E.path[i].x - E.path[i - 1].x, E.path[i].y - E.path[i - 1].y)); E.len = E.cum[E.cum.length - 1]; E.s = 0; E.ambK = 0; E.lastT = now; E.pos = E.path[0]; E.dir = 'down'; }
   const C = HERO.evCur;   // nach dem Neuladen: eigener Beitrag zu diesem Ereignis
-  if (C && C.id === E.id){ evUnhex(C.k, E.killed); E.dmg = clamp(+C.d || 0, 0, 1e7); E.contrib = !!C.c; E.part = true; }
+  if (C && C.id === E.id){ evUnhex(C.k, E.killed); E.dmg = clamp(+C.d || 0, 0, 1e7); E.contrib = !!C.c; E.part = true; if (E.fb && Array.isArray(C.f)) E.fb = E.fb.map((v, i) => clamp(C.f[i] | 0, 0, 50)); if (E.path && C.s) E.s = clamp(+C.s || 0, 0, E.len); }
   HERO.evDone = HERO.evDone || {};
   if (HERO.evDone[E.id]){ E.over = true; E.won = HERO.evDone[E.id] === 2; }
   if (!E.over && now - a.t0 < 40 && (G.mode === 'play' || G.mode === 'menu')){
     showBanner(d.name, d.id === 'jagd' ? 'über ' + E.site.name : d.where);
     logLine(d.start + (d.id === 'jagd' ? ' Sie zieht über ' + E.site.name + '.' : ''), '#ff9a8a');
-    if (d.id === 'jagd'){ Sound.howl(); setTimeout(() => Sound.horn(), 700); } else { Sound.bell(); setTimeout(() => Sound.bell(), 600); Sound.horn(); }
+    if (d.id === 'jagd'){ Sound.howl(); setTimeout(() => Sound.horn(), 700); } else if (d.kind === 'escort'){ Sound.horn(); setTimeout(() => Sound.horn(), 500); Sound.cheer(.6); } else { Sound.bell(); setTimeout(() => Sound.bell(), 600); if (d.kind === 'raid') Sound.horn(); }
   }
   renderTracker();
 }
@@ -16106,12 +16463,18 @@ function evBegin(a, now){
 function evSpawn(E, i, w){
   const R = rng(hashStr(E.id + ':' + i)), d = E.d, k = G.knight;
   let m;
-  if (d.id === 'ueberfall'){
-    const kind = R() < .32 ? 'armbrust' : 'pluend', e = EV_RAID_IN[(w + i) % EV_RAID_IN.length];
-    const p = gNear(e[0] + (R() - .5) * 60, e[1] + (R() - .5) * 50), goal = gNear(2530 + (R() - .5) * 150, 690 + (R() - .5) * 110);
+  if (d.kind === 'raid'){
+    const ins = d.ins || EV_RAID_IN, kind = d.pick(R), e = ins[(w + i) % ins.length], gl = d.goal;
+    const p = gNear(e[0] + (R() - .5) * 60, e[1] + (R() - .5) * 50), goal = gNear(gl[0] + (R() - .5) * gl[2], gl[1] + (R() - .5) * gl[3]);
     m = createMonster(kind, p.x, p.y, clamp(HERO.lvl + (R() < .3 ? 1 : 0), 3, MAX_LVL), null);
     m.hx = goal.x; m.hy = goal.y; m.tx = goal.x; m.ty = goal.y; m.walking = true; m.wT = 40; m.march = true;
     m.nm = d.mobs[kind];
+  } else if (d.kind === 'escort'){
+    const kind = d.pick(R), c = evAt(E, EV_AMBUSH[w] * E.len), side = R() < .5 ? -1 : 1;
+    const p = gNear((c.x + side * (90 + R() * 70)) / WS, (c.y + (R() - .5) * 160) / WS);
+    m = createMonster(kind, p.x, p.y, clamp(HERO.lvl + (R() < .3 ? 1 : 0), 3, MAX_LVL), null);
+    m.hx = c.x; m.hy = c.y; m.nm = d.mobs[kind];
+    if (Math.hypot(G.knight.x - m.x, G.knight.y - m.y) < 500) engage(m, true);
   } else {
     const a = R() * Math.PI * 2, r = 120 + R() * 90, c = E.boss || E.site;
     const p = gNear((c.x + Math.cos(a) * r) / WS, (c.y + Math.sin(a) * r * .7) / WS);
@@ -16125,10 +16488,11 @@ function evSpawn(E, i, w){
   return m;
 }
 function evSpawnBoss(E, lvl){
-  const d = E.d, p = d.id === 'ueberfall' ? gNear(2540, 700) : E.site;
+  const d = E.d, p = d.bossAt ? gNear(d.bossAt[0], d.bossAt[1]) : E.site;
   const m = createMonster(d.boss, p.x, p.y, lvl, null);
   m.ev = { id: E.id, boss: true }; m.nm = d.bossName; m.summoned = true; m.hx = p.x; m.hy = p.y; m.zone = gZone(p.x, p.y).id;
   if (d.ghost){ m.art = evArt(d.boss); m.ghost = true; }
+  if (d.ratKing) m.art = ratKingArt();
   E.boss = m; G.flash = .35; Sound.thunder();
   for (let j = 0; j < 30; j++) G.parts.push({ x: m.x + rand(-16, 16), y: m.y - rand(0, 40), vx: rand(-40, 40), vy: rand(-80, -20), life: .9, c: d.ghost ? '#9fdcff' : '#b3202a', g: 30, glow: true });
   return m;
@@ -16137,28 +16501,31 @@ function evRun(dt, now){
   const E = EVT.cur, k = G.knight, d = E.d;
   if (E.over){ evClear(E); return; }
   const outside = !G.inside && !DG_ON, dist = Math.hypot(k.x - E.site.x, k.y - E.site.y), near = outside && dist < 1400;
-  if (((outside && dist < 800) || E.contrib) && G.mode === 'play' && !E.part){ E.part = true; sendPresence(true); }
+  if (((outside && dist < (d.kind === 'fire' ? 1100 : 800)) || E.contrib) && G.mode === 'play' && !E.part && d.kind !== 'escort'){ E.part = true; sendPresence(true); }
   // Fortschritt aller: eigene Bits und die der anderen
   const parts = evParts(E);
   E.all.set(E.killed);
   for (const p of parts) if (p.k) evUnhex(p.k, E.all);
   let killed = 0; for (let i = 0; i < EV_N; i++) killed += E.all[i];
   E.killedN = killed; E.parts = parts.length;
-  if (d.id === 'ueberfall'){
-    E.need = window.__evNeed || Math.min(60, 20 + 8 * (parts.length - 1));   // __evNeed: zum Ausprobieren
-    if (E.phase === 'raid' && killed >= E.need){ E.phase = 'boss'; if (G.mode === 'play'){ showBanner(d.bossName, 'Der Hauptmann der Bande stellt sich'); logLine('Die Bande weicht! Da reitet ihr Hauptmann heran: ' + d.bossName + '.', '#ff9a8a'); Sound.horn(); } }
-    if (E.phase === 'raid' && near) for (let w = 0; w < 14; w++){
-      if (now < E.t0 + 10 + w * 25) break;
-      for (let j = 0; j < 5; j++){ const i = w * 5 + j; if (!E.all[i] && !E.spawned.has(i)) evSpawn(E, i, w); }
+  if (d.kind === 'raid'){
+    E.need = window.__evNeed || Math.min(d.need[2], d.need[0] + d.need[1] * (parts.length - 1));   // __evNeed: zum Ausprobieren
+    if (E.phase === 'raid' && killed >= E.need){ E.phase = 'boss'; if (G.mode === 'play'){ showBanner(d.bossName, d.ratKing ? 'kriecht aus dem Kornspeicher' : 'Der Hauptmann der Bande stellt sich'); logLine(d.ratKing ? 'Der Boden bebt, die Ratten fliehen in alle Richtungen: Der Rattenkönig kommt!' : 'Die Bande weicht! Da reitet ihr Hauptmann heran: ' + d.bossName + '.', '#ff9a8a'); Sound.horn(); } }
+    const [wn, wt, wc] = d.wave;
+    if (near) for (let w = 0; w < wc; w++){
+      if (now < E.t0 + 10 + w * wt || (E.phase !== 'raid' && !d.ratKing)) break;
+      for (let j = 0; j < wn; j++){ const i = w * wn + j; if (i < EV_N && !E.all[i] && !E.spawned.has(i)) evSpawn(E, i, w); }
     }
   }
+  if (d.kind === 'fire') return evFireRun(E, parts, now, near);
+  if (d.kind === 'escort'){ evEscortRun(E, parts, now); if (E.over) return; }
   // Leben des Anführers aus dem Schaden aller
-  const maxHp = Math.round(parts.reduce((a, p) => a + monHp(d.boss, clamp(p.lv, 1, MAX_LVL)), 0) * (d.ghost ? .6 : .5));
+  const maxHp = d.boss ? Math.round(parts.reduce((a, p) => a + monHp(d.boss, clamp(p.lv, 1, MAX_LVL)), 0) * d.hpf) : 0;
   const dealt = parts.reduce((a, p) => a + p.d, 0), hp = Math.max(0, maxHp - dealt);
   E.bossHp = hp; E.bossMax = maxHp;
   if (E.phase === 'boss'){
     if (hp <= 0 && dealt > 0) return evEnd(true);
-    if (near && (!E.boss || !G.mons.includes(E.boss)) && (d.id === 'ueberfall' || now > E.t0 + 3)) evSpawnBoss(E, clamp(Math.max(...parts.map(p => p.lv)) + 1, 4, MAX_LVL + 2));
+    if (near && (!E.boss || !G.mons.includes(E.boss)) && (d.kind === 'raid' || now > E.t0 + 3)) evSpawnBoss(E, clamp(Math.max(...parts.map(p => p.lv)) + 1, 4, MAX_LVL + 2));
     if (E.boss){ E.boss.max = maxHp; E.boss.hp = Math.max(1, hp); }
     // Geisterhunde: alle 25 Sekunden zwei neue, solange der Jäger lebt
     if (d.ghost && near && E.boss) for (let w = 0; w < 14; w++){
@@ -16172,8 +16539,152 @@ function evRun(dt, now){
     if (here && E.all[i] && !E.killed[i]){ G.mons.splice(G.mons.indexOf(m), 1); burst(m.x, m.y - 14, d.ghost ? ['#9fdcff', '#e8f6ff'] : ['#6e5a42', '#c9c2ad'], 10, 60, d.ghost); }
     if (!G.mons.includes(m) && !E.all[i]) E.spawned.delete(i);
   }
+  if (d.kind === 'escort') return;
   const left = Math.max(0, E.t1 - now), key = E.phase + ':' + killed + '/' + E.need + ':' + Math.ceil(left) + ':' + Math.round(hp / Math.max(1, maxHp) * 100) + ':' + near;
   if (key !== E.key){ E.key = key; renderTracker(); }
+}
+/* ---------- Brand der Reichsstadt: Eimer vom Brunnen zu den brennenden Häusern ----------
+   Acht Häuser fangen nacheinander Feuer. Jeder zählt in der Anwesenheit (f), wie viele Eimer er an welches Haus
+   gebracht hat; zusammen gelöscht ist ein Feuer, wenn genug Eimer da waren. */
+const EV_IGNITE = [0, 0, 0, 35, 60, 90, 120, 150];
+function evFires(){
+  const c = gNear(2966, 2300), houses = GPROPS.filter(p => (p.kind === 'stadthaus' || p.kind === 'fachwerkhaus') && Math.abs(p.x - c.x) < 1000 && Math.abs(p.y - c.y) < 800)
+    .sort((a, b) => ((a.x * 7 + a.y * 13) % 97) - ((b.x * 7 + b.y * 13) % 97)), out = [];
+  for (const p of houses){ if (out.length >= 8) break; if (out.some(f => Math.hypot(f.x - p.x, f.y - p.y) < 260)) continue; out.push({ x: p.x, y: p.y - p.ay * .55, fx: p.x, fy: p.y + 22, w: p.ax * .7, ign: EV_IGNITE[out.length] }); }
+  return out;
+}
+const evWells = () => EVT.wells || (EVT.wells = GPROPS.filter(p => p.kind === 'brunnen' && Math.hypot(p.x - gNear(2966, 2300).x, p.y - gNear(2966, 2300).y) < 1500));
+function evFireRun(E, parts, now, near){
+  const need = 3 + Math.min(5, parts.length - 1);
+  let out = 0, burn = 0;
+  E.fires.forEach((f, i) => {
+    let tot = E.fb[i]; for (const p of parts) if (!p.me && p.f) tot += p.f[i] || 0;
+    f.lit = now >= E.t0 + f.ign; f.tot = tot; f.need = need;
+    const was = f.out; f.out = f.lit && tot >= need;
+    if (f.out){ out++; if (!was && f.seen){ burst(f.x, f.y, ['#c8d4e0', '#8a8478', '#ffffff'], 18, 70); if (Math.hypot(G.knight.x - f.x, G.knight.y - f.y) < 700) logLine('Ein Feuer ist gelöscht.', '#9fe08a'); } }
+    else if (f.lit){ burn++; if (!f.seen && Math.hypot(G.knight.x - f.x, G.knight.y - f.y) < 900 && G.mode === 'play'){ floatText(f.x, f.y - 30, 'Feuer!', '#ff9a50', 2, 1.6); Sound.bell(); } }
+    f.seen = f.seen || f.lit;
+  });
+  E.outN = out; E.burnN = burn;
+  if (out >= E.fires.length) return evEnd(true);
+  if (near && burn && Math.random() < .02) Sound.fire();
+  const left = Math.max(0, E.t1 - now), key = 'f' + out + ':' + burn + ':' + Math.ceil(left);
+  if (key !== E.key){ E.key = key; renderTracker(); }
+}
+/* ---------- Der Kaiser kommt: Zug auf dem Weg von der Burg zur Stadt ----------
+   Der Zug geht seinen Weg, an drei Stellen lauern Strauchdiebe. Er wartet, bis alle sechs an einer Stelle erschlagen
+   sind (Bitliste wie bei der Räuberbande). Wer weiter ist, meldet seinen Stand (s); der weiteste gilt. */
+function evAt(E, s){
+  let i = 1; while (i < E.cum.length - 1 && E.cum[i] < s) i++;
+  const a = E.path[i - 1], b = E.path[i], t = clamp((s - E.cum[i - 1]) / Math.max(1, E.cum[i] - E.cum[i - 1]), 0, 1);
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, dx: b.x - a.x, dy: b.y - a.y };
+}
+function evEscortRun(E, parts, now){
+  const dt = Math.min(1, Math.max(0, now - E.lastT)); E.lastT = now;
+  for (const p of parts) if (!p.me && p.s > E.s && p.s - E.s < 600) E.s = p.s;
+  const k = E.ambK < EV_AMBUSH.length ? EV_AMBUSH[E.ambK] * E.len : Infinity;
+  const ids = E.ambK < EV_AMBUSH.length ? [0, 1, 2, 3, 4, 5].map(j => E.ambK * 6 + j) : [];
+  const cleared = ids.length && ids.every(i => E.all[i]);
+  if (E.s >= k - 1 && !cleared){
+    E.s = Math.min(E.s, k);
+    if (!E.halt){ E.halt = true; if (Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1200 && G.mode === 'play'){ showBanner('Überfall auf den Kaiserzug', 'Schützt den Kaiser!'); Sound.horn(); } }
+    const outside = !G.inside && !DG_ON;
+    if (outside && Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1400) for (const i of ids) if (!E.all[i] && !E.spawned.has(i)) evSpawn(E, i, E.ambK);
+  } else {
+    if (E.halt && cleared){ E.halt = false; E.ambK++; if (Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1200) logLine('Die Strauchdiebe sind vertrieben, der Zug des Kaisers zieht weiter.', '#9fe08a'); }
+    else if (cleared) E.ambK++;
+    E.s = Math.min(E.len, E.s + EV_KSPEED * dt);
+  }
+  E.ambLeft = ids.filter(i => !E.all[i]).length;
+  const p = evAt(E, E.s); E.pos = p; E.walking = !E.halt && E.s < E.len;
+  E.dir = Math.abs(p.dx) > Math.abs(p.dy) ? (p.dx > 0 ? 'right' : 'left') : (p.dy > 0 ? 'down' : 'up');
+  const kn = G.knight;
+  if (!E.part && G.mode === 'play' && !G.inside && !DG_ON && Math.hypot(kn.x - p.x, kn.y - p.y) < 700){ E.part = true; sendPresence(true); }
+  if (E.s >= E.len) return evEnd(true);
+  const left = Math.max(0, E.t1 - now), key = 'k' + Math.round(E.s / E.len * 100) + ':' + E.halt + ':' + E.ambLeft + ':' + Math.ceil(left);
+  if (key !== E.key){ E.key = key; renderTracker(); }
+}
+/* Handgriffe beim Brand */
+function evAction(){
+  const E = EVT.cur; if (!E || E.over || E.d.kind !== 'fire' || G.mode !== 'play' || DG_ON) return null;
+  const k = G.knight;
+  if (!G.bucket){ for (const w of evWells()) if (Math.hypot(k.x - w.x, k.y - w.y - 14) < 46) return { key: 'eimer', label: 'Eimer füllen' }; return null; }
+  let best = null, bd = 90;
+  E.fires.forEach((f, i) => { if (!f.lit || f.out) return; const d = Math.hypot(k.x - f.fx, k.y - f.fy); if (d < bd){ bd = d; best = i; } });
+  return best != null ? { key: 'l' + best, label: 'Löschen', fire: best } : null;
+}
+function evDo(a){
+  const E = EVT.cur, k = G.knight; if (!E) return;
+  if (a.key === 'eimer'){ G.bucket = true; Sound.tone(520, .12, 'sine', .03, -200); Sound.noise(.25, .04, 900); floatText(k.x, k.y - KS.ay - 6, 'Eimer voll', '#9cc8ff'); }
+  else if (a.fire != null){
+    const f = E.fires[a.fire]; G.bucket = false; E.fb[a.fire]++; E.contrib = true;
+    Sound.noise(.6, .07, 2400); Sound.tone(900, .3, 'sine', .015, -500);
+    for (let j = 0; j < 22; j++) G.parts.push({ x: f.fx + rand(-12, 12), y: f.y + rand(-10, 30), vx: rand(-30, 30), vy: rand(-70, -20), life: rand(.6, 1.2), c: Math.random() < .5 ? '#e8eef4' : '#9aa6b0', g: -10 });
+    floatText(f.x, f.y - 20, 'Zisch! ' + Math.min(f.need, (f.tot || 0) + 1) + ' / ' + f.need, '#c8dcff', 1, 1.4);
+  }
+  G.evActKey = ''; updateNear(); sendPresence(true); markDirty();
+}
+/* Löscheimer in der Hand: Holz mit zwei Eisenbändern, Wasser obenauf */
+const BUCKET = (() => { const c = canvasOf(14, 17), g = c.getContext('2d');
+  g.fillStyle = OUT; g.fillRect(1, 5, 12, 12); g.fillRect(3, 0, 8, 1); g.fillRect(2, 1, 1, 4); g.fillRect(11, 1, 1, 4);
+  g.fillStyle = '#6f583f'; g.fillRect(2, 6, 10, 10); g.fillStyle = '#9e8660'; g.fillRect(2, 6, 3, 10); g.fillStyle = '#4a3a28'; g.fillRect(10, 6, 2, 10);
+  g.fillStyle = '#8a8e96'; g.fillRect(2, 8, 10, 1); g.fillRect(2, 13, 10, 1);
+  g.fillStyle = '#5a8ac8'; g.fillRect(3, 6, 8, 2); g.fillStyle = '#a8d0f0'; g.fillRect(4, 6, 3, 1);
+  return c; })();
+function drawBucket(x, y){ ctx.drawImage(BUCKET, Math.round(x) - 7, Math.round(y) - 8); }
+function evFlames(cam){
+  const E = EVT.cur; if (!E || E.d.kind !== 'fire' || E.over || G.inside || DG_ON) return;
+  for (const f of E.fires){
+    if (!f.lit || !inView(f.x, f.y, cam, 120)) continue;
+    if (f.out){ if (Math.random() < .3) G.parts.push({ x: f.x + rand(-14, 14), y: f.y, vx: rand(2, 10), vy: rand(-24, -12), life: rand(1.4, 2.2), c: '#6e6a70', g: -2, s: 3 }); continue; }
+    const big = Math.max(.35, 1 - (f.tot || 0) / f.need);   // je mehr Wasser, desto kleiner
+    // Feuerschein über dem Haus
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const gr = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, 90 * big + 30); gr.addColorStop(0, 'rgba(255,140,50,' + (.35 * big).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(255,90,20,0)');
+    ctx.fillStyle = gr; ctx.fillRect(f.x - 130, f.y - 130, 260, 260); ctx.restore();
+    // Flammen in doppelter Größe über die Dachbreite
+    for (const [ox, oy, k] of [[-.5, 10, .8], [-.18, -4, 1], [.18, -2, 1], [.5, 12, .8]]){
+      const sc = (1.3 + big * .9) * k;
+      ctx.save(); ctx.translate(Math.round(f.x + ox * f.w), Math.round(f.y + oy)); ctx.scale(sc, sc);
+      flameHD(0, 0, G.t * 1.1 + ox * 3 + f.x * .01, big > .5); ctx.restore();
+    }
+    if (Math.random() < .9) G.parts.push({ x: f.x + rand(-f.w * .5, f.w * .5), y: f.y - 10, vx: rand(-12, 12), vy: rand(-70, -34), life: rand(.5, 1.2), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -10, glow: true });
+    if (Math.random() < .8) G.parts.push({ x: f.x + rand(-16, 16), y: f.y - 34, vx: rand(4, 16), vy: rand(-34, -18), life: rand(2, 3.2), c: Math.random() < .5 ? '#2e2a30' : '#48444c', g: -3, s: 4 });
+  }
+}
+function evLights(v, L){
+  const E = EVT.cur; if (!E || E.over || G.inside || DG_ON) return;
+  if (E.d.kind === 'fire') for (const f of E.fires) if (f.lit && !f.out && v(f.x, f.y, 300)) L.push([f.x, f.y, 280, 1, 1]);
+  if (E.d.kind === 'escort' && E.pos && v(E.pos.x, E.pos.y, 200)) L.push([E.pos.x, E.pos.y - 30, 200, .9, 1]);
+}
+/* der Kaiserzug: der Kaiser zu Pferd mit Krone, davor und dahinter zwei Reichsritter */
+const EV_ESC = [0, 1].map(() => ({ x: 0, y: 0, dir: 'down', moving: false, anim: 0, atkT: 0, atkLen: SWING, swA0: 0, swA1: 0, mult: 1, bashT: 0, inv: 0, slowT: 0, ride: null, lance: 0 }));
+function evList(cam, list){
+  const E = EVT.cur; if (!E || E.d.kind !== 'escort' || E.over || !E.pos || G.inside || DG_ON) return;
+  const p = E.pos, l = Math.hypot(p.dx, p.dy) || 1, ux = p.dx / l, uy = p.dy / l;
+  if (!inView(p.x, p.y, cam, 120)) return;
+  const set = knightSet('reich', '44444'), f = E.walking ? (G.t * 6 | 0) % 4 : 4;
+  list.push({ y: p.y + .17, d: () => {
+    drawMounted(ctx, 'streitross', set.key, E.dir, p.x, p.y, f);
+    const hx = Math.round(p.x) - 4, hy = Math.round(p.y) - 70;   // Krone über dem Helm
+    ctx.fillStyle = OUT; ctx.fillRect(hx - 1, hy - 1, 11, 7); ctx.fillStyle = '#e0c040'; ctx.fillRect(hx, hy + 2, 9, 3); ctx.fillRect(hx, hy, 1, 2); ctx.fillRect(hx + 4, hy - 1, 1, 3); ctx.fillRect(hx + 8, hy, 1, 2); ctx.fillStyle = '#b8281e'; ctx.fillRect(hx + 4, hy + 3, 1, 1);
+    drawText('Kaiser Karl', p.x, p.y - 92, '#ffd98a');
+  } });
+  EV_ESC.forEach((g, i) => {
+    const off = i ? -46 : 40, side = i ? 18 : -18;
+    g.x = p.x + ux * off - uy * side; g.y = p.y + uy * off + ux * side; g.dir = E.dir; g.moving = E.walking; g.anim = E.walking ? G.t * 8 : 0;
+    list.push({ y: g.y + .16, d: () => drawKnightAt(g, set, false, 1) });
+  });
+}
+/* Rattenkönig: eine riesige Ratte, gescheckt und grau */
+let RATKING = null;
+function ratKingArt(){
+  if (RATKING) return RATKING;
+  const A = MON_ART.ratte, S = 2.4, sc = src => { const c = canvasOf(Math.round(src.width * S), Math.round(src.height * S)), g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.drawImage(src, 0, 0, c.width, c.height); return c; };
+  const fr = s => ({ img: sc(s.img), glow: s.glow ? sc(s.glow) : null, white: sc(s.white) });
+  const side = o => ({ r: o.r.map(fr), l: o.l.map(fr) });
+  const big = Object.assign({}, A, { w: Math.round(A.w * S), h: Math.round(A.h * S), ax: Math.round(A.ax * S), ay: Math.round(A.ay * S), move: side(A.move), idle: side(A.idle), act: side(A.act || A.idle) });
+  return (RATKING = tintArt(big, (r, g, b) => [r * .8 + 20, g * .85 + 10, b * .7 + 18]));
 }
 /* ein Gegner des Ereignisses fällt hier */
 function evMark(m){
@@ -16185,12 +16696,13 @@ function evMark(m){
 }
 function evEnd(won){
   const E = EVT.cur, d = E.d, k = G.knight;
-  E.over = true; E.won = won;
+  E.over = true; E.won = won; G.bucket = false;
   HERO.evDone = HERO.evDone || {}; HERO.evDone[E.id] = won ? 2 : 1;
   const ks = Object.keys(HERO.evDone); if (ks.length > 10) delete HERO.evDone[ks[0]];
   evClear(E);
   if (!won){ if (E.part) logLine(d.lost, '#d8c69c'); renderTracker(); return; }
   if (E.contrib){
+    orCount('boss');
     const gold = 25 + HERO.lvl * 5, xp = Math.round(xpNeed(HERO.lvl) * .2) + 20;
     HERO.gold += gold; HERO.potions = Math.min(20, HERO.potions + 2);
     HERO.evFirst = HERO.evFirst || {};
@@ -16199,8 +16711,9 @@ function evEnd(won){
     HERO.evFirst[d.id] = true;
     const j = HERO.inv.indexOf(null);
     if (j >= 0) HERO.inv[j] = it; else dropLoot(k, 'item', 0, it);
-    showBanner(d.won, gold + ' Gulden, ' + xp + ' EP und ' + it.n);
-    logLine(d.won + '! Ihr erhaltet ' + gold + ' Gulden, zwei Heiltränke und ' + it.n + (E.parts > 2 ? '. Mit Euch kämpften ' + (E.parts - 1) + ' Ritter.' : E.parts === 2 ? '. Ein zweiter Ritter kämpfte mit Euch.' : '.'), '#ffd98a');
+    const itN = first ? d.prizeAcc : it.n;
+    showBanner(d.won, gold + ' Gulden, ' + xp + ' EP und ' + itN);
+    logLine(d.won + '! Ihr erhaltet ' + gold + ' Gulden, zwei Heiltränke und ' + itN + (E.parts > 2 ? '. Mit Euch ' + (d.kind === 'fire' ? 'halfen ' : 'kämpften ') + (E.parts - 1) + ' Ritter.' : E.parts === 2 ? '. Ein zweiter Ritter ' + (d.kind === 'fire' ? 'half' : 'kämpfte') + ' mit Euch.' : '.'), '#ffd98a');
     logItem('Lohn: ', it);
     gainXp(xp); Sound.levelUp(); Sound.cheer(1); G.flash = .3;
     burst(k.x, k.y - KBODY, ['#c9a227', '#ecd27a', '#ffffff'], 36, 120, true);
@@ -16221,7 +16734,7 @@ function evRows(box){
   const now = skyNow();
   const E = EVT.cur;
   if (!E){
-    for (const d of EV_DEFS){ const i = evInfo(d, now); if (i && i.st === 'soon'){ const p = el('p', 'ev'); p.append(el('b', null, 'Gleich: ' + d.name), ' ' + (d.id === 'jagd' ? 'heute Nacht' : 'in Lindach')); box.append(p); } }
+    for (const d of EV_DEFS){ const i = evInfo(d, now); if (i && i.st === 'soon'){ const p = el('p', 'ev'); p.append(el('b', null, 'Gleich: ' + d.name), ' ' + (d.id === 'jagd' ? 'heute Nacht' : d.where)); box.append(p); } }
     return;
   }
   if (E.over && !E.won) return;
@@ -16230,12 +16743,14 @@ function evRows(box){
   p.append(el('b', null, E.d.name), ' ' + mm + ':' + ss);
   box.append(p);
   const q = el('p', 'ev');
-  if (E.phase === 'raid') q.append(el('span', null, (E.killedN || 0) + ' von ' + E.need + ' Räubern vertrieben'));
+  if (E.phase === 'fire') q.append(el('span', null, (E.outN || 0) + ' von ' + E.fires.length + ' Feuern gelöscht' + (E.burnN ? ', ' + E.burnN + ' brennen' : '')));
+  else if (E.phase === 'walk') q.append(el('span', null, E.halt ? 'Überfall! ' + (E.ambLeft || 0) + ' Strauchdiebe am Weg' : 'Der Zug hat ' + Math.round(E.s / E.len * 100) + ' % des Weges hinter sich'));
+  else if (E.phase === 'raid') q.append(el('span', null, (E.killedN || 0) + ' von ' + E.need + ' ' + E.d.unit));
   else q.append(el('span', null, (E.d.id === 'jagd' ? 'über ' + E.site.name.replace(/^(den|das) /, '') + ', ' : '') + E.d.bossName.replace(/^Der /, '') + ' ' + Math.round((E.bossHp || 0) / Math.max(1, E.bossMax || 1) * 100) + ' %'));
   if (E.parts > 1) q.append(' · ' + E.parts + ' Ritter');
   box.append(q);
 }
-const evMark2 = () => EVT.cur && !EVT.cur.over ? EVT.cur.site : null;
+const evMark2 = () => EVT.cur && !EVT.cur.over ? (EVT.cur.pos || EVT.cur.site) : null;
 
 /* ---------- Ruhmeshalle: Ritter, Turnier, Feste ----------
    Alles steht im eigenen Eintrag unter heroes/<Kennung>: Stufe und Ruhm wie bisher, dazu die Turnierwertung und die
@@ -16250,7 +16765,9 @@ const FREC_BY = Object.fromEntries(FREC.map(r => [r.id, r]));
 let fameTab = 'ritter';
 function fameExtra(){
   const J = HERO.joust || {}, o = {};
+  if (HERO.or){ const w = orWeek(); o.oid = HERO.or.id; o.onm = HERO.or.nm; o.okz = HERO.or.kz; o.owp = HERO.or.wp.join('-'); if (HERO.or.gm) o.ogm = 1; if (HERO.ow && HERO.ow.w === w) o.ow = HERO.ow; }
   if (J.pw || J.pl){ o.je = J.elo || 1000; o.jw = J.pw || 0; o.jl = J.pl || 0; }
+  if (HERO.tw) o.tw = HERO.tw;
   for (const r of FREC){ const v = HERO.frec && HERO.frec[r.id]; if (v) o[r.f] = v; }
   return o;
 }
@@ -16280,10 +16797,16 @@ function renderFameTab(){
   const box = $('fameList'); box.textContent = '';
   const me = HERO || SAVED, mine = me ? Object.assign({ id: cloud.uid || 'local', nm: me.name }, HERO ? fameExtra() : {}) : null;
   const rows = (cloud.allRows || []).filter(r => r.id !== (cloud.uid || 'local')).concat(mine ? [mine] : []);
+  if (fameTab === 'orden'){
+    const L = orKnown().slice(0, 12);
+    if (!L.length){ box.append(el('li', 'empty', 'Noch steht kein Orden in der Wappenrolle. Gegründet wird beim Herold vor der Reichsstadt.')); return; }
+    L.forEach((o, i) => { const li = el('li', HERO && HERO.or && HERO.or.id === o.id ? 'me' : ''), nm = el('span', 'fn'), im = el('img', 'forb'); im.src = orUrl(o.wp, 2); im.alt = ''; nm.append(im, o.nm); li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', o.kz), el('span', 'fk', o.n + ' Ritter, zusammen Stufe ' + o.lv + (o.gm ? ' · Großmeister ' + o.gm : ''))); box.append(li); });
+    return;
+  }
   if (fameTab === 'tjost'){
-    const L = rows.filter(r => (r.jw | 0) + (r.jl | 0) > 0).map(r => ({ id: r.id, nm: cleanName(r.nm) || 'Unbekannt', e: clamp(r.je | 0, 100, 3000), w: Math.max(0, r.jw | 0), l: Math.max(0, r.jl | 0) })).sort((a, b) => b.e - a.e).slice(0, 15);
+    const L = rows.filter(r => (r.jw | 0) + (r.jl | 0) > 0).map(r => ({ id: r.id, nm: cleanName(r.nm) || 'Unbekannt', e: clamp(r.je | 0, 100, 3000), w: Math.max(0, r.jw | 0), l: Math.max(0, r.jl | 0), tw: clamp(r.tw | 0, 0, 999) })).sort((a, b) => b.e - a.e).slice(0, 15);
     if (!L.length){ box.append(el('li', 'empty', 'Noch hat kein Ritter gegen einen anderen tjostiert.')); return; }
-    L.forEach((r, i) => { const li = el('li', r.id === (cloud.uid || 'local') ? 'me' : ''); li.append(el('span', 'fr', String(i + 1)), el('span', 'fn', r.nm), el('span', 'fl', 'Wertung ' + r.e), el('span', 'fk', r.w + (r.w === 1 ? ' Sieg' : ' Siege') + ', ' + r.l + (r.l === 1 ? ' Niederlage' : ' Niederlagen'))); box.append(li); });
+    L.forEach((r, i) => { const li = el('li', r.id === (cloud.uid || 'local') ? 'me' : ''); li.append(el('span', 'fr', String(i + 1)), el('span', 'fn', r.nm), el('span', 'fl', 'Wertung ' + r.e), el('span', 'fk', r.w + (r.w === 1 ? ' Sieg' : ' Siege') + ', ' + r.l + (r.l === 1 ? ' Niederlage' : ' Niederlagen') + (r.tw ? ' · ' + r.tw + (r.tw === 1 ? ' Großes Turnier gewonnen' : ' Große Turniere gewonnen') : ''))); box.append(li); });
     return;
   }
   let any = false;
@@ -16305,6 +16828,381 @@ function festRecordOf(g, ok){
   if (g.kind === 'klettern' && ok && g.clock) festRecord('klettern', g.clock * 10);
   if (g.kind === 'springen' && g.pts && ok) festRecord('springen', g.pts);
   if (g.kind === 'schnee' && ok) festRecord('schnee', 60 - g.time);
+}
+
+/* ============ Ritterorden: die Wappenrolle beim Herold ============
+   Ein Orden lebt in den Einträgen seiner Ritter (heroes/<Kennung>: oid, onm, okz, owp, ogm und ow, die Taten der
+   Woche). Wer gründet, wählt Namen, Kürzel und Wappen; aufnehmen kann jeder Ordensritter einen anderen, der vor ihm
+   steht. Die Wochenaufgabe zählt die Taten aller Mitglieder zusammen, den Lohn holt sich jeder beim Herold. */
+const OR_TINCT = [['Gold', '#d8b040', '#8a6a18'], ['Silber', '#dedcd2', '#8e8c84'], ['Rot', '#b8281e', '#661410'], ['Blau', '#2c4c9c', '#16285a'], ['Grün', '#2e7a3a', '#164020'], ['Schwarz', '#2a262e', '#0e0c10'], ['Purpur', '#7c2c7c', '#401440']];
+const OR_CHARGE = [
+  ['Adler', ['1001001', '1101011', '0111110', '0011100', '0111110', '0010100', '0100010']],
+  ['Löwe', ['0011000', '0111100', '0011110', '0111010', '1111000', '0110100', '1100110']],
+  ['Kreuz', ['0001000', '0001000', '1111111', '0001000', '0001000', '0001000', '0001000']],
+  ['Stern', ['0001000', '0011100', '1111111', '0111110', '0011100', '0110110', '1000001']],
+  ['Rose', ['0010100', '0111110', '1101011', '1110111', '1101011', '0111110', '0010100']],
+  ['Turm', ['1010101', '1111111', '0111110', '0110110', '0111110', '0111110', '1111111']],
+  ['Schwert', ['0001000', '0001000', '0001000', '0001000', '0111110', '0001000', '0011100']],
+  ['Apfel', ['0001100', '0011000', '0111110', '1111111', '1111111', '0111110', '0011100']]
+];
+const OR_COST = 100;
+const OR_TASKS = [
+  { id: 'kills', t: 'Erschlagt gemeinsam Monster', per: 60, unit: 'Monster' },
+  { id: 'boss', t: 'Bezwingt gemeinsam Anführer', per: 2, unit: 'Anführer' },
+  { id: 'wild', t: 'Erlegt gemeinsam Wild', per: 12, unit: 'Stück Wild' },
+  { id: 'chests', t: 'Hebt gemeinsam Schätze in den Gewölben', per: 1, unit: 'Truhen' }
+];
+const orWeek = () => Math.floor((Date.now() / 86400000 + 3) / 7);   // Wochen ab Montag
+const orTask = () => OR_TASKS[orWeek() % OR_TASKS.length];
+const OR_KZ_RE = /^[A-Za-zÄÖÜäöüß]{2,5}$/;
+/* fremde Ordensangaben prüfen */
+function orClean(o){
+  if (!o || typeof o !== 'object' || typeof o.id !== 'string' || !/^[a-z0-9]{4,12}$/.test(o.id)) return null;
+  const nm = cleanText(o.nm, 28), kz = typeof o.kz === 'string' && OR_KZ_RE.test(o.kz) ? o.kz : '';
+  const wp = Array.isArray(o.wp) && o.wp.length === 3 ? [clamp(o.wp[0] | 0, 0, 6), clamp(o.wp[1] | 0, 0, 7), clamp(o.wp[2] | 0, 0, 6)] : [2, 0, 0];
+  return nm && kz ? { id: o.id, nm, kz, wp } : null;
+}
+const OR_IMG = new Map();
+/* Ordensbanner 13 × 17 mit Schwalbenschwanz: Feld, Bild, dunkler Rand */
+function orBanner(wp){
+  const key = wp.join('-'); if (OR_IMG.has(key)) return OR_IMG.get(key);
+  const c = canvasOf(13, 17), g = c.getContext('2d'), F = OR_TINCT[wp[0]], C = OR_TINCT[wp[2]], bm = OR_CHARGE[wp[1]][1];
+  g.fillStyle = OUT; g.fillRect(0, 0, 13, 15); g.fillRect(0, 15, 5, 2); g.fillRect(8, 15, 5, 2);
+  g.fillStyle = F[1]; g.fillRect(1, 1, 11, 14); g.fillRect(1, 15, 3, 1); g.fillRect(9, 15, 3, 1);
+  g.fillStyle = F[2]; g.fillRect(10, 1, 2, 14); g.fillRect(1, 14, 11, 1);
+  g.fillStyle = C[1];
+  for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) if (bm[y][x] === '1') g.fillRect(3 + x, 4 + y, 1, 1);
+  g.fillStyle = C[2];
+  for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) if (bm[y][x] === '1' && (y === 6 || bm[y + 1][x] !== '1')) g.fillRect(3 + x, 4 + y, 1, 1);
+  g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(1, 1, 11, 1);
+  OR_IMG.set(key, c); return c;
+}
+const orUrl = (wp, s) => urlOf(orBanner(wp), s || 3);
+/* eigene Taten der Woche */
+function orCount(kind, n){
+  if (!HERO || !HERO.or) return;
+  const w = orWeek();
+  if (!HERO.ow || HERO.ow.w !== w) HERO.ow = { w, kills: 0, boss: 0, wild: 0, chests: 0 };
+  HERO.ow[kind] = (HERO.ow[kind] || 0) + (n || 1);
+}
+/* Mitglieder: aus der Ruhmeshalle (auch wer gerade nicht spielt), dazu die Ritter im Land */
+function orMembers(){
+  if (!HERO.or) return [];
+  const id = HERO.or.id, map = new Map();
+  for (const r of cloud.orRows || []) if (r.oid === id) map.set(r.id, { id: r.id, nm: cleanName(r.nm) || 'Unbekannt', lv: clamp(r.lv | 0, 1, MAX_LVL), at: +r.at || 0, gm: !!r.ogm, ow: r.ow && typeof r.ow === 'object' ? r.ow : null, on: false });
+  for (const q of PEERS.values()) if (q.or && q.or.id === id){ const key = q.by || q.peer, m = map.get(key) || { id: key, nm: q.nm, lv: q.lv, at: Date.now(), gm: false, ow: null }; m.on = true; m.nm = q.nm; m.lv = q.lv; map.set(key, m); }
+  const me = cloud.uid || 'me';
+  map.set(me, { id: me, nm: HERO.name, lv: HERO.lvl, at: Date.now(), gm: !!HERO.or.gm, ow: HERO.ow, on: true, me: true });
+  return [...map.values()].sort((a, b) => (b.me - a.me) || (b.on - a.on) || b.lv - a.lv);
+}
+function orProgress(){
+  const T = orTask(), w = orWeek(), L = orMembers();
+  let n = 0; for (const m of L) if (m.ow && m.ow.w === w) n += Math.max(0, +m.ow[T.id] || 0);
+  return { T, n, need: Math.max(T.per * 3, T.per * L.length), members: L.length };
+}
+function orSubscribe(){
+  if (cloud.orSub){ cloud.orSub(); cloud.orSub = null; }
+  cloud.orRows = null;
+  if (!cloud.db || !HERO || !HERO.or) return;
+  cloud.orSub = cloud.db.collection('heroes').where('oid', '==', HERO.or.id).onSnapshot(snap => {
+    cloud.orRows = snap.docs.map(s => Object.assign({ id: s.id }, s.data() || {}));
+    if (G.talk && G.talk.orden && G.talk.view !== 'ordenNeu') renderTalk(G.talk.view || 'orden');
+  }, () => {});
+}
+function orJoin(o, gm){
+  HERO.or = { id: o.id, nm: o.nm, kz: o.kz, wp: o.wp.slice(), gm: gm ? 1 : 0, t: Date.now() };
+  HERO.ow = { w: orWeek(), kills: 0, boss: 0, wild: 0, chests: 0 };
+  orSubscribe(); cloud.fameT = 0; pushFame(); markDirty(true); sendPresence(true);
+}
+function orLeave(){
+  if (!HERO.or) return;
+  logLine('Ihr tretet aus dem Orden „' + HERO.or.nm + '“ aus.', '#d8c69c');
+  HERO.or = null; HERO.ow = null; orSubscribe(); cloud.fameT = 0; pushFame(); markDirty(true); sendPresence(true);
+}
+function orClaim(){
+  const P = orProgress(), w = orWeek();
+  if (P.n < P.need || HERO.owClaim === w) return;
+  HERO.owClaim = w;
+  const gold = 40 + HERO.lvl * 6, xp = Math.round(xpNeed(HERO.lvl) * .15) + 15;
+  HERO.gold += gold;
+  const first = !HERO.orFirst, it = first ? makeItem('kleinod', HERO.lvl + 1, 3, { name: 'Ordenskette', aff: ['hp', 'str', 'arm'] }) : makeItem(pick(SLOTS), HERO.lvl + 1, 2);
+  HERO.orFirst = true;
+  const j = HERO.inv.indexOf(null); if (j >= 0) HERO.inv[j] = it; else dropLoot(G.knight, 'item', 0, it);
+  showBanner('Ordenslohn', gold + ' Gulden, ' + xp + ' EP und ' + it.n);
+  logLine('Der Herold zahlt den Ordenslohn der Woche: ' + gold + ' Gulden, ' + xp + ' EP und ' + it.n + '.', '#ffd98a');
+  gainXp(xp); Sound.levelUp(); updateHud(); markDirty(true);
+}
+/* bekannte Orden aus der Ruhmeshalle */
+function orKnown(){
+  const map = new Map();
+  const me = cloud.uid || 'me';
+  for (const r of (cloud.allRows || []).filter(r => r.id !== me).concat(HERO && HERO.or ? [Object.assign({ id: me, nm: HERO.name, lv: HERO.lvl }, fameExtra())] : [])){
+    const o = orClean({ id: r.oid, nm: r.onm, kz: r.okz, wp: typeof r.owp === 'string' ? r.owp.split('-').map(Number) : null });
+    if (!o) continue;
+    const e = map.get(o.id) || Object.assign(o, { n: 0, lv: 0, gm: '' });
+    e.n++; e.lv += clamp(r.lv | 0, 1, MAX_LVL); if (r.ogm) e.gm = cleanName(r.nm) || '';
+    map.set(o.id, e);
+  }
+  return [...map.values()].sort((a, b) => b.lv - a.lv);
+}
+/* ---------- beim Herold ---------- */
+function ordenView(view, body, opts){
+  G.talk.orden = true; G.talk.view = view;
+  const O = HERO.or;
+  if (view === 'ordenNeu') return orForm(body, opts);
+  if (view === 'ordenListe'){
+    $('talkText').textContent = 'Die Ritter des Ordens „' + O.nm + '“. Wer gerade im Land ist, steht oben.';
+    for (const m of orMembers()){
+      const r = el('div', 'shoprow'), t = el('div', 'stx'), ic = el('img'); ic.src = orUrl(O.wp); ic.alt = '';
+      const ago = m.on ? 'im Land' : m.at ? 'zuletzt vor ' + agoText(Date.now() - m.at) : '';
+      const week = m.ow && m.ow.w === orWeek() ? ' · diese Woche ' + (+m.ow[orTask().id] || 0) + ' ' + orTask().unit : '';
+      t.append(el('b', null, m.nm + (m.gm ? ' (Großmeister)' : '') + (m.me ? ' (Ihr)' : '')), el('small', null, 'Stufe ' + m.lv + ' · ' + titleOf(m.lv) + ' · ' + ago + week));
+      r.append(ic, t); body.append(r);
+    }
+    if (!cloud.db) body.append(el('p', 'hint', 'Ohne Anmeldung seht Ihr nur die Ordensritter, die gerade im Land sind.'));
+    opts.append(btn('Zurück', () => renderTalk('orden'), 'tbtn')); body.append(opts); return;
+  }
+  if (!O){
+    $('talkText').textContent = 'In meiner Wappenrolle stehen die Ritterorden des Reichslandes. Gründet einen eigenen für ' + OR_COST + ' Gulden, oder lasst Euch von einem Ordensritter aufnehmen: Sprecht ihn im Land an.';
+    const b = btn('Einen Orden gründen (' + OR_COST + ' Gulden)', () => renderTalk('ordenNeu'), 'opt'); b.disabled = HERO.gold < OR_COST; opts.append(b);
+    const known = orKnown();
+    if (known.length){ body.append(el('p', 'hint', 'Bekannte Orden:')); for (const o of known.slice(0, 8)){ const r = el('div', 'shoprow'), ic = el('img'), t = el('div', 'stx'); ic.src = orUrl(o.wp); ic.alt = ''; t.append(el('b', null, o.nm + ' (' + o.kz + ')'), el('small', null, o.n + (o.n === 1 ? ' Ritter' : ' Ritter') + (o.gm ? ' · Großmeister ' + o.gm : ''))); r.append(ic, t); body.append(r); } }
+    opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn')); body.append(opts); return;
+  }
+  const P = orProgress(), claimed = HERO.owClaim === orWeek();
+  $('talkText').textContent = 'Ihr seid Ritter des Ordens „' + O.nm + '“ (' + O.kz + ')' + (O.gm ? ' und sein Großmeister.' : '.') + ' Diese Woche: ' + P.T.t + (P.n >= P.need ? ', geschafft!' : ', jeder Ritter des Ordens zählt mit.');
+  const head = el('div', 'shoprow'), ic = el('img'), t = el('div', 'stx'); ic.src = orUrl(O.wp, 4); ic.alt = ''; ic.className = 'orbig';
+  t.append(el('b', null, O.nm), el('small', null, P.members + ' Ritter · Wappen: ' + OR_CHARGE[O.wp[1]][0] + ' in ' + OR_TINCT[O.wp[2]][0] + ' auf ' + OR_TINCT[O.wp[0]][0]));
+  head.append(ic, t); body.append(head);
+  const bar = el('div', 'orbar'), fill = el('i'); fill.style.width = Math.min(100, P.n / P.need * 100) + '%';
+  bar.append(fill, el('span', null, 'Wochenaufgabe: ' + Math.min(P.n, P.need) + ' von ' + P.need + ' ' + P.T.unit)); body.append(bar);
+  if (P.n >= P.need){ const b = btn(claimed ? 'Ordenslohn dieser Woche erhalten' : 'Ordenslohn abholen', () => { orClaim(); renderTalk('orden'); }, 'opt' + (claimed ? '' : ' ready')); b.disabled = claimed; opts.append(b); }
+  opts.append(btn('Ritter des Ordens', () => renderTalk('ordenListe'), 'opt'));
+  opts.append(el('p', 'hint', 'Neue Ritter nehmt Ihr auf, indem Ihr sie im Land ansprecht. Im Gespräch schreibt Ihr mit „/o“ vorweg nur an Euren Orden.'));
+  opts.append(btn('Aus dem Orden austreten', () => { if (G.orAsk){ G.orAsk = false; orLeave(); renderTalk('orden'); } else { G.orAsk = true; renderTalk('orden'); } }, 'opt'));
+  if (G.orAsk) opts.append(el('p', 'hint', 'Noch einmal drücken, um wirklich auszutreten.'));
+  opts.append(btn('Zurück', () => { G.orAsk = false; renderTalk('main'); }, 'tbtn'));
+  body.append(opts);
+}
+const agoText = ms => { const m = Math.round(ms / 60000); return m < 60 ? Math.max(1, m) + ' Min.' : m < 2880 ? Math.round(m / 60) + ' Std.' : Math.round(m / 1440) + ' Tagen'; };
+/* Gründung: Name, Kürzel und Wappen; die Vorschau wird ohne Neuzeichnen des Fensters getauscht */
+function orForm(body, opts){
+  const F = G.orForm = G.orForm || { nm: '', kz: '', wp: [2, 0, 0] };
+  $('talkText').textContent = 'Wie soll Euer Orden heißen? Name, ein Kürzel aus zwei bis fünf Buchstaben und ein Wappen. Die Gründung kostet ' + OR_COST + ' Gulden.';
+  const form = el('div', 'orform'), prev = el('img'); prev.className = 'orbig'; prev.alt = 'Wappen';
+  const nm = el('input'); nm.maxLength = 28; nm.placeholder = 'Orden vom Goldenen Apfel'; nm.value = F.nm; nm.setAttribute('aria-label', 'Name des Ordens');
+  const kz = el('input'); kz.maxLength = 5; kz.placeholder = 'Kürzel'; kz.value = F.kz; kz.setAttribute('aria-label', 'Kürzel des Ordens');
+  const ok = btn('Orden gründen', () => {
+    const o = orClean({ id: rid() + rid().slice(0, 3), nm: F.nm, kz: F.kz, wp: F.wp });
+    if (!o || HERO.gold < OR_COST || orKnown().some(k => k.nm.toLowerCase() === o.nm.toLowerCase())) return;
+    HERO.gold -= OR_COST; updateHud(); orJoin(o, true); G.orForm = null;
+    showBanner(o.nm, 'gegründet von ' + HERO.name); logLine('Ihr gründet den Orden „' + o.nm + '“. Nehmt andere Ritter auf, indem Ihr sie im Land ansprecht.', '#ffd98a'); Sound.quest();
+    renderTalk('orden');
+  }, 'opt');
+  const why = el('p', 'hint');
+  const upd = () => {
+    F.nm = nm.value; F.kz = kz.value.trim(); prev.src = orUrl(F.wp, 4);
+    const dup = orKnown().some(k => k.nm.toLowerCase() === cleanText(F.nm, 28).toLowerCase());
+    const bad = !cleanText(F.nm, 28) ? 'Der Orden braucht einen Namen.' : !OR_KZ_RE.test(F.kz) ? 'Das Kürzel hat zwei bis fünf Buchstaben.' : dup ? 'Diesen Namen trägt schon ein Orden.' : HERO.gold < OR_COST ? 'Ihr habt keine ' + OR_COST + ' Gulden.' : '';
+    ok.disabled = !!bad; why.textContent = bad;
+    for (const [i, b] of cyc.entries()) b.textContent = ['Feld: ', 'Bild: ', 'Farbe des Bildes: '][i] + (i === 1 ? OR_CHARGE[F.wp[1]][0] : OR_TINCT[F.wp[i]][0]);
+  };
+  nm.addEventListener('input', upd); kz.addEventListener('input', upd);
+  const cyc = [0, 1, 2].map(i => { const b = btn('', () => { F.wp[i] = (F.wp[i] + 1) % (i === 1 ? OR_CHARGE.length : OR_TINCT.length); if (i !== 1 && F.wp[0] === F.wp[2]) F.wp[i] = (F.wp[i] + 1) % OR_TINCT.length; upd(); }, 'tbtn'); return b; });
+  const fields = el('div', 'orfields'); fields.append(nm, kz, ...cyc);
+  form.append(prev, fields); body.append(form);
+  opts.append(ok, why, btn('Zurück', () => renderTalk('orden'), 'tbtn'));
+  body.append(opts); upd();
+}
+
+/* ============ Großes Turnier: K.-o.-System an der Schranke ============
+   Wer das Turnier ausruft, ist Marschall: In seiner Anwesenheit (gt) stehen die Gemeldeten, der Turnierbaum und der
+   laufende Tjost. Die beiden Ritter eines Tjosts sehen das und reiten gegeneinander; der Marschall liest das Ergebnis
+   aus ihrer Anwesenheit und setzt den Sieger eine Runde weiter. Startgeld zahlt jeder selbst, den Preis nimmt sich
+   der Sieger aus dem Topf. */
+const TN_FEE = 20, TN_MAX = 8;
+const TN_ROUND = n => n === 1 ? 'Finale' : n === 2 ? 'Halbfinale' : n === 4 ? 'Viertelfinale' : 'Achtelfinale';
+/* Turnierbaum: Runde für Runde, je Tjost [a, b, w] mit Platznummern (-1 Freilos, null noch offen) */
+function tnBracket(n){
+  const size = n <= 2 ? 2 : n <= 4 ? 4 : 8, real = Array.from({ length: n }, (_, i) => i), byes = size - n, R1 = [];
+  for (let i = n - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [real[i], real[j]] = [real[j], real[i]]; }
+  let k = 0;
+  for (let m = 0; m < size / 2; m++) R1.push(m < byes ? [real[k++], -1, null] : [real[k++], real[k++], null]);   // Freilose gegen Ritter, nie gegeneinander
+  const rounds = [R1];
+  for (let m = size / 4; m >= 1; m /= 2) rounds.push(Array.from({ length: m }, () => [null, null, null]));
+  return rounds;
+}
+/* der Marschall: eigene Anmeldung annehmen, Tjoste ansetzen, Ergebnisse eintragen */
+function tnHost(name){
+  if (NET.gt || NET.tj) return;
+  if (HERO.gold < TN_FEE){ logLine('Das Startgeld beträgt ' + TN_FEE + ' Gulden.', '#d8c69c'); return; }
+  HERO.gold -= TN_FEE; updateHud();
+  NET.gt = { id: rid(), st: 'an', pl: [NET.me], nm: [HERO.name], br: null, cur: null, t: nowS() };
+  NET.tj = { id: NET.gt.id, host: NET.me, paid: true };
+  showBanner('Großes Turnier', 'Ihr ruft aus, bis zu ' + TN_MAX + ' Ritter'); Sound.horn(); Sound.cheer(.8);
+  logLine('Ihr ruft ein Großes Turnier aus. Andere Ritter melden sich beim Herold an, dann beginnt Ihr es dort.', '#ffd98a');
+  sendPresence(true);
+}
+function tnPres(){ const T = NET.gt; return { id: T.id, st: T.st, pl: T.pl, nm: T.nm, br: T.br, cur: T.cur ? { i: T.cur.i, r: T.cur.r, a: T.cur.a, b: T.cur.b, id: T.cur.id } : null, ch: T.ch ?? null }; }
+/* das Turnier, das ich sehe: meines oder das eines Marschalls in der Nähe */
+function tnView(){
+  if (NET.gt) return { T: NET.gt, host: NET.me, hostNm: HERO.name };
+  const host = NET.tj ? PEERS.get(NET.tj.host) : null;
+  if (host && host.gt && host.gt.id === NET.tj.id) return { T: host.gt, host: host.peer, hostNm: host.nm };
+  for (const q of PEERS.values()) if (q.gt && typeof q.gt.id === 'string' && Array.isArray(q.gt.pl) && samePlace(q) && nearLists(q.x, q.y)) return { T: q.gt, host: q.peer, hostNm: q.nm };
+  return null;
+}
+function tnStart(){
+  const T = NET.gt; if (!T || T.st !== 'an' || T.pl.length < 2) return;
+  T.br = tnBracket(T.pl.length); T.st = 'lauf'; T.cur = null;
+  showBanner('Großes Turnier', T.pl.length + ' Ritter, der Herold ruft den ersten Tjost'); Sound.horn();
+  sendPresence(true);
+}
+function tnCancel(){
+  const T = NET.gt; if (!T) return;
+  T.st = 'aus'; logLine('Ihr sagt das Große Turnier ab. Jeder bekommt sein Startgeld zurück.', '#d8c69c');
+  tnRefund(); sendPresence(true);
+  setTimeout(() => { if (NET.gt === T){ NET.gt = null; sendPresence(true); } }, 8000);
+}
+function tnRefund(){ if (NET.tj && NET.tj.paid){ HERO.gold += TN_FEE; updateHud(); markDirty(true); } NET.tj = null; }
+/* Ergebnis eines Tjosts aus Sicht des Ritters x: 1 Sieg, 0 Niederlage, .5 Gleichstand, null noch offen */
+function tnResult(x, id){
+  if (x === NET.me) return NET.lastDuel && NET.lastDuel.id === id ? NET.lastDuel.res : null;
+  const q = PEERS.get(x), jo = q && q.jo;
+  return jo && jo.id === id && jo.end && typeof jo.res === 'number' ? jo.res : null;
+}
+function tnTick(t){
+  const T = NET.gt;
+  if (T){
+    // Anmeldung: Gemeldete, die fort sind, streichen
+    if (T.st === 'an'){ const keep = T.pl.map((p, i) => p === NET.me || PEERS.get(p) ? i : -1).filter(i => i >= 0); if (keep.length !== T.pl.length){ T.pl = keep.map(i => T.pl[i]); T.nm = keep.map(i => T.nm[i]); } }
+    if (T.st === 'lauf') tnHostRun(T, t);
+  }
+  // als Gemeldeter: dran sein, Absage, Ende
+  const V = tnView();
+  if (NET.tj && !NET.gt){
+    const host = PEERS.get(NET.tj.host), gt = host && host.gt;
+    if (!gt || gt.id !== NET.tj.id){ NET.tj.lost = NET.tj.lost || t; if (t - NET.tj.lost > 8){ logLine('Der Marschall ist fort. Das Große Turnier fällt aus, Ihr bekommt Euer Startgeld zurück.', '#d8c69c'); tnRefund(); } }
+    else {
+      NET.tj.lost = 0;
+      if (gt.st === 'aus'){ logLine('Das Große Turnier ist abgesagt. Ihr bekommt Euer Startgeld zurück.', '#d8c69c'); tnRefund(); }
+      else if (gt.st === 'ende') tnFinish(gt);
+      else if (Array.isArray(gt.pl) && !gt.pl.includes(NET.me) && gt.st === 'lauf'){ NET.tj = null; }
+    }
+  }
+  if (NET.gt && NET.gt.st === 'ende' && NET.tj) tnFinish(NET.gt);
+  if (V && V.T.cur && V.T.st === 'lauf') tnMyTurn(V.T);
+  const key = V ? V.T.id + V.T.st + JSON.stringify(V.T.cur) + JSON.stringify(V.T.br) + (V.T.pl || []).length : '';
+  if (key !== (G.tnKey || '')){ G.tnKey = key; renderTracker(); if (G.talk && G.talk.view === 'turnier') renderTalk('turnier'); }
+}
+/* bin ich dran? dann gegen den anderen reiten */
+function tnMyTurn(T){
+  const c = T.cur, me = NET.me; if (!c || (c.a !== me && c.b !== me)) return;
+  if (G.joust || (NET.jo && NET.jo.id === c.id) || (NET.lastDuel && NET.lastDuel.id === c.id)) return;
+  const other = c.a === me ? c.b : c.a, q = PEERS.get(other);
+  if (!q || G.mode === 'dead' || G.mode === 'dying') return;
+  if (G.mode === 'menu') closePanel();
+  if (G.mode !== 'play' || G.fgame || DG_ON || G.inside || !nearLists(G.knight.x, G.knight.y)) return;
+  showBanner('Ihr seid dran', TN_ROUND(T.br[c.r].length) + ' gegen ' + q.nm);
+  startDuel(q, c.id, c.a === me);
+}
+function tnHostRun(T, t){
+  const R = T.br;
+  if (!T.cur){
+    // Freilose durchwinken, nächsten Tjost suchen
+    for (let r = 0; r < R.length; r++) for (let i = 0; i < R[r].length; i++){
+      const m = R[r][i]; if (m[2] != null) continue;
+      if (m[0] != null && m[1] === -1){ tnAdvance(T, r, i, m[0]); return; }
+      if (m[1] != null && m[0] === -1){ tnAdvance(T, r, i, m[1]); return; }
+      if (m[0] != null && m[1] != null && m[0] >= 0 && m[1] >= 0){
+        T.cur = { r, i, a: T.pl[m[0]], b: T.pl[m[1]], id: T.id + ':' + r + i, t };
+        logLine('Der Herold ruft: ' + TN_ROUND(R[r].length) + ', ' + T.nm[m[0]] + ' gegen ' + T.nm[m[1]] + '!', '#ffd98a'); Sound.horn();
+        sendPresence(true); return;
+      }
+    }
+    return;
+  }
+  const c = T.cur, m = R[c.r][c.i], ra = tnResult(c.a, c.id), rb = tnResult(c.b, c.id);
+  let w = null;
+  if (ra != null || rb != null){
+    const res = ra != null ? ra : 1 - rb;
+    w = res === .5 ? ((hashStr(c.id) & 1) ? m[0] : m[1]) : res > .5 ? m[0] : m[1];
+    if (res === .5) logLine('Gleichstand! Das Los entscheidet für ' + T.nm[w] + '.', '#ffd98a');
+  } else {
+    // nicht angetreten: wer fehlt, verliert
+    const okA = c.a === NET.me || PEERS.get(c.a), okB = c.b === NET.me || PEERS.get(c.b);
+    if (!okA || !okB || t - c.t > 120){ w = okA && !okB ? m[0] : okB && !okA ? m[1] : m[0]; logLine(T.nm[w === m[0] ? m[1] : m[0]] + ' ist nicht angetreten.', '#d8c69c'); }
+  }
+  if (w != null){ T.cur = null; tnAdvance(T, c.r, c.i, w); }
+}
+function tnAdvance(T, r, i, w){
+  const R = T.br; R[r][i][2] = w;
+  if (r + 1 < R.length) R[r + 1][i >> 1][i & 1] = w;
+  else { T.st = 'ende'; T.ch = w; logLine(T.nm[w] + ' gewinnt das Große Turnier!', '#ffd98a'); Sound.cheer(1); setTimeout(() => { if (NET.gt === T){ NET.gt = null; sendPresence(true); } }, 30000); }
+  sendPresence(true);
+}
+/* Ende: Sieger und Zweiter nehmen sich ihren Anteil am Topf */
+function tnFinish(gt){
+  if (!NET.tj) return;
+  const me = Array.isArray(gt.pl) ? gt.pl.indexOf(NET.me) : -1, n = Array.isArray(gt.pl) ? gt.pl.length : 0, pot = TN_FEE * n;
+  NET.tj = null;
+  if (me < 0 || !Array.isArray(gt.br)) return;
+  const fin = gt.br[gt.br.length - 1][0], second = fin && fin[0] === gt.ch ? fin[1] : fin ? fin[0] : -1;
+  if (gt.ch === me){
+    const gold = Math.round(pot * .6) + 40, xp = Math.round(xpNeed(HERO.lvl) * .2) + 20;
+    HERO.gold += gold; HERO.tw = (HERO.tw || 0) + 1;
+    const first = HERO.tw === 1, it = first ? makeItem('helm', HERO.lvl + 1, 3, { name: 'Goldener Turnierhelm', aff: ['hp', 'arm', 'crit'] }) : makeItem(pick(SLOTS), HERO.lvl + 1, 2);
+    const j = HERO.inv.indexOf(null); if (j >= 0) HERO.inv[j] = it; else dropLoot(G.knight, 'item', 0, it);
+    showBanner('Sieger des Großen Turniers', gold + ' Gulden und ' + it.n);
+    logLine('Ihr gewinnt das Große Turnier vor ' + n + ' Rittern: ' + gold + ' Gulden aus Topf und Ehrensold, ' + xp + ' EP und ' + it.n + '.', '#ffd98a');
+    gainXp(xp); Sound.levelUp(); Sound.cheer(1);
+  } else if (second === me){
+    const gold = Math.round(pot * .25) + 10; HERO.gold += gold;
+    logLine('Ihr werdet Zweiter im Großen Turnier: ' + gold + ' Gulden.', '#ffd98a'); Sound.coin();
+  } else logLine((gt.nm && gt.nm[gt.ch]) ? cleanName(gt.nm[gt.ch]) + ' gewinnt das Große Turnier.' : 'Das Große Turnier ist vorbei.', '#d8c69c');
+  updateHud(); pushFame(); markDirty(true);
+}
+/* beim Herold */
+function turnierView(body, opts){
+  G.talk.view = 'turnier';
+  const V = tnView(), T = V && V.T, mine = !!NET.gt;
+  const names = T && Array.isArray(T.nm) ? T.nm.map(x => cleanName(x) || 'Ritter') : [];
+  if (!T || T.st === 'aus' || T.st === 'ende' && !mine){
+    $('talkText').textContent = 'Beim Großen Turnier reiten bis zu ' + TN_MAX + ' Ritter im K.-o.-System, ein Tjost nach dem anderen. Startgeld ' + TN_FEE + ' Gulden; der Sieger bekommt drei Fünftel des Topfs und Ehrensold, der Zweite ein Viertel. ' + (T && T.st === 'ende' ? names[T.ch] + ' hat zuletzt gewonnen.' : '');
+    const b = btn('Ein Großes Turnier ausrufen (' + TN_FEE + ' Gulden)', () => { tnHost(); renderTalk('turnier'); }, 'opt'); b.disabled = HERO.gold < TN_FEE || !!NET.tj || !cloud.room; opts.append(b);
+    if (!cloud.room) opts.append(el('p', 'hint', 'Ein Großes Turnier braucht andere Ritter im Land.'));
+  } else if (T.st === 'an'){
+    const joined = NET.tj && NET.tj.id === T.id;
+    $('talkText').textContent = (mine ? 'Ihr ruft das Große Turnier aus. ' : V.hostNm + ' ruft ein Großes Turnier aus. ') + 'Gemeldet sind ' + names.length + ' von ' + TN_MAX + ' Rittern: ' + names.join(', ') + '.';
+    if (mine){ const b = btn('Das Turnier beginnen', () => { tnStart(); renderTalk('turnier'); }, 'opt new'); b.disabled = T.pl.length < 2; opts.append(b, btn('Absagen', () => { tnCancel(); renderTalk('turnier'); }, 'opt')); if (T.pl.length < 2) opts.append(el('p', 'hint', 'Es braucht mindestens zwei Ritter.')); }
+    else if (!joined){ const host = PEERS.get(V.host), b = btn('Anmelden (' + TN_FEE + ' Gulden)', () => { if (host){ NET.tnWant = T.id; netAsk(host, 'tourn', T.id); } renderTalk('turnier'); }, 'opt'); b.disabled = HERO.gold < TN_FEE || names.length >= TN_MAX || !!NET.q; opts.append(b); }
+    else opts.append(el('p', 'hint', 'Ihr seid gemeldet. Bleibt auf der Turnierwiese, bis der Marschall beginnt.'));
+  } else {
+    $('talkText').textContent = T.st === 'ende' ? names[T.ch] + ' hat das Große Turnier gewonnen!' : T.cur ? 'Es reiten ' + names[T.pl.indexOf(T.cur.a)] + ' und ' + names[T.pl.indexOf(T.cur.b)] + '.' : 'Der Herold ruft den nächsten Tjost.';
+    (T.br || []).forEach((round) => {
+      const box = el('div', 'tnround'); box.append(el('b', null, TN_ROUND(round.length)));
+      for (const m of round){
+        const nm = x => x == null ? '…' : x < 0 ? 'Freilos' : names[x];
+        const p = el('p', m[2] != null ? 'done' : ''); p.textContent = nm(m[0]) + ' – ' + nm(m[1]) + (m[2] != null && m[2] >= 0 ? '  →  ' + names[m[2]] : '');
+        box.append(p);
+      }
+      body.append(box);
+    });
+  }
+  opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
+  body.append(opts);
+}
+/* Zeile oben links */
+function tnRows(box){
+  const V = tnView(); if (!V) return;
+  const T = V.T, names = Array.isArray(T.nm) ? T.nm.map(x => cleanName(x) || 'Ritter') : [];
+  if (T.st === 'aus') return;
+  const p = el('p', 'ev'); p.append(el('b', null, 'Großes Turnier: '));
+  if (T.st === 'an') p.append(names.length + ' gemeldet, Marschall ' + V.hostNm);
+  else if (T.st === 'ende') p.append(names[T.ch] + ' siegt!');
+  else if (T.cur && Array.isArray(T.br) && T.br[T.cur.r]) p.append(TN_ROUND(T.br[T.cur.r].length) + ', ' + names[T.pl.indexOf(T.cur.a)] + ' gegen ' + names[T.pl.indexOf(T.cur.b)]);
+  else p.append('gleich der nächste Tjost');
+  box.append(p);
 }
 
 /* ============ Start ============ */
