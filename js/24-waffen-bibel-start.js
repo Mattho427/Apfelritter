@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 23 von 23: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
+/* Der Apfelritter, Teil 24 von 24: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Waffenarten im Kampf: Bolzen, Fähigkeiten je Waffe, Zeugmeister ============
    Die Armbrust schießt statt zu hauen; jeder Schuss zählt wie ein Hieb (sw), Mitspieler erzeugen den Bolzen daraus selbst und
@@ -40,7 +40,7 @@ function wtFix(it, i, old){
 function xbAim(k, base){
   let best = null, bd = 400;
   for (const m of G.mons){
-    if (!vulnerable(m) || (m.mode === 'idle' && !m.story && m.k === 'irrlicht')) continue;
+    if (!vulnerable(m) || (m.mode === 'idle' && !m.story && aiK(m.k) === 'irrlicht')) continue;
     const c = centerOf(m), gp = gripOf(k), dx = c.x - gp.x, dy = c.y - gp.y, d = Math.hypot(dx, dy);
     if (d > bd) continue;
     const da = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - base), Math.cos(Math.atan2(dy, dx) - base)));
@@ -75,7 +75,7 @@ function kbTick(dt){
       if (b.hit.has(m) || !vulnerable(m)) continue;
       if (!bodyCircles(m).some(c => Math.hypot(c.x - b.x, c.y - b.y) < c.hr + 4)) continue;
       b.hit.add(m);
-      if (b.own){ const h = rollHit(b.mult); damage(m, h.dmg, h.crit, WT.armbrust.kb); }
+      if (b.own){ const h = rollHit(b.mult), d = Math.round(h.dmg * foeMul(m)); damage(m, d, h.crit, WT.armbrust.kb); leech(d); }
       else { const q = b.src, cb = q.cb || [5, 5], crit = Math.random() * 100 < cb[1]; damage(m, Math.max(1, Math.round(cb[0] * b.mult * rand(.9, 1.1) * (crit ? 1.75 : 1))), crit, WT.armbrust.kb, q); }
       if (!b.pierce){ gone = true; break; }
     }
@@ -159,7 +159,7 @@ function bibPray(){
   const k = G.knight; if (k.bashT > 0) return;
   const heal = Math.round(ST.hp * BIB_HEAL / 100);
   k.hp = Math.min(ST.hp, k.hp + heal); k.slowT = 0;
-  G.cd.stoss = BIB_CD;
+  G.cd.stoss = cdT(BIB_CD, 'sturm', 3);
   floatText(k.x, k.y - KS.ay - 2, '+' + heal, '#ffe9a0', 1);
   burst(k.x, k.y - KBODY, ['#fff3c0', '#ecd27a', '#ffffff'], 22, 70, true);
   Sound.potion(); updateHud();

@@ -180,11 +180,22 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
   .masthead .seal{width:48px; height:48px;}
 }
 .num{font-family:var(--f-body); font-size:.8em;}
-.panel.map{max-width:min(96%, 860px);}
-.mapbox{position:relative; width:100%; max-width:800px; line-height:0; box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--gold-lo);}
+.panel.map{max-width:min(96%, 860px); width:min(96%, 860px);}
+.panel.map .hint{max-width:64ch;}
+.iset{margin:6px 0; padding:6px 8px; border:1px solid rgba(127,214,95,.35); background:rgba(40,60,30,.25);}
+.iset b{display:block; color:#9fe08a; font-weight:normal;}
+.iset small{display:block; color:#8a8470;}
+.iset small.on{color:#cfeec2;}
+.talrow{display:flex; flex-wrap:wrap; gap:4px 8px; align-items:flex-start; margin:6px 0; padding:6px 0; border-top:1px solid rgba(201,162,39,.25);}
+.talrow > b{flex:0 0 100%; color:var(--gold); font-weight:normal;}
+.talrow.locked{opacity:.5;}
+.talo{display:flex; flex-direction:column; flex:1 1 140px; gap:2px;}
+.talo small{color:#cfc4a8; font-size:12px; line-height:1.25;}
+.talopt.sel{outline:2px solid var(--gold); background:#3a2e14;}
+.mapbox{position:relative; width:100%; max-width:800px; max-width:min(800px, max(300px, calc((100dvh - 150px) * 4 / 3))); container-type:inline-size; line-height:0; box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--gold-lo);}
 .mapbox canvas{width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
 .maplabels{position:absolute; inset:0; pointer-events:none; line-height:1;}
-.maplabels span{position:absolute; transform:translate(-50%, -50%); white-space:nowrap; font-family:var(--f-display); font-size:clamp(11px, 2.4vw, 17px); color:#2a1c12; text-shadow:0 0 2px #e8d8b0, 0 0 3px #e8d8b0;}
+.maplabels span{position:absolute; transform:translate(-50%, -50%); white-space:nowrap; font-family:var(--f-display); font-size:clamp(11px, 2.4vw, 17px); font-size:clamp(10px, 2.3cqw, 17px); color:#2a1c12; text-shadow:0 0 2px #e8d8b0, 0 0 3px #e8d8b0;}
 .plate{display:grid; grid-template-columns:auto 1fr; gap:12px 16px; align-items:start;}
 .plate img.fig{width:144px; height:auto; image-rendering:pixelated; background:#b8a47a; box-shadow:0 0 0 2px #8e7a52;}
 .plate img.sword{display:block; width:100%; max-width:220px; height:auto; image-rendering:pixelated; margin:8px 0 4px;}
@@ -751,7 +762,7 @@ body{margin:0; padding:0;}
     <div class="overlay" id="ovMap" hidden>
       <div class="panel map">
         <h2>Karte des Reichslandes</h2>
-        <div class="mapbox"><canvas id="mapCv" width="768" height="384" aria-label="Übersichtskarte"></canvas><div class="maplabels" id="mapLabels"></div></div>
+        <div class="mapbox"><canvas id="mapCv" width="768" height="576" aria-label="Übersichtskarte"></canvas><div class="maplabels" id="mapLabels"></div></div>
         <p class="hint">Gelb: Ihr · Grün: Leute · Rot: Anführer · Blau: andere Ritter · Hellgrün: Eure Gruppe · Kreis: Ziel eines Auftrags · Goldene Raute: Hauptgeschichte · Rote Fahne: Weltereignis</p>
         <button class="btn" id="btnMapClose" type="button">Zurück</button>
       </div>
@@ -827,7 +838,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Beute und Ausrüstung</h3>
               <ul class="rarity" id="rarityList"></ul>
-              <p class="tip">Jedes Monster kann Gulden, Heiltränke oder Ausrüstung fallen lassen: Waffe, Helm, Rüstung, Schild, Beine und ein Kleinod. Seltene Stücke leuchten am Boden. Der Name über einem Monster zeigt seine Stufe: rot ist gefährlich, grau bringt keine Erfahrung mehr.</p>
+              <p class="tip">Jedes Monster kann Gulden, Heiltränke oder Ausrüstung fallen lassen: Waffe, Helm, Rüstung, Schild, Beine und ein Kleinod. Seltene Stücke leuchten am Boden. Der Name über einem Monster zeigt seine Stufe: rot ist gefährlich, grau bringt keine Erfahrung mehr. Im Bergland gibt es Ausrüstung bis Stufe 32 mit neuen Grundformen (bis zum Prunkharnisch und Kaiserschwert) und neuen Zusätzen: mehr Erfahrung, mehr Gulden, Schaden gegen Untote und Lebensraub.</p>
             </div>
             <div class="note">
               <h3>Gasthäuser</h3>
@@ -902,9 +913,19 @@ body{margin:0; padding:0;}
               <p class="tip">Östlich des Reichslands fließt der Strom. An ihm liegen die Reichsstadt Speyer mit Kaiserdom und Hafen und das Fischerdorf Altrip, nördlich die Weinberge an der Weinstraße, südlich der Auwald, und auf der Insel im Altarm hausen die Flusspiraten des Hinrich Rotbart. Der Fährmann an der Steinbrücke, der Fischer in Altrip und der Hafenmeister in Speyer setzen Euch über. Beim Fischer gibt es eine Angel: Stellt Euch ans Wasser und drückt E, beim Biss noch einmal. Fische kauft der Krämer, der Wirt zahlt mehr. Der Stadtschreiber in Speyer hat Aufträge ab Stufe 15.</p>
             </div>
             <div class="note">
+              <h3>Das Bergland</h3>
+              <ul class="list" id="blList"></ul>
+              <p class="tip">Südlich der Reichsstadt führt die Bergstraße hinauf nach Annaberg. Die Bergstadt ist sicher: Der Bergmeister vergibt Aufträge für Stufe 19 bis 30, im Gasthaus Zur Silbernen Kanne und in der St. Annenkirche könnt Ihr rasten und beten, Krämerin, Schmied und Stallmeister sind da. Kobolde, Wölfe und Bären lassen manchmal Silbererz, Pelze und Federn fallen, die die Krämerin kauft. Ganz selten fallen Fundstücke und Teile der Rüstungssätze.</p>
+              <h3>Meisterschaften</h3>
+              <ul class="list" id="meisterList"></ul>
+              <p class="tip">Ab Stufe 20 dürft Ihr alle zwei Stufen eine von drei Meisterschaften wählen: im Rucksack unter „Meisterschaften“. In einer Stadt oder einem Gasthaus könnt Ihr sie gegen Gulden neu ordnen.</p>
+              <h3>Rüstungssätze und Fundstücke</h3>
+              <ul class="list" id="satzList"></ul>
+            </div>
+            <div class="note">
               <h3>Ehre und Trophäen</h3>
               <ul class="list" id="ehNote"></ul>
-              <p class="tip">Nach Stufe 20 geht die Erfahrung in Ehrenstufen: Jede bringt ein Ehrenzeichen, Gulden und ein halbes Hundertstel mehr Leben und Schaden (bis Ehrenstufe 30). Ab Stufe 18 stellt der Reichsherold in Speyer jede Woche drei Prüfungen, für alle Ritter dieselben; jede bestandene bringt drei Ehrenzeichen. Dafür gibt es beim Herold legendäre Rüstung, Prunkwappen und Ehrentitel. Große Taten kommen ins Trophäenbuch, viele bringen ein Wappen. Wappen und Titel sehen alle Ritter neben Eurem Namen.</p>
+              <p class="tip">Nach Stufe 30 geht die Erfahrung in Ehrenstufen: Jede bringt ein Ehrenzeichen, Gulden und ein halbes Hundertstel mehr Leben und Schaden (bis Ehrenstufe 30). Ab Stufe 18 stellt der Reichsherold in Speyer jede Woche drei Prüfungen, für alle Ritter dieselben; jede bestandene bringt drei Ehrenzeichen. Dafür gibt es beim Herold legendäre Rüstung, Prunkwappen und Ehrentitel. Große Taten kommen ins Trophäenbuch, viele bringen ein Wappen. Wappen und Titel sehen alle Ritter neben Eurem Namen.</p>
             </div>
             <div class="note">
               <h3>Jagd</h3>
@@ -927,7 +948,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Stände des Reiches</h3>
               <ol class="ranks" id="rankList"></ol>
-              <p class="tip">Jede Stufe bringt mehr Leben und Schaden. Höchste Stufe: 20, danach steigen die Ehrenstufen.</p>
+              <p class="tip">Jede Stufe bringt mehr Leben und Schaden. Höchste Stufe: 30, danach steigen die Ehrenstufen. Ab Stufe 20 bringt jede zweite Stufe eine Meisterschaft (im Rucksack wählen).</p>
             </div>
             <div class="note">
               <h3>Ruhmeshalle</h3>
@@ -992,4 +1013,5 @@ body{margin:0; padding:0;}
 <script src="js/20-post-markt-speyer.js"></script>
 <script src="js/21-spaetes-spiel-zollburg.js"></script>
 <script src="js/22-kirchen.js"></script>
-<script src="js/23-waffen-bibel-start.js"></script>
+<script src="js/23-bergland.js"></script>
+<script src="js/24-waffen-bibel-start.js"></script>

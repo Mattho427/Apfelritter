@@ -6,4 +6,4 @@ run(){ echo "=== $*"; local t=$1; shift; timeout 400 node ../$t "$@" 2>&1 | grep
 for t in t1 t2 t3 t4 t5 t6 t7 t8 joust t_dg t_dgfight t_hunt t_boar t_kbd t_mood switch; do run einzel/$t.mjs; done
 run einzel/t_games.mjs 2
 for t in "tp1" "ts1 a" "t1" "t2" "t3b" "t4 545 8" "t6" "tm1" "to1" "tt1" "te2 brand" "tk1"; do set -- $t; run mehrspieler/$1.mjs "${@:2}"; done
-for t in tw1 tw2 tw5 tb1 tb2 m20 m21 vollbild tafeltasten kirche kirche2 kirche_handy; do run funktionen/$t.mjs; done
+for t in tw1 tw2 tw5 tb1 tb2 m20 m21 vollbild tafeltasten kirche kirche2 kirche_handy bergland bergland2 stufen30 gegenstaende; do run funktionen/$t.mjs; done

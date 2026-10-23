@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 5 von 23: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
+/* Der Apfelritter, Teil 5 von 24: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Bäume ============ */
 wp_P.sbark = wp_rmp(['#1d1613', '#2e241e', '#40322a', '#544237', '#685446']);                  // Fichtenrinde
@@ -463,15 +463,16 @@ function wp_innSign(B, hx, hy, dir, emblem){
   for (let i = 0; i < 3; i++){ wp_set(B, hx + dir * (11 - i), hy - 1 - (i === 1 ? 1 : 0), I[3]); }
   const bx = dir > 0 ? hx + 2 : hx - 12, by = hy + 3;
   wp_set(B, bx + 1, hy + 1, I[2]); wp_set(B, bx + 1, hy + 2, I[1]); wp_set(B, bx + 9, hy + 1, I[2]); wp_set(B, bx + 9, hy + 2, I[1]);
-  const field = { adler: '#2a2420', krone: '#7a1e1c', ochse: '#d8ccae', anker: '#1c3450' }[emblem] || '#2a2420';
+  const field = { adler: '#2a2420', krone: '#7a1e1c', ochse: '#d8ccae', anker: '#1c3450', kanne: '#2a3a2a' }[emblem] || '#2a2420';
   wp_rect(B, bx, by, bx + 11, by + 10, (x, y) => (x === bx || y === by || x === bx + 10 || y === by + 9) ? wp_tone(wp_P.oak, x === bx || y === by ? .7 : .3, x, y) : wp_mix(wp_c(field), wp_c('#000000'), (x - bx) * .025));
   const art = {
     adler: ['.g...g.', '.gg.gg.', 'g.ggg.g', 'ggggggg', '.g.g.g.', '..ggg..', '...g...'],
     krone: ['g..g..g', 'g.ggg.g', 'ggggggg', 'g.g.g.g', 'ggggggg', '.......', '.......'],
     ochse: ['r.....r', 'rr...rr', '.rrrrr.', '.rwrwr.', '..rrr..', '..rrr..', '...r...'],
-    anker: ['..ggg..', '...g...', '.ggggg.', '...g...', 'g..g..g', 'gg.g.gg', '.ggggg.']
+    anker: ['..ggg..', '...g...', '.ggggg.', '...g...', 'g..g..g', 'gg.g.gg', '.ggggg.'],
+    kanne: ['.sss...', '..s..s.', '.sSs.s.', '.sSss..', '.sSs...', '.sSs...', 'sssss..']
   }[emblem] || [];
-  const col = { g: j => G[j < 3 ? 5 : 3], r: () => wp_c('#8e1c1c'), w: () => wp_c('#16120f') };
+  const col = { g: j => G[j < 3 ? 5 : 3], r: () => wp_c('#8e1c1c'), w: () => wp_c('#16120f'), s: () => wp_c('#d8dee6'), S: () => wp_c('#9aa4b0') };
   art.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (col[row[i]]) wp_set(B, bx + 2 + i, by + 1 + j, col[row[i]](j)); });
 }
 
@@ -1840,6 +1841,97 @@ function wp_kAnker(s){
   for (const sy of [-1, 1]){ wp_seg(B, ax + 11, ay - 5, ax + 6, ay - 5 + sy * 6, 1.8, (x, y) => rust(x, y, .5)); wp_poly(B, [[ax + 6, ay - 5 + sy * 6], [ax + 3, ay - 5 + sy * 5], [ax + 6, ay - 5 + sy * 8.5]], (x, y) => rust(x, y, .66)); }
   return wp_xRes(B, [[-11, -5, 12, 1]], null, {});
 }
+
+/* ============ Bergland (Version 25): Göpel, Kanone, Schanzkorb, Felsklippe ============ */
+/* Pferdegöpel über einem Schacht: Gerüst aus Balken mit Seilscheibe, darunter die Schachtkaue mit Schindeldach */
+function wp_kGoepel(s){
+  const B = wp_img(84, 112, 104), cx = B.ax, ay = B.ay, R = rng(s);
+  wp_groundShadow(B, cx + 6, ay + 1, 38, 5);
+  // Kaue: Bretterhaus über dem Schacht
+  const x0 = cx - 26, x1 = cx + 26, yT = ay - 30;
+  wp_rect(B, x0, yT, x1, ay, wp_planks(wp_P.gwood, s, 4, { ox: x0, lit: x => -(x - x0) / 52 * .25 }));
+  for (const bx of [x0, x1 - 2]) wp_beam(B, bx + 1, ay, bx + 1, yT, 2, wp_P.oak, s + bx);
+  wp_beam(B, x0, ay - 15, x1, ay - 15, 1.6, wp_P.oak, s + 3);
+  wp_door(B, cx - 6, ay - 18, 12, 18, { R: wp_P.oak, s: s + 5, arch: 'flat' });
+  // Satteldach mit Schindeln
+  const rT = yT - 18;
+  wp_poly(B, [[x0 - 5, yT + 2], [x1 + 5, yT + 2], [x1 - 6, rT], [x0 + 6, rT]], (x, y) => { const v = (y - rT) / (yT + 2 - rT); return wp_tone(wp_P.shingle, .62 - v * .3 + ((y - rT) % 3 === 0 ? -.14 : 0) + (wp_h(Math.floor(x / 3 + ((y - rT) / 3 | 0) * .5), (y - rT) / 3 | 0, s) - .5) * .2, x, y); });
+  wp_rect(B, x0 + 6, rT - 1, x1 - 6, rT, wp_P.oak[2]);
+  // Gerüst: zwei schräge Streben je Seite, Riegel, oben die Seilscheibe
+  const top = ay - 98, wx = cx, wy = top + 9;
+  for (const sx of [-1, 1]){
+    wp_beam(B, cx + sx * 22, ay - 30, cx + sx * 5, top + 12, 2.4, wp_P.oak, s + 11 + sx);
+    wp_beam(B, cx + sx * 30, ay - 22, cx + sx * 8, top + 30, 1.8, wp_P.oak, s + 21 + sx);
+  }
+  for (const yy of [ay - 52, ay - 74]){ const w = 5 + (yy - top) / (ay - 30 - top) * 17; wp_beam(B, cx - w, yy, cx + w, yy, 1.8, wp_P.oak, s + yy); }
+  wp_beam(B, cx - 9, top + 12, cx + 9, top + 12, 2.2, wp_P.oak, s + 31);
+  wp_ell(B, wx, wy, 9, 9, (x, y) => { const d = Math.hypot(x + .5 - wx, y + .5 - wy); if (d > 7.4) return wp_tone(wp_P.oak, .6 - (y - wy) / 9 * .3, x, y); if (d < 2) return wp_P.iron[3]; const a = Math.atan2(y + .5 - wy, x + .5 - wx); return Math.abs(Math.sin(a * 3)) < .22 ? wp_tone(wp_P.oak, .45, x, y) : 0; });
+  // Seil hinab in die Kaue
+  wp_line(B, wx + 8, wy, wx + 8, ay - 30, wp_P.straw[2]); wp_line(B, wx - 8, wy, wx - 8, ay - 30, wp_P.straw[1]);
+  // Erzkübel und Haspel am Boden
+  wp_ell(B, cx + 34, ay - 5, 5, 5, (x, y) => wp_tone(wp_P.wood, .5 - (x - cx - 34) * .06, x, y));
+  wp_rect(B, cx + 30, ay - 10, cx + 38, ay - 9, wp_P.iron[2]);
+  for (let k = 0; k < 4; k++) wp_set(B, cx + 31 + k * 2, ay - 11, wp_c(k & 1 ? '#c8d4e0' : '#7a7a80'));
+  return wp_xRes(B, [[-27, -14, 27, 2], [29, -6, 39, 1]], [-30, -100, 30, -14]);
+}
+/* Feldschlange auf der Lafette: Bronzerohr, Holzwangen, zwei Räder; v 0 nach links, v 1 nach rechts */
+function wp_kKanone(s, v){
+  const B = wp_img(60, 34, 30), cx = B.ax, ay = B.ay, d = v ? 1 : -1;
+  wp_groundShadow(B, cx + 3, ay + 1, 26, 3);
+  // Lafettenschwanz am Boden
+  wp_beam(B, cx - d * 24, ay - 1, cx + d * 2, ay - 9, 2.6, wp_P.oak, s + 1);
+  // Rohr: von der Lafette nach vorn, leicht erhoben
+  const bx0 = cx - d * 10, by0 = ay - 12, bx1 = cx + d * 24, by1 = ay - 16;
+  wp_seg(B, bx0, by0, bx1, by1, 3.4, (x, y, t, q) => wp_tone(wp_P.gold, .55 - q * .35 + (t > .92 ? -.25 : 0) + (Math.abs(t - .3) < .03 || Math.abs(t - .7) < .03 ? .2 : 0), x, y));
+  wp_ell(B, bx0, by0, 3.6, 3.6, (x, y) => wp_tone(wp_P.gold, .45 - (y - by0) * .1, x, y));
+  wp_ell(B, bx1, by1, 2.2, 2.6, () => wp_P.dark[0]);
+  // Rad mit Speichen
+  const wx = cx + d * 2, wy = ay - 8, r = 8;
+  wp_ell(B, wx, wy, r, r, (x, y) => { const dd = Math.hypot(x + .5 - wx, y + .5 - wy); if (dd > r - 2) return wp_tone(wp_P.oak, .55 - (y - wy) / r * .3, x, y); if (dd < 1.6) return wp_P.iron[3]; const a = Math.atan2(y + .5 - wy, x + .5 - wx); return Math.abs(Math.sin(a * 3)) < .25 ? wp_tone(wp_P.oak, .4, x, y) : 0; });
+  wp_ell(B, wx, wy, r, r, (x, y) => Math.hypot(x + .5 - wx, y + .5 - wy) > r - .9 ? wp_P.iron[2] : 0);
+  // Kugeln daneben
+  for (const [kx, ky] of [[-d * 18, -2], [-d * 14, -2], [-d * 16, -5]]) wp_ell(B, cx + kx, ay + ky, 2, 2, (x, y) => wp_tone(wp_P.iron, .5 - (x - cx - kx) * .12 - (y - ay - ky) * .12, x, y));
+  return wp_xRes(B, [[-14, -6, 14, 1]], null);
+}
+/* Schanzkorb: Flechtkorb voll Erde */
+function wp_kSchanzkorb(s){
+  const B = wp_img(24, 28, 26), cx = B.ax, ay = B.ay;
+  wp_groundShadow(B, cx + 2, ay + 1, 11, 2.5);
+  wp_rect(B, cx - 9, ay - 20, cx + 9, ay, (x, y) => { const u = (x - cx) / 9, row = (y + ((x >> 1) & 1)) >> 1, w = ((x >> 1) + row) & 1; return wp_tone(wp_P.straw, .42 - u * .3 + (w ? .1 : -.12) + (wp_h(x, y, s) - .5) * .1, x, y); });
+  wp_ell(B, cx, ay - 20, 9, 3, (x, y) => wp_tone(wp_P.earth, .5 - (x - cx) * .03 + (wp_h(x, y, s + 1) - .5) * .3, x, y));
+  for (let i = -8; i <= 8; i += 4) wp_line(B, cx + i, ay - 22, cx + i, ay, (x, y) => wp_tone(wp_P.wood, .3, x, y));
+  return wp_xRes(B, [[-9, -6, 9, 1]], null);
+}
+/* Felsklippe: hohe, kantige Felsnadeln aus geschichtetem Sandstein (Hochgebirge, Schlucht) */
+function wp_kKlippe(s, v){
+  const B = wp_img(92, 116, 110), cx = B.ax, ay = B.ay, R = rng(s + v * 31);
+  wp_groundShadow(B, cx + 8, ay + 1, 42, 6);
+  const spires = [], n = 2 + (R() * 3 | 0);
+  for (let i = 0; i < n; i++) spires.push({ x: cx - 26 + (n > 1 ? i * (52 / (n - 1)) : 26) + (R() - .5) * 10, h: 44 + R() * 58, w: 13 + R() * 9, flat: R() < .45, sd: s + i * 97 });
+  spires.sort((a, b) => b.h - a.h);
+  for (const sp of spires){
+    const top = ay - sp.h, N = 9, L = [], Rt = [];
+    for (let k = 0; k <= N; k++){
+      const t = k / N, y = ay - t * sp.h, step = (wp_h(k, 1, sp.sd) - .5) * .5, w = sp.w * (1 - Math.pow(t, 1.25) * (sp.flat ? .62 : .9)) * (1 + step * (k > 0 && k < N ? 1 : 0));
+      L.push([sp.x - w + (wp_h(k, 2, sp.sd) - .5) * 4, y]); Rt.push([sp.x + w + (wp_h(k, 3, sp.sd) - .5) * 4, y]);
+    }
+    if (sp.flat){ const tl = L[N], tr = Rt[N]; L[N] = [tl[0], tl[1] + 2]; Rt[N] = [tr[0], tr[1] + (wp_h(9, 4, sp.sd) * 5 | 0)]; }
+    const pts = L.concat(Rt.reverse());
+    const ridge = y => sp.x + (wp_vn(y * .08, 3, sp.sd) - .5) * sp.w * .7;   // Grat zwischen Licht- und Schattenseite
+    wp_poly(B, pts, (x, y) => {
+      const lit = x < ridge(y), band = Math.floor((y + wp_vn(x * .09, 0, sp.sd) * 5) / 6), f = wp_vn(x * .2, y * .12, sp.sd + 7);
+      let t = (lit ? .64 : .36) + (band & 1 ? -.05 : .04) + (f - .5) * .22 - (y - top) / sp.h * .06;
+      if ((y + 1) % 6 === 0 && wp_h(x >> 2, band, sp.sd) < .6) t -= .16;   // Schichtfugen
+      if (Math.abs(x - ridge(y)) < .8) t += lit ? .1 : -.08;
+      return wp_tone(wp_P.grey, t, x, y);
+    });
+    for (let i = 0; i < 3; i++) wp_crack(B, Math.round(sp.x + (R() - .5) * sp.w), Math.round(top + 8 + R() * sp.h * .6), 12, sp.sd + i, (x, y) => wp_op(B, x, y));
+  }
+  wp_shade(B, cx - 46, ay - 6, cx + 46, ay, .25);
+  for (let i = 0; i < 26; i++){ const x = cx - 40 + R() * 80, y = ay - 60 + R() * 56; if (wp_op(B, x, y) && !wp_op(B, x, y - 2)) wp_tint(B, x, y, wp_P.moss[2], .7); }
+  for (let i = 0; i < 5; i++) wp_grass(B, cx - 36 + i * 18, ay - 1, 4, s + i);
+  return wp_xRes(B, [[-36, -16, 36, 2]], [-42, -110, 42, -14]);
+}
 const wp_K = {
   apfelbaum: [(s, v) => wp_tApfel(s, v), 6], eiche: [(s, v) => wp_tEiche(s, v), 5], buche: [(s, v) => wp_tBuche(s, v), 5], fichte: [(s, v) => wp_tFichte(s, v), 6],
   birke: [(s, v) => wp_tBirke(s, v), 5], weide: [(s, v) => wp_tWeide(s, v), 4], toter_baum: [(s, v) => wp_tTot(s, v), 5], busch: [(s, v) => wp_tBusch(s, v), 6],
@@ -1861,12 +1953,17 @@ const wp_K = {
   rad: [(s, v) => wp_kRad(s, v), 2], thron: [(s, v) => wp_kThron(s), 1], anker: [(s, v) => wp_kAnker(s), 1],
   kahn: [(s, v) => wp_kKahn(s, v), 4], kran: [(s, v) => wp_kKran(s), 1], netze: [(s, v) => wp_kNetze(s), 2], palisade: [(s, v) => wp_kPalisade(s, v), 3],
   rebzeile: [(s, v) => wp_kRebzeile(s, v), 3], dom: [(s, v) => wp_bDom(s, v), 1], gasthaus_anker: [(s, v) => wp_bStadthaus(s + 77, 0, 'anker'), 1],
-  gasthaus_adler: [(s, v) => wp_bStadthaus(s + 31, 0, 'adler'), 1], gasthaus_krone: [(s, v) => wp_bHaus(s + 17, 1, 'krone'), 1], gasthaus_ochse: [(s, v) => wp_bHaus(s + 5, 3, 'ochse'), 1]
+  gasthaus_adler: [(s, v) => wp_bStadthaus(s + 31, 0, 'adler'), 1], gasthaus_krone: [(s, v) => wp_bHaus(s + 17, 1, 'krone'), 1], gasthaus_ochse: [(s, v) => wp_bHaus(s + 5, 3, 'ochse'), 1],
+  // Bergland: Göpel, Kanone, Schanzkorb, Klippe, Gasthaus in Annaberg; im Hochgebirge liegt immer Schnee
+  goepel: [(s, v) => wp_kGoepel(s), 1], kanone: [(s, v) => wp_kKanone(s, v), 2], schanzkorb: [(s, v) => wp_kSchanzkorb(s), 3], klippe: [(s, v) => wp_kKlippe(s, v), 4],
+  gasthaus_kanne: [(s, v) => wp_bStadthaus(s + 53, 0, 'kanne'), 1],
+  schneefichte: [(s, v) => wp_tFichte(s, v), 6], schneefels: [(s, v) => wp_kFels(s, v), 5], schneeklippe: [(s, v) => wp_kKlippe(s, v), 4], schneestein: [(s, v) => wp_kStein(s), 6]
 };
 const WP_KINDS = Object.keys(wp_K);
 /* Bilder je Jahreszeit: Bäume in allen vier, alles andere im Sommer- und im Winterbild */
 const SEA_TREE = { apfelbaum: 1, eiche: 1, buche: 1, birke: 1, weide: 1, busch: 1, fichte: 1, toter_baum: 1, rebzeile: 1 };
-const seaKey = (kind, s) => SEA_TREE[kind] ? s : s === 3 ? 3 : 1;
+const SEA_SNOW = { schneefichte: 1, schneefels: 1, schneeklippe: 1, schneestein: 1 };   // Hochgebirge: das ganze Jahr verschneit
+const seaKey = (kind, s) => SEA_SNOW[kind] ? 3 : SEA_TREE[kind] ? s : s === 3 ? 3 : 1;
 const wp_CACHES = [new Map(), new Map(), new Map(), new Map()];
 const wp_cacheOf = kind => wp_CACHES[seaKey(kind, wp_SEA)].get(kind);
 /* makeProp(kind, seed) -> { img, ax, ay, foot, occl, extra, wins, v }; gleicher seed = gleiches Bild (v Spielart).

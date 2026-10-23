@@ -4,7 +4,7 @@ Das Spiel ist ein einziges Artefakt (gleicher Link, gleiche Spielstände), beste
 
 - `index.html` – Seite, Aussehen (CSS), Menü und die Tafeln (im Fenster „Tafeln und Hilfe“); lädt am Ende die Teile aus `js/`.
   Das Spiel füllt das ganze Fenster; die Bildgröße richtet sich beim Laden nach dem Seitenverhältnis (höchstens 960 × 540).
-- `js/01-…js` bis `js/23-…js` – der Spielcode, nach Themen geteilt. Die Teile werden **in der Reihenfolge der Nummern**
+- `js/01-…js` bis `js/24-…js` – der Spielcode, nach Themen geteilt. Die Teile werden **in der Reihenfolge der Nummern**
   geladen und teilen sich alle Namen der obersten Ebene (wie früher in der einen Datei).
 
 ## Regeln beim Ändern
@@ -28,8 +28,8 @@ in getrennten Browserfenstern, die über einen nachgebauten Raum verbunden sind 
 - `bash tests/alle.sh` – alle Tests nacheinander (etwa 35 Minuten), zeigt je Test die Ergebniszeilen.
 - `tests/einzel/` – Einzelspieler: Welt, Kampf, Gewölbe, Jagd, Feste, Tastatur, Jahreszeiten, Tjost.
 - `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen.
-- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy).
-- `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden.
+- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Annaberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32.
+- `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden, `karte.mjs` speichert die Weltkarte, `orte.mjs name:x,y …` Bilder an Weltorten, `gegnerbilder.mjs art …` einen Bildbogen der Gegner.
 
 Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 
@@ -39,11 +39,11 @@ Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 |---|---|
 | `js/01-grundlagen.js` | Grundlagen: Hilfen, Zeichenwerkzeuge, verzögertes Laden der Tafelbilder |
 | `js/02-ritter-pferde.js` | Der Ritter (Herkunft, Harnisch, Schwert, Aussehen) und die Pferde |
-| `js/03-gegner-bilder.js` | Bilder der Gegner: Monster, Anführer, Raubritter, Tod, Lindwurm, Stromland |
+| `js/03-gegner-bilder.js` | Bilder der Gegner: Monster, Anführer, Raubritter, Tod, Lindwurm, Stromland, Bergland |
 | `js/04-gegenstaende-jahreszeiten.js` | Gegenstände und Symbole, Weltgrafiken, Jahreszeiten |
-| `js/05-baeume-haeuser-kirchen.js` | Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten |
+| `js/05-baeume-haeuser-kirchen.js` | Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten, Göpel, Kanone, Felsklippe |
 | `js/06-burg-mauern.js` | Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile |
-| `js/07-welt.js` | Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung |
+| `js/07-welt.js` | Die Welt (6144 × 4608): Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung, Bergland |
 | `js/08-boden-karten-ton.js` | Boden, Karten, Ton und Musik |
 | `js/09-regeln-beute-waffen.js` | Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole |
 | `js/10-leute-tiere.js` | Leute in Burg und Stadt, Tiere, Leute unterwegs |
@@ -59,4 +59,5 @@ Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 | `js/20-post-markt-speyer.js` | Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Speyer und Fluss |
 | `js/21-spaetes-spiel-zollburg.js` | Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg |
 | `js/22-kirchen.js` | Kirchen, Priester und Glaube: Innenräume, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe |
-| `js/23-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |
+| `js/23-bergland.js` | Das Bergland: Annaberg, Bergmeister und seine Aufträge, Meisterschaften, Tafel |
+| `js/24-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |

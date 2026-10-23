@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 22 von 23: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
+/* Der Apfelritter, Teil 22 von 24: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Kirchen, Priester und Glaube ============
@@ -54,7 +54,11 @@ const CH_DEF = [
       greet: ['Willkommen im Dom zu Speyer. Hier ruhen acht Kaiser und Könige.', 'Auf dem Reichstag in dieser Stadt wird heftig um den Glauben gestritten.', 'Seit über vierhundert Jahren steht dieser Dom. Er wird auch uns überdauern.'] },
       { id: 'ablass', art: 'ablass', name: 'Bruder Tilman', role: 'Ablassprediger', ablass: true, x: 330,
       greet: ['Sobald das Geld im Kasten klingt, die Seele aus dem Fegefeuer springt!', 'Ein Ablassbrief, Herr Ritter! Für Euch und Eure Lieben.', 'Der Papst selbst hat den Ablass gewährt. Wer zahlt, dem wird die Strafe erlassen.'] }],
-    pray: ['buerger', 'buergerin', 'magd', 'buerger', 'buergerin', 'baeuerin'] }
+    pray: ['buerger', 'buergerin', 'magd', 'buerger', 'buergerin', 'baeuerin'] },
+  { id: 'annenkirche', name: 'St. Annenkirche', kind: 'kirche', at: [3050, 3532], door: 7, style: 'kirche', where: 'in Annaberg', pilg: false,
+    clergy: [{ id: 'pfarrer2', art: 'pfarrer', name: 'Pfarrer Wolfgang Silbermann', role: 'Stadtpfarrer', segen: true, beichte: true, kerze: true, messe: true,
+      greet: ['Die Knappen bauen an dieser Kirche, sooft das Silber es erlaubt. Eines Tages wird sie die schönste im Gebirge sein.', 'Die heilige Anna ist die Schutzpatronin der Bergleute. Betet zu ihr, ehe Ihr in die Gruben steigt.', 'Im Altenberg-Stollen geht der Bergmönch um. Die Knappen meiden ihn wie der Teufel das Weihwasser.'] }],
+    pray: ['bauer', 'baeuerin', 'buerger', 'magd'] }
 ];
 const CHURCHES = CH_DEF.map((d, i) => {
   const wx = d.at[0] * WS, wy = d.at[1] * WS;

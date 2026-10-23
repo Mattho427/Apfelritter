@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 17 von 23: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
+/* Der Apfelritter, Teil 17 von 24: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Speichern: im Browser und, wo möglich, im Konto ============ */
 const cloud = { db:null, uid:null, user:null, room:null, saving:false, last:'', nextT:0, noWrite:false, fameLast:'', fameBusy:false, fameNoWrite:false, fameT:0, loaded:false };
@@ -545,7 +545,7 @@ function killCredit(m){
 const TRADE_MAX = 6;
 const sigOf = o => { const s = JSON.stringify(o); let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
 function packItem(it){
-  const o = {}; for (const k of ['s', 'il', 'r', 'b', 'a', 'dmg', 'arm', 'n', 'u', 'v', 'up', 'base', 'w', 'q']) if (it[k] != null) o[k] = it[k];
+  const o = {}; for (const k of ['s', 'il', 'r', 'b', 'a', 'dmg', 'arm', 'n', 'u', 'v', 'up', 'base', 'w', 'q', 'wt', 'nh', 'set']) if (it[k] != null) o[k] = it[k];
   return o;
 }
 /* Fremde Gegenstände prüfen: nur bekannte Arten, Werte in vernünftigen Grenzen, neue Kennung */
@@ -556,8 +556,9 @@ function cleanItem(o){
     const it = makeWare(o.w); it.q = clamp(o.q | 0, 1, WARE_MAX); it.v = clamp(o.v | 0, 1, WARES[o.w].v * 5); it.il = clamp(o.il | 0, 1, MAX_LVL); return it;
   }
   if (!SLOTS.includes(o.s)) return null;
-  const il = clamp(o.il | 0, 1, 22), r = clamp(o.r | 0, 0, 4), up = clamp(o.up | 0, 0, 5), M = RARITY[r].m * 1.1 * (1 + .12 * up) + .5;
-  const it = { s: o.s, il, r, b: clamp(o.b | 0, 0, 4), a: {} };
+  const il = clamp(o.il | 0, 1, 32), r = clamp(o.r | 0, 0, 4), up = clamp(o.up | 0, 0, 5), M = RARITY[r].m * 1.1 * (1 + .12 * up) + .5;
+  const it = { s: o.s, il, r, b: clamp(o.b | 0, 0, 7), a: {} };
+  if (o.set && SETS[o.set] && SETS[o.set].parts[o.s]) it.set = o.set;
   if (o.s === 'schild' && o.nh === 'bibel') it.nh = 'bibel';
   if (o.s === 'waffe'){ if (WT[o.wt] && o.wt !== 'schwert') it.wt = o.wt; it.dmg = clamp(o.dmg | 0, 1, Math.round((3 + il * 1.3) * M * (it.wt ? WT[it.wt].dmg : 1)) + 5); }
   else if (ARM_MUL[o.s] && !it.nh) it.arm = clamp(o.arm | 0, 1, Math.round((1 + il) * ARM_MUL[o.s] * M) + 5);

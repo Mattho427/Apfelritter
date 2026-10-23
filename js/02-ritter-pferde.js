@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 2 von 23: Der Ritter (Herkunft, Harnisch, Schwert, Aussehen) und die Pferde.
+/* Der Apfelritter, Teil 2 von 24: Der Ritter (Herkunft, Harnisch, Schwert, Aussehen) und die Pferde.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Der Ritter: Reichsritter in Schaller und gelbem Wappenrock mit Reichsadler ============ */
 const kn_PAL = {
@@ -595,7 +595,7 @@ const GEAR_STEEL = [
 const GEAR_PLUME = [null, null, { F:'#1e3a7a', f:'#4a6ac8', g:'#a8c0f4' }, { F:'#4a1e5a', f:'#8a4aa8', g:'#cfa2e8' }, { F:'#8a4a0c', f:'#e0a028', g:'#ffe68a' }];
 const GEAR_RIM = [null, null, 'ar', 'or', 'or'];
 const GEAR_NAME = ['matt geschmiedet', 'blank poliert', 'gebläut', 'geschwärzt mit Messing', 'vergoldet'];
-const lookOf = eq => { const r = it => it ? String(it.r) : 'n', wt = wtOf(eq.waffe); return r(eq.ruestung) + r(eq.helm) + (WT[wt].hand === 2 ? 'x' : isBib(eq.schild) ? 'b' : r(eq.schild)) + (eq.waffe ? eq.waffe.b + '' + eq.waffe.r : 'nn') + (wt === 'schwert' ? '' : WT[wt].code); };
+const lookOf = eq => { const r = it => it ? String(it.r) : 'n', wt = wtOf(eq.waffe); return r(eq.ruestung) + r(eq.helm) + (WT[wt].hand === 2 ? 'x' : isBib(eq.schild) ? 'b' : r(eq.schild)) + (eq.waffe ? Math.min(4, eq.waffe.b) + '' + eq.waffe.r : 'nn') + (wt === 'schwert' ? '' : WT[wt].code); };
 const LOOK_RE = /^[0-4n]{2}[0-4nxb][0-4n]{2}[shza]?$/;
 function knightFaction(fid, body){
   const base = KN_FACTIONS[fid] || KN_FACTIONS.reich;

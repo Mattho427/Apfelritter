@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 10 von 23: Leute in Burg und Stadt, Tiere, Leute unterwegs.
+/* Der Apfelritter, Teil 10 von 24: Leute in Burg und Stadt, Tiere, Leute unterwegs.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leute in Burg und Stadt (von vorn, Atmen in zwei Bildern) ============ */
 const NP_BASE = {
@@ -488,6 +488,8 @@ const VK_TYPES = {
     pals: [['#3a342c', '#524a3e', '#6a6050', '#847a66', '#4a3a28', '#5e4a34', '#765e44', '#8e7656']] },
   bettler:  { o: { robe:'short', staff:true, beard:true, hair:['w', 'x'] },
     pals: [['#3a3630', '#4e4a42', '#625e54', '#787266', '#3a3028', '#4a3e32', '#5a4c3e', '#6a5c4c']] },
+  knappe:   { o: { robe:'short', hat:'kapuze', belt:true, hoe:true, beard:true, hair:['h', 'j'] },
+    pals: [['#8a8678', '#aaa696', '#c8c4b2', '#e2ded0', '#2a2620', '#3a342c', '#4c453a', '#5e564a'], ['#5a5a58', '#747472', '#8e8e8a', '#a8a8a2', '#2a2620', '#3a342c', '#4c453a', '#5e564a']] },
   haendler: { o: { robe:'short', hat:'filz', apron:'leather', belt:true, hairSide:true, hair:['h', 'j'] },
     pals: [['#1e3a2e', '#2c5440', '#3e6e52', '#5a8a68', '#4a2a18', '#6a3e22', '#8a5630', '#a87040'], ['#3a1e2e', '#542c40', '#6e3e52', '#8a5a68', '#2a2a2a', '#3e3e3e', '#565656', '#6e6e6e']] }
 };

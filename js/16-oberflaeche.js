@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 23: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 24: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -157,7 +157,21 @@ const BEASTS = [
   ['nix', 'Nöck', 'Auwald, steigt nachts aus dem Wasser, sein Griff macht langsam'],
   ['rotbart', 'Hinrich Rotbart', 'Piratennest, Stufe 21, schnell und ruft seine Mannschaft'],
   ['wels', 'Der Waller', 'Auwald am großen Altwasser, Stufe 20, schnellt mit offenem Maul vor'],
-  ['noeck', 'Der Nöck', 'Versunkene Zollburg, nur mit Gefährten: taucht ab, setzt den Saal unter Wasser und schickt Flutwellen']
+  ['noeck', 'Der Nöck', 'Versunkene Zollburg, nur mit Gefährten: taucht ab, setzt den Saal unter Wasser und schickt Flutwellen'],
+  ['wolf', 'Grauwolf', 'Schwarzwald, jagt im Rudel, duckt sich und springt'],
+  ['schrat', 'Waldschrat', 'Schwarzwald, langsam und zäh wie ein alter Baum'],
+  ['wegelagerer', 'Wegelagerer', 'Schwarzwald und Silberrevier, sticht mit dem Spieß'],
+  ['kobold', 'Kobold', 'Silberrevier, flink, hackt mit der Keilhaue, stiehlt Silbererz'],
+  ['grubengeist', 'Grubengeist', 'Silberrevier, Geist eines verschütteten Knappen, sein Griff macht langsam'],
+  ['doppelsoeldner', 'Doppelsöldner', 'Söldnerschanze, grell gekleidet und hart im Nehmen'],
+  ['hakenschuetze', 'Hakenbüchsenschütze', 'Söldnerschanze, die Kugel fliegt schneller als jeder Bolzen'],
+  ['baer', 'Braunbär', 'Hochgebirge, stürmt mit aller Wucht heran'],
+  ['geier', 'Bartgeier', 'Hochgebirge, kreist und stößt herab'],
+  ['eislicht', 'Eislicht', 'Hochgebirge, kaltes Licht über den Schneefeldern'],
+  ['tatzelwurm', 'Der Tatzelwurm', 'Teufelsschlucht im Schwarzwald, Stufe 23, schnellt mit giftigem Biss vor'],
+  ['bergmoench', 'Der Bergmönch', 'Altenberg-Stollen im Silberrevier, Stufe 25, verschwindet und taucht mit dem Fäustel wieder auf'],
+  ['feldhauptmann', 'Feldhauptmann Balthasar Wüst', 'Söldnerschanze, Stufe 27, schnell und ruft seine Doppelsöldner'],
+  ['ruebezahl', 'Rübezahl', 'Felsenthron im Hochgebirge, Stufe 31, stürmt mit dem Baumstamm heran']
 ];
 for (const [kind, name, desc] of BEASTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name), v = el('span', 'val' + (MON[kind].boss ? ' bad' : ''), MON[kind].boss ? 'Anführer' : '');
@@ -543,7 +557,7 @@ function drawFullMap(){
 function openMap(){ if (G.inside || !openPanel('ovMap')) return; drawFullMap(); $('btnMapClose').focus({ preventScroll: true }); }
 
 /* ---------- Rucksack und Ausrüstung ---------- */
-const STAT_ROWS = [['hp', 'Leben'], ['dmg', 'Schaden'], ['arm', 'Rüstung'], ['crit', '% Volltreffer'], ['spd', '% Hiebtempo'], ['block', '% Abwehr']];
+const STAT_ROWS = [['hp', 'Leben'], ['dmg', 'Schaden'], ['arm', 'Rüstung'], ['crit', '% Volltreffer'], ['spd', '% Hiebtempo'], ['block', '% Abwehr'], ['xp', '% Erfahrung'], ['gold', '% Gulden'], ['holy', '% gegen Untote'], ['leech', '% Lebensraub']];
 function statDiff(it){
   const cur = heroStats(HERO), nxt = heroStats(Object.assign({}, HERO, { eq: Object.assign({}, HERO.eq, { [it.s]: it }) }));
   return STAT_ROWS.map(([k, n]) => [n, nxt[k] - cur[k]]).filter(([, d]) => d);
@@ -553,7 +567,7 @@ function itemCard(it, compare){
     const box = el('div', 'icard'), head = el('div', 'ihead'), im = el('img');
     im.src = itemUrl(it); im.alt = ''; im.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
     const nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
-    const tx = el('div'); tx.append(nm, el('small', null, (WARES[it.w].fish ? 'Fang aus dem Wasser' : 'Handelsware aus der Jagd') + (it.q > 1 ? ', ' + it.q + ' Stück' : ''))); head.append(im, tx); box.append(head);
+    const tx = el('div'); tx.append(nm, el('small', null, (WARES[it.w].fish ? 'Fang aus dem Wasser' : WARES[it.w].berg ? 'Beute aus dem Bergland' : 'Handelsware aus der Jagd') + (it.q > 1 ? ', ' + it.q + ' Stück' : ''))); head.append(im, tx); box.append(head);
     box.append(el('p', 'idiff', WARES[it.w].wirt ? 'Der Krämer kauft es, der Wirt zahlt mehr.' : 'Der Krämer kauft es.'));
     box.append(el('p', 'ival', 'Wert: ' + itemValue(it) + ' Gulden'));
     return box;
@@ -564,6 +578,12 @@ function itemCard(it, compare){
   const sub = el('small', null, (it.s === 'waffe' ? WT[wtOf(it)].n : isBib(it) ? 'Nebenhand' : SLOT_NAME[it.s]) + ' · Stufe ' + it.il + ' · ' + RARITY[it.r].n);
   const tx = el('div'); tx.append(nm, sub); head.append(im, tx); box.append(head);
   const ul = el('ul', 'ilines'); for (const l of itemLines(it)) ul.append(el('li', null, l)); box.append(ul);
+  if (it.set && SETS[it.set]){   // Rüstungssatz: Teile und Boni
+    const S = SETS[it.set], n = setCount(HERO, it.set), p = el('div', 'iset');
+    p.append(el('b', null, 'Satz: ' + S.n + ' (' + n + ' von ' + Object.keys(S.parts).length + ' angelegt)'));
+    for (const [need, , , txt] of S.bon) p.append(el('small', n >= need ? 'on' : '', need + ' Teile: ' + txt));
+    box.append(p);
+  }
   if (it.s === 'waffe') box.append(el('p', 'idiff', WT[wtOf(it)].n + ': ' + WT[wtOf(it)].d + '.'));
   if (isBib(it)) box.append(el('p', 'idiff', 'In der Nebenhand statt des Schildes: keine Rüstung und keine Abwehr, dafür schnellere Erholung, +' + BIB_UNDEAD + ' % Schaden gegen Untote und Geister, und F wird zum Gebet (heilt ' + BIB_HEAL + ' % des Lebens).'));
   if (compare){
@@ -623,12 +643,13 @@ function renderBag0(){
   }
   HERO.inv.forEach((it, i) => { const sb = slotBtn(it, '', () => { G.sel = it ? { from:'inv', i } : null; renderBag(); }, () => equipFrom(i), G.sel && G.sel.from === 'inv' && G.sel.i === i); sb.dataset.slot = 'inv:' + i; grid.append(sb); });
   const st = ST;
-  for (const [k, n] of [['Stufe', HERO.lvl + ' · ' + titleOf(HERO.lvl)], ['Leben', st.hp], ['Schaden', st.dmg], ['Rüstung', st.arm + ' (−' + Math.round(st.mit * 100) + ' %)'], ['Volltreffer', st.crit + ' %'], ['Hiebtempo', '+' + st.spd + ' %'], ['Abwehr', st.block + ' %'], ['Gulden', HERO.gold], ['Erschlagen', HERO.kills], ['Harnisch', GEAR_NAME[HERO.eq.ruestung ? HERO.eq.ruestung.r : 0]]].concat(HERO.joust ? [['Tjost', HERO.joust.wins + ' Siege']] : []).concat(HERO.hunted ? [['Gejagt', HERO.hunted + ' Stück Wild']] : []).concat(HERO.lvl >= MAX_LVL || HERO.eh.n ? [['Ehrenstufe', HERO.eh.n + ' (' + HERO.eh.xp + ' / ' + ehNeed(HERO.eh.n) + ')'], ['Ehrenzeichen', HERO.ez | 0], ['Trophäen', (HERO.trs || []).length + ' von ' + TROPHIES.length]] : [])){
+  for (const [k, n] of [['Stufe', HERO.lvl + ' · ' + titleOf(HERO.lvl)], ['Leben', st.hp], ['Schaden', st.dmg], ['Rüstung', st.arm + ' (−' + Math.round(st.mit * 100) + ' %)'], ['Volltreffer', st.crit + ' %'], ['Hiebtempo', '+' + st.spd + ' %'], ['Abwehr', st.block + ' %'], ...[['xp', 'Erfahrung'], ['gold', 'Gulden mehr'], ['holy', 'gegen Untote'], ['leech', 'Lebensraub']].filter(([q]) => st[q]).map(([q, t]) => [t, '+' + st[q] + ' %']), ['Gulden', HERO.gold], ['Erschlagen', HERO.kills], ['Harnisch', GEAR_NAME[HERO.eq.ruestung ? HERO.eq.ruestung.r : 0]]].concat(HERO.joust ? [['Tjost', HERO.joust.wins + ' Siege']] : []).concat(HERO.hunted ? [['Gejagt', HERO.hunted + ' Stück Wild']] : []).concat(HERO.lvl >= MAX_LVL || HERO.eh.n ? [['Ehrenstufe', HERO.eh.n + ' (' + HERO.eh.xp + ' / ' + ehNeed(HERO.eh.n) + ')'], ['Ehrenzeichen', HERO.ez | 0], ['Trophäen', (HERO.trs || []).length + ' von ' + TROPHIES.length]] : [])){
     stats.append(el('dt', null, k), el('dd', null, n));
   }
   $('bagCount').textContent = HERO.inv.filter(Boolean).length + ' / 24';
   const it = selItem();
-  if (!it){ info.append(el('p', 'hint', touchUI() ? 'Tippe einen Gegenstand an. Zweimal tippen legt ihn an.' : 'Wähle einen Gegenstand. Doppelklick legt ihn an oder ab.')); return; }
+  if (G.talView && !it){ talView(info); return; }
+  if (!it){ info.append(el('p', 'hint', touchUI() ? 'Tippe einen Gegenstand an. Zweimal tippen legt ihn an.' : 'Wähle einen Gegenstand. Doppelklick legt ihn an oder ab.')); talButton(info); return; }
   info.append(itemCard(it, G.sel.from === 'inv'));
   const acts = el('div', 'acts');
   if (G.sel.from === 'inv'){
@@ -641,7 +662,7 @@ function renderBag0(){
   } else acts.append(btn('Ablegen', () => unequip(G.sel.slot), 'btn small'));
   info.append(acts);
 }
-function openBag(){ if (!openPanel('ovBag')) return; G.sel = null; G.dropAsk = false; renderBag(); $('btnBagClose').focus({ preventScroll: true }); }
+function openBag(){ if (!openPanel('ovBag')) return; G.sel = null; G.dropAsk = false; G.talView = false; renderBag(); $('btnBagClose').focus({ preventScroll: true }); }
 
 /* ---------- Auftragsbuch ---------- */
 function renderQuests(){
@@ -653,7 +674,8 @@ function renderQuests(){
     card.append(el('h4', null, d.t), el('p', null, d.d));
     const goal = d.boss ? MON[d.boss].name + ' erschlagen' : d.kind ? d.need + ' × ' + MON[d.kind].name + ' im Gebiet ' + ZONE_BY_ID[d.zone].name : d.need + ' Monster im Gebiet ' + ZONE_BY_ID[d.zone].name;
     card.append(el('p', 'qgoal', 'Ziel: ' + goal + ' (' + zoneLvText(d.zone) + ')'));
-    card.append(el('p', 'qprog', done ? 'Erfüllt. Kehrt zum ' + (d.giver === 'vogt' ? 'Vogt in der Reichsburg' : 'Bürgermeister in der Reichsstadt') + ' zurück.' : 'Fortschritt: ' + q.n + ' / ' + d.need));
+    const gv = NPCS.find(n => n.id === d.giver);
+    card.append(el('p', 'qprog', done ? 'Erfüllt. Kehrt zurück zu ' + (gv ? gv.name + ' ' + (HUB_IN[gv.hub] || '') : 'Eurem Auftraggeber') + '.' : 'Fortschritt: ' + q.n + ' / ' + d.need));
     card.append(el('p', 'qrew', 'Lohn: ' + r.xp + ' EP, ' + r.gold + ' Gulden' + (r.rar ? ', ein ' + RARITY[r.rar].n + 'er Gegenstand' : '')));
     card.append(btn('Aufgeben', () => { HERO.quests = HERO.quests.filter(x => x !== q); renderQuests(); renderTracker(); markDirty(true); }, 'tbtn'));
     box.append(card);
@@ -887,7 +909,8 @@ function renderTalk0(view){
     b1.disabled = HERO.gold < price || HERO.potions >= 20; b5.disabled = HERO.gold < price * 5 || HERO.potions > 15;
     row.append(im, tx, el('span', 'sbtns')); row.lastChild.append(b1, b5);
     body.append(row);
-    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ n.stock = [makeItem(pick(SLOTS), HERO.lvl, 0), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl + 1, 1)]; n.stockLvl = HERO.lvl; n.stockT = nowS() + 300; }
+    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ const rich = n.hub === 'annaberg';   // die Bergstadt ist reich: bessere Ware
+      n.stock = [makeItem(pick(SLOTS), HERO.lvl, rich ? 1 : 0), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl, rich ? 2 : 1), makeItem(pick(SLOTS), HERO.lvl + 1, rich ? 2 : 1)]; n.stockLvl = HERO.lvl; n.stockT = nowS() + 300; }
     n.stock.forEach((it, i) => {
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
       const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;

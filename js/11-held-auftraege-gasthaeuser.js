@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 11 von 23: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
+/* Der Apfelritter, Teil 11 von 24: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */
@@ -94,6 +94,7 @@ function cleanHero(h){
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
   h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1200, +h.bless.t || 0) } : null; h.ablass = !!h.ablass;
+  h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};
   h.pilg = h.pilg && typeof h.pilg === 'object' ? { on: h.pilg.on ? 1 : 0, done: h.pilg.done ? 1 : 0, v: Object.fromEntries(Object.keys(h.pilg.v || {}).filter(k => /^[a-z]{3,20}$/.test(k)).map(k => [k, 1])) } : null;
   h.riding = !!(h.horse && h.riding);
   if (h.joust){ const j = h.joust, b = {}; for (const id of ['konrad', 'bayard', 'goetz']) if (j.beat && j.beat[id]) b[id] = true; h.joust = { wins: Math.max(0, j.wins | 0), beat: b, elo: clamp(j.elo | 0 || 1000, 100, 3000), pw: Math.max(0, j.pw | 0), pl: Math.max(0, j.pl | 0) }; }
@@ -111,7 +112,7 @@ let HERO = null;
 
 /* abgeleitete Werte aus Stufe und Ausrüstung */
 function heroStats(h){
-  const L = h.lvl, s = { hp: 30 + 10 * L, dmg: 4 + 1.5 * L, arm: 0, crit: 5, spd: 0, block: 0 };
+  const L = h.lvl, s = { hp: 30 + 10 * L, dmg: 4 + 1.5 * L, arm: 0, crit: 5, spd: 0, block: 0, xp: 0, gold: 0, holy: 0, leech: 0 };
   const wtH = WT[wtOf(h.eq.waffe)], two = wtH.hand === 2, wd = h.eq.waffe && h.eq.waffe.dmg || 0;
   for (const slot of SLOTS){
     const it = h.eq[slot]; if (!it || (two && slot === 'schild')) continue;
@@ -127,10 +128,18 @@ function heroStats(h){
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
   if (!two && isBib(h.eq.schild)) s.regen *= 1.5;   // die Bibel: schneller wieder bei Kräften
   if (h.bless && h.bless.t > 0){ s.hp *= 1.08; s.regen = Math.max(s.regen, 1.5); }   // Segen aus der Kirche
+  for (const id in SETS){ const n = SLOTS.filter(sl => h.eq[sl] && h.eq[sl].set === id && !(two && sl === 'schild')).length;   // Rüstungssätze
+    for (const [need, k, v] of SETS[id].bon) if (n >= need){ if (k === 'hp' || k === 'dmg' || k === 'arm') s[k] *= 1 + v / 100; else s[k] += v; } }
+  if (h.tal){ const T = Object.values(h.tal);   // Meisterschaften
+    if (T.includes('haut')) s.hp *= 1.08; if (T.includes('klinge')) s.dmg *= 1.06; if (T.includes('falke')) s.crit += 4; if (T.includes('flink')) s.spd += 8;
+    if (T.includes('wall') && h.eq.schild && !two && !isBib(h.eq.schild)){ s.block += 6; s.arm *= 1.1; }
+    if (T.includes('zaeh')) s.regen = Math.max(s.regen, 2);
+    if (T.includes('unbeugsam')){ s.hp *= 1.06; s.arm *= 1.12; } if (T.includes('meister')){ s.dmg *= 1.08; s.crit += 3; }
+    s.arm = Math.round(s.arm); }
   if (ASV && ASV.ord >= 4) s.dmg *= 1.03;   // Ordenshaus: Waffenkammer, Ordenshof
   if (ASV && ASV.ord >= 5) s.hp *= 1.05;
   ehStats(h, s);   // Ehrenstufen: je ein halbes Hundertstel Leben und Schaden
-  s.hp = Math.round(s.hp);
+  s.hp = Math.round(s.hp); s.arm = Math.round(s.arm);
   s.dmg = Math.round(s.dmg); s.block = Math.min(60, s.block); s.crit = Math.min(50, s.crit);
   s.cd = .6 / (1 + s.spd / 100) * wtH.cd;
   s.mit = s.arm / (s.arm + 30 + 8 * L);
@@ -142,7 +151,9 @@ function refreshStats(){ ST = heroStats(HERO); if (G && G.knight) G.knight.hp = 
 /* ============ Erscheinungsorte der Monster in jedem Gebiet ============ */
 const SPAWN_SLOTS = (() => {
   const R = rng(2024), out = [];
-  const TARGET = { obstgarten:22, fluss:16, dorf:20, friedhof:18, lager:18, galgen:16, wald:30, schlachtfeld:24, moor:24, ruine:20, weinberge:24, auwald:28, piratennest:12 };
+  const TARGET = { obstgarten:22, fluss:16, dorf:20, friedhof:18, lager:18, galgen:16, wald:30, schlachtfeld:24, moor:24, ruine:20, weinberge:24, auwald:28, piratennest:12,
+    schwarzwald:34, silberrevier:30, schanze:26, hochgebirge:34 };
+  const NEWZ = { schwarzwald:1, silberrevier:1, schanze:1, hochgebirge:1 };   // Bergland: nur im neuen Kartenteil suchen, damit die alten Lager bleiben, wo sie waren
   const zid = (x, y) => ZONES[gZid(x, y)].id;
   const nearSafe = (x, y) => [[0, 0], [220, 0], [-220, 0], [0, 220], [0, -220], [160, 160], [-160, 160], [160, -160], [-160, -160]].some(([dx, dy]) => SAFE[zid(clamp(x + dx, 0, GW - 1), clamp(y + dy, 0, GH - 1))]);
   const lairs = Object.values(LAIRS), inns = Object.values(wo_INNP).map(gPt);
@@ -159,7 +170,7 @@ const SPAWN_SLOTS = (() => {
     for (let i = pts.length - 1; i > 0; i--){ const j = R() * (i + 1) | 0; [pts[i], pts[j]] = [pts[j], pts[i]]; }
     for (const [kind, p] of pts){ if (n >= TARGET[zone] * .7) break; if (!free(p.x, p.y, zone)) continue; add(kind, p.x, p.y); n++; }
     for (let t = 0; t < 6000 && n < TARGET[zone]; t++){
-      const x = R() * GW, y = R() * GH;
+      const x = R() * GW, y = NEWZ[zone] ? (WH0 - 200) * WS + R() * (GH - (WH0 - 200) * WS) : R() * WH0 * WS;
       if (zid(x, y) !== zone || !gOk(x, y) || !free(x, y, zone)) continue;
       add(kinds[R() * kinds.length | 0], x, y); n++;
     }
@@ -207,6 +218,9 @@ const FARE = [
   { id:'ochsen', kind:'speise', n:'Ochsenbraten nach Art des Hauses', fx:{ hpPct:20 }, base:11, icon:'braten', only:'ochse' },
   { id:'salm', kind:'speise', n:'Rheinsalm mit Kräutern', fx:{ hpPct:16, regen:3 }, base:12, icon:'fisch', only:'anker' },
   { id:'pfaelzer', kind:'trank', n:'Wein vom Haardtrand', fx:{ spd:9, dmgPct:3 }, base:6, icon:'wein', only:'anker' },
+  { id:'knappenbrot', kind:'speise', n:'Bergmannsbrot mit Speck und Zwiebeln', fx:{ hpPct:16, regen:2 }, base:10, icon:'brot', only:'kanne' },
+  { id:'forellebach', kind:'speise', n:'Forelle aus dem Silberbach', fx:{ hpPct:14, dmgPct:5 }, base:11, icon:'fisch', only:'kanne' },
+  { id:'bergbier', kind:'trank', n:'Dunkles Bergbier aus Annaberg', fx:{ crit:5, dmgPct:4 }, base:6, icon:'krug', only:'kanne' },
   { id:'kofent', kind:'trank', n:'Dünnbier (Kofent)', fx:{ crit:2 }, base:1, icon:'krug' },
   { id:'bier', kind:'trank', n:'Bier nach dem Reinheitsgebot von 1516', fx:{ crit:5 }, base:3, icon:'krug' },
   { id:'wein', kind:'trank', n:'Frankenwein', fx:{ spd:8 }, base:4, icon:'wein' },
@@ -254,7 +268,8 @@ const INN_INFO = {
   adler: { name:'Zum Goldenen Adler', where:'in der Reichsstadt', host:'Wirtin Margarethe', role:'Wirtin', wall:wp_P.ochre, seed:31 },
   krone: { name:'Zur Krone', where:'an der Steinbrücke', host:'Wirt Konrad', role:'Wirt', wall:wp_P.plaster, seed:47 },
   ochse: { name:'Zum Roten Ochsen', where:'am Burgweg', host:'Wirt Bartholomäus', role:'Wirt', wall:wp_P.pink, seed:59 },
-  anker: { name:'Zum Anker', where:'in Speyer am Hafen', host:'Wirt Ruprecht', role:'Wirt', wall:wp_P.ochre, seed:71 }
+  anker: { name:'Zum Anker', where:'in Speyer am Hafen', host:'Wirt Ruprecht', role:'Wirt', wall:wp_P.ochre, seed:71 },
+  kanne: { name:'Zur Silbernen Kanne', where:'in der Bergstadt Annaberg', host:'Wirtin Walburga', role:'Wirtin', wall:wp_P.plaster, seed:83 }
 };
 const INN_ART = {
   wirt: np_frames({ robe:'short', apron:'linen', belt:true, beard:true, hairSide:true, hair:['j', 'h'] },
@@ -292,7 +307,7 @@ const INNS = Object.entries(wo_INNP).map(([id, p]) => {
   return Object.assign({ id, x: p.x * WS, y: p.y * WS, dx: p.door * WS, dy: p.y * WS + 12, top: pr ? pr.y - pr.ay : p.y * WS - 200 }, INN_INFO[id]);
 });
 const INN_BY = Object.fromEntries(INNS.map(i => [i.id, i]));
-const HUB_IN = { burg:'in der Reichsburg', stadt:'in der Reichsstadt', speyer:'in Speyer' };
+const HUB_IN = { burg:'in der Reichsburg', stadt:'in der Reichsstadt', speyer:'in Speyer', annaberg:'in der Bergstadt Annaberg' };
 for (const inn of INNS){
   BIND[inn.id] = { x: inn.dx, y: inn.dy + 2 };
   HUB_NAME[inn.id] = 'Gasthaus ' + inn.name;
@@ -420,7 +435,7 @@ function innRoom(inn){
     id.data[i + 3] = Math.round(clamp(a, 0, .85) * 255);
   }
   lg.putImageData(id, 0, 0);
-  const host = inn.id === 'adler' ? 'wirtin' : 'wirt';
+  const host = inn.role === 'Wirtin' ? 'wirtin' : 'wirt';
   const npcs = [
     { id:'wirt', key:'wirt_' + inn.id, name: inn.host, role: inn.role, x: 806, y: 176, art: INN_ART[host], wirt: true, inn: inn.id,
       greet:['Setzt Euch, Ritter! Was darf’s sein?', 'Willkommen im ' + inn.name.replace(/^Zu[mr] /, '') + '. Hier wird nicht gekämpft, hier wird gegessen.', 'Ein Krug Bier gegen den Staub der Straße?'] },

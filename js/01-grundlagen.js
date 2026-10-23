@@ -1,8 +1,8 @@
-/* Der Apfelritter, Teil 1 von 23: Grundlagen: Hilfen, Zeichenwerkzeuge, verzögertes Laden der Tafelbilder.
+/* Der Apfelritter, Teil 1 von 24: Grundlagen: Hilfen, Zeichenwerkzeuge, verzögertes Laden der Tafelbilder.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 "use strict";
 /* Fingerabdruck dieser Fassung: Zwischenspeicher gelten nur für genau diese. Wird von werkzeug/stempel.mjs vor dem Veröffentlichen gesetzt. */
-const SRC_HASH = '1445579:13cm7v9';
+const SRC_HASH = '1546701:y7y2nm';
 /* Bilder der Tafeln unter dem Spiel: erst nach dem Start malen, sichtbare zuerst, der Rest nach und nach */
 const LAZY = { q: [], go: false, io: null };
 try { LAZY.io = new IntersectionObserver(es => { if (LAZY.go) for (const e of es) if (e.isIntersecting) lazyNow(e.target); }, { rootMargin: '300px' }); } catch(e){}
@@ -11,7 +11,8 @@ function lazyNow(im){ const fn = im._lz; if (!fn) return; im._lz = null; if (LAZ
 function lazyPump(){ const t0 = performance.now(); while (LAZY.q.length && performance.now() - t0 < 12) lazyNow(LAZY.q.shift()); if (LAZY.q.length) setTimeout(lazyPump, 40); }
 function lazyStart(){ if (LAZY.go) return; LAZY.go = true; if (LAZY.io) for (const im of LAZY.q) LAZY.io.observe(im); setTimeout(lazyPump, 300); }
 /* ============ Grundlagen (gemeinsam für alle Module) ============ */
-const WW = 6144, WH = 3072;          // Größe der Welt in Weltpixeln
+const WW = 6144, WH = 4608;          // Größe der Welt in Weltpixeln
+const WH0 = 3072;                    // Höhe der alten Welt (bis Version 24); das Bergland liegt darunter
 const WS = 2;                        // Feinpixel je Weltpixel: Weltbilder und Boden in doppelter Auflösung, Spielkoordinaten in Feinpixeln
 const TILE = 16;
 const cv = document.getElementById('game');

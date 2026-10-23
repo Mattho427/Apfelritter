@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 15 von 23: Zeichnen des Spielbilds.
+/* Der Apfelritter, Teil 15 von 24: Zeichnen des Spielbilds.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Zeichnen ============ */
 function shadow(x, y, w, a){
@@ -140,21 +140,21 @@ function monFrame(m){
   else if (m.mode !== 'fight' && !m.walking && m.mode !== 'back' && !MON[m.k].fly){ set = art.idle[side]; i = (m.t * 1.5 | 0) % set.length; }
   else if (st === 'aim' || st === 'wind' || st === 'breath'){ set = art.act[side]; i = 0; }
   else if (st === 'thrust' || st === 'dash' || st === 'charge' || st === 'sweep' || st === 'shot' || st === 'dive'){ set = art.act[side]; i = Math.min(1, set.length - 1); }
-  else if (st === 'rest' || st === 'stun' || st === 'linger' || st === 'appear' || st === 'fade' || (m.k === 'tod' && st === 'idle')){ set = art.idle[side]; i = (m.t * 2 | 0) % set.length; }
+  else if (st === 'rest' || st === 'stun' || st === 'linger' || st === 'appear' || st === 'fade' || (aiK(m.k) === 'tod' && st === 'idle')){ set = art.idle[side]; i = (m.t * 2 | 0) % set.length; }
   return set[i];
 }
 function monXY(m){
   const art = m.art || artOf(m.k);
   let ox = 0, oy = 0;
-  if (m.k === 'raubritter' && m.st === 'wind' && m.sT > .3) ox = (G.t * 30 | 0) % 2 ? 1 : -1;
+  if (aiK(m.k) === 'raubritter' && m.st === 'wind' && m.sT > .3) ox = (G.t * 30 | 0) % 2 ? 1 : -1;
   if (aiK(m.k) === 'werwolf' && m.st === 'aim' && m.sT > .25) ox = (G.t * 24 | 0) % 2;
-  if (m.k === 'tod') oy = Math.round(Math.sin(G.t * 2) * 2);
+  if (aiK(m.k) === 'tod') oy = Math.round(Math.sin(G.t * 2) * 2);
   return { x: Math.round(m.x - art.ax) + ox, y: Math.round(m.y - art.ay) + oy };
 }
 function drawMon(m, glowOnly){
-  if (m.k === 'tod' && m.st === 'hidden') return;
+  if (aiK(m.k) === 'tod' && m.st === 'hidden') return;
   const fr = monFrame(m), p = monXY(m);
-  const fade = m.k === 'tod' ? (m.alpha == null ? 1 : m.alpha) : m.sub ? .2 : 1;
+  const fade = aiK(m.k) === 'tod' ? (m.alpha == null ? 1 : m.alpha) : m.sub ? .2 : 1;
   ctx.globalAlpha = fade * (m.mode === 'back' ? .6 : 1);
   if (glowOnly){
     if (fr.glow && !(m.fl > 0)) ctx.drawImage(fr.glow, p.x, p.y);
@@ -165,9 +165,9 @@ function drawMon(m, glowOnly){
     const segs = wurmSegs(m);
     for (let i = segs.length - 1; i >= 0; i--){ const s = segs[i]; ctx.drawImage(m.fl > 0 ? s.s.white : s.s.img, Math.round(s.x - s.s.w / 2), Math.round(s.cy - s.s.h / 2)); }
   }
-  const lock = (m.k === 'raubritter' && m.st === 'wind' && m.sT <= .3) || (aiK(m.k) === 'werwolf' && m.st === 'aim' && m.sT <= .25);
+  const lock = (aiK(m.k) === 'raubritter' && m.st === 'wind' && m.sT <= .3) || (aiK(m.k) === 'werwolf' && m.st === 'aim' && m.sT <= .25);
   const white = m.fl > 0 || (lock && (G.t * 20 | 0) % 2);
-  if (m.k === 'tod' && m.st === 'wind' && (G.t * 12 | 0) % 2){
+  if (aiK(m.k) === 'tod' && m.st === 'wind' && (G.t * 12 | 0) % 2){
     const c = centerOf(m);
     ctx.fillStyle = '#c8343c';
     for (let a = 0; a < Math.PI * 2; a += .09) ctx.fillRect(Math.round(c.x + Math.cos(a) * 64), Math.round(c.y + 4 + Math.sin(a) * 46), 1, 1);
@@ -184,7 +184,7 @@ function drawMon(m, glowOnly){
 }
 /* Namensschild über einem Monster: Name und Stufe in der Farbe des Abstands, darunter Lebensbalken */
 function drawPlate(m){
-  if (m.k === 'tod' && (m.st === 'hidden' || (m.alpha != null && m.alpha < .5))) return;
+  if (aiK(m.k) === 'tod' && (m.st === 'hidden' || (m.alpha != null && m.alpha < .5))) return;
   const art = artOf(m.k), d = MON[m.k], top = (m.k === 'lindwurm' ? m.y - 40 : d.fly ? m.y - art.h * .5 - 4 : m.y - art.ay) - 19;
   const col = CON_COL[conOf(m.lvl - HERO.lvl)];
   drawText((m.nm || m.elite || d.name) + ' ' + m.lvl, m.x, top, m.elite ? '#ff9a50' : (m.ev && m.ev.boss) || (m.story && m.story.boss) ? '#ff6a50' : col);
@@ -195,7 +195,7 @@ function drawPlate(m){
     ctx.fillStyle = '#d0343c'; ctx.fillRect(x0 + 1, y0 + 1, f, 3);
     ctx.fillStyle = '#f08a80'; ctx.fillRect(x0 + 1, y0 + 1, f, 1);
   }
-  if (m.stunT > 0 || (m.k === 'raubritter' && m.st === 'stun')) for (let i = 0; i < 3; i++){
+  if (m.stunT > 0 || (aiK(m.k) === 'raubritter' && m.st === 'stun')) for (let i = 0; i < 3; i++){
     const a = G.t * 5 + i * 2.1, x = Math.round(m.x + Math.cos(a) * 12), y = Math.round(top - 4 + Math.sin(a) * 3);
     ctx.fillStyle = '#ecd27a'; ctx.fillRect(x - 2, y, 5, 1); ctx.fillRect(x, y - 2, 1, 5);
     ctx.fillStyle = '#fff3c0'; ctx.fillRect(x, y, 1, 1);
@@ -203,7 +203,11 @@ function drawPlate(m){
 }
 const BOLT_ROT = (() => { const out = []; const b = ITEM_ART.bolt; for (let i = 0; i < 32; i++) out.push(rotateNN(b, i / 32 * Math.PI * 2, b.width / 2, b.height / 2)); return out; })();
 function drawShot(s){
-  if (s.k === 'bolt'){
+  if (s.k === 'ball'){   // Bleikugel der Hakenbüchse mit kurzer Rauchspur
+    const l = Math.hypot(s.vx, s.vy) || 1, ux = s.vx / l, uy = s.vy / l;
+    for (let i = 1; i <= 4; i++){ ctx.globalAlpha = .35 - i * .07; ctx.fillStyle = '#c8c4bc'; ctx.fillRect(Math.round(s.x - ux * i * 3), Math.round(s.y - uy * i * 3), 2, 2); }
+    ctx.globalAlpha = 1; ctx.fillStyle = '#1a1a1e'; ctx.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 3, 3); ctx.fillStyle = '#8a8a90'; ctx.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 1, 1);
+  } else if (s.k === 'bolt'){
     const a = Math.atan2(s.vy, s.vx), r = BOLT_ROT[((Math.round(a / (Math.PI * 2) * 32) % 32) + 32) % 32];
     ctx.drawImage(r.img, Math.round(s.x - r.ox), Math.round(s.y - r.oy));
   } else {
@@ -321,14 +325,14 @@ function render(){
   for (const m of G.mons){
     if (!inView(m.x, m.y, cam)) continue;
     const art = artOf(m.k);
-    if (m.k === 'rabe') shadow(m.x, m.y + 30, 12, .22);
-    else if (m.k === 'irrlicht') shadow(m.x, m.y + 18, 6, .18);
-    else if (m.k === 'tod'){ if (m.st !== 'hidden') shadow(m.x, m.y + art.h * .5 + 6, 26, .3 * (m.alpha == null ? 1 : m.alpha)); }
+    if (aiK(m.k) === 'rabe') shadow(m.x, m.y + 30, 12, .22);
+    else if (aiK(m.k) === 'irrlicht') shadow(m.x, m.y + 18, 6, .18);
+    else if (aiK(m.k) === 'tod'){ if (m.st !== 'hidden') shadow(m.x, m.y + art.h * .5 + 6, 26, .3 * (m.alpha == null ? 1 : m.alpha)); }
     else if (m.k === 'lindwurm'){ shadow(m.x, m.y - 1, 26, .35); for (const s of wurmSegs(m)) shadow(s.x, s.y - 1, s.s.w * .9, .3); }
     else shadow(m.x, m.y - 1, Math.max(10, art.w * .55), .38);
   }
   for (const r of G.rising){
-    if (r.kind === 'irrlicht' || r.kind === 'rabe' || !inView(r.x, r.y, cam)) continue;
+    if (aiK(r.kind) === 'irrlicht' || aiK(r.kind) === 'rabe' || !inView(r.x, r.y, cam)) continue;
     const boss = MON[r.kind].boss, w = Math.round((boss ? 40 : 20) * (1 - r.t / (boss ? 1.6 : .9))) + 2;
     ctx.fillStyle = boss ? '#3a1416' : '#2a2018'; ctx.fillRect(Math.round(r.x - w / 2), Math.round(r.y - 2), w, 4);
   }
@@ -349,7 +353,7 @@ function render(){
   festOverlay(cam); drawFgameWorld(cam);
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
   drawSky(cam);
-  for (const s of G.shots) if (s.k === 'bolt') drawShot(s);
+  for (const s of G.shots) if (s.k === 'bolt' || s.k === 'ball') drawShot(s);
   kbDraw();
   for (const p of G.parts){
     if (p.glow) continue;
@@ -415,7 +419,7 @@ function render(){
   drawBolt();
   // Monster im Kampf außer Sicht: Zeichen am Rand
   const off = [];
-  for (const m of G.mons){ if (m.mode !== 'fight' || (m.k === 'tod' && m.st === 'hidden')) continue; const c = centerOf(m); if (!(c.x > cam.x && c.x < cam.x + W && c.y > cam.y && c.y < cam.y + H)) off.push({ x: c.x, y: c.y, boss: MON[m.k].boss }); }
+  for (const m of G.mons){ if (m.mode !== 'fight' || (aiK(m.k) === 'tod' && m.st === 'hidden')) continue; const c = centerOf(m); if (!(c.x > cam.x && c.x < cam.x + W && c.y > cam.y && c.y < cam.y + H)) off.push({ x: c.x, y: c.y, boss: MON[m.k].boss }); }
   for (const o of off.slice(0, 10)){
     const vx = o.x - (cam.x + W / 2), vy = o.y - (cam.y + H / 2), s = Math.min((W / 2 - 12) / Math.abs(vx || 1e-6), (H / 2 - 12) / Math.abs(vy || 1e-6));
     const x = Math.round(W / 2 + vx * s), y = Math.round(H / 2 + vy * s);

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 21 von 23: Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg.
+/* Der Apfelritter, Teil 21 von 24: Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spätes Spiel: Ehrenstufen, Wochenprüfungen des Reiches, Ehrenzeichen, Trophäen, Wappen und Titel ============ */
 const EH_CAP = 30;                                         // höchstens 30 Ehrenstufen zählen für Leben und Schaden (je 0,5 %)
@@ -52,12 +52,16 @@ const FISH_REAL = Object.keys(FISH).filter(id => !FISH[id].junk);
 const storyDone = h => (h.story ? h.story.c | 0 : 0);
 const ehHas = (T, k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(T, k);
 const TROPHIES = [
-  { id: 'kaiser', n: 'Vivat Imperator', d: 'Stufe 20 erreicht', ok: h => h.lvl >= MAX_LVL, wa: 'kaiser' },
+  { id: 'kaiser', n: 'Vivat Imperator', d: 'Stufe 30 erreicht', ok: h => h.lvl >= MAX_LVL, wa: 'kaiser' },
   { id: 'kunz', n: 'Das Reichsschwert', d: 'Kunz den Schwarzen bezwungen', ok: h => h.bosses.raubritter > 0, wa: 'kunz', ic: () => UNIQUE_ICON.raubritter },
   { id: 'lindwurm', n: 'Drachenschuppe', d: 'den Lindwurm im Moor erschlagen', ok: h => h.bosses.lindwurm > 0, wa: 'drache', ic: () => UNIQUE_ICON.lindwurm },
   { id: 'tod', n: 'Der Reichsapfel', d: 'den Tod auf dem Schlachtfeld vertrieben', ok: h => h.bosses.tod > 0, wa: 'tod', ic: () => UNIQUE_ICON.tod },
   { id: 'rotbart', n: 'Rotbarts Entermesser', d: 'Hinrich Rotbart besiegt', ok: h => h.bosses.rotbart > 0, wa: 'strom', ic: () => UNIQUE_ICON.rotbart },
   { id: 'waller', n: 'Die Wallerperle', d: 'den Waller im Altwasser erlegt', ok: h => h.bosses.wels > 0, wa: 'waller', ic: () => UNIQUE_ICON.wels },
+  { id: 'tatzelwurm', n: 'Tatzelwurmschuppe', d: 'den Tatzelwurm in der Teufelsschlucht erschlagen', ok: h => h.bosses.tatzelwurm > 0 },
+  { id: 'bergmoench', n: 'Das Grubenlicht', d: 'den Bergmönch im Altenberg-Stollen gebannt', ok: h => h.bosses.bergmoench > 0 },
+  { id: 'feldhauptmann', n: 'Wüsts Bidenhänder', d: 'Feldhauptmann Balthasar Wüst in seiner Schanze besiegt', ok: h => h.bosses.feldhauptmann > 0 },
+  { id: 'ruebezahl', n: 'Herr der Berge', d: 'Rübezahl auf seinem Felsenthron bezwungen', ok: h => h.bosses.ruebezahl > 0 },
   { id: 'bergwerk', n: 'Glück auf!', d: 'die Truhe im verlassenen Bergwerk geöffnet', ok: h => !!(h.dg && h.dg.bergwerk), wa: 'bergwerk' },
   { id: 'zollburg', n: 'Krone des Nöck', d: 'den Nöck in der versunkenen Zollburg bezwungen', ok: h => !!(h.dg && h.dg.zollburg), wa: 'noeck' },
   { id: 'turnier', n: 'Turniersieger', d: 'ein Großes Turnier gewonnen', ok: h => (h.tw | 0) >= 1, wa: 'turnier' },
@@ -162,7 +166,7 @@ function wkClaim(i){
   gainXp(1200);
   if (W.c.every(Boolean)){
     HERO.ez += 3;
-    const it = makeItem(pick(SLOTS), clamp(HERO.lvl + 1, 1, 22), Math.random() < .5 ? 4 : 3), j = HERO.inv.indexOf(null);
+    const it = makeItem(pick(SLOTS), clamp(HERO.lvl + 1, 1, 32), Math.random() < .5 ? 4 : 3), j = HERO.inv.indexOf(null);
     if (j >= 0){ HERO.inv[j] = it; logLine('Alle drei Prüfungen der Woche bestanden! Der Reichsherold überreicht 3 Ehrenzeichen und ' + it.n + '.', '#ecd27a'); }
     else { HERO.ez += 2; logLine('Alle drei Prüfungen der Woche bestanden! Der Rucksack ist voll, also gibt der Herold 5 Ehrenzeichen.', '#ecd27a'); }
     showBanner('Woche der Ehre', 'alle Prüfungen bestanden');
@@ -262,7 +266,7 @@ function ehView(view, body, opts){
   if (view === 'ehLaden'){
     $('talkText').textContent = 'Ihr habt ' + (HERO.ez | 0) + ' Ehrenzeichen. Ehrenzeichen gibt es für jede Ehrenstufe und für bestandene Wochenprüfungen.';
     const buy = (cost, fn) => { if ((HERO.ez | 0) < cost) return; HERO.ez -= cost; fn(); Sound.coin(); updateHud(); markDirty(true); pushFame(); renderTalk('ehLaden'); };
-    const lv = clamp(HERO.lvl + 2, 1, 22);
+    const lv = clamp(HERO.lvl + 2, 1, 32);
     for (const s of SLOTS){
       const b = btn('12 Ehrenzeichen', () => buy(12, () => { const j = HERO.inv.indexOf(null); if (j < 0){ HERO.ez += 12; logLine('Euer Rucksack ist voll.', '#d8c69c'); return; } const it = makeItem(s, lv, 4, { name: BASES[s][clamp(Math.floor((lv - 1) / 4), 0, 4)] + ' des Reiches' }); HERO.inv[j] = it; logLine('Der Reichsherold überreicht Euch ' + it.n + '.', '#f4aa3c'); }), 'tbtn');
       b.disabled = (HERO.ez | 0) < 12;
@@ -446,7 +450,7 @@ for (const id of Object.keys(FISH).filter(id => !FISH[id].junk)){
   lazySrc(im, () => urlOf(WARE_ICON['f_' + id], 2)); im.alt = '';
   wh.append(el('small', null, F.cm[0] + ' bis ' + F.cm[1] + ' cm' + (F.r === 2 ? ', sehr selten' : F.r ? ', selten' : ''))); li.append(im, wh); $('fishNote').append(li);
 }
-for (const [icon, name, desc] of [[ICONS.eagle, 'Ehrenstufen', 'nach Stufe 20, je ' + ehNeed(0) + ' Erfahrung und mehr'], [ICONS.coin, 'Wochenprüfungen', 'drei Aufgaben je Woche beim Reichsherold in Speyer'],
+for (const [icon, name, desc] of [[ICONS.eagle, 'Ehrenstufen', 'nach Stufe 30, je ' + ehNeed(0) + ' Erfahrung und mehr'], [ICONS.coin, 'Wochenprüfungen', 'drei Aufgaben je Woche beim Reichsherold in Speyer'],
   [wappenImg('reich'), 'Wappen', Object.keys(WAPPEN).length + ' Wappen, aus Trophäen oder für Ehrenzeichen'], [UNIQUE_ICON.noeck, 'Trophäen', TROPHIES.length + ' Taten im Trophäenbuch'], [ICONS.sword, 'Ehrentitel', Object.keys(HT).length + ' Titel, vom Ehrenritter bis zur Legende']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
   lazySrc(im, () => urlOf(icon, 2)); im.alt = ''; wh.append(el('small', null, desc)); li.append(im, wh); $('ehNote').append(li);

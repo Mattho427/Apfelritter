@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 12 von 23: Leben im Reichsland, Tag und Nacht, Wetter.
+/* Der Apfelritter, Teil 12 von 24: Leben im Reichsland, Tag und Nacht, Wetter.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leben im Reichsland: Tiere, Leute, Vögel ============
    Lebensorte aus der Welt; nahe beim Ritter entstehen ihre Bewohner, weit weg verschwinden sie wieder.
@@ -93,6 +93,15 @@ const LIFE_SPOTS = (() => {
   add({ k: 'gans', ...P(H.x + 40, H.y + 34), r: 90, n: [4, 5] }); add({ k: 'ziege', ...P(2540, 430), r: 80, n: [2, 2] });
   add({ k: 'hund', ...P(H.x - 20, H.y + 30), r: 220, n: [1, 1] });
   add({ p: 'walk', t: ['hirte'], ...P(2440, 280), r: 120, n: [1, 1] }); add({ k: 'schaf', ...P(2440, 280), r: 140, n: [6, 8] });
+  // Bergstadt Annaberg: Bürger, Knappen, Wachen; Knappen an den Göpeln; Wild im Schwarzwald
+  const A = wo_ANNA;
+  for (const [x, y, r, n] of [[2920, A.gy + 50, 180, 3], [2900, A.gy - 120, 120, 1], [2900, A.gy + 160, 120, 1], [2760, A.gy, 140, 1], [3060, A.gy, 140, 1]])
+    add({ p: 'walk', t: ['buerger', 'buergerin', 'knappe', 'magd', 'knappe', 'knecht'], ...P(x, y), r: r * WS, n: [n, n + 1] });
+  for (const [x, y] of [[A.gx - 36, A.y0 + 30], [A.gx + 36, A.y0 + 30], [A.gx - 36, A.y1 + 30], [A.gx + 36, A.y1 + 30]]) add({ p: 'stand', t: ['wache'], ...near(x, y), dir: 'down', n: [1, 1] });
+  add({ k: 'taube', ...P(2966, A.gy + 50), r: 100, n: [4, 6] }); add({ k: 'hund', ...P(2860, A.gy + 60), r: 200, n: [1, 1] }); add({ k: 'katze', ...P(3100, A.gy - 60), r: 90, n: [1, 1] });
+  add({ k: 'pferd', ...P(2740, 3430), r: 60, n: [2, 2] });
+  for (const g of wo_BERG.goepel || []) add({ p: 'work', t: ['knappe'], ...P(g.x + 30, g.y + 40), r: 60, n: [1, 2] });
+  for (const [cx, cy] of wo_SWCLEAR) if (R() < .7) add({ k: R() < .35 ? 'hirsch' : 'reh', ...P(cx, cy), r: 200, n: [1, 3] });
   // Herbst: Apfelernte im Obstgarten
   const orchard = GPROPS.filter(p => p.kind === 'apfelbaum' && gZone(p.x, p.y).id === 'obstgarten');
   for (let i = 0; i < Math.min(6, orchard.length); i++){ const p = orchard[(i * 7919 + 13) % orchard.length]; add({ p: 'work', t: ['bauer', 'baeuerin', 'magd', 'knecht'], x: p.x + 22, y: p.y + 14, r: 50, n: [1, 1], sea: [2] }); }
@@ -694,8 +703,8 @@ function skyLights(cam){
     L.push([sx, sy, 96 + d * .9, Math.min(.85, .6 + p.lights.length * .04), 1]);
   }
   for (const m of G.mons){
-    if (m.k === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 130, .9, 2]);
-    if (m.k === 'tod' && m.st !== 'hidden' && v(m.x, m.y, 120)) L.push([m.x, m.y - 30, 90, .4, 3]);
+    if (aiK(m.k) === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 130, .9, 2]);
+    if (aiK(m.k) === 'tod' && m.st !== 'hidden' && v(m.x, m.y, 120)) L.push([m.x, m.y - 30, 90, .4, 3]);
   }
   for (const s of G.shots) if (s.k === 'fire') L.push([s.x, s.y, 140, .9, 1]);
   for (const a of G.loot) if (a.t === 'item' && a.it.r >= 2 && v(a.x, a.y, 60)) L.push([a.x, a.y - 10, 60, .6, 0]);

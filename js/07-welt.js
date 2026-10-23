@@ -1,7 +1,7 @@
 "use strict";
-/* Der Apfelritter, Teil 7 von 23: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
+/* Der Apfelritter, Teil 7 von 24: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Die Welt: das Reichsland 6144 × 3072 (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
+/* ============ Die Welt: das Reichsland 6144 × 4608, im Süden das Bergland (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
 const wo_T0 = performance.now();
 const wo_CW = WW >> 3, wo_CH = WH >> 3;                // Kollisionsraster, 8 px
 const wo_GW = (WW >> 2) + 2, wo_GH = (WH >> 2) + 2;     // Feldraster, 4 px (Wasser, Wege)
@@ -95,7 +95,13 @@ const ZONES = [
   { id: 'fischerdorf', name: 'Das Fischerdorf Altrip', monsters: [], label: { x: 4430, y: 1500 } },
   { id: 'weinberge', name: 'Die Weinberge', monsters: ['pluend', 'armbrust'], label: { x: 5200, y: 560 } },
   { id: 'auwald', name: 'Der Auwald', monsters: ['nix', 'werwolf'], label: { x: 5120, y: 2440 } },
-  { id: 'piratennest', name: 'Das Piratennest', monsters: ['pirat', 'pschuetze'], label: { x: 5700, y: 1720 } }
+  { id: 'piratennest', name: 'Das Piratennest', monsters: ['pirat', 'pschuetze'], label: { x: 5700, y: 1720 } },
+  // Das Bergland im Süden (Version 25)
+  { id: 'schwarzwald', name: 'Der Schwarzwald', monsters: ['wolf', 'schrat', 'wegelagerer'], label: { x: 1180, y: 3960 } },
+  { id: 'annaberg', name: 'Die Bergstadt Annaberg', monsters: [], label: { x: 2900, y: 3300 } },
+  { id: 'silberrevier', name: 'Das Silberrevier', monsters: ['kobold', 'grubengeist', 'wegelagerer'], label: { x: 2420, y: 4200 } },
+  { id: 'schanze', name: 'Die Söldnerschanze', monsters: ['doppelsoeldner', 'hakenschuetze'], label: { x: 4400, y: 3330 } },
+  { id: 'hochgebirge', name: 'Das Hochgebirge', monsters: ['baer', 'geier', 'eislicht'], label: { x: 4700, y: 4400 } }
 ];
 const wo_ZI = {}; ZONES.forEach((z, i) => { wo_ZI[z.id] = i; });
 /* Gebietskerne: Ellipsen [cx, cy, rx, ry] */
@@ -106,8 +112,14 @@ const wo_ZELL = {
   friedhof: [[1620, 2880, 640, 240]], moor: [[480, 2660, 640, 560]],
   schlachtfeld: [[3780, 2560, 420, 640], [3150, 2930, 520, 230]], stadt: [[2966, 2310, 470, 380]], weiler: [[2444, 570, 190, 220]],
   speyer: [[5100, 1390, 400, 330]], fischerdorf: [[4440, 1600, 230, 170]], weinberge: [[5150, 640, 760, 520], [5900, 1000, 360, 520]],
-  auwald: [[5000, 2420, 920, 640], [5900, 2400, 400, 700], [4450, 2700, 380, 380]], piratennest: [[5700, 1780, 380, 120]]
+  auwald: [[5000, 2420, 920, 640], [5900, 2400, 400, 700], [4450, 2700, 380, 380]], piratennest: [[5700, 1780, 380, 120]],
+  schwarzwald: [[880, 3840, 980, 720], [300, 3320, 420, 300]], annaberg: [[2900, 3550, 330, 260]],
+  silberrevier: [[2350, 4170, 760, 420], [3500, 4320, 520, 300], [3330, 3900, 300, 200]],
+  schanze: [[4450, 3500, 640, 420], [3960, 3260, 280, 220]],
+  hochgebirge: [[5350, 4160, 900, 600], [4300, 4440, 480, 220], [5950, 3520, 300, 420]]
 };
+/* Bergstadt Annaberg: Mauerring mit Nord- und Südtor, Durchlässe im Westen und Osten */
+const wo_ANNA = { x0: 2630, x1: 3170, y0: 3340, y1: 3760, gx: 2900, gy: 3550 };
 /* Speyer: Mauerring mit Nord- und Hafentor, davor der Kai am Strom */
 const wo_SPY = { x0: 4714, x1: 5486, y0: 1170, y1: 1580, gx: 5100, quay: 1640 };
 /* Stadtmauer (Fußlinien) und Burgring */
@@ -143,6 +155,11 @@ function wo_onIsle(x, y){
   const a = wo_yAt(wo_RIVER, x), b = wo_yAt(wo_ARM, x);
   return a !== null && b !== null && y > a && y < b;
 }
+/* Silberbach: entspringt im Quellsee unter dem Hochgebirge und fließt nach Westen durch Revier und Schwarzwald */
+const wo_SBACH = wo_spline([[4880, 4034, 9], [4760, 4060, 10], [4600, 4120, 11], [4440, 4170, 12], [4300, 4184, 12], [4140, 4176, 13], [4000, 4160, 13], [3840, 4120, 14],
+  [3700, 4080, 14], [3540, 4036, 15], [3400, 4000, 15], [3260, 3972, 16], [3140, 3962, 16], [3020, 3972, 16], [2900, 3990, 17], [2780, 4024, 17], [2650, 4060, 17],
+  [2520, 4096, 18], [2400, 4118, 18], [2260, 4116, 18], [2100, 4098, 19], [1950, 4066, 19], [1800, 4042, 19], [1650, 4048, 20], [1500, 4064, 20], [1350, 4100, 20],
+  [1200, 4140, 21], [1050, 4176, 21], [900, 4200, 21], [750, 4214, 22], [600, 4224, 22], [450, 4240, 22], [300, 4258, 22], [150, 4270, 22], [-80, 4284, 22]], 8);
 /* Mühlbach vom Mühlteich zum Fluss */
 const wo_BACH = wo_spline([[2556, 1190, 7], [2550, 1260, 8], [2542, 1340, 9], [2536, 1420, 9], [2531, 1500, 10], [2529, 1580, 10],
   [2531, 1660, 10], [2536, 1740, 11], [2542, 1820, 12], [2546, 1866, 14]], 8);
@@ -154,7 +171,9 @@ const wo_PONDS = [
   [110, 2440, 44, 20, 3], [620, 2600, 30, 16, 3], [370, 2650, 26, 14, 3], [190, 2880, 30, 16, 3], [860, 2980, 40, 18, 3],
   [520, 3020, 50, 20, 3], [60, 2600, 30, 40, 3],
   // Altwasser im Auwald
-  [4700, 2300, 74, 30, 2], [5320, 2520, 96, 36, 2], [5660, 2330, 62, 26, 2], [4900, 2720, 84, 30, 2], [5940, 2720, 72, 34, 3], [4380, 2180, 50, 22, 2], [5600, 2860, 60, 24, 3]
+  [4700, 2300, 74, 30, 2], [5320, 2520, 96, 36, 2], [5660, 2330, 62, 26, 2], [4900, 2720, 84, 30, 2], [5940, 2720, 72, 34, 3], [4380, 2180, 50, 22, 2], [5600, 2860, 60, 24, 3],
+  // Bergland: Quellsee des Silberbachs, Bergseen, ein Weiher im Schwarzwald
+  [4960, 4022, 92, 44, 2], [5640, 4470, 76, 34, 2], [6020, 3820, 58, 30, 2], [1480, 4420, 64, 30, 2], [640, 3480, 48, 24, 2], [3560, 4420, 44, 22, 2]
 ];
 /* Torfstiche: Rechtecke voll Moorwasser */
 const wo_PEAT = [[800, 2858, 848, 2874], [812, 2884, 852, 2898], [250, 2470, 304, 2484], [700, 3010, 762, 3026], [960, 2830, 1000, 2846], [380, 2878, 430, 2892]];
@@ -205,6 +224,7 @@ const wo_bankWob = (x, y) => (wo_mid(x, y) - .5) * 9 + (wo_fin(x * .5, y * .5) -
 wo_stamp(wo_WSD, null, wo_WT, 1, wo_RIVER, 120, wo_bankWob);
 wo_stamp(wo_WSD, null, wo_WT, 1, wo_ARM, 90, wo_bankWob);
 wo_stamp(wo_WSD, null, wo_WT, 4, wo_BACH, 60, (x, y) => (wo_fin(x * .5, y * .5) - .5) * 3);
+wo_stamp(wo_WSD, null, wo_WT, 1, wo_SBACH, 60, (x, y) => (wo_mid(x, y) - .5) * 5 + (wo_fin(x * .5, y * .5) - .5) * 3);
 for (const [x, y, rx, ry, t] of wo_PONDS) wo_stampEll(wo_WSD, wo_WT, t, x, y, rx, ry, 40, (px, py) => (wo_mid(px * 3, py * 3) - .5) * Math.min(rx, ry) * .55);
 for (const [x0, y0, x1, y1] of wo_PEAT) wo_stampRect(wo_WSD, wo_WT, 3, x0, y0, x1, y1, 16);
 const wo_wsd = (x, y) => (x < 0 || y < 0 || x >= WW || y >= WH) ? 99 : wo_bil(wo_WSD, x, y);
@@ -250,7 +270,20 @@ const wo_ROADS = [
   { t: 1, hw: 8, p: [[5000, 1780], [5030, 1900], [5090, 2040], [5230, 2140], [5420, 2160], [5600, 2090], [5700, 1990], [5740, 1940]] }, // Auweg zur Insel
   { t: 1, hw: 7, p: [[5740, 1850], [5730, 1810], [5700, 1770]] },                                              // Inselpfad
   { t: 1, hw: 7, p: [[4450, 1440], [4442, 1500], [4436, 1560], [4430, 1620]] },                                // Fischergasse
-  { t: 1, hw: 6, p: [[5090, 2040], [4900, 2140], [4700, 2240], [4520, 2380], [4420, 2560]] }                  // Pfad im Auwald
+  { t: 1, hw: 6, p: [[5090, 2040], [4900, 2140], [4700, 2240], [4520, 2380], [4420, 2560]] },                 // Pfad im Auwald
+  // Bergland
+  { t: 0, hw: 11, p: [[2950, 2740], [2954, 2840], [2952, 2960], [2944, 3080], [2934, 3200], [2916, 3260], [2900, 3330]] },  // Bergstraße nach Annaberg
+  { t: 3, hw: 18, p: [[2900, 3310], [2900, 3430], [2900, 3550], [2900, 3670], [2900, 3790]] },                 // Hauptgasse Annaberg
+  { t: 3, hw: 14, p: [[2610, 3550], [2760, 3550], [2900, 3550], [3040, 3550], [3190, 3550]] },                 // Quergasse Annaberg
+  { t: 0, hw: 11, p: [[2610, 3550], [2480, 3566], [2300, 3600], [2100, 3630], [1900, 3650], [1700, 3672], [1500, 3700], [1300, 3730], [1100, 3760], [900, 3790], [700, 3810], [500, 3830], [300, 3850], [100, 3866], [-20, 3874]] }, // Schwarzwaldstraße
+  { t: 1, hw: 8, p: [[1300, 2830], [1270, 2940], [1240, 3060], [1210, 3200], [1180, 3360], [1150, 3520], [1130, 3640], [1110, 3755]] }, // Klosterweg in den Schwarzwald
+  { t: 0, hw: 11, p: [[3190, 3550], [3320, 3550], [3500, 3540], [3700, 3520], [3900, 3500], [4100, 3480], [4300, 3470], [4440, 3474]] }, // Oststraße zur Schanze
+  { t: 0, hw: 10, p: [[3680, 3090], [3660, 3200], [3620, 3320], [3560, 3440], [3500, 3540]] },                 // vom Schlachtfeld herab
+  { t: 1, hw: 7, p: [[4420, 2560], [4440, 2720], [4460, 2900], [4470, 3080], [4460, 3260], [4440, 3420]] },     // Auwald zur Schanze
+  { t: 0, hw: 10, p: [[2900, 3790], [2890, 3860], [2878, 3940], [2870, 4040], [2840, 4140], [2760, 4240], [2620, 4320], [2460, 4370], [2300, 4384]] }, // Revierweg
+  { t: 1, hw: 7, p: [[2870, 4040], [3000, 4100], [3200, 4180], [3400, 4250], [3600, 4300]] },                 // Pfad zu den Osthalden
+  { t: 1, hw: 8, p: [[4440, 3480], [4560, 3600], [4680, 3740], [4800, 3860], [4960, 3906], [5140, 3950], [5320, 4040], [5500, 4130], [5680, 4220]] }, // Passweg ins Hochgebirge
+  { t: 1, hw: 7, p: [[600, 3820], [580, 3960], [560, 4100], [548, 4240], [530, 4370]] }                        // Pfad zur Teufelsschlucht
 ].map(r => ({ t: r.t, hw: r.hw, p: wo_spline(r.p.map(q => [q[0], q[1], r.hw]), 6) }));
 const wo_RSD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RT = new Uint8Array(wo_GW * wo_GH);
 for (const r of wo_ROADS) wo_stamp(wo_RSD, wo_RD, wo_RT, r.t, r.p, 26, r.t === 3 ? null : (x, y) => (wo_fin(x, y) - .5) * (r.t === 1 ? 2.6 : 1.6));
@@ -260,7 +293,11 @@ const wo_rsd = (x, y) => (x < 0 || y < 0 || x >= WW || y >= WH) ? 99 : wo_bil(wo
 const wo_HILLS = [ // cx, cy, rx, ry, Höhe, Plateau
   [1900, 470, 440, 340, 1, .62], [3720, 1210, 270, 220, .55, .32], [3540, 440, 360, 290, .95, .55],
   [700, 340, 520, 380, .45, 0], [1180, 1060, 300, 260, .25, 0], [3220, 2960, 420, 200, .22, 0], [3000, 640, 300, 200, .3, 0],
-  [5150, 560, 620, 380, .7, .12], [5900, 900, 320, 440, .55, .1], [4700, 560, 300, 260, .35, 0]
+  [5150, 560, 620, 380, .7, .12], [5900, 900, 320, 440, .55, .1], [4700, 560, 300, 260, .35, 0],
+  // Bergland: Hochgebirge, Erzberge um Annaberg, Schwarzwaldhöhen
+  [5400, 4330, 700, 380, 1.6, .2], [5920, 3900, 360, 440, 1.3, .15], [4700, 4470, 400, 200, 1.1, .1], [6020, 4460, 300, 260, 1.5, .2], [5050, 4560, 300, 140, 1.2, .1],
+  [2300, 4300, 540, 280, .7, .1], [3500, 4360, 420, 240, .6, .1], [2900, 3550, 440, 360, .3, .55],
+  [820, 4050, 700, 480, .55, 0], [300, 3320, 300, 260, .4, 0], [1500, 3500, 360, 260, .35, 0]
 ];
 function wo_height(x, y){
   let h = (wo_mid(x, y) - .5) * .3 + (wo_lo(x, y) - .5) * .5;
@@ -300,8 +337,9 @@ const wo_ZR = new Uint8Array(wo_ZW * wo_ZH);
     if ((x > C.x0 - 50 && x < C.x1 + 50 && y > C.y0 - 70 && y < C.y1 + 40) || (x > C.x1 && x < wo_TJ.x + 230 && y > wo_TJ.y - 190 && y < wo_TJ.y + 120)) best = wo_ZI.stadt;   // Stadt und Turnierwiese
     else if (x > wo_SPY.x0 - 60 && x < wo_SPY.x1 + 90 && y > wo_SPY.y0 - 70 && y < wo_yAt(wo_RIVER, x)) best = wo_ZI.speyer;   // Speyer bis an den Strom
     else if (wo_onIsle(x, y)) best = wo_ZI.piratennest;
+    else if (x > wo_ANNA.x0 - 60 && x < wo_ANNA.x1 + 60 && y > wo_ANNA.y0 - 80 && y < wo_ANNA.y1 + 50) best = wo_ZI.annaberg;   // Bergstadt
     else if (x > 4100){ if (best === wo_ZI.piratennest) best = y < 1700 ? wo_ZI.weinberge : wo_ZI.auwald; }
-    else {
+    else if (y < WH0){
       const g = wo_gidx(x, y), w = wo_WSD[g], t = wo_WT[g];
       if (((t === 1 && w < 84 && x > 760) || (t === 4 && w < 56) || (t === 2 && w < 50 && y < 1300)) && best !== wo_ZI.stadt) best = wo_ZI.fluss;
     }
@@ -1008,7 +1046,7 @@ const wo_ALTRIP = { x: 4440, y: 1600 };
 (function wo_auwald(){
   const R = rng(1528), S = 36;
   const CL = [[5330, 2600, 190, 120], [4820, 2060, 170, 110], [5700, 2620, 160, 110], [4520, 2480, 150, 100], [5180, 2860, 170, 100], [5980, 2240, 130, 100]];
-  for (let gy = 1760; gy < WH; gy += S) for (let gx = 4096; gx < WW; gx += S){
+  for (let gy = 1760; gy < WH0; gy += S) for (let gx = 4096; gx < WW; gx += S){
     const x = gx + R() * S, y = gy + R() * S;
     if (wo_zid(x, y) !== wo_ZI.auwald) continue;
     if (CL.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < .85 + wo_fin(x, y) * .3) && R() < .92) continue;
@@ -1076,7 +1114,7 @@ const wo_CLEAR = [[620, 1000, 210, 170], [330, 640, 120, 90], [1040, 480, 110, 9
 })();
 (function wo_forest(){
   const R = rng(1200), S = 34;
-  for (let gy = 0; gy < WH; gy += S) for (let gx = 0; gx < 1500; gx += S){
+  for (let gy = 0; gy < WH0; gy += S) for (let gx = 0; gx < 1500; gx += S){
     const x = gx + R() * S, y = gy + R() * S;
     if (wo_zid(x, y) !== wo_ZI.wald) continue;
     let clear = false;
@@ -1108,7 +1146,7 @@ const wo_CLEAR = [[620, 1000, 210, 170], [330, 640, 120, 90], [1040, 480, 110, 9
     speyer: ['busch'], fischerdorf: ['weide', 'busch', 'stein'], weinberge: ['busch', 'stein', 'eiche', 'apfelbaum'], auwald: ['weide', 'busch', 'birke', 'eiche'], piratennest: ['busch', 'stein', 'toter_baum']
   };
   for (let k = 0; k < 2600; k++){
-    const x = 20 + R() * (WW - 40), y = 20 + R() * (WH - 40), z = ZONES[wo_zid(x, y)].id;
+    const x = 20 + R() * (WW - 40), y = 20 + R() * (WH0 - 40), z = ZONES[wo_zid(x, y)].id;
     if (z === 'stadt' && x > wo_CITY.x0 - 20 && x < wo_CITY.x1 + 20 && y > wo_CITY.y0 - 60 && y < wo_CITY.y1 + 20) continue;
     if (z === 'speyer') continue;
     if (R() < .45) continue;
@@ -1116,13 +1154,215 @@ const wo_CLEAR = [[620, 1000, 210, 170], [330, 640, 120, 90], [1040, 480, 110, 9
   }
   // Baumstümpfe und liegende Stämme
   for (let k = 0; k < 520; k++){
-    const x = 20 + R() * (WW - 40), y = 20 + R() * (WH - 40), z = ZONES[wo_zid(x, y)].id;
+    const x = 20 + R() * (WW - 40), y = 20 + R() * (WH0 - 40), z = ZONES[wo_zid(x, y)].id;
     if (!(z === 'wald' || (z === 'moor' && R() < .5) || (z === 'auwald' && R() < .6) || (z === 'ruine' && R() < .3) || (z === 'fluss' && R() < .2) || (z === 'burg' && R() < .15))) continue;
     const log = R() < .45, len = log ? 22 + R() * 22 | 0 : 0, w = log ? len : 10, h = log ? 7 : 7;
     if (!wo_occFree(x - w / 2 - 6, y - h - 6, x + w / 2 + 6, y + 6) || wo_wsd(x, y) < 8 || wo_rsd(x, y) < 10) continue;
     const o = { k: log ? 'log' : 'stump', x: Math.round(x), y: Math.round(y), len, s: k, birch: z === 'moor' };
     wo_GOBJ.push(o);
     wo_mark(wo_COL, x - w / 2, y - h + 1, x + w / 2, y + 1, 1); wo_markAny(wo_OCC, x - w / 2 - 2, y - h - 2, x + w / 2 + 2, y + 3, 1);
+  }
+})();
+
+/* ============ Das Bergland im Süden (Version 25) ============
+   Erst nach allem anderen gebaut, damit die alte Welt (Bäume, Steine, Lager) genau so bleibt wie bisher. */
+const wo_BERG = {};   // besondere Orte im Bergland (für Leute, Anführer und Aufträge)
+const wo_addFit = (kind, x, y, P) => wo_fits(P, Math.round(x), Math.round(y), 0, 2) ? wo_add(kind, x, y, P) : null;   // eigene Bilder (Holzstoß) nur, wo Platz ist
+wo_bridgeV(2876, 48, 'stein', 3988, 3998);   // Steinbrücke am Revierweg
+wo_bridgeV(548, 36, 'holz', 4222, 4234);     // Steg zur Teufelsschlucht
+/* ---------- Bergstadt Annaberg: Mauerring, Kirche St. Annen, Gasthaus Zur Silbernen Kanne, Markt ---------- */
+(function wo_annaberg(){
+  const C = wo_ANNA, R = rng(1496), gy = C.gy;
+  const T = makeProp('stadt_turm', 1), M = makeProp('stadt_mauer', 1);
+  const tw = T.foot[0][2] - T.foot[0][0], mw = M.foot[0][2] - M.foot[0][0];
+  wo_reserve(C.gx - 18, C.y0 - 40, C.gx + 18, C.y0 + 40); wo_reserve(C.gx - 18, C.y1 - 40, C.gx + 18, C.y1 + 40);
+  for (const y of [C.y0, C.y1]){
+    let x = C.x0 - tw / 2;
+    for (const ch of 'TMMMGMMMT'){
+      const w = ch === 'T' ? tw : ch === 'M' ? mw : 104, cx = x + w / 2;
+      if (ch === 'T') wo_put('stadt_turm', cx, y + 1, wo_ns()); else if (ch === 'M') wo_put('stadt_mauer', cx, y, wo_ns()); else wo_put('stadt_tor', cx, y, y === C.y0 ? 1 : 2);
+      x += w;
+    }
+  }
+  // Seitenmauern mit Durchlass zur Quergasse, flankiert von Türmen
+  const t = 24, hg = 46, yN = C.y0 + 2, yS = C.y1 - (T.foot[0][3] - T.foot[0][1]) + 2, gN = gy - 64, gS = gy + 42;
+  for (const [x, left, sd] of [[C.x0, true, 21], [C.x1, false, 23]]){
+    wo_add('mauer', x, gN, wo_wallNS(x, yN, gN, t, hg, wo_GREY, left, sd, true));
+    wo_add('mauer', x, yS, wo_wallNS(x, gS, yS, t, hg, wo_GREY, left, sd + 1, false));
+    wo_put('stadt_turm', x, gN + 2, sd); wo_put('stadt_turm', x, gS + 28, sd + 1);
+    wo_feat({ m: WM.SHADOW, x0: left ? x + t / 2 + 1 : x + t / 2 + 1, x1: x + t / 2 + (left ? 8 : 10), y0: yN, y1: yS + 8 });
+    wo_reserve(left ? x - 60 : x - 20, gN + 6, left ? x + 20 : x + 60, gS - 4);
+  }
+  wo_feat({ m: WM.YARD, sub: 0, x0: C.x0 + 12, y0: C.y0 + 2, x1: C.x1 - 12, y1: C.y1 - 4 });
+  wo_reserve(C.gx - 24, C.y0, C.gx + 24, C.y1);                       // Hauptgasse
+  wo_reserve(C.x0 + 14, gy - 16, C.x1 - 14, gy + 16);                 // Quergasse
+  // Kirche St. Annen, Häuser mit dem Giebel zur Quergasse, Gasthaus und Bergamt im Süden
+  wo_BERG.kirche = wo_put('kirche', 3050, gy - 18, 3);
+  wo_reserve(3030, gy - 16, 3090, gy + 10);
+  for (const x of [2700, 2790]){ const h = wo_try('stadthaus', x, gy - 18, wo_ns(), -2, -40); if (h) wo_HOUSES.push(h); }
+  for (const x of [2700, 2790, 3010, 3100]){
+    const kind = x === 3010 ? 'gasthaus_kanne' : 'stadthaus', h = wo_try(kind, x, 3700, wo_ns(), -2, -40);
+    if (!h) continue;
+    if (kind === 'gasthaus_kanne'){ wo_INNP.kanne = h; wo_reserve(h.door - 14, 3702, h.door + 14, 3734); }
+    else { wo_HOUSES.push(h); if (x === 2790) wo_BERG.bergamt = h; }
+  }
+  // Markt zwischen Quergasse und Südzeile
+  wo_feat({ m: WM.YARD, sub: 2, x0: 2700, y0: gy + 18, x1: 3130, y1: gy + 88 });
+  wo_put('brunnen', 2966, gy + 56, 6);
+  for (const [x, y, v] of [[2730, gy + 62, 2], [2790, gy + 64, 5], [3040, gy + 62, 1], [3100, gy + 62, 4]]) wo_try('marktstand', x, y, wo_seedFor('marktstand', v), 1, -40);
+  for (const [k, x, y] of [['erz', 2850, gy + 40], ['lore', 2848, gy + 74], ['fass', 3006, gy + 34], ['kisten', 3014, gy + 80], ['karren', 2680, gy + 30], ['heuhaufen', 3150, gy + 30]]) wo_try(k, x, y, wo_ns(), 0, -40);
+  // Stall und Rastplatz hinter der Nordzeile
+  for (const [k, x, y] of [['heuhaufen', 2700, 3410], ['heuhaufen', 2730, 3416], ['karren', 2800, 3400], ['fass', 2830, 3420], ['zaun_h', 2690, 3440], ['zaun_h', 2722, 3440], ['brunnen', 2780, 3446]]) wo_try(k, x, y, wo_ns(), 0, -40);
+  for (let k = 0; k < 14; k++) wo_try(wo_pick(R, ['fass', 'kisten', 'fass', 'erz']), C.x0 + 30 + R() * (C.x1 - C.x0 - 60), C.y0 + 30 + R() * (C.y1 - C.y0 - 60), wo_ns(), 4, 8);
+  wo_try('wegweiser', C.gx + 40, C.y0 - 40, 5, 0, 2); wo_try('wegkreuz', C.gx - 46, C.y1 + 50, 6, 0, 2);
+  // Gärten vor den Mauern
+  for (let k = 0; k < 22; k++){ const x = C.x0 - 40 - R() * 150, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .5 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
+  for (let k = 0; k < 22; k++){ const x = C.x1 + 40 + R() * 150, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .5 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
+})();
+/* ---------- Silberrevier: Halden, Göpel über den Schächten, Stollen, Knappenhütten ---------- */
+(function wo_revier(){
+  const R = rng(1471);
+  wo_BERG.goepel = [];
+  for (const [x, y] of [[2600, 3930], [2180, 4290], [3290, 4220], [3740, 4370], [2020, 3960], [3060, 3870]]){
+    wo_feat({ m: WM.ROCK, e: [x + 10, y + 16, 110, 52] });
+    const g = wo_tryNear('goepel', x, y, wo_ns(), 2, 4);
+    if (!g) continue;
+    wo_BERG.goepel.push(g);
+    for (const [k, dx, dy] of [['erz', -56, 18], ['erz', 50, 26], ['lore', 62, 4], ['kisten', -60, -6], ['stein', -36, 36], ['stein', 30, 40]]) wo_tryNear(k, x + dx, y + dy, wo_ns(), 0, 2);
+  }
+  // Stollen: der verfallene Altenberg-Stollen (Bergmönch), zwei offene
+  for (const [id, x, y, sd] of [['moench', 2300, 4440, 1], ['ost', 3620, 4262, 2], ['west', 1980, 4330, 3]]){
+    wo_feat({ m: WM.ROCK, e: [x, y + 18, 120, 70] });
+    const e = wo_tryNear('stollen', x, y, sd, 2, 4);
+    if (!e) continue;
+    wo_BERG['stollen_' + id] = e;
+    for (const [k, dx, dy] of [['lore', 50, 24], ['erz', -48, 20], ['erz', 40, 52], ['kisten', -44, 48], ['fass', 60, 4]]) wo_try(k, e.x + dx, e.y + dy, wo_ns(), 0, 2);
+    wo_reserve(e.x - 70, e.y - 50, e.x + 70, e.y + 70);
+  }
+  for (const [x, y] of [[2460, 3880], [3150, 4120], [2700, 4360], [1960, 4180]]){ const h = wo_tryNear('fachwerkhaus', x, y, wo_ns(), 2, 4); if (h){ wo_HOUSES.push(h); wo_addFit('holzstoss', h.x + 70, h.y + 6, wo_holzImg(h.x)); } }
+  // Halden ohne Göpel: Geröll und Erz
+  for (let k = 0; k < 22; k++){
+    const x = 1900 + R() * 2000, y = 3800 + R() * 760;
+    if (wo_zid(x, y) !== wo_ZI.silberrevier || wo_wsd(x, y) < 30) continue;
+    wo_feat({ m: WM.ROCK, e: [x, y, 40 + R() * 50, 18 + R() * 20], s: k });
+    for (let i = 0; i < 3; i++) wo_try(R() < .5 ? 'erz' : 'stein', x + (R() - .5) * 70, y + (R() - .5) * 30, wo_ns(), 0, 4);
+  }
+  for (let k = 0; k < 360; k++){
+    const x = 1700 + R() * 2400, y = 3700 + R() * 900;
+    if (wo_zid(x, y) !== wo_ZI.silberrevier) continue;
+    wo_try(wo_pick(R, ['fichte', 'fichte', 'birke', 'stein', 'busch', 'toter_baum', 'fels', 'stein']), x, y, wo_ns(), 8, 8);
+  }
+})();
+/* ---------- Söldnerschanze: Wall aus Schanzkörben, Geschütze, Zelte, Feuer ---------- */
+(function wo_schanze(){
+  const R = rng(1522), cx = 4450, cy = 3470;
+  wo_BERG.schanze = { x: cx, y: cy };
+  wo_feat({ m: WM.YARD, sub: 3, e: [cx, cy + 6, 230, 150] });
+  wo_reserve(cx - 50, cy - 70, cx + 50, cy - 10);                      // Zelt des Feldhauptmanns
+  wo_tryNear('zelt', cx, cy - 74, wo_seedFor('zelt', 3), 0, 2);
+  for (const [dx, dy] of [[-40, -46], [40, -46]]) wo_tryNear('banner', cx + dx, cy + dy, wo_ns(), 0, 2);
+  // Wall: Schanzkörbe im Ring, Lücken für die Wege im Westen, Norden und Südosten
+  for (let k = 0; k < 64; k++){
+    const a = k / 64 * Math.PI * 2, x = cx + Math.cos(a) * 270, y = cy + 10 + Math.sin(a) * 190;
+    if (Math.abs(Math.sin(a)) < .16 && Math.cos(a) < 0) continue;     // Westtor
+    if (Math.abs(Math.cos(a)) < .1 && Math.sin(a) < 0) continue;      // Nordtor
+    if (Math.abs(a - .85) < .16) continue;                            // Südosttor
+    wo_try('schanzkorb', x, y, wo_ns(), -2, 6);
+  }
+  // Geschütze hinter dem Wall
+  for (const [dx, dy, v] of [[-200, -70, 0], [-210, 90, 0], [200, -80, 1], [180, 110, 1], [-60, 150, 0], [90, -150, 1]]) wo_tryNear('kanone', cx + dx, cy + dy, wo_seedFor('kanone', v), 0, 2);
+  for (const [x, y] of [[cx - 140, cy - 20], [cx + 130, cy - 10], [cx - 120, cy + 90], [cx + 20, cy + 110], [cx + 140, cy + 80], [cx - 30, cy - 120]]) wo_tryNear('zelt', x, y, wo_ns(), 0, 2);
+  for (const [x, y] of [[cx - 60, cy + 30], [cx + 70, cy + 40], [cx - 10, cy - 10]]){ wo_tryNear('lagerfeuer', x, y, wo_ns(), 0, 2); wo_feat({ m: WM.ASH, e: [x, y - 2, 16, 9] }); }
+  for (let k = 0; k < 30; k++) wo_try(wo_pick(R, ['fass', 'kisten', 'spiesse', 'fass', 'karren', 'feuerschale', 'spiesse']), cx - 230 + R() * 460, cy - 150 + R() * 320, wo_ns(), 4, 6);
+  for (const x of [cx - 330, cx - 280]) wo_tryNear('palisade', x, cy - 60, wo_ns(), 0, 2);
+  // Vorposten an der Oststraße und Gräben voll Schlamm
+  wo_tryNear('zelt', 3960, 3300, wo_ns(), 0, 2); wo_tryNear('lagerfeuer', 4010, 3330, wo_ns(), 0, 2); wo_tryNear('banner', 3920, 3330, wo_ns(), 0, 2);
+  for (let k = 0; k < 18; k++){ const x = 3900 + R() * 1200, y = 3150 + R() * 700; if (wo_zid(x, y) === wo_ZI.schanze) wo_feat({ m: WM.MUD, e: [x, y, 18 + R() * 30, 8 + R() * 12], s: k }); }
+  for (let k = 0; k < 220; k++){
+    const x = 3700 + R() * 1600, y = 3100 + R() * 900;
+    if (wo_zid(x, y) !== wo_ZI.schanze) continue;
+    wo_try(wo_pick(R, ['busch', 'stein', 'toter_baum', 'spiesse', 'busch', 'birke', 'fichte']), x, y, wo_ns(), 8, 8);
+  }
+})();
+/* ---------- Schwarzwald: dichter Tann, Lichtungen, Räuberlager, Teufelsschlucht ---------- */
+const wo_SWCLEAR = [[640, 3480, 150, 100], [1480, 4420, 170, 100], [940, 3600, 150, 100], [520, 4440, 140, 110], [1660, 3820, 140, 90], [260, 3980, 110, 80], [1200, 4300, 120, 80]];
+(function wo_schwarzwald(){
+  const R = rng(1513), S = 30;
+  // Räuberlager auf der Lichtung
+  wo_BERG.raeuber = { x: 940, y: 3600 };
+  wo_feat({ m: WM.YARD, sub: 3, e: [940, 3606, 110, 60] });
+  wo_tryNear('lagerfeuer', 940, 3604, 3, 0, 2); wo_feat({ m: WM.ASH, e: [940, 3602, 16, 9] });
+  for (const [x, y] of [[860, 3570], [1020, 3576]]) wo_tryNear('zelt', x, y, wo_ns(), 0, 2);
+  for (const [k, x, y] of [['kisten', 900, 3640], ['fass', 990, 3644], ['karren', 1050, 3630], ['spiesse', 880, 3620]]) wo_tryNear(k, x, y, wo_ns(), 0, 2);
+  // Teufelsschlucht: Felsklippen im Kreis, Zugang von Norden
+  const tx = 520, ty = 4440;
+  wo_BERG.schlucht = { x: tx, y: ty };
+  wo_feat({ m: WM.ROCK, e: [tx, ty + 10, 150, 110] });
+  wo_reserve(tx - 50, ty - 40, tx + 50, ty + 40);
+  for (let k = 0; k < 10; k++){
+    const a = -Math.PI / 2 + .6 + k / 9 * (Math.PI * 2 - 1.2), x = tx + Math.cos(a) * 140, y = ty + 14 + Math.sin(a) * 100;
+    wo_tryNear('klippe', x, y, wo_ns(), -4, 2);
+  }
+  // Köhlerplatz
+  wo_add('meiler', 1640, 3830, wo_meilerImg(1640)); wo_feat({ m: WM.COAL, e: [1640, 3824, 34, 22] });
+  wo_add('holzstoss', 1720, 3800, wo_holzImg(1720)); wo_add('koehlerhuette', 1590, 3790, wo_huetteImg(9));
+  // der Tann
+  for (let gy = WH0 - 200; gy < WH; gy += S) for (let gx = 0; gx < 2100; gx += S){
+    const x = gx + R() * S, y = gy + R() * S;
+    if (wo_zid(x, y) !== wo_ZI.schwarzwald) continue;
+    if (wo_SWCLEAR.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1) && R() < .93) continue;
+    const n = wo_mid(x * 1.3, y * 1.3);
+    if (R() > .62 + n * .33) continue;
+    const kind = R() < .1 ? 'busch' : R() < .78 ? 'fichte' : R() < .5 ? 'buche' : R() < .8 ? 'birke' : 'toter_baum';
+    wo_try(kind, x, y, wo_ns(), kind === 'busch' ? 4 : 9, 10);
+  }
+  for (let k = 0; k < 300; k++){
+    const x = R() * 2300, y = WH0 - 100 + R() * (WH - WH0 + 100);
+    if (wo_zid(x, y) === wo_ZI.schwarzwald) continue;
+    if ([[48, 0], [-48, 0], [0, 48], [0, -48]].some(([dx, dy]) => wo_zid(x + dx, y + dy) === wo_ZI.schwarzwald)) wo_try(R() < .6 ? 'busch' : 'birke', x, y, wo_ns(), 6, 8);
+  }
+})();
+/* ---------- Hochgebirge: Fels, Geröll, Schnee; Bergsee, Almhütte, Gipfelkreuz, Rübezahls Felsenthron ---------- */
+(function wo_gebirge(){
+  const R = rng(1519), snow = (x, y) => wo_height(x, y) > 1.05;
+  wo_BERG.thron = { x: 5720, y: 4300 };
+  wo_reserve(5660, 4250, 5780, 4340);
+  for (let k = 0; k < 7; k++){ const a = Math.PI + .3 + k / 6 * (Math.PI - .6), x = 5720 + Math.cos(a) * 120, y = 4310 + Math.sin(a) * 80; wo_tryNear('schneeklippe', x, y, wo_ns(), -4, 2); }
+  const h = wo_tryNear('fachwerkhaus', 5180, 3880, wo_seedFor('fachwerkhaus', 3), 2, 4); if (h){ wo_HOUSES.push(h); wo_BERG.alm = h; wo_addFit('holzstoss', h.x + 70, h.y + 4, wo_holzImg(h.x)); wo_tryNear('zaun_h', h.x - 70, h.y + 20, 1, 0, 2); }
+  wo_tryNear('wegkreuz', 5960, 4440, 7, 0, 2);
+  for (let k = 0; k < 900; k++){
+    const x = 3800 + R() * 2340, y = 3300 + R() * 1300;
+    if (wo_zid(x, y) !== wo_ZI.hochgebirge) continue;
+    const sn = snow(x, y), q = R();
+    const kind = q < .14 ? (sn ? 'schneeklippe' : 'klippe') : q < .4 ? (sn ? 'schneefels' : 'fels') : q < .6 ? (sn ? 'schneestein' : 'stein') : q < .9 ? (sn ? 'schneefichte' : 'fichte') : (sn ? 'schneefichte' : 'toter_baum');
+    wo_try(kind, x, y, wo_ns(), kind === 'stein' ? 4 : 8, 8);
+  }
+})();
+/* ---------- Ufer des Silberbachs, Streu im Bergland, Stümpfe ---------- */
+(function wo_bergStreu(){
+  const R = rng(1530);
+  for (let k = 0; k < wo_SBACH.length; k += 3){
+    const [x, y, w] = wo_SBACH[k];
+    for (const sd of [-1, 1]){
+      if (R() < .5) continue;
+      const z = ZONES[wo_zid(x, y + sd * (w + 20))].id, d = w + 12 + R() * 30;
+      wo_try(z === 'hochgebirge' ? 'stein' : R() < .55 ? 'weide' : R() < .6 ? 'busch' : 'birke', x + (R() - .5) * 10, y + sd * d, wo_ns(), 6, 8);
+    }
+  }
+  const kinds = { schwarzwald: ['busch', 'stein', 'fichte'], annaberg: ['busch'], silberrevier: ['stein', 'busch', 'birke'], schanze: ['busch', 'stein'], hochgebirge: ['stein', 'stein', 'fels'],
+    moor: ['busch', 'stein'], friedhof: ['busch', 'stein'], schlachtfeld: ['stein', 'busch', 'toter_baum'], auwald: ['weide', 'busch', 'birke', 'eiche'] };
+  for (let k = 0; k < 1300; k++){
+    const x = 20 + R() * (WW - 40), y = WH0 + R() * (WH - WH0 - 20), z = ZONES[wo_zid(x, y)].id;
+    if (z === 'annaberg' || R() < .45 || !kinds[z]) continue;
+    wo_try(wo_pick(R, kinds[z]), x, y, wo_ns(), 10, 10);
+  }
+  for (let k = 0; k < 360; k++){
+    const x = 20 + R() * (WW - 40), y = WH0 + R() * (WH - WH0 - 20), z = ZONES[wo_zid(x, y)].id;
+    if (!(z === 'schwarzwald' || (z === 'silberrevier' && R() < .5))) continue;
+    const log = R() < .45, len = log ? 22 + R() * 22 | 0 : 0, w = log ? len : 10, hh = 7;
+    if (!wo_occFree(x - w / 2 - 6, y - hh - 6, x + w / 2 + 6, y + 6) || wo_wsd(x, y) < 8 || wo_rsd(x, y) < 10) continue;
+    wo_GOBJ.push({ k: log ? 'log' : 'stump', x: Math.round(x), y: Math.round(y), len, s: k + 9000, birch: false });
+    wo_mark(wo_COL, x - w / 2, y - hh + 1, x + w / 2, y + 1, 1); wo_markAny(wo_OCC, x - w / 2 - 2, y - hh - 2, x + w / 2 + 2, y + 3, 1);
   }
 })();
 PROPS.sort((a, b) => a.y - b.y || a.x - b.x);
@@ -1179,13 +1419,15 @@ function wo_near(x, y){   // nächster gültiger Punkt
   for (let r = 0; r < 120; r += 4) for (let k = 0; k < 16; k++){ const a = k / 16 * 6.283, px = Math.round(x + Math.cos(a) * r), py = Math.round(y + Math.sin(a) * r); if (wo_ok(px, py)) return { x: px, y: py }; if (!r) break; }
   return { x, y };
 }
-const LAIRS = { raubritter: wo_near(3550, 452), lindwurm: wo_near(610, 2722), tod: wo_near(2080, 2812), rotbart: wo_near(5700, 1762), wels: wo_near(5330, 2578) };
+const LAIRS = { raubritter: wo_near(3550, 452), lindwurm: wo_near(610, 2722), tod: wo_near(2080, 2812), rotbart: wo_near(5700, 1762), wels: wo_near(5330, 2578),
+  tatzelwurm: wo_near(520, 4450), bergmoench: wo_near(2300, 4490), feldhauptmann: wo_near(4450, 3440), ruebezahl: wo_near(5720, 4300) };
 
 /* ============ Erscheinungspunkte ============ */
 const SPAWNS = (() => {
-  const R = rng(666), S = { wieder: [], ratte: [], pluend: [], armbrust: [], werwolf: [], moor: [], irrlicht: [], rabe: [], pirat: [], pschuetze: [], nix: [] };
+  const R = rng(666), S = { wieder: [], ratte: [], pluend: [], armbrust: [], werwolf: [], moor: [], irrlicht: [], rabe: [], pirat: [], pschuetze: [], nix: [],
+    wolf: [], schrat: [], wegelagerer: [], kobold: [], grubengeist: [], doppelsoeldner: [], hakenschuetze: [], baer: [], geier: [], eislicht: [] };
   const add = (k, x, y) => { const p = wo_ok(x, y) ? { x: Math.round(x), y: Math.round(y) } : null; if (p && !S[k].some(q => Math.abs(q.x - p.x) < 40 && Math.abs(q.y - p.y) < 40)) S[k].push(p); };
-  const inZone = (zs, n, k) => { for (let t = 0; t < n * 30 && n > 0; t++){ const x = R() * WW, y = R() * WH; if (zs.includes(ZONES[wo_zid(x, y)].id)){ const l = S[k].length; add(k, x, y); if (S[k].length > l) n--; } } };
+  const inZone = (zs, n, k, y0, y1) => { for (let t = 0; t < n * 30 && n > 0; t++){ const x = R() * WW, y = y0 === undefined ? R() * WH0 : y0 + R() * (y1 - y0); if (zs.includes(ZONES[wo_zid(x, y)].id)){ const l = S[k].length; add(k, x, y); if (S[k].length > l) n--; } } };
   for (const g of wo_GRAVES) add('wieder', g.x + (R() - .5) * 8, g.y + 14);
   for (const h of wo_HOUSES) for (const dx of [-30, 0, 30]) add('ratte', h.x + dx, h.y + 10);
   inZone(['stadt', 'dorf', 'fluss'], 30, 'ratte');
@@ -1208,5 +1450,13 @@ const SPAWNS = (() => {
     const x = R() * WW, y = 1700 + R() * 1370, w = wo_wsd(x, y);
     if (w > 6 && w < 18 && ['moor', 'fluss', 'auwald'].includes(ZONES[wo_zid(x, y)].id)) add('moor', x, y);
   }
+  // Bergland
+  const B0 = WH0 - 100, B1 = WH;
+  inZone(['schwarzwald'], 50, 'wolf', B0, B1); inZone(['schwarzwald'], 40, 'schrat', B0, B1); inZone(['schwarzwald', 'silberrevier'], 50, 'wegelagerer', B0, B1);
+  inZone(['silberrevier'], 50, 'kobold', B0, B1);
+  for (const k of ['stollen_moench', 'stollen_ost', 'stollen_west']){ const e = wo_BERG[k]; if (e) for (let i = 0; i < 6; i++) add('grubengeist', e.x + (R() - .5) * 240, e.y + 40 + R() * 160); }
+  inZone(['silberrevier'], 30, 'grubengeist', B0, B1);
+  inZone(['schanze'], 50, 'doppelsoeldner', B0, B1); inZone(['schanze'], 40, 'hakenschuetze', B0, B1);
+  inZone(['hochgebirge'], 40, 'baer', B0, B1); inZone(['hochgebirge'], 40, 'geier', B0, B1); inZone(['hochgebirge'], 30, 'eislicht', B0, B1);
   return S;
 })();
