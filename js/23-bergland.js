@@ -95,3 +95,23 @@ function talView(box){
   acts.append(btn('Zurück', () => { G.talView = false; renderBag(); }, 'tbtn'));
   box.append(acts);
 }
+
+/* ---------- Tafel „Das Bergland“: Gebiete, Meisterschaften, Sätze und Fundstücke ---------- */
+for (const [z, extra] of [['annaberg', 'Bergmeister, Krämerin, Schmied, Stallmeister, Gasthaus, Kirche'], ['schwarzwald', 'Anführer: der Tatzelwurm'], ['silberrevier', 'Anführer: der Bergmönch'], ['schanze', 'Anführer: Feldhauptmann Balthasar Wüst'], ['hochgebirge', 'Anführer: Rübezahl']]){
+  const zz = ZONE_BY_ID[z], li = el('li'), wh = el('span', 'what', zz.name);
+  wh.append(el('small', null, (ZONE_LV[z] ? 'Stufe ' + ZONE_LV[z][0] + '–' + ZONE_LV[z][1] + ' · ' : 'sicher · ') + extra));
+  li.append(wh); $('blList').append(li);
+}
+for (const t of MEISTER){
+  const li = el('li'), wh = el('span', 'what', 'Stufe ' + t.lvl);
+  wh.append(el('small', null, t.opts.map(o => o.n + ' (' + o.d + ')').join(' · ')));
+  li.append(wh); $('meisterList').append(li);
+}
+for (const id in SETS){
+  const S = SETS[id], li = el('li'), wh = el('span', 'what', S.n);
+  wh.append(el('small', null, Object.values(S.parts).join(', ') + '. ' + S.bon.map(([n, , , t]) => n + ' Teile: ' + t).join(', ') + '. Von den Anführern im Bergland, selten auch von anderen Gegnern ab Stufe 21.'));
+  li.append(wh); $('satzList').append(li);
+}
+{ const li = el('li'), wh = el('span', 'what', 'Fundstücke');
+  wh.append(el('small', null, FUNDE.map(k => UNIQUES[k].n).join(', ') + '. Legendär und sehr selten, bei jedem Gegner ab Stufe 20.'));
+  li.append(wh); $('satzList').append(li); }

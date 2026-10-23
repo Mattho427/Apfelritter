@@ -157,7 +157,21 @@ const BEASTS = [
   ['nix', 'Nöck', 'Auwald, steigt nachts aus dem Wasser, sein Griff macht langsam'],
   ['rotbart', 'Hinrich Rotbart', 'Piratennest, Stufe 21, schnell und ruft seine Mannschaft'],
   ['wels', 'Der Waller', 'Auwald am großen Altwasser, Stufe 20, schnellt mit offenem Maul vor'],
-  ['noeck', 'Der Nöck', 'Versunkene Zollburg, nur mit Gefährten: taucht ab, setzt den Saal unter Wasser und schickt Flutwellen']
+  ['noeck', 'Der Nöck', 'Versunkene Zollburg, nur mit Gefährten: taucht ab, setzt den Saal unter Wasser und schickt Flutwellen'],
+  ['wolf', 'Grauwolf', 'Schwarzwald, jagt im Rudel, duckt sich und springt'],
+  ['schrat', 'Waldschrat', 'Schwarzwald, langsam und zäh wie ein alter Baum'],
+  ['wegelagerer', 'Wegelagerer', 'Schwarzwald und Silberrevier, sticht mit dem Spieß'],
+  ['kobold', 'Kobold', 'Silberrevier, flink, hackt mit der Keilhaue, stiehlt Silbererz'],
+  ['grubengeist', 'Grubengeist', 'Silberrevier, Geist eines verschütteten Knappen, sein Griff macht langsam'],
+  ['doppelsoeldner', 'Doppelsöldner', 'Söldnerschanze, grell gekleidet und hart im Nehmen'],
+  ['hakenschuetze', 'Hakenbüchsenschütze', 'Söldnerschanze, die Kugel fliegt schneller als jeder Bolzen'],
+  ['baer', 'Braunbär', 'Hochgebirge, stürmt mit aller Wucht heran'],
+  ['geier', 'Bartgeier', 'Hochgebirge, kreist und stößt herab'],
+  ['eislicht', 'Eislicht', 'Hochgebirge, kaltes Licht über den Schneefeldern'],
+  ['tatzelwurm', 'Der Tatzelwurm', 'Teufelsschlucht im Schwarzwald, Stufe 23, schnellt mit giftigem Biss vor'],
+  ['bergmoench', 'Der Bergmönch', 'Altenberg-Stollen im Silberrevier, Stufe 25, verschwindet und taucht mit dem Fäustel wieder auf'],
+  ['feldhauptmann', 'Feldhauptmann Balthasar Wüst', 'Söldnerschanze, Stufe 27, schnell und ruft seine Doppelsöldner'],
+  ['ruebezahl', 'Rübezahl', 'Felsenthron im Hochgebirge, Stufe 31, stürmt mit dem Baumstamm heran']
 ];
 for (const [kind, name, desc] of BEASTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name), v = el('span', 'val' + (MON[kind].boss ? ' bad' : ''), MON[kind].boss ? 'Anführer' : '');
