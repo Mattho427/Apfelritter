@@ -1,0 +1,13 @@
+import { launch, wait, OUT } from '../mehrspieler/harness.mjs';
+const H = await launch(2, { init: { fn: () => { window.__wx = 'klar'; }, arg: 0 } });
+await H.start(['Anna', 'Bert'], ['reich', 'england']);
+const [A, B] = H.pages.map(P => P.p);
+await A.evaluate(() => { HERO.lvl = 8; refreshStats(); const it = makeItem('schild', 8, 1, { nh: 'bibel' }); const i = HERO.inv.indexOf(null); HERO.inv[i] = it; equipFrom(i); sendPresence(true); });
+await B.evaluate(() => { HERO.lvl = 8; refreshStats(); });
+await wait(1500);
+await B.evaluate(() => { const q = [...PEERS.values()][0]; G.knight.x = q.x + 40; G.knight.y = q.y + 10; });
+await wait(1500);
+console.log('B sieht A', await B.evaluate(() => [...PEERS.values()].map(q => ({ nm: q.nm, lk: q.lk, bible: knightSet(q.f, q.lk).key }))));
+await (await B.$('canvas')).screenshot({ path: OUT + 'tb2_B.png' });
+console.log(H.errors().join('\n') || 'keine Fehler');
+await H.done();

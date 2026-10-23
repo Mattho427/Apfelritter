@@ -1,0 +1,23 @@
+// Handy: Fähigkeitenleiste mit Armbrust, Laden des Zeugmeisters, Tafel „Waffenarten“
+import { chromium, ROOT, OUT, GAME, PAGE, MOBILE } from '../pfad.mjs';
+const b = await chromium.launch();
+const p = await (await b.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 })).newPage();
+const errs = []; p.on('pageerror', e => errs.push(e.message));
+await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+await p.goto(MOBILE);
+await p.waitForFunction(() => typeof G !== 'undefined' && G && G.mode === 'title', null, { timeout: 60000 });
+await p.evaluate(() => { const h = freshHero('Hans', 'reich'); h.lvl = 12; h.gold = 3000; startGame(h); $('banner').hidden = true;
+  const it = makeItem('waffe', 12, 2, { wt: 'armbrust' }); const i = HERO.inv.indexOf(null); HERO.inv[i] = it; equipFrom(i);
+  const n = NPCS.find(n => n.zeug); G.knight.x = n.x; G.knight.y = n.y + 30; G.knight.dir = 'up'; });
+await p.waitForTimeout(1200);
+await p.screenshot({ path: OUT + 'm20_hud.png' });
+await p.evaluate(() => { openTalk(NPCS.find(n => n.zeug)); renderTalk('wtLaden'); });
+await p.waitForTimeout(400);
+await p.screenshot({ path: OUT + 'm20_laden.png' });
+await p.evaluate(() => { closePanel(); const it = HERO.inv.find(x => x && x.s === 'waffe') || HERO.eq.waffe; });
+await p.evaluate(() => { document.getElementById('wtList').scrollIntoView(); });
+await p.waitForTimeout(800);
+await p.screenshot({ path: OUT + 'm20_tafel.png' });
+console.log('wtList', await p.evaluate(() => [...document.querySelectorAll('#wtList li')].map(li => li.innerText.replace(/\n/g, ' | ') + ' img:' + !!li.querySelector('img').src)));
+console.log('errors', errs);
+await b.close();

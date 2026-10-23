@@ -1,0 +1,50 @@
+import { chromium, ROOT, OUT, GAME, PAGE, MOBILE } from '../pfad.mjs';
+const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+const ctx = await browser.newContext({ viewport: { width: 1000, height: 1000 } });
+await ctx.addInitScript(() => { window.__season = 1; window.__wx = 'klar'; });
+const p = await ctx.newPage();
+const errs = [];
+p.on('pageerror', e => errs.push('PAGEERROR ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' ')));
+await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+await p.goto(GAME, { waitUntil: 'load' });
+await p.waitForTimeout(400);
+await p.fill('#heroName', 'Musik'); await p.press('#heroName', 'Enter');
+await p.waitForTimeout(600);
+const tune = async (label) => { await p.waitForTimeout(1300); console.log(label, await p.evaluate(() => Sound.tune + (Sound.pend ? '>' + Sound.pend : '') + ' timer ' + !!Sound.timer + ' want ' + musicFor())); };
+await p.evaluate(() => { window.__skyShift = 12 / 24 * DAY_LEN - (Date.now() / 1000 % DAY_LEN); });
+await tune('burg tag');
+await p.evaluate(() => { G.knight.x = 3800; G.knight.y = 2600; });
+await tune('obstgarten');
+await p.evaluate(() => { G.knight.x = 1200; G.knight.y = 1960; });
+await tune('wald');
+await p.evaluate(() => { window.__skyShift = 23 / 24 * DAY_LEN - (Date.now() / 1000 % DAY_LEN); });
+await tune('wald nacht');
+// Gasthaus: Spielmann und Würfeln
+await p.evaluate(() => { HERO.gold = 200; updateHud(); const inn = INNS[0]; G.knight.x = inn.dx; G.knight.y = inn.dy + 2; enterInn(inn); });
+await tune('gasthaus');
+await p.evaluate(() => { const n = innRoom(G.inside).npcs.find(n => n.id === 'spielmann'); G.knight.x = n.x; G.knight.y = n.y + 20; });
+await p.waitForTimeout(300); await p.keyboard.press('KeyE'); await p.waitForTimeout(300);
+console.log('spielmann opts', await p.evaluate(() => [...document.querySelectorAll('#talkBody [data-k]')].map(b => b.dataset.k + ':' + b.textContent).join(' | ')));
+await p.evaluate(() => { const b = [...document.querySelectorAll('#talkBody button')].find(b => /Ballade/.test(b.textContent)); b.click(); });
+await p.evaluate(() => closePanel());
+await tune('nach ballade');
+console.log('mood', await p.evaluate(() => JSON.stringify(HERO.mood) + ' gold ' + HERO.gold + ' buffs ' + $('buffs').children.length));
+await p.screenshot({ path: 'm_inn.png' });
+await p.evaluate(() => { const n = innRoom(G.inside).npcs.find(n => n.id === 'landsknecht'); G.knight.x = n.x; G.knight.y = n.y + 20; });
+await p.waitForTimeout(300); await p.keyboard.press('KeyE'); await p.waitForTimeout(300);
+await p.keyboard.press('Digit1'); await p.waitForTimeout(200);   // Würfeln
+await p.keyboard.press('Digit2'); await p.waitForTimeout(200);   // um 20
+await p.screenshot({ path: 'm_dice1.png' });
+console.log('dice', await p.evaluate(() => JSON.stringify(G.dice) + ' text ' + $('talkText').textContent.slice(0, 80)));
+await p.keyboard.press('Digit1'); await p.waitForTimeout(100);   // ersten Würfel neu
+await p.evaluate(() => { const b = [...document.querySelectorAll('#talkBody button')].find(b => /Neu werfen|So lassen/.test(b.textContent)); b.click(); });
+await p.waitForTimeout(300);
+await p.screenshot({ path: 'm_dice2.png' });
+console.log('dice end', await p.evaluate(() => JSON.stringify(G.dice) + ' gold ' + HERO.gold + ' text ' + $('talkText').textContent.slice(0, 90)));
+await p.evaluate(() => closePanel());
+await p.evaluate(() => leaveInn());
+const d = await p.evaluate(() => { const d = DG_DOORS[0]; G.knight.x = d.x; G.knight.y = d.y + 30; return 1; });
+await p.waitForTimeout(300); await p.keyboard.press('KeyE');
+await tune('krypta');
+console.log(errs.join('\n') || 'ok');
+await browser.close();

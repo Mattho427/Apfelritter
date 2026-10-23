@@ -1,0 +1,58 @@
+import { launch, wait, OUT } from './harness.mjs';
+const H = await launch(2);
+await H.start(['Hans', 'Grete'], ['reich', 'england']);
+const [A, B] = H.pages.map(P => P.p);
+const cab = async (p, name) => (await p.$('.cabinet')).screenshot({ path: OUT + name });
+// Handel in der Burg
+for (const [p, dx] of [[A, 0], [B, 30]]) await p.evaluate(dx => { G.knight.x = BIND.burg.x + dx; G.knight.y = BIND.burg.y + 60; HERO.gold = 200; HERO.inv[0] = makeItem('waffe', 5, 2); HERO.inv[1] = makeItem('helm', 4, 1); $('banner').hidden = true; updateHud(); }, dx);
+await wait(800);
+const itA = await A.evaluate(() => HERO.inv.filter(Boolean).map(i => i.n));
+const itB = await B.evaluate(() => HERO.inv.filter(Boolean).map(i => i.n));
+console.log('vorher A', itA, 'B', itB);
+await A.evaluate(() => openPeer(PEERS.values().next().value)); await wait(200);
+await A.evaluate(() => { [...document.querySelectorAll('#talkBody button')].find(b => b.textContent === 'Handeln').click(); }); await wait(700);
+await B.evaluate(() => $('askYes').click()); await wait(800);
+console.log('trade open A', await A.evaluate(() => !!NET.tr && G.talk && G.talk.key), 'B', await B.evaluate(() => !!NET.tr && G.talk && G.talk.key));
+// A legt Schwert und 30 Gulden hin, B den Helm
+await A.evaluate(() => { document.querySelector('#talkBody [data-slot="tr:0"]').click(); }); await wait(100);
+await A.evaluate(() => { document.querySelector('#talkBody [data-slot="trg:10"]').click(); document.querySelector('#talkBody [data-slot="trg:10"]').click(); document.querySelector('#talkBody [data-slot="trg:10"]').click(); }); await wait(100);
+await B.evaluate(() => { document.querySelector('#talkBody [data-slot="tr:1"]').click(); }); await wait(700);
+await cab(A, 'tr_a.png');
+await A.evaluate(() => document.querySelector('#talkBody [data-slot="trok"]').click()); await wait(500);
+// B ändert noch etwas: A muss neu zusagen
+await B.evaluate(() => document.querySelector('#talkBody [data-slot="trg:10"]').click()); await wait(600);
+console.log('A ok nach Änderung von B:', await A.evaluate(() => NET.tr.ok));
+await B.evaluate(() => document.querySelector('#talkBody [data-slot="trok"]').click()); await wait(500);
+await cab(B, 'tr_b.png');
+await A.evaluate(() => document.querySelector('#talkBody [data-slot="trok"]').click()); await wait(1200);
+const rA = await A.evaluate(() => ({ gold: HERO.gold, inv: HERO.inv.filter(Boolean).map(i => i.n + ' ' + i.il), done: NET.tr && NET.tr.done }));
+const rB = await B.evaluate(() => ({ gold: HERO.gold, inv: HERO.inv.filter(Boolean).map(i => i.n + ' ' + i.il), done: NET.tr && NET.tr.done }));
+console.log('nachher A', JSON.stringify(rA)); console.log('nachher B', JSON.stringify(rB));
+await cab(A, 'tr_done.png');
+await wait(4500);
+console.log('trade cleared', await A.evaluate(() => NET.tr), await B.evaluate(() => NET.tr), 'mode', await A.evaluate(() => G.mode));
+// Würfeln im Gasthaus
+const inn = await A.evaluate(() => INNS[0].id);
+for (const p of [A, B]) await p.evaluate(() => { if (G.mode === 'menu') closePanel(); const inn = INNS[0]; G.knight.x = inn.dx; G.knight.y = inn.dy + 2; enterInn(inn); });
+await wait(300);
+for (const [p, dx] of [[A, 0], [B, 26]]) await p.evaluate(dx => { G.knight.x = 520 + dx; G.knight.y = 380; }, dx);
+await wait(800);
+console.log('in inn: A peers', await A.evaluate(() => [...PEERS.values()].map(q => q.nm + ' in ' + q.in + ' d' + Math.round(peerDist(q))).join()), 'near', await A.evaluate(() => G.nearPeer && G.nearPeer.nm));
+const g0 = (await A.evaluate(() => HERO.gold)) + (await B.evaluate(() => HERO.gold));
+await A.evaluate(() => openPeer(PEERS.values().next().value)); await wait(200);
+console.log('A peer opts inn:', await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].map(b => b.textContent + (b.disabled ? '(x)' : '')).join(' | ')));
+await A.evaluate(() => { [...document.querySelectorAll('#talkBody button')].find(b => b.textContent === 'Würfeln').click(); }); await wait(200);
+await A.evaluate(() => { [...document.querySelectorAll('#talkBody button')].find(b => b.textContent === 'Um 20 Gulden').click(); }); await wait(700);
+console.log('B ask:', await B.evaluate(() => $('askText').textContent));
+await B.evaluate(() => $('askYes').click()); await wait(800);
+await cab(B, 'dc_b1.png');
+await A.evaluate(() => { document.querySelector('#talkBody [data-slot="die:0"]').click(); }); await wait(100);
+await A.evaluate(() => document.querySelector('#talkBody [data-slot="dgo"]').click()); await wait(300);
+await B.evaluate(() => document.querySelector('#talkBody [data-slot="dgo"]').click()); await wait(900);
+const dA = await A.evaluate(() => NET.dc && { me: NET.dc.f, op: NET.dc.op, res: NET.dc.res, gold: HERO.gold });
+const dB = await B.evaluate(() => NET.dc && { me: NET.dc.f, op: NET.dc.op, res: NET.dc.res, gold: HERO.gold });
+console.log('dice A', JSON.stringify(dA), 'B', JSON.stringify(dB), 'Summe vorher', g0, 'nachher', dA.gold + dB.gold);
+await cab(A, 'dc_a.png');
+console.log('presence bytes max', await A.evaluate(() => window.__presBytes), await B.evaluate(() => window.__presBytes));
+console.log(H.errors().join('\n') || 'keine Fehler');
+await H.done();

@@ -1,0 +1,34 @@
+import { chromium, ROOT, OUT, GAME, PAGE, MOBILE } from '../pfad.mjs';
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 1000, height: 1000 } });
+await ctx.addInitScript(() => { window.__season = 1; window.__wx = 'klar'; });
+const p = await ctx.newPage();
+const errs = [];
+p.on('pageerror', e => errs.push('PAGEERROR ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' ')));
+await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
+await p.goto(GAME, { waitUntil: 'load' });
+await p.waitForTimeout(400);
+await p.fill('#heroName', 'Test'); await p.press('#heroName', 'Enter');
+await p.waitForTimeout(300);
+await p.evaluate(() => { G.knight.x = 5932; G.knight.y = 3700; window.__skyShift = 12 / 24 * DAY_LEN - (Date.now() / 1000 % DAY_LEN); });
+await p.waitForTimeout(1200);
+const c = await p.$('#game');
+// Frame-Zeiten messen während des Wechsels
+await p.evaluate(() => { window.__ft = []; let last = performance.now(); const f = () => { const n = performance.now(); window.__ft.push(n - last); last = n; if (window.__ft.length < 400) requestAnimationFrame(f); }; requestAnimationFrame(f); window.__season = 3; });
+await p.waitForTimeout(700);
+await c.screenshot({ path: 'sw1.png' });
+await p.waitForTimeout(3500);
+await c.screenshot({ path: 'sw2.png' });
+console.log(await p.evaluate(() => { const a = window.__ft.slice(1); a.sort((x, y) => y - x); return JSON.stringify({ cur: SEA.cur, ice: wo_ICE, worst: a.slice(0, 6).map(Math.round), avg: Math.round(a.reduce((s, x) => s + x, 0) / a.length * 10) / 10 }); }));
+// über das Eis gehen
+await p.evaluate(() => { window.__wx = 'Schnee'; });
+await p.evaluate(() => { G.knight.x = 5400; G.knight.y = 3690; });
+await p.waitForTimeout(300);
+const y0 = await p.evaluate(() => G.knight.y);
+await p.keyboard.down('ArrowDown'); await p.waitForTimeout(900); await p.keyboard.up('ArrowDown');
+await p.evaluate(() => { G.knight.x -= 0; });
+await p.waitForTimeout(400);
+await c.screenshot({ path: 'sw3.png' });
+console.log('walked', await p.evaluate(y0 => Math.round(G.knight.y - y0) + ' onIce ' + (wo_wsd(G.knight.x / WS, G.knight.y / WS) < 0) + ' prints ' + G.prints.length + ' w ' + SKY.w, y0));
+console.log(errs.join('\n') || 'ok');
+await browser.close();

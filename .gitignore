@@ -1,0 +1,5 @@
+tests/ausgabe/
+apfelritter-einzeldatei.html
+.mobiletest.html
+node_modules/
+tests/**/*.png

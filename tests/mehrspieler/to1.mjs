@@ -1,0 +1,47 @@
+import { launch, wait, OUT } from './harness.mjs';
+const H = await launch(2);
+await H.start(['Hans', 'Grete'], ['reich', 'frankreich']);
+const [A, B] = H.pages.map(P => P.p);
+const cab = async (p, name) => (await p.$('.cabinet')).screenshot({ path: OUT + name });
+// A zum Herold, Orden gründen
+await A.evaluate(() => { const h = NPCS.find(n => n.id === 'herold'); G.knight.x = h.x; G.knight.y = h.y + 16; HERO.gold = 300; updateHud(); $('banner').hidden = true; });
+await B.evaluate(() => { const h = NPCS.find(n => n.id === 'herold'); G.knight.x = h.x + 60; G.knight.y = h.y + 40; $('banner').hidden = true; });
+await wait(600);
+await A.evaluate(() => openTalk(NPCS.find(n => n.id === 'herold'))); await wait(200);
+console.log('herold opts:', await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].map(b => b.textContent).join(' | ')));
+await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].find(b => /Wappenrolle/.test(b.textContent)).click()); await wait(200);
+await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].find(b => /gründen/.test(b.textContent)).click()); await wait(200);
+await A.fill('.orfields input >> nth=0', 'Orden vom Goldenen Apfel'); await A.fill('.orfields input >> nth=1', 'GA');
+await A.evaluate(() => { const bs = [...document.querySelectorAll('.orfields button')]; bs[0].click(); bs[1].click(); bs[1].click(); bs[1].click(); bs[1].click(); bs[1].click(); bs[1].click(); bs[1].click(); });
+await wait(200); await cab(A, 'or_form.png');
+await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].find(b => b.textContent === 'Orden gründen').click()); await wait(400);
+console.log('A order', await A.evaluate(() => JSON.stringify(HERO.or)), 'gold', await A.evaluate(() => HERO.gold));
+await cab(A, 'or_main.png');
+await A.evaluate(() => closePanel()); await wait(300);
+// A nimmt B auf
+await A.evaluate(() => { const q = [...PEERS.values()][0]; G.knight.x = q.x - 20; G.knight.y = q.y; }); await wait(500);
+await A.evaluate(() => openPeer([...PEERS.values()][0])); await wait(200);
+console.log('A peer opts:', await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].map(b => b.textContent).join(' | ')));
+await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].find(b => /aufnehmen/.test(b.textContent)).click()); await wait(800);
+console.log('B ask:', await B.evaluate(() => $('askText').textContent));
+await B.evaluate(() => $('askYes').click()); await wait(1200);
+console.log('B order', await B.evaluate(() => JSON.stringify(HERO.or)));
+// Taten der Woche und Ordensgespräch
+await A.evaluate(() => { for (let i = 0; i < 5; i++) orCount(orTask().id); cloud.fameT = 0; cloud.fameLast = ''; pushFame(); });
+await B.evaluate(() => { for (let i = 0; i < 3; i++) orCount(orTask().id); cloud.fameT = 0; cloud.fameLast = ''; pushFame(); });
+await wait(1200);
+await A.evaluate(() => sendChat('/o Treffen am Brunnen!')); await wait(500);
+console.log('B log', await B.evaluate(() => [...document.querySelectorAll('#log p')].slice(-1).map(p => p.textContent).join()));
+await A.evaluate(() => openTalk(NPCS.find(n => n.id === 'herold'))); await wait(150);
+await A.evaluate(() => renderTalk('orden')); await wait(300);
+console.log('A orden text:', await A.evaluate(() => $('talkText').textContent));
+await A.evaluate(() => renderTalk('ordenListe')); await wait(300);
+await cab(A, 'or_list.png');
+await A.evaluate(() => closePanel());
+await wait(400); await cab(B, 'or_tag.png');
+await A.evaluate(() => { document.querySelector('[data-ft="orden"]').click(); }); await wait(200);
+console.log('fame orden:', await A.evaluate(() => $('fameList').textContent));
+const note = await A.evaluateHandle(() => document.getElementById('fameList').closest('.note')); await note.asElement().screenshot({ path: OUT + 'or_fame.png' });
+console.log('DB', JSON.stringify([...H.DBS].filter(([k]) => k.startsWith('heroes/')).map(([k, v]) => [v.nm, v.oid, v.okz, v.owp, v.ogm, v.ow])));
+console.log(H.errors().join('\n') || 'keine Fehler');
+await H.done();
