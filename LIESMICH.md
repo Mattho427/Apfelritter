@@ -2,7 +2,8 @@
 
 Das Spiel ist ein einziges Artefakt (gleicher Link, gleiche Spielstände), besteht aber aus mehreren Dateien:
 
-- `index.html` – Seite, Aussehen (CSS) und die Tafeln unter dem Spiel; lädt am Ende die Teile aus `js/`.
+- `index.html` – Seite, Aussehen (CSS), Menü und die Tafeln (im Fenster „Tafeln und Hilfe“); lädt am Ende die Teile aus `js/`.
+  Das Spiel füllt das ganze Fenster; die Bildgröße richtet sich beim Laden nach dem Seitenverhältnis (höchstens 960 × 540).
 - `js/01-…js` bis `js/22-…js` – der Spielcode, nach Themen geteilt. Die Teile werden **in der Reihenfolge der Nummern**
   geladen und teilen sich alle Namen der obersten Ebene (wie früher in der einen Datei).
 
@@ -27,7 +28,7 @@ in getrennten Browserfenstern, die über einen nachgebauten Raum verbunden sind 
 - `bash tests/alle.sh` – alle Tests nacheinander (etwa 35 Minuten), zeigt je Test die Ergebniszeilen.
 - `tests/einzel/` – Einzelspieler: Welt, Kampf, Gewölbe, Jagd, Feste, Tastatur, Jahreszeiten, Tjost.
 - `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte.
-- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht.
+- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur.
 - `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden.
 
 Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).

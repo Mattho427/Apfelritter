@@ -563,10 +563,56 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
   .xpbar{height:8px;}
   .xpnum{font-size:15px;}
 }
+/* ---------- Vollbild: das Kabinett füllt das Fenster; Tafeln und Hilfe liegen im Menü ---------- */
+html,body{height:100%; overflow:hidden; overscroll-behavior:none;}
+body{margin:0; padding:0;}
+.wrap{max-width:none; height:100%; display:block; margin:0;}
+.masthead{position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap;}   /* nur für Vorleseprogramme */
+.cabinet{
+  position:fixed; inset:0; margin:0; height:auto; box-sizing:border-box; box-shadow:none;
+  padding:max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+  display:flex; flex-direction:column; gap:6px;
+}
+.cabinet > .hud,.cabinet > .xp{flex:none;}
+.cabinet > .field{flex:1 1 0; min-height:0; display:flex; flex-direction:column; gap:6px;}
+.stagebox{flex:1 1 0; min-height:0; min-width:0; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+.stage{flex:none; display:block; width:100%; height:100%; box-shadow:0 0 0 2px var(--ink), 0 0 0 4px var(--gold-lo);}   /* Größe setzt fitStage() */
+#game{width:100%; height:100%; max-width:none; aspect-ratio:auto;}
+.cabinet > .field > .skills,.cabinet > .field > .pad-row{flex:none;}
+.cabinet > .field > .skills{min-height:52px;}   /* schon vor dem Füllen so hoch wie mit Knöpfen, damit die Messung beim Laden stimmt */
+@media (max-width:480px){ .cabinet > .field > .skills{min-height:46px;} }
+@media (orientation:portrait){ .stagebox{align-items:flex-start;} }
+.stage.below .log{top:calc(100% + 6px); bottom:auto; max-width:100%; font-size:14px; max-height:var(--below, 80px); overflow:hidden; align-content:end;}   /* die neuesten Zeilen unten, ältere fallen oben weg */
+.stage.below .log p:nth-last-child(n+3){display:block;}
+.stage.below .log p:nth-last-child(n+5){display:none;}
+.menulist{display:grid; gap:6px; width:min(100%, 260px); margin-top:4px;}
+.tbtn.small{font-size:16px; padding:4px 10px 3px; margin-top:4px;}
+/* Tafeln und Hilfe: links die Liste, rechts die gewählte Tafel; schmal oben eine Leiste zum Wischen */
+.panel.notespanel{width:min(98%, 1100px); max-width:min(98%, 1100px); height:100%; overflow:hidden; grid-template-rows:auto minmax(0, 1fr) auto; justify-items:stretch; text-align:left;}
+.notespanel h2{text-align:center;}
+.notespanel > .btn{justify-self:center;}
+.notesbox{display:grid; grid-template-columns:minmax(170px, 250px) minmax(0, 1fr); gap:12px; min-height:0;}
+.ntabs{display:flex; flex-direction:column; gap:5px; overflow:auto; min-height:0; padding:3px;}
+.ntabs button{font-family:var(--f-body); font-size:17px; line-height:1.1; text-align:left; color:var(--parchment); background:var(--stone); border:0; padding:5px 8px 4px; cursor:pointer;
+  box-shadow:inset -2px -2px 0 var(--ink), inset 2px 2px 0 var(--stone-hi);}
+.ntabs button:hover{background:var(--stone-hi);}
+.ntabs button[aria-selected="true"]{background:var(--gold-lo); color:var(--ink); box-shadow:inset -2px -2px 0 var(--ink), inset 2px 2px 0 var(--gold);}
+.ntabs button:focus-visible{outline:3px dashed var(--ghost); outline-offset:1px;}
+.nview{overflow:auto; min-height:0; padding:4px 12px 12px 4px;}
+.nview .notes{display:block;}
+.nview .note[hidden]{display:none;}
+.nview .note p{max-width:none; margin:0 0 8px; font-size:18px; line-height:1.25;}   /* nicht die großen, schmalen Absätze der Menüfenster */
+.nview .note .tip{margin:12px 0 0; color:#5a4a34;}
+@media (max-width:700px){
+  .notesbox{grid-template-columns:minmax(0, 1fr); grid-template-rows:auto minmax(0, 1fr); gap:8px;}
+  .ntabs{flex-direction:row; overflow-x:auto; overflow-y:hidden; padding-bottom:6px;}
+  .ntabs button{flex:none; white-space:nowrap; font-size:16px;}
+  .nview{padding:2px 8px 10px 2px;}
+}
 </style>
 
 <main class="wrap">
-  <header class="masthead">
+  <header class="masthead" aria-hidden="false">
     <img class="seal" id="sealTop" alt="">
     <p class="eyebrow">Anno Domini MDXX · Sacrum Romanum Imperium</p>
     <h1>Der Apfelritter</h1>
@@ -590,7 +636,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <button class="ibtn" id="btnMap" type="button">Karte</button>
         <button class="ibtn" id="btnChat" type="button" hidden>Sagen</button>
         <button class="ibtn" id="btnParty" type="button" hidden>Gruppe</button>
-        <button class="ibtn" id="btnPause" type="button">Pause</button>
+        <button class="ibtn" id="btnPause" type="button" aria-label="Menü: Spiel anhalten, Tafeln und Hilfe, Steuerung">Menü</button>
         <button class="ibtn" id="btnSound" type="button" aria-pressed="true">Ton an</button>
       </div>
     </div>
@@ -600,7 +646,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <span class="xpnum" id="xpNum">0 / 80 EP</span>
     </div>
     <div class="field">
-      <div class="stage" id="stage">
+      <div class="stagebox" id="stageBox"><div class="stage" id="stage">
         <canvas id="game" width="960" height="540" aria-label="Spielfeld: das Reichsland um die Reichsburg"></canvas>
         <div class="boss" id="bossBar" hidden>
           <span id="bossName">Raubritter</span>
@@ -619,7 +665,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
           <label class="lbl" for="chatIn">Sagen</label>
           <input id="chatIn" maxlength="120" placeholder="Was wollt Ihr sagen?" enterkeyhint="send">
         </form>
-      </div>
+      </div></div>
       <div class="skills" id="skills" aria-label="Fähigkeiten"></div>
       <div class="pad-row" id="padRow">
         <div class="pad" id="pad" aria-label="Steuerkreuz">
@@ -660,6 +706,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
             <button class="btn" id="btnCancelNew" type="button">Zurück</button>
           </div>
         </div>
+        <button class="tbtn small" id="btnNotesStart" type="button">Tafeln und Hilfe</button>
       </div>
     </div>
 
@@ -669,6 +716,11 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <h2>Waffenruhe</h2>
         <p>Das Spiel ist angehalten.</p>
         <button class="btn" id="btnResume" type="button">Weiterkämpfen</button>
+        <div class="menulist">
+          <button class="tbtn" id="btnNotes" type="button">Tafeln und Hilfe</button>
+          <button class="tbtn" id="btnKeys" type="button">Steuerung</button>
+          <button class="tbtn" id="btnFull" type="button" hidden>Vollbild</button>
+        </div>
         <p class="hint kb">P, Esc oder Enter. Alle Tasten: F1</p>
       </div>
     </div>
@@ -749,150 +801,167 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
         <button class="btn" id="btnRespawn" type="button">In der Reichsburg erwachen</button>
       </div>
     </div>
+
+    <div class="overlay" id="ovNotes" hidden>
+      <div class="panel wide notespanel">
+        <h2>Tafeln und Hilfe</h2>
+        <div class="notesbox">
+          <div class="ntabs" id="noteTabs" role="tablist" aria-label="Tafeln"></div>
+          <div class="nview" id="noteView">
+          <section class="notes" id="notes">
+            <div class="note" id="noteIntro">
+              <h3>Über das Spiel</h3>
+              <p>Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre von Luthers Auftritt in Worms bis zum Bauernkrieg und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den Kaiser, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der kaiserlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Landes.</p>
+              <p class="tip">Diese Tafeln findet Ihr jederzeit im Menü (oben rechts) unter „Tafeln und Hilfe“.</p>
+            </div>
+            <div class="note">
+              <h3>Die Ritter Europas um 1520</h3>
+              <ul class="knights" id="knightList"></ul>
+              <p class="tip">Die Herkunft wählt Ihr beim Anlegen eines Ritters. Sie bestimmt Wappenrock, Helm, Schild und Schlachtruf und gibt einen kleinen Vorteil.</p>
+            </div>
+            <div class="note">
+              <h3>Das Reichsland</h3>
+              <ul class="zones" id="zoneList"></ul>
+              <p class="tip">Unten rechts zeigt die kleine Karte die Umgebung, mit K siehst du das ganze Land. Monster wachsen an ihren Lagern nach. Wer ihnen zu weit davonläuft, den lassen sie ziehen.</p>
+            </div>
+            <div class="note">
+              <h3>Beute und Ausrüstung</h3>
+              <ul class="rarity" id="rarityList"></ul>
+              <p class="tip">Jedes Monster kann Gulden, Heiltränke oder Ausrüstung fallen lassen: Waffe, Helm, Rüstung, Schild, Beine und ein Kleinod. Seltene Stücke leuchten am Boden. Der Name über einem Monster zeigt seine Stufe: rot ist gefährlich, grau bringt keine Erfahrung mehr.</p>
+            </div>
+            <div class="note">
+              <h3>Gasthäuser</h3>
+              <ul class="inns" id="innList"></ul>
+              <p class="tip">Im Gasthaus wird nicht gekämpft. Hier trefft Ihr andere Ritter, hört Neuigkeiten und stärkt Euch: Eine Speise und ein Getränk wirken zugleich, jeweils 15 Minuten Spielzeit. Beim Wirt mietet Ihr eine Kammer, dann erwacht Ihr nach dem Tod dort.</p>
+            </div>
+            <div class="note">
+              <h3>Waffenarten</h3>
+              <ul class="list" id="wtList"></ul>
+              <p class="tip">Waffen gibt es als Beute und beim Zeugmeister in der Reichsstadt, gleich neben dem Schmied. Hellebarde, Zweihänder und Armbrust brauchen beide Hände: Wer eine davon führt, legt den Schild ab und verliert dessen Rüstung und Abwehr. Mit der Waffe ändern sich die Fähigkeiten R und F. Die Armbrust zielt von selbst auf den nächsten Gegner in Blickrichtung. Eine kleine Bibel findet Ihr bei den Untoten; sie kommt in die Nebenhand statt des Schildes.</p>
+            </div>
+            <div class="note">
+              <h3>Pferde und Schmied</h3>
+              <ul class="list" id="horseList"></ul>
+              <p class="tip">Pferde verkauft der Stallmeister in der Reichsburg. Mit H sitzt Ihr auf und ab. Im Sattel wird der Hieb zum Lanzenstoß: Das Pferd stürmt vor, die Lanze trifft hart und betäubt. Trifft Euch ein Monster, werft es Euch aus dem Sattel. Der Schmied Wolf am Markt der Reichsstadt härtet Waffen und Rüstungen bis +5.</p>
+            </div>
+            <div class="note">
+              <h3>Harnisch und Turnier</h3>
+              <ul class="list" id="gearList"></ul>
+              <p class="tip">Was Ihr tragt, sieht man: Die Güte des Harnischs bestimmt seinen Glanz, ein guter Helm trägt einen Federbusch in seiner Farbe, ein guter Schild einen Rand aus Silber oder Gold, und mit besseren Waffen wird die Klinge länger.</p>
+              <ul class="list" id="joustList"></ul>
+              <p class="tip">Vor dem Osttor der Reichsstadt ruft Herold Kaspar zum Tjost. Drei Durchgänge an der Schranke: Kurz vor dem Zusammenprall wandert das Ziel über den Gegner, mit dem Hieb senkt Ihr die Lanze. Helm zwei Punkte, Schild einer, wer aus dem Sattel fällt, verliert. Stehen zwei Ritter auf der Wiese, kann einer den anderen fordern.</p>
+            </div>
+            <div class="note">
+              <h3>Tag, Nacht und Wetter</h3>
+              <ul class="list" id="dayList"></ul>
+              <p class="tip">Ein Tag im Reichsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu.</p>
+            </div>
+            <div class="note">
+              <h3>Jahreszeiten</h3>
+              <ul class="list" id="seaList"></ul>
+              <p class="tip">Jede Jahreszeit dauert vier Spieltage, gut anderthalb Stunden, und gilt für alle Ritter zugleich. Im Winter schneit es statt zu regnen, Kühe und Schafe stehen im Stall, und Ihr hinterlasst Spuren im Schnee.</p>
+            </div>
+            <div class="note">
+              <h3>Feste im Jahreslauf</h3>
+              <ul class="list" id="festList"></ul>
+              <p class="tip">Gefeiert wird am zweiten und dritten Spieltag jeder Jahreszeit, für alle Ritter zugleich. Oben rechts steht dann der Name des Festes, auf der kleinen Karte zeigt ein Ausrufezeichen den Gastgeber. Den Preis gibt es einmal je Fest, Gulden bei jedem Sieg.</p>
+            </div>
+            <div class="note">
+              <h3>Im Gasthaus</h3>
+              <ul class="list" id="innFun"></ul>
+              <p class="tip">Jedes Gebiet hat seine Musik: Fanfaren in Burg und Stadt, ein Hirtenlied auf dem Land, ein Trauermarsch in den dunklen Gegenden, leise Weisen in der Nacht, Bordun in den Gewölben. Im Winter klingen Glocken mit, im Frühling eine Flöte. M schaltet den Ton.</p>
+            </div>
+            <div class="note">
+              <h3>Hauptgeschichte: Unruhige Zeiten</h3>
+              <ul class="list" id="stList"></ul>
+              <p class="tip">Die Geschichte beginnt ab Stufe 2 beim Vogt in der Reichsburg. Oben links steht das nächste Ziel, der goldene Pfeil und die goldene Raute auf der Karte zeigen den Weg. Eure Entscheidungen verändern die späteren Kapitel und das Ende: Wer Gnade zeigt und auf sein Gewissen hört, dem vertrauen am Ende beide Seiten. In Zwischenszenen blättern E, Leertaste oder Tippen weiter, Esc überspringt. Die Chronik Eurer Taten steht im Auftragsbuch (L).</p>
+            </div>
+            <div class="note">
+              <h3>Mit anderen Rittern</h3>
+              <ul class="list" id="mpList"></ul>
+              <p class="tip">Geht zu einem anderen Ritter und drückt E oder tippt ihn an. Anfragen erscheinen oben im Bild. Die Gruppe bleibt bestehen, solange Ihr spielt, auch nach einem Neuladen der Seite für eine halbe Stunde.</p>
+            </div>
+            <div class="note">
+              <h3>Weltereignisse</h3>
+              <ul class="list" id="evList"></ul>
+              <p class="tip">Weltereignisse gelten für alle Ritter zugleich. Eine Spielstunde vorher wird gewarnt, oben links steht, wie weit alle zusammen sind. Lohn bekommt, wer mitgekämpft hat; beim ersten Sieg gibt es ein besonderes Kleinod.</p>
+            </div>
+            <div class="note">
+              <h3>Gewölbe</h3>
+              <ul class="list" id="dgList"></ul>
+              <p class="tip">Über eine Treppe steigt Ihr hinab. Unten ist es dunkel, nur Fackeln und Kohlebecken geben Licht. Am Ende bewacht ein Anführer eine Truhe, die sich jeden Tag neu füllt; beim ersten Mal liegt ein episches Stück darin. Wer unten fällt, erwacht an seinem Rastplatz.</p>
+            </div>
+            <div class="note">
+              <h3>Speyer und der Strom</h3>
+              <ul class="list" id="fishNote"></ul>
+              <p class="tip">Östlich des Reichslands fließt der Strom. An ihm liegen die Reichsstadt Speyer mit Kaiserdom und Hafen und das Fischerdorf Altrip, nördlich die Weinberge an der Weinstraße, südlich der Auwald, und auf der Insel im Altarm hausen die Flusspiraten des Hinrich Rotbart. Der Fährmann an der Steinbrücke, der Fischer in Altrip und der Hafenmeister in Speyer setzen Euch über. Beim Fischer gibt es eine Angel: Stellt Euch ans Wasser und drückt E, beim Biss noch einmal. Fische kauft der Krämer, der Wirt zahlt mehr. Der Stadtschreiber in Speyer hat Aufträge ab Stufe 15.</p>
+            </div>
+            <div class="note">
+              <h3>Ehre und Trophäen</h3>
+              <ul class="list" id="ehNote"></ul>
+              <p class="tip">Nach Stufe 20 geht die Erfahrung in Ehrenstufen: Jede bringt ein Ehrenzeichen, Gulden und ein halbes Hundertstel mehr Leben und Schaden (bis Ehrenstufe 30). Ab Stufe 18 stellt der Reichsherold in Speyer jede Woche drei Prüfungen, für alle Ritter dieselben; jede bestandene bringt drei Ehrenzeichen. Dafür gibt es beim Herold legendäre Rüstung, Prunkwappen und Ehrentitel. Große Taten kommen ins Trophäenbuch, viele bringen ein Wappen. Wappen und Titel sehen alle Ritter neben Eurem Namen.</p>
+            </div>
+            <div class="note">
+              <h3>Jagd</h3>
+              <ul class="list" id="huntList"></ul>
+              <p class="tip">Wild flieht vor Euch, wird aber nach ein paar Sekunden Hetzjagd müde. Zu Pferd mit der Lanze geht es leichter. Wildschweine wehren sich. Felle, Geweihe und Wildbret kauft der Krämer, für Wildbret zahlt der Wirt mehr.</p>
+            </div>
+            <div class="note">
+              <h3>Bestiarium</h3>
+              <ul class="list" id="beasts"></ul>
+            </div>
+            <div class="note">
+              <h3>Leben im Reichsland</h3>
+              <ul class="list" id="lifeList"></ul>
+              <p class="tip">Leute und Hoftiere kämpfen nicht. Das Wild flieht vor Euch, Hühner flattern auf, Tauben fliegen davon. Bürger, Mägde und Wachen grüßen, wenn Ihr vorbeikommt, und die Händler rufen ihre Ware aus. Auf den Straßen ziehen Pilger, Händler und Bauern.</p>
+            </div>
+            <div class="note">
+              <h3>Fähigkeiten</h3>
+              <ul class="list" id="skillList"></ul>
+            </div>
+            <div class="note">
+              <h3>Stände des Reiches</h3>
+              <ol class="ranks" id="rankList"></ol>
+              <p class="tip">Jede Stufe bringt mehr Leben und Schaden. Höchste Stufe: 20, danach steigen die Ehrenstufen.</p>
+            </div>
+            <div class="note">
+              <h3>Ruhmeshalle</h3>
+              <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="ehre" aria-selected="false">Ehre</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button><button type="button" role="tab" data-ft="laender" aria-selected="false">Länder</button></div>
+              <ol class="fame" id="fameList"></ol>
+              <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Ehre“ Ehrenstufen, Trophäen, Wappen und Titel, unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Feste“ die besten Festspiele.</p>
+            </div>
+            <div class="note">
+              <h3>Steuerung</h3>
+              <dl class="keys">
+                <dt class="kbd-only"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd class="kbd-only">Laufen, auch mit den Pfeiltasten</dd>
+                <dt class="kbd-only"><kbd>Leertaste</kbd></dt><dd class="kbd-only">Schwerthieb, gedrückt halten für Dauerhiebe; im Sattel Lanzenstoß</dd>
+                <dt class="kbd-only"><kbd>R</kbd><kbd>F</kbd><kbd>G</kbd></dt><dd class="kbd-only">Rundhieb, Schildstoß, Schlachtruf (auch <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>)</dd>
+                <dt class="kbd-only"><kbd>Q</kbd></dt><dd class="kbd-only">Heiltrank (auch <kbd>4</kbd>)</dd>
+                <dt class="kbd-only"><kbd>H</kbd></dt><dd class="kbd-only">aufs Pferd steigen oder absteigen (auch <kbd>5</kbd>)</dd>
+                <dt class="kbd-only"><kbd>E</kbd></dt><dd class="kbd-only">sprechen, eintreten, hinabsteigen, Truhe öffnen, mitspielen; in Zwischenszenen weiter</dd>
+                <dt class="kbd-only"><kbd>I</kbd><kbd>L</kbd><kbd>K</kbd></dt><dd class="kbd-only">Rucksack, Aufträge, Karte</dd>
+                <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
+                <dt class="kbd-only"><kbd>Y</kbd><kbd>N</kbd></dt><dd class="kbd-only">Anfrage eines Ritters annehmen oder ablehnen</dd>
+                <dt class="kbd-only"><kbd>T</kbd></dt><dd class="kbd-only">Eure Gruppe</dd>
+                <dt class="kbd-only"><kbd>↑</kbd><kbd>↓</kbd><kbd>1</kbd>–<kbd>9</kbd></dt><dd class="kbd-only">in Fenstern wählen, <kbd>Enter</kbd> bestätigt, <kbd>⌫</kbd> zurück</dd>
+                <dt class="kbd-only"><kbd>P</kbd><kbd>Esc</kbd></dt><dd class="kbd-only">Pause, Fenster schließen; Zwischenszene überspringen</dd>
+                <dt class="kbd-only"><kbd>M</kbd></dt><dd class="kbd-only">Ton an oder aus</dd>
+                <dt class="kbd-only"><kbd>F1</kbd><kbd>?</kbd></dt><dd class="kbd-only">diese Übersicht</dd>
+                <dt class="touch-only"><kbd>Steuerkreuz</kbd></dt><dd class="touch-only">Laufen, auch schräg</dd>
+                <dt class="touch-only"><kbd>Hieb</kbd></dt><dd class="touch-only">Schwerthieb, gedrückt halten für Dauerhiebe</dd>
+                <dt class="touch-only"><kbd>Leiste</kbd></dt><dd class="touch-only">Rundhieb, Schildstoß, Schlachtruf, Heiltrank</dd>
+                <dt class="touch-only"><kbd>Sprechen</kbd></dt><dd class="touch-only">erscheint neben Leuten und vor Gasthaustüren</dd>
+              </dl>
+              <p class="tip">Auf Tablet und Handy gehen Finger und Tastatur zugleich: Sobald Ihr eine Taste drückt, verschwindet das Steuerkreuz, beim nächsten Tippen kommt es wieder. Der Spielstand wird laufend gesichert. Wer angemeldet ist, findet seinen Ritter auch auf anderen Geräten wieder.</p>
+            </div>
+          </section>
+          </div>
+        </div>
+        <button class="btn" id="btnNotesClose" type="button">Zurück</button>
+      </div>
+    </div>
   </section>
 
-  <section class="notes">
-    <div class="note">
-      <h3>Die Ritter Europas um 1520</h3>
-      <ul class="knights" id="knightList"></ul>
-      <p class="tip">Die Herkunft wählt Ihr beim Anlegen eines Ritters. Sie bestimmt Wappenrock, Helm, Schild und Schlachtruf und gibt einen kleinen Vorteil.</p>
-    </div>
-    <div class="note">
-      <h3>Das Reichsland</h3>
-      <ul class="zones" id="zoneList"></ul>
-      <p class="tip">Unten rechts zeigt die kleine Karte die Umgebung, mit K siehst du das ganze Land. Monster wachsen an ihren Lagern nach. Wer ihnen zu weit davonläuft, den lassen sie ziehen.</p>
-    </div>
-    <div class="note">
-      <h3>Beute und Ausrüstung</h3>
-      <ul class="rarity" id="rarityList"></ul>
-      <p class="tip">Jedes Monster kann Gulden, Heiltränke oder Ausrüstung fallen lassen: Waffe, Helm, Rüstung, Schild, Beine und ein Kleinod. Seltene Stücke leuchten am Boden. Der Name über einem Monster zeigt seine Stufe: rot ist gefährlich, grau bringt keine Erfahrung mehr.</p>
-    </div>
-    <div class="note">
-      <h3>Gasthäuser</h3>
-      <ul class="inns" id="innList"></ul>
-      <p class="tip">Im Gasthaus wird nicht gekämpft. Hier trefft Ihr andere Ritter, hört Neuigkeiten und stärkt Euch: Eine Speise und ein Getränk wirken zugleich, jeweils 15 Minuten Spielzeit. Beim Wirt mietet Ihr eine Kammer, dann erwacht Ihr nach dem Tod dort.</p>
-    </div>
-    <div class="note">
-      <h3>Waffenarten</h3>
-      <ul class="list" id="wtList"></ul>
-      <p class="tip">Waffen gibt es als Beute und beim Zeugmeister in der Reichsstadt, gleich neben dem Schmied. Hellebarde, Zweihänder und Armbrust brauchen beide Hände: Wer eine davon führt, legt den Schild ab und verliert dessen Rüstung und Abwehr. Mit der Waffe ändern sich die Fähigkeiten R und F. Die Armbrust zielt von selbst auf den nächsten Gegner in Blickrichtung. Eine kleine Bibel findet Ihr bei den Untoten; sie kommt in die Nebenhand statt des Schildes.</p>
-    </div>
-    <div class="note">
-      <h3>Pferde und Schmied</h3>
-      <ul class="list" id="horseList"></ul>
-      <p class="tip">Pferde verkauft der Stallmeister in der Reichsburg. Mit H sitzt Ihr auf und ab. Im Sattel wird der Hieb zum Lanzenstoß: Das Pferd stürmt vor, die Lanze trifft hart und betäubt. Trifft Euch ein Monster, werft es Euch aus dem Sattel. Der Schmied Wolf am Markt der Reichsstadt härtet Waffen und Rüstungen bis +5.</p>
-    </div>
-    <div class="note">
-      <h3>Harnisch und Turnier</h3>
-      <ul class="list" id="gearList"></ul>
-      <p class="tip">Was Ihr tragt, sieht man: Die Güte des Harnischs bestimmt seinen Glanz, ein guter Helm trägt einen Federbusch in seiner Farbe, ein guter Schild einen Rand aus Silber oder Gold, und mit besseren Waffen wird die Klinge länger.</p>
-      <ul class="list" id="joustList"></ul>
-      <p class="tip">Vor dem Osttor der Reichsstadt ruft Herold Kaspar zum Tjost. Drei Durchgänge an der Schranke: Kurz vor dem Zusammenprall wandert das Ziel über den Gegner, mit dem Hieb senkt Ihr die Lanze. Helm zwei Punkte, Schild einer, wer aus dem Sattel fällt, verliert. Stehen zwei Ritter auf der Wiese, kann einer den anderen fordern.</p>
-    </div>
-    <div class="note">
-      <h3>Tag, Nacht und Wetter</h3>
-      <ul class="list" id="dayList"></ul>
-      <p class="tip">Ein Tag im Reichsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu.</p>
-    </div>
-    <div class="note">
-      <h3>Jahreszeiten</h3>
-      <ul class="list" id="seaList"></ul>
-      <p class="tip">Jede Jahreszeit dauert vier Spieltage, gut anderthalb Stunden, und gilt für alle Ritter zugleich. Im Winter schneit es statt zu regnen, Kühe und Schafe stehen im Stall, und Ihr hinterlasst Spuren im Schnee.</p>
-    </div>
-    <div class="note">
-      <h3>Feste im Jahreslauf</h3>
-      <ul class="list" id="festList"></ul>
-      <p class="tip">Gefeiert wird am zweiten und dritten Spieltag jeder Jahreszeit, für alle Ritter zugleich. Oben rechts steht dann der Name des Festes, auf der kleinen Karte zeigt ein Ausrufezeichen den Gastgeber. Den Preis gibt es einmal je Fest, Gulden bei jedem Sieg.</p>
-    </div>
-    <div class="note">
-      <h3>Im Gasthaus</h3>
-      <ul class="list" id="innFun"></ul>
-      <p class="tip">Jedes Gebiet hat seine Musik: Fanfaren in Burg und Stadt, ein Hirtenlied auf dem Land, ein Trauermarsch in den dunklen Gegenden, leise Weisen in der Nacht, Bordun in den Gewölben. Im Winter klingen Glocken mit, im Frühling eine Flöte. M schaltet den Ton.</p>
-    </div>
-    <div class="note">
-      <h3>Hauptgeschichte: Unruhige Zeiten</h3>
-      <ul class="list" id="stList"></ul>
-      <p class="tip">Die Geschichte beginnt ab Stufe 2 beim Vogt in der Reichsburg. Oben links steht das nächste Ziel, der goldene Pfeil und die goldene Raute auf der Karte zeigen den Weg. Eure Entscheidungen verändern die späteren Kapitel und das Ende: Wer Gnade zeigt und auf sein Gewissen hört, dem vertrauen am Ende beide Seiten. In Zwischenszenen blättern E, Leertaste oder Tippen weiter, Esc überspringt. Die Chronik Eurer Taten steht im Auftragsbuch (L).</p>
-    </div>
-    <div class="note">
-      <h3>Mit anderen Rittern</h3>
-      <ul class="list" id="mpList"></ul>
-      <p class="tip">Geht zu einem anderen Ritter und drückt E oder tippt ihn an. Anfragen erscheinen oben im Bild. Die Gruppe bleibt bestehen, solange Ihr spielt, auch nach einem Neuladen der Seite für eine halbe Stunde.</p>
-    </div>
-    <div class="note">
-      <h3>Weltereignisse</h3>
-      <ul class="list" id="evList"></ul>
-      <p class="tip">Weltereignisse gelten für alle Ritter zugleich. Eine Spielstunde vorher wird gewarnt, oben links steht, wie weit alle zusammen sind. Lohn bekommt, wer mitgekämpft hat; beim ersten Sieg gibt es ein besonderes Kleinod.</p>
-    </div>
-    <div class="note">
-      <h3>Gewölbe</h3>
-      <ul class="list" id="dgList"></ul>
-      <p class="tip">Über eine Treppe steigt Ihr hinab. Unten ist es dunkel, nur Fackeln und Kohlebecken geben Licht. Am Ende bewacht ein Anführer eine Truhe, die sich jeden Tag neu füllt; beim ersten Mal liegt ein episches Stück darin. Wer unten fällt, erwacht an seinem Rastplatz.</p>
-    </div>
-    <div class="note">
-      <h3>Speyer und der Strom</h3>
-      <ul class="list" id="fishNote"></ul>
-      <p class="tip">Östlich des Reichslands fließt der Strom. An ihm liegen die Reichsstadt Speyer mit Kaiserdom und Hafen und das Fischerdorf Altrip, nördlich die Weinberge an der Weinstraße, südlich der Auwald, und auf der Insel im Altarm hausen die Flusspiraten des Hinrich Rotbart. Der Fährmann an der Steinbrücke, der Fischer in Altrip und der Hafenmeister in Speyer setzen Euch über. Beim Fischer gibt es eine Angel: Stellt Euch ans Wasser und drückt E, beim Biss noch einmal. Fische kauft der Krämer, der Wirt zahlt mehr. Der Stadtschreiber in Speyer hat Aufträge ab Stufe 15.</p>
-    </div>
-    <div class="note">
-      <h3>Ehre und Trophäen</h3>
-      <ul class="list" id="ehNote"></ul>
-      <p class="tip">Nach Stufe 20 geht die Erfahrung in Ehrenstufen: Jede bringt ein Ehrenzeichen, Gulden und ein halbes Hundertstel mehr Leben und Schaden (bis Ehrenstufe 30). Ab Stufe 18 stellt der Reichsherold in Speyer jede Woche drei Prüfungen, für alle Ritter dieselben; jede bestandene bringt drei Ehrenzeichen. Dafür gibt es beim Herold legendäre Rüstung, Prunkwappen und Ehrentitel. Große Taten kommen ins Trophäenbuch, viele bringen ein Wappen. Wappen und Titel sehen alle Ritter neben Eurem Namen.</p>
-    </div>
-    <div class="note">
-      <h3>Jagd</h3>
-      <ul class="list" id="huntList"></ul>
-      <p class="tip">Wild flieht vor Euch, wird aber nach ein paar Sekunden Hetzjagd müde. Zu Pferd mit der Lanze geht es leichter. Wildschweine wehren sich. Felle, Geweihe und Wildbret kauft der Krämer, für Wildbret zahlt der Wirt mehr.</p>
-    </div>
-    <div class="note">
-      <h3>Bestiarium</h3>
-      <ul class="list" id="beasts"></ul>
-    </div>
-    <div class="note">
-      <h3>Leben im Reichsland</h3>
-      <ul class="list" id="lifeList"></ul>
-      <p class="tip">Leute und Hoftiere kämpfen nicht. Das Wild flieht vor Euch, Hühner flattern auf, Tauben fliegen davon. Bürger, Mägde und Wachen grüßen, wenn Ihr vorbeikommt, und die Händler rufen ihre Ware aus. Auf den Straßen ziehen Pilger, Händler und Bauern.</p>
-    </div>
-    <div class="note">
-      <h3>Fähigkeiten</h3>
-      <ul class="list" id="skillList"></ul>
-    </div>
-    <div class="note">
-      <h3>Stände des Reiches</h3>
-      <ol class="ranks" id="rankList"></ol>
-      <p class="tip">Jede Stufe bringt mehr Leben und Schaden. Höchste Stufe: 20, danach steigen die Ehrenstufen.</p>
-    </div>
-    <div class="note">
-      <h3>Ruhmeshalle</h3>
-      <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="ehre" aria-selected="false">Ehre</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button><button type="button" role="tab" data-ft="laender" aria-selected="false">Länder</button></div>
-      <ol class="fame" id="fameList"></ol>
-      <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Ehre“ Ehrenstufen, Trophäen, Wappen und Titel, unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Feste“ die besten Festspiele.</p>
-    </div>
-    <div class="note">
-      <h3>Steuerung</h3>
-      <dl class="keys">
-        <dt class="kbd-only"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd class="kbd-only">Laufen, auch mit den Pfeiltasten</dd>
-        <dt class="kbd-only"><kbd>Leertaste</kbd></dt><dd class="kbd-only">Schwerthieb, gedrückt halten für Dauerhiebe; im Sattel Lanzenstoß</dd>
-        <dt class="kbd-only"><kbd>R</kbd><kbd>F</kbd><kbd>G</kbd></dt><dd class="kbd-only">Rundhieb, Schildstoß, Schlachtruf (auch <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>)</dd>
-        <dt class="kbd-only"><kbd>Q</kbd></dt><dd class="kbd-only">Heiltrank (auch <kbd>4</kbd>)</dd>
-        <dt class="kbd-only"><kbd>H</kbd></dt><dd class="kbd-only">aufs Pferd steigen oder absteigen (auch <kbd>5</kbd>)</dd>
-        <dt class="kbd-only"><kbd>E</kbd></dt><dd class="kbd-only">sprechen, eintreten, hinabsteigen, Truhe öffnen, mitspielen; in Zwischenszenen weiter</dd>
-        <dt class="kbd-only"><kbd>I</kbd><kbd>L</kbd><kbd>K</kbd></dt><dd class="kbd-only">Rucksack, Aufträge, Karte</dd>
-        <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
-        <dt class="kbd-only"><kbd>Y</kbd><kbd>N</kbd></dt><dd class="kbd-only">Anfrage eines Ritters annehmen oder ablehnen</dd>
-        <dt class="kbd-only"><kbd>T</kbd></dt><dd class="kbd-only">Eure Gruppe</dd>
-        <dt class="kbd-only"><kbd>↑</kbd><kbd>↓</kbd><kbd>1</kbd>–<kbd>9</kbd></dt><dd class="kbd-only">in Fenstern wählen, <kbd>Enter</kbd> bestätigt, <kbd>⌫</kbd> zurück</dd>
-        <dt class="kbd-only"><kbd>P</kbd><kbd>Esc</kbd></dt><dd class="kbd-only">Pause, Fenster schließen; Zwischenszene überspringen</dd>
-        <dt class="kbd-only"><kbd>M</kbd></dt><dd class="kbd-only">Ton an oder aus</dd>
-        <dt class="kbd-only"><kbd>F1</kbd><kbd>?</kbd></dt><dd class="kbd-only">diese Übersicht</dd>
-        <dt class="touch-only"><kbd>Steuerkreuz</kbd></dt><dd class="touch-only">Laufen, auch schräg</dd>
-        <dt class="touch-only"><kbd>Hieb</kbd></dt><dd class="touch-only">Schwerthieb, gedrückt halten für Dauerhiebe</dd>
-        <dt class="touch-only"><kbd>Leiste</kbd></dt><dd class="touch-only">Rundhieb, Schildstoß, Schlachtruf, Heiltrank</dd>
-        <dt class="touch-only"><kbd>Sprechen</kbd></dt><dd class="touch-only">erscheint neben Leuten und vor Gasthaustüren</dd>
-      </dl>
-      <p class="tip">Auf Tablet und Handy gehen Finger und Tastatur zugleich: Sobald Ihr eine Taste drückt, verschwindet das Steuerkreuz, beim nächsten Tippen kommt es wieder. Der Spielstand wird laufend gesichert. Wer angemeldet ist, findet seinen Ritter auch auf anderen Geräten wieder.</p>
-    </div>
-  </section>
 </main>
 
 

@@ -503,7 +503,7 @@ function updateSkillCd(){
 }
 
 /* ---------- Fenster ---------- */
-const OVERLAYS = ['ovStart', 'ovPause', 'ovMap', 'ovBag', 'ovQuests', 'ovTalk', 'ovDead', 'ovKeys'];
+const OVERLAYS = ['ovStart', 'ovPause', 'ovMap', 'ovBag', 'ovQuests', 'ovTalk', 'ovDead', 'ovKeys', 'ovNotes'];
 function showOverlay(id){ OVERLAYS.forEach(o => { $(o).hidden = o !== id; }); }
 function blurActive(){ if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); }
 function openPanel(id){
@@ -1041,7 +1041,7 @@ function startGame(hero){
   for (const s of SPAWN_SLOTS){ s.mon = null; s.t = 0; }
   updateZone(); showOverlay(null); blurActive();
   updateHud(); updateBossBar(); stStart(); AS.seen.clear(); AS.first = true; asTick(); ehCheck(true); renderTracker(); renderSkills();
-  $('btnPause').textContent = 'Pause';
+  $('btnPause').textContent = 'Menü';
   Sound.step = 0; Sound.startMusic();
   if (HERO.kills === 0 && HERO.lvl === 1){
     showBanner('Willkommen, ' + HERO.name, 'Sprecht mit dem Vogt in der Burg');
@@ -1067,7 +1067,7 @@ function resumeGame(){
   if (G.mode !== 'pause') return;
   Sound.init();
   G.mode = 'play'; showOverlay(null); blurActive();
-  $('btnPause').textContent = 'Pause';
+  $('btnPause').textContent = 'Menü';
   Sound.startMusic();
 }
 function setSound(on, save){
@@ -1092,6 +1092,55 @@ $('btnReallyNew').addEventListener('click', () => { G.confirmNew = false; SAVED 
 $('btnCancelNew').addEventListener('click', () => { G.confirmNew = false; renderStart(); });
 $('btnResume').addEventListener('click', resumeGame);
 $('btnKeysClose').addEventListener('click', () => closePanel());
+/* ---------- Tafeln und Hilfe: alle Tafeln in einem Fenster, links die Liste (im Menü und auf dem Startbildschirm) ---------- */
+let notesFrom = null;
+const NOTE_EL = [...document.querySelectorAll('#notes > .note')];
+NOTE_EL.forEach((n, i) => {
+  const h = n.querySelector('h3'), b = el('button', null, h ? h.textContent : 'Tafel ' + (i + 1));
+  b.type = 'button'; b.id = 'ntab' + i; b.setAttribute('role', 'tab'); b.setAttribute('aria-controls', n.id || (n.id = 'note' + i));
+  n.setAttribute('role', 'tabpanel'); n.setAttribute('aria-labelledby', b.id);
+  b.addEventListener('click', () => showNote(i));
+  $('noteTabs').append(b);
+});
+function showNote(i){
+  i = clamp(i | 0, 0, NOTE_EL.length - 1);
+  NOTE_EL.forEach((n, j) => { n.hidden = j !== i; const b = $('ntab' + j); b.setAttribute('aria-selected', String(j === i)); b.tabIndex = j === i ? 0 : -1; });
+  $('noteView').scrollTop = 0; notesI = i; store.set('apfelritter-tafel', String(i));
+  $('ntab' + i).scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+let notesI = +(store.get('apfelritter-tafel') || 0) || 0;
+function openNotes(){
+  const cur = OVERLAYS.find(o => !$(o).hidden);
+  if (cur === 'ovNotes') return;
+  notesFrom = cur || null;
+  showOverlay('ovNotes'); showNote(notesI);
+  $('ntab' + notesI).focus({ preventScroll: true });
+}
+function closeNotes(){
+  const back = notesFrom; notesFrom = null;
+  showOverlay(back);
+  const b = back === 'ovPause' ? $('btnNotes') : back === 'ovStart' ? $('btnNotesStart') : null;
+  if (b && KBD.on) b.focus({ preventScroll: true });
+}
+$('btnNotes').addEventListener('click', openNotes);
+$('btnNotesStart').addEventListener('click', openNotes);
+$('btnNotesClose').addEventListener('click', closeNotes);
+$('btnKeys').addEventListener('click', () => { resumeGame(); openKeys(); });
+/* echtes Vollbild, wo der Browser es erlaubt (eingebettete Seiten dürfen das oft nicht; dann bleibt der Knopf verborgen) */
+const FS = {
+  ok: !!(document.fullscreenEnabled || document.webkitFullscreenEnabled),
+  on: () => !!(document.fullscreenElement || document.webkitFullscreenElement)
+};
+function syncFull(){ const b = $('btnFull'); b.hidden = !FS.ok; b.textContent = FS.on() ? 'Vollbild beenden' : 'Vollbild'; fitStage(); }
+$('btnFull').addEventListener('click', () => {
+  try {
+    const d = document, e = d.documentElement;
+    if (FS.on()) (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+    else { const r = (e.requestFullscreen || e.webkitRequestFullscreen).call(e); if (r && r.catch) r.catch(() => {}); }
+  } catch(err){}
+});
+document.addEventListener('fullscreenchange', syncFull); document.addEventListener('webkitfullscreenchange', syncFull);
+syncFull();
 $('btnPause').addEventListener('click', () => { G.mode === 'play' ? pauseGame() : G.mode === 'pause' ? resumeGame() : null; });
 $('btnSound').addEventListener('click', () => setSound(!Sound.on, true));
 $('btnMap').addEventListener('click', () => { G.mode === 'menu' && !$('ovMap').hidden ? closePanel() : openMap(); });
@@ -1148,6 +1197,15 @@ addEventListener('keydown', e => {
     if (e.code === 'Escape'){ e.preventDefault(); stSkip(); }
     else if (!e.repeat && (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space')){ e.preventDefault(); stAdvance(); }
     else if (KEYMAP[e.code] || ATK_KEYS.includes(e.code)) e.preventDefault();
+    return;
+  }
+  if (!$('ovNotes').hidden){   // Tafeln und Hilfe: Pfeile wechseln die Tafel, Bild auf/ab blättert, Esc zurück
+    const tabs = [...$('noteTabs').children], i = tabs.indexOf(document.activeElement);
+    if (e.code === 'Escape' || e.code === 'Backspace' || e.code === 'KeyP'){ e.preventDefault(); closeNotes(); }
+    else if (/^Arrow(Up|Down|Left|Right)$/.test(e.code)){ e.preventDefault(); const n = (i < 0 ? notesI : i) + (/Down|Right/.test(e.code) ? 1 : -1); showNote((n + tabs.length) % tabs.length); $('ntab' + notesI).focus({ preventScroll: true }); }
+    else if (e.code === 'PageDown' || e.code === 'PageUp'){ e.preventDefault(); $('noteView').scrollBy({ top: (e.code === 'PageDown' ? 1 : -1) * $('noteView').clientHeight * .85 }); }
+    else if ((e.code === 'Enter' || e.code === 'Space') && t && t.closest && t.closest('button')) return;   // Knopf drücken
+    else if (e.code !== 'Tab') e.preventDefault();
     return;
   }
   if (NET.inbox[0] && (G.mode === 'play' || G.mode === 'menu') && !e.repeat && /^[yYnN]$/.test(e.key)){ e.preventDefault(); netAnswer(NET.inbox[0], /^[yY]$/.test(e.key)); return; }   // Anfrage eines Ritters

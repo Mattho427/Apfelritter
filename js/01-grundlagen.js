@@ -2,7 +2,7 @@
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 "use strict";
 /* Fingerabdruck dieser Fassung: Zwischenspeicher gelten nur für genau diese. Wird von werkzeug/stempel.mjs vor dem Veröffentlichen gesetzt. */
-const SRC_HASH = '1402649:7tlcp0';
+const SRC_HASH = '1407764:4kf9d8';
 /* Bilder der Tafeln unter dem Spiel: erst nach dem Start malen, sichtbare zuerst, der Rest nach und nach */
 const LAZY = { q: [], go: false, io: null };
 try { LAZY.io = new IntersectionObserver(es => { if (LAZY.go) for (const e of es) if (e.isIntersecting) lazyNow(e.target); }, { rootMargin: '300px' }); } catch(e){}
@@ -16,19 +16,36 @@ const WS = 2;                        // Feinpixel je Weltpixel: Weltbilder und B
 const TILE = 16;
 const cv = document.getElementById('game');
 cv.tabIndex = 0;
-/* innere Auflösung des Spielfelds in Feinpixeln: so breit wie die Bühne (640 bis 960), 16:9;
-   schmale Telefone 512 (sonst wird der Ritter zu klein), Telefone quer 640 */
+/* innere Auflösung des Spielfelds in Feinpixeln: im Seitenverhältnis des freien Platzes, höchstens 960 × 540 (so groß wie die Gaststube).
+   Telefone hochkant 512 breit (sonst wird der Ritter zu klein) und höchstens 480 hoch (Bildrate), Telefone quer bis 360 hoch.
+   Festgelegt beim Laden; ändert sich das Fenster später, passt fitStage() das Bild ein (mit schmalem Rand). */
 const [W, H] = (() => {
-  let w = 960;
+  let aw = 960, ah = 540, touch = false;
   try {
-    const st = document.getElementById('stage');
-    if (st && st.clientWidth) w = st.clientWidth;
-    if (matchMedia('(hover:none) and (pointer:coarse) and (orientation:landscape)').matches) w = 640;
+    const b = document.getElementById('stageBox');
+    if (b && b.clientWidth > 50 && b.clientHeight > 50){ aw = b.clientWidth; ah = b.clientHeight; }
+    touch = matchMedia('(hover:none) and (pointer:coarse)').matches;
   } catch(e){}
-  w = w < 600 ? 512 : Math.max(640, Math.min(960, Math.round(w / 8) * 8));
-  return [w, Math.round(w * 9 / 32) * 2];
+  const asp = Math.max(1.15, Math.min(2.4, aw / ah)), even = v => Math.round(v / 2) * 2, by8 = v => Math.round(v / 8) * 8;
+  if (aw < 600) return [512, even(Math.max(288, Math.min(480, 512 / asp)))];                                        // Telefon hochkant
+  if (touch && aw > ah){ const h = even(Math.max(270, Math.min(360, ah))); return [Math.max(480, Math.min(960, by8(h * Math.min(2.9, aw / ah)))), h]; }   // Telefon oder Tablet quer
+  let w = 960, h = even(w / asp);
+  if (h > 540){ h = 540; w = Math.max(640, by8(h * asp)); }
+  return [w, h];
 })();
-cv.width = W; cv.height = H; cv.style.aspectRatio = W + ' / ' + H;
+cv.width = W; cv.height = H;
+/* Bühne so groß wie möglich im freien Platz, im Seitenverhältnis des Spielfelds (Anzeigen auf der Bühne liegen so genau über dem Bild) */
+function fitStage(){
+  const b = document.getElementById('stageBox'), st = document.getElementById('stage');
+  if (!b || !st || !b.clientWidth || !b.clientHeight) return;
+  const s = Math.min(b.clientWidth / W, b.clientHeight / H), h = Math.floor(H * s);
+  st.style.width = Math.floor(W * s) + 'px'; st.style.height = h + 'px';
+  st.classList.toggle('below', b.clientHeight - h >= 56 && b.clientHeight > b.clientWidth * .8);   // hochkant mit Platz: Meldungen unter dem Bild statt darauf
+  st.style.setProperty('--below', Math.max(0, b.clientHeight - h - 10) + 'px');
+}
+fitStage();
+addEventListener('resize', fitStage);
+try { new ResizeObserver(fitStage).observe(document.getElementById('stageBox')); } catch(e){}
 const ctx = cv.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 const OUT = '#16120f';               // Konturfarbe für Figuren und Bauten
