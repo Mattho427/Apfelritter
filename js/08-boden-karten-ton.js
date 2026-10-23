@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 8 von 22: Boden, Karten, Ton und Musik.
+/* Der Apfelritter, Teil 8 von 23: Boden, Karten, Ton und Musik.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Boden ============ */
 /* Paletten je Bodenart: 4 Kanäle zu je 12 Tönen (dunkel..hell) */
@@ -1044,6 +1044,9 @@ const TUNES = {
   ernte: { sp: .22, w: 'triangle', v: .03, len: .2, drum: true, indoor: true,
     mel: [-4,null,0,3, 5,3,0,null, 1,0,-2,0, -4,null,null,null, 3,null,5,8, 7,5,3,null, 1,3,0,-2, -4,null,null,null],
     bass: [-28,-28,-23,-21,-28,-23,-21,-28] },
+  choral: { sp: .5, w: 'sine', v: .026, len: .9, indoor: true, drone: [-31, -24],   // Kirche: Choral im dorischen Ton
+    mel: [-7,null,-5,-4, -2,null,-4,null, -5,-7,null,null, -2,null,0,-2, -4,-5,-4,null, -7,null,null,null,
+          0,null,2,0, -2,-4,-2,null, -4,-5,null,-7, -7,null,null,null, null,null,null,null] },
   advent: { sp: .3, w: 'sine', v: .032, len: .4, bell: true, bw: 'sine', bv: .02, blen: 1, indoor: true,
     mel: [-2,null,0,2, 3,null,2,null, 0,null,-2,null, 0,null,null,null, 2,null,3,5, 7,null,5,null, 3,2,0,2, -2,null,null,null],
     bass: [-26,-26,-21,-21,-19,-19,-26,-26] }
@@ -1052,7 +1055,7 @@ const TUNES = {
 function musicFor(){
   if (!G || G.mode === 'title') return 'dunkel';
   if (DG_ON) return 'gruft';
-  if (G.inside) return G.song && G.song.t > G.t ? G.song.id : 'inn';
+  if (G.inside) return G.inside.church ? 'choral' : G.song && G.song.t > G.t ? G.song.id : 'inn';
   if (G.joust) return 'stadt';
   const f = typeof festNear === 'function' ? festNear() : null;
   if (f) return f.tune;

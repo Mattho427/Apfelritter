@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 13 von 22: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
+/* Der Apfelritter, Teil 13 von 23: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;
@@ -627,7 +627,8 @@ function swingHits(){
     if (!bodyCircles(m).some(c => inSwing(k, c.x, c.y, c.hr))) continue;
     m.hitBy = k.swing;
     const h = rollHit(k.mult * (m.k === 'raubritter' && m.st === 'stun' ? 1.5 : 1));
-    if (UNDEAD[m.k] && heroBib()) h.dmg = Math.round(h.dmg * (1 + BIB_UNDEAD / 100));
+    const ub = (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0);   // Kleine Bibel, Segen
+    if (UNDEAD[m.k] && ub) h.dmg = Math.round(h.dmg * (1 + ub / 100));
     if (k.skF && !MON[m.k].boss) m.stunT = Math.max(m.stunT || 0, w === 'zweihaender' ? 1.5 : 1);
     damage(m, h.dmg, h.crit, WT[w].kb * (k.skF ? 1.6 : 1));
   }
@@ -910,7 +911,9 @@ function hurt(from, dmg, ranged){
 function die(){
   const k = G.knight;
   k.hp = 0; G.mode = 'dying'; G.dieT = 1.3; atkHeld = false; atkBtn = false; G.buffT = 0; HERO.riding = false; k.ride = null;
-  G.lostGold = Math.floor(HERO.gold * .1); HERO.gold -= G.lostGold;
+  G.ablassUsed = !!HERO.ablass;   // ein Ablassbrief (Kaiserdom) bewahrt einmal das Gold
+  if (HERO.ablass){ HERO.ablass = false; G.lostGold = 0; renderBuffs(); }
+  else { G.lostGold = Math.floor(HERO.gold * .1); HERO.gold -= G.lostGold; }
   for (const m of G.mons) if (m.mode === 'fight' && (!m.tgt || m.tgt === G.knight)) goHome(m);
   G.shots.length = 0;
   Sound.over(); markDirty(true);

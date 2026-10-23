@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 22: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 23: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -376,7 +376,7 @@ function updateBossBar(){
 }
 function updateZone(entered){
   const z = ZONE_BY_ID[G.zone], el2 = $('zone');
-  if (G.inside){ el2.textContent = G.inside.name; el2.append(el('small', null, 'Gasthaus ' + G.inside.where + ' · sicher')); }
+  if (G.inside){ el2.textContent = G.inside.name; el2.append(el('small', null, (G.inside.church ? 'Kirche ' : 'Gasthaus ') + G.inside.where + ' · sicher')); }
   else {
     el2.textContent = z ? z.name : '';
     if (z && G.zone === 'weiler' && EVT.raid) el2.append(el('small', null, 'Raubritter im Dorf!'));
@@ -387,7 +387,7 @@ function updateZone(entered){
   if (entered && !G.inside && G.zone === 'weiler' && EVT.raid) logLine('Ihr betretet Lindach. Raubritter plündern das Dorf!', '#ff9a8a');
   else if (entered && !G.inside && SAFE[G.zone] && !isSafe(G.zone)) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das Dorf Lindach' : 'die ' + HUB_NAME[G.zone]) + '. Hier wird gekämpft!', '#ff9a8a');
   else if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + (G.zone === 'weiler' || G.zone === 'fischerdorf' ? 'das ' : 'die ') + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
-  if (entered && G.inside) logLine('Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
+  if (entered && G.inside) logLine(G.inside.church ? 'Ihr tretet ein: ' + G.inside.name + '. Hier ist es still und kühl.' : 'Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
 }
 let bannerTimer = 0;
 /* Ziffern und römische Zahlen in der Lesefont, die Frakturschrift macht sie schwer lesbar */
@@ -425,7 +425,7 @@ function renderTracker(){
   box.textContent = '';
   if (!HERO) return;
   if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
-  stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); partyRows(box);
+  stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');
@@ -487,6 +487,7 @@ function renderBuffs(){
     chip.title = f.n + ': ' + fxText(f.fx);
     box.append(chip);
   }
+  chBuffs(box);
   asBuffs(box);
 }
 const cdShown = {};
@@ -669,7 +670,7 @@ function updateNear(force){
   let best = null, bd = 40, door = null, exit = false;
   for (const n of (G.inside ? innRoom(G.inside).npcs : NPCS)){ const d = Math.hypot(n.x - k.x, n.y - k.y); if (d < bd){ bd = d; best = n; } }
   if (G.inside) exit = !best && k.y > ROOM_DOOR.y - 26 && Math.abs(k.x - ROOM_DOOR.x) < 24;
-  else if (!best) for (const inn of INNS) if (Math.abs(k.x - inn.dx) < 18 && k.y > inn.y && k.y - inn.y < 44) door = inn;
+  else if (!best) for (const inn of INNS.concat(CHURCHES)) if (Math.abs(k.x - inn.dx) < 18 && k.y > inn.y && k.y - inn.y < 44) door = inn;
   if (!best && !door && !G.inside) for (const d of DG_DOORS) if (Math.abs(k.x - d.x) < 28 && k.y > d.y - 8 && k.y - d.y < 46) door = d;
   let pq = !door && cloud.room ? nearPeer(bd) : null;   // ein Ritter steht näher als jeder andere
   if (pq){ best = null; exit = false; }
@@ -769,6 +770,7 @@ function renderTalk0(view){
     if (n.joust) opts.append(btn('Zum Tjost antreten', () => renderTalk('joust'), 'opt'), btn('Großes Turnier' + (tnView() ? ' (' + (tnView().T.st === 'an' ? 'Anmeldung' : 'läuft') + ')' : ''), () => renderTalk('turnier'), 'opt'), btn('Wappenrolle: Ritterorden' + (HERO.or ? ' (' + HERO.or.kz + ')' : ''), () => renderTalk('orden'), 'opt'));
     strTalkOpts(n, opts);
     wtTalkOpts(n, opts);
+    chTalkOpts(n, opts);
     ehTalkOpts(n, opts);
     asTalkOpts(n, opts);
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
@@ -830,6 +832,8 @@ function renderTalk0(view){
     turnierView(body, opts);
   } else if (typeof view === 'string' && view.startsWith('orden')){
     ordenView(view, body, opts);
+  } else if (typeof view === 'string' && /^ch[A-Z]/.test(view)){
+    chView(view, body, opts);
   } else if (typeof view === 'string' && /^wt[A-Z]/.test(view)){
     wtView(view, body, opts);
   } else if (typeof view === 'string' && /^eh[A-Z]/.test(view)){
@@ -1008,7 +1012,7 @@ function requestSong(id, name){
 
 /* ---------- Tod ---------- */
 function showDead(){
-  $('deadText').textContent = G.lostGold ? 'Ihr verliert ' + G.lostGold + ' Gulden. Eure Ausrüstung bleibt Euch.' : 'Eure Ausrüstung bleibt Euch.';
+  $('deadText').textContent = G.ablassUsed ? 'Der Ablassbrief bewahrt Euer Gold. Eure Ausrüstung bleibt Euch.' : G.lostGold ? 'Ihr verliert ' + G.lostGold + ' Gulden. Eure Ausrüstung bleibt Euch.' : 'Eure Ausrüstung bleibt Euch.';
   const where = HUB_IN[HERO.bind] || 'in der Reichsburg';
   $('btnRespawn').textContent = where[0].toUpperCase() + where.slice(1) + ' erwachen';
   showOverlay('ovDead'); Sound.stopMusic();

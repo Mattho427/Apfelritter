@@ -1,0 +1,26 @@
+// Zwei Ritter in Kirchen: in derselben Kirche sehen sie einander, in verschiedenen nicht; kein Würfeln in der Kirche
+import { launch, wait, OUT } from './harness.mjs';
+const H = await launch(2);
+await H.start(['Hans', 'Grete'], ['reich', 'england']);
+const [A, B] = H.pages.map(P => P.p);
+let fehl = 0;
+const geh = (p, id, dx) => p.evaluate(([id, dx]) => { if (G.mode === 'menu') closePanel(); if (G.inside) leaveInn(); const c = CH_BY[id], k = G.knight; k.x = c.dx; k.y = c.y + 14; k.dir = 'up'; updateNear(true); talk(); k.x = 470 + dx; k.y = 330; $('banner').hidden = true; return G.inside && G.inside.id; }, [id, dx]);
+const sicht = p => p.evaluate(() => [...PEERS.values()].map(q => q.nm + ' in ' + q.in + (samePlace(q) ? ' gleicher Ort' : ' anderswo')));
+console.log('A', await geh(A, 'stadtkirche', 0), 'B', await geh(B, 'stadtkirche', 40));
+await wait(1200);
+const s1 = await sicht(A);
+console.log('gleiche Kirche A sieht', JSON.stringify(s1), 'nah', await A.evaluate(() => G.nearPeer && G.nearPeer.nm));
+if (!s1.some(t => /Grete in stadtkirche/.test(t))) fehl++;
+await A.evaluate(() => openPeer(G.nearPeer)); await wait(200);
+const opts = await A.evaluate(() => [...document.querySelectorAll('#talkBody button')].map(b => b.textContent));
+console.log('Knöpfe in der Kirche', JSON.stringify(opts));
+if (opts.includes('Würfeln')) fehl++;
+await A.evaluate(() => closePanel());
+await (await A.$('canvas')).screenshot({ path: OUT + 'tk1_a.png' });
+console.log('B in den Dom', await geh(B, 'kaiserdom', 0));
+await wait(1200);
+const s2 = await A.evaluate(() => ({ list: [...PEERS.values()].map(q => q.nm + ' in ' + q.in), same: [...PEERS.values()].filter(samePlace).length, near: G.nearPeer && G.nearPeer.nm }));
+console.log('verschiedene Kirchen A', JSON.stringify(s2));
+if (!s2.list.some(t => /Grete in kaiserdom/.test(t)) || s2.near) fehl++;
+console.log(H.errors().join('\n') || (fehl ? 'FEHL ' + fehl : 'keine Fehler'));
+await H.done();

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 12 von 22: Leben im Reichsland, Tag und Nacht, Wetter.
+/* Der Apfelritter, Teil 12 von 23: Leben im Reichsland, Tag und Nacht, Wetter.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leben im Reichsland: Tiere, Leute, Vögel ============
    Lebensorte aus der Welt; nahe beim Ritter entstehen ihre Bewohner, weit weg verschwinden sie wieder.
@@ -550,6 +550,7 @@ function skyEvents(dt){
   // Glocken um 6, 12 und 18 Uhr in Stadt, Burg und Dorf
   const hr = Math.floor(SKY.hour);
   if (G.lastHour !== undefined && hr !== G.lastHour && (hr === 6 || hr === 12 || hr === 18) && SAFE[G.zone]) Sound.chime();
+  if (G.lastHour !== undefined && hr !== G.lastHour) chHour(hr);   // Glocken zur Messe
   G.lastHour = hr;
   G.nightT = (G.nightT || 1) - dt;
   if (G.nightT <= 0){

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 17 von 22: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
+/* Der Apfelritter, Teil 17 von 23: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Speichern: im Browser und, wo möglich, im Konto ============ */
 const cloud = { db:null, uid:null, user:null, room:null, saving:false, last:'', nextT:0, noWrite:false, fameLast:'', fameBusy:false, fameNoWrite:false, fameT:0, loaded:false };
@@ -80,7 +80,7 @@ function readPeer(p){
   if (!q){ q = { x: +s.x * (s.ws ? 1 : WS), y: +s.y * (s.ws ? 1 : WS), anim: 0, atkT: 0, atkLen: SWING, swA0: 0, swA1: 0, mult: 1, bashT: 0, inv: 0, slowT: 0, sw: s.sw, seen: 0 }; PEERS.set(p.peer, q); }
   const sc = s.ws ? 1 : WS;   // ältere Fassung sendet Weltpixel
   q.tx = num(s.x * sc, 0, GW, q.x); q.ty = num(s.y * sc, 0, GH, q.y);
-  const sin = INN_BY[s.in] || (typeof s.in === 'string' && /^dg:[a-z]+$/.test(s.in) && DG_DEF[s.in.slice(3)]) ? s.in : 0;   // Gasthaus oder Gewölbe
+  const sin = INN_BY[s.in] || CH_BY[s.in] || (typeof s.in === 'string' && /^dg:[a-z]+$/.test(s.in) && DG_DEF[s.in.slice(3)]) ? s.in : 0;   // Gasthaus oder Gewölbe
   if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || sin !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
   q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead; q.lk = typeof s.lk === 'string' && LOOK_RE.test(s.lk) ? s.lk : ''; q.lance = s.ln ? 1 : 0;
   q.wt = WT_BY_CODE[q.lk[5]] || 'schwert';
@@ -277,7 +277,7 @@ function netBusy(kind, q, mine){
   if (kind === 'order' && !mine && !(q.or && q.or.id === q.rq.x)) return 'Gerade nicht.';
   if (kind === 'trade' && (!samePlace(q) || peerDist(q) > 260)) return who === 'Ihr' ? 'Zu weit weg.' : q.nm + ' ist zu weit weg.';
   if (kind === 'dice'){
-    if (!G.inside || !samePlace(q)) return 'Gewürfelt wird im Gasthaus.';
+    if (!G.inside || G.inside.church || !samePlace(q)) return 'Gewürfelt wird im Gasthaus.';
     const st = mine ? NET.diceStake || 0 : +q.rq.x || 0;
     if (HERO.gold < st) return mine ? 'Ihr habt keine ' + st + ' Gulden.' : 'Ihr habt keine ' + st + ' Gulden.';
   }
@@ -395,7 +395,7 @@ function peerView(view, body, opts){
   }
   ask('Handeln', 'trade', 0, q.bz ? 'beschäftigt' : '');
   if (HERO.or && !(q.or && q.or.id === HERO.or.id)) ask('In Euren Orden aufnehmen (' + HERO.or.kz + ')', 'order', HERO.or.id, '');
-  if (G.inside){ const b = btn('Würfeln', () => renderTalk('dicestake'), 'opt'); b.disabled = !!q.bz; opts.append(b); }
+  if (G.inside && !G.inside.church){ const b = btn('Würfeln', () => renderTalk('dicestake'), 'opt'); b.disabled = !!q.bz; opts.append(b); }
   else opts.append(el('p', 'hint', 'Gewürfelt wird im Gasthaus. Den Tjost reitet Ihr auf der Turnierwiese vor dem Osttor der Reichsstadt.'));
   opts.append(btn('Lebt wohl', closePanel, 'opt'));
   body.append(opts);
@@ -458,7 +458,7 @@ function partyRows(box){
   for (const q of L){
     const p = el('p', 'pm' + (q.dead ? ' dead' : '')), bar = el('i', 'hpb'), fill = el('i');
     fill.style.width = (q.dead ? 0 : q.hp) + '%'; bar.append(fill);
-    const where = !samePlace(q) ? (typeof q.in === 'string' && q.in.startsWith('dg:') ? ' unten' : q.in ? ' im Gasthaus' : ' anderswo') : '';
+    const where = !samePlace(q) ? (typeof q.in === 'string' && q.in.startsWith('dg:') ? ' unten' : CH_BY[q.in] ? ' in der Kirche' : q.in ? ' im Gasthaus' : ' anderswo') : '';
     p.append(el('b', null, q.nm), ' ' + q.lv + ' ', bar, where); box.append(p);
   }
 }

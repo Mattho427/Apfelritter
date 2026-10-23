@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 3 von 22: Bilder der Gegner: Monster, Anführer, Raubritter, Tod, Lindwurm, Stromland.
+/* Der Apfelritter, Teil 3 von 23: Bilder der Gegner: Monster, Anführer, Raubritter, Tod, Lindwurm, Stromland.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Monster: acht gewöhnliche Gegner (monsters.js) ============ */
 /* Export: MON_ART[art] = { w, h, ax, ay, idle:{r,l}, move:{r,l}, act:{r,l} }, Frames { img, glow, white }.

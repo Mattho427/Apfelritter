@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 11 von 22: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
+/* Der Apfelritter, Teil 11 von 23: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */
@@ -93,6 +93,8 @@ function cleanHero(h){
   if (!HORSES[h.horse]) h.horse = null;
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
+  h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1200, +h.bless.t || 0) } : null; h.ablass = !!h.ablass;
+  h.pilg = h.pilg && typeof h.pilg === 'object' ? { on: h.pilg.on ? 1 : 0, done: h.pilg.done ? 1 : 0, v: Object.fromEntries(Object.keys(h.pilg.v || {}).filter(k => /^[a-z]{3,20}$/.test(k)).map(k => [k, 1])) } : null;
   h.riding = !!(h.horse && h.riding);
   if (h.joust){ const j = h.joust, b = {}; for (const id of ['konrad', 'bayard', 'goetz']) if (j.beat && j.beat[id]) b[id] = true; h.joust = { wins: Math.max(0, j.wins | 0), beat: b, elo: clamp(j.elo | 0 || 1000, 100, 3000), pw: Math.max(0, j.pw | 0), pl: Math.max(0, j.pl | 0) }; }
   if (h.or){ const o = orClean(h.or); h.or = o ? Object.assign(o, { gm: h.or.gm ? 1 : 0, t: +h.or.t || 0 }) : null; }
@@ -124,6 +126,7 @@ function heroStats(h){
   const fx = [(KN_FACTIONS[h.f] || KN_FACTIONS.reich).bonus].concat([h.food, h.drink].map(b => b && b.t > 0 && FARE_BY[b.id] ? FARE_BY[b.id].fx : null));
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
   if (!two && isBib(h.eq.schild)) s.regen *= 1.5;   // die Bibel: schneller wieder bei Kräften
+  if (h.bless && h.bless.t > 0){ s.hp *= 1.08; s.regen = Math.max(s.regen, 1.5); }   // Segen aus der Kirche
   if (ASV && ASV.ord >= 4) s.dmg *= 1.03;   // Ordenshaus: Waffenkammer, Ordenshof
   if (ASV && ASV.ord >= 5) s.hp *= 1.05;
   ehStats(h, s);   // Ehrenstufen: je ein halbes Hundertstel Leben und Schaden
@@ -303,6 +306,7 @@ const RW = 960, RH = 540;                  // Gaststube; ist die Leinwand kleine
 const ROOM_DOOR = { x: 480, y: 522 };
 const roomCam = k => ({ x: Math.round(clamp(k.x - W / 2, 0, Math.max(0, RW - W))), y: Math.round(clamp(k.y - 22 - H / 2, 0, Math.max(0, RH - H))) });
 function innRoom(inn){
+  if (inn.church) return chRoom(inn);   // Kirchen: eigener Raum (22-kirchen)
   if (inn.room) return inn.room;
   const s = inn.seed, B = wp_buf(RW, RH), R = rng(s), items = [], rects = [], candles = [];
   const C = (h) => wp_c(h), FL = 130;     // Oberkante des Dielenbodens
@@ -438,9 +442,10 @@ function enterInn(inn){
   for (const m of G.mons) if (m.slot) m.slot.mon = null;
   G.mons.length = 0; G.rising.length = 0; G.shots.length = 0; G.parts.length = 0;
   for (const s of SPAWN_SLOTS) if (s.mon === true) s.mon = null;
-  Sound.setTune('inn');
+  Sound.setTune(inn.church ? 'choral' : 'inn');
   updateZone(true); updateBossBar(); updateNear();
-  showBanner(inn.name, 'Speis und Trank · hier seid Ihr sicher');
+  showBanner(inn.name, inn.church ? 'Stille · hier seid Ihr sicher' : 'Speis und Trank · hier seid Ihr sicher');
+  if (inn.church) chEnter(inn);
   sendPresence(true); markDirty(true);
 }
 function leaveInn(){
@@ -467,8 +472,9 @@ function updateInn(dt){
   if (k.hp < ST.hp) k.hp = Math.min(ST.hp, k.hp + ST.hp * .15 * dt);
   for (const id in G.cd) if (G.cd[id] > 0) G.cd[id] = Math.max(0, G.cd[id] - dt);
   G.combatT = 99; G.buffT = 0;
+  if (rm.church) chUpdate(dt);
   // Funken aus dem Herd
-  if (Math.random() < dt * 12) G.parts.push({ x: rm.fire.x + rand(-26, 26), y: rm.fire.y - 6, vx: rand(-6, 6), vy: rand(-46, -22), life: rand(.4, .9), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -8, glow: true });
+  if (rm.fire && Math.random() < dt * 12) G.parts.push({ x: rm.fire.x + rand(-26, 26), y: rm.fire.y - 6, vx: rand(-6, 6), vy: rand(-46, -22), life: rand(.4, .9), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -8, glow: true });
 }
 function renderInn(){
   const inn = G.inside, rm = innRoom(inn), k = G.knight, cam = roomCam(k);
@@ -476,7 +482,7 @@ function renderInn(){
   if (RW < W || RH < H){ ctx.fillStyle = '#0b0908'; ctx.fillRect(0, 0, W, H); }
   ctx.setTransform(1, 0, 0, 1, -cam.x + Math.max(0, (W - RW) >> 1), -cam.y + Math.max(0, (H - RH) >> 1));
   ctx.drawImage(rm.bg, 0, 0);
-  for (let i = 0; i < 6; i++) flame(rm.fire.x - 30 + i * 12, rm.fire.y, G.t + i * .7, i > 0 && i < 5);
+  if (rm.fire) for (let i = 0; i < 6; i++) flame(rm.fire.x - 30 + i * 12, rm.fire.y, G.t + i * .7, i > 0 && i < 5);
   const actors = [{ x: k.x, y: k.y }].concat(rm.npcs, [...PEERS.values()].filter(p => p.in === inn.id));
   for (const a of actors) shadow(a.x, a.y - 1, 16, .35);
   const list = rm.items.map(it => ({ y: it.y, d: () => ctx.drawImage(it.img, Math.round(it.x - it.ax), Math.round(it.y - it.ay)) }));
@@ -486,6 +492,7 @@ function renderInn(){
   list.sort((a, b) => a.y - b.y);
   for (const it of list) it.d();
   for (const c of rm.candles){ const f = (G.t * 9 + c.x) | 0; ctx.fillStyle = '#ffd36a'; ctx.fillRect(c.x, c.y - 2 - (f % 3 === 0 ? 1 : 0), 1, 2); ctx.fillStyle = '#fff3c0'; ctx.fillRect(c.x, c.y - 1, 1, 1); }
+  if (rm.church) chRoomFx(rm);
   for (const p of G.parts){ ctx.fillStyle = p.c; ctx.fillRect(p.x | 0, p.y | 0, 1, 1); }
   ctx.drawImage(rm.light, 0, 0);
   // Noten steigen vom Spielmann auf
@@ -496,7 +503,8 @@ function renderInn(){
     ctx.fillRect(nx, ny + 4, 3, 2); ctx.fillRect(nx + 2, ny, 1, 5); ctx.fillRect(nx + 3, ny, 2, 1);
   }
   ctx.globalAlpha = 1;
-  for (const n of rm.npcs) drawNpcPlate(n);
+  for (const n of rm.npcs) if (!n.noPlate || G.near === n) drawNpcPlate(n);
+  if (rm.church) chRoomTop(rm);
   for (const p of PEERS.values()) if (p.in === inn.id){
     drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15, '#9cc8ff');
     if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 17, p.say);
@@ -509,6 +517,7 @@ function renderInn(){
 }
 /* Stärkung durch Speis und Trank: läuft in Spielzeit ab */
 function tickBuffs(dt){
+  chTick(dt);
   if (HERO.mood){ HERO.mood.t -= dt; if (HERO.mood.t <= 0){ HERO.mood = null; renderBuffs(); logLine('Die gute Laune ist verflogen.', '#d8c69c'); } else if (Math.floor(HERO.mood.t / 60) !== Math.floor((HERO.mood.t + dt) / 60)) renderBuffs(); }
   for (const key of ['food', 'drink']){
     const b = HERO[key]; if (!b) continue;

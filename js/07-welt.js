@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 7 von 22: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
+/* Der Apfelritter, Teil 7 von 23: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Die Welt: das Reichsland 6144 × 3072 (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
 const wo_T0 = performance.now();

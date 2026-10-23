@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 19 von 22: Hauptgeschichte 1520–1529.
+/* Der Apfelritter, Teil 19 von 23: Hauptgeschichte 1520–1529.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Hauptgeschichte: Unruhige Zeiten 1520–1525 ============
    Fünf Kapitel, jedes eine Folge von Schritten: sprechen (talk), hingehen (goto), kämpfen (kill), geleiten (escort),
