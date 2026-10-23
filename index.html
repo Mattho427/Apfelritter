@@ -180,7 +180,8 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
   .masthead .seal{width:48px; height:48px;}
 }
 .num{font-family:var(--f-body); font-size:.8em;}
-.panel.map{max-width:min(96%, 860px);}
+.panel.map{max-width:min(96%, 860px); width:min(96%, 860px);}
+.panel.map .hint{max-width:64ch;}
 .iset{margin:6px 0; padding:6px 8px; border:1px solid rgba(127,214,95,.35); background:rgba(40,60,30,.25);}
 .iset b{display:block; color:#9fe08a; font-weight:normal;}
 .iset small{display:block; color:#8a8470;}
@@ -191,10 +192,10 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
 .talo{display:flex; flex-direction:column; flex:1 1 140px; gap:2px;}
 .talo small{color:#cfc4a8; font-size:12px; line-height:1.25;}
 .talopt.sel{outline:2px solid var(--gold); background:#3a2e14;}
-.mapbox{position:relative; width:100%; max-width:800px; line-height:0; box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--gold-lo);}
+.mapbox{position:relative; width:100%; max-width:800px; max-width:min(800px, max(300px, calc((100dvh - 150px) * 4 / 3))); container-type:inline-size; line-height:0; box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--gold-lo);}
 .mapbox canvas{width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
 .maplabels{position:absolute; inset:0; pointer-events:none; line-height:1;}
-.maplabels span{position:absolute; transform:translate(-50%, -50%); white-space:nowrap; font-family:var(--f-display); font-size:clamp(11px, 2.4vw, 17px); color:#2a1c12; text-shadow:0 0 2px #e8d8b0, 0 0 3px #e8d8b0;}
+.maplabels span{position:absolute; transform:translate(-50%, -50%); white-space:nowrap; font-family:var(--f-display); font-size:clamp(11px, 2.4vw, 17px); font-size:clamp(10px, 2.3cqw, 17px); color:#2a1c12; text-shadow:0 0 2px #e8d8b0, 0 0 3px #e8d8b0;}
 .plate{display:grid; grid-template-columns:auto 1fr; gap:12px 16px; align-items:start;}
 .plate img.fig{width:144px; height:auto; image-rendering:pixelated; background:#b8a47a; box-shadow:0 0 0 2px #8e7a52;}
 .plate img.sword{display:block; width:100%; max-width:220px; height:auto; image-rendering:pixelated; margin:8px 0 4px;}
