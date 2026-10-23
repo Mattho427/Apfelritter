@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 14 von 23: Tjost, Gewölbe, Feste im Jahreslauf.
+/* Der Apfelritter, Teil 14 von 24: Tjost, Gewölbe, Feste im Jahreslauf.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Turnier: Tjost auf der Wiese vor der Reichsstadt ============
    Drei Durchgänge an der Schranke. Kurz vor dem Zusammenprall wandert das Ziel über den Gegner:

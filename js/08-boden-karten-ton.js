@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 8 von 23: Boden, Karten, Ton und Musik.
+/* Der Apfelritter, Teil 8 von 24: Boden, Karten, Ton und Musik.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Boden ============ */
 /* Paletten je Bodenart: 4 Kanäle zu je 12 Tönen (dunkel..hell) */
@@ -1020,7 +1020,7 @@ const MAP_LABELS = ZONES.map(z => ({ x: z.label.x, y: z.label.y, name: z.name })
   { x: 2470, y: 1640, name: 'Mühle' }, { x: 620, y: 1160, name: 'Köhlerei' }, { x: 1360, y: 2640, name: 'Kloster' }, { x: 2966, y: 1810, name: 'Steinbrücke' },
   { x: 5300, y: 1000, name: 'Kaiserdom' }, { x: 5230, y: 1780, name: 'Hafen' }, { x: 5000, y: 1830, name: 'Schiffbrücke' }, { x: 5900, y: 1630, name: 'Zollturm' }, { x: 5300, y: 250, name: 'Wallfahrtskapelle' },
   { x: 1700, y: 4010, name: 'Silberbach' }, { x: 4960, y: 4100, name: 'Quellsee' }, { x: 520, y: 4300, name: 'Teufelsschlucht' }, { x: 940, y: 3520, name: 'Räuberlager' },
-  { x: 2300, y: 4520, name: 'Altenberg-Stollen' }, { x: 5720, y: 4200, name: 'Rübezahls Thron' }, { x: 5180, y: 3800, name: 'Almhütte' }
+  { x: 2300, y: 4470, name: 'Altenberg-Stollen' }, { x: 5720, y: 4200, name: 'Rübezahls Thron' }, { x: 5180, y: 3800, name: 'Almhütte' }
 ]);
 
 /* Startbereich vorbereiten, damit das erste Bild nicht stockt */

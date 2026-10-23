@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 13 von 23: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
+/* Der Apfelritter, Teil 13 von 24: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;

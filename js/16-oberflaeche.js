@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 23: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 24: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();

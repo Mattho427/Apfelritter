@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 7 von 23: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
+/* Der Apfelritter, Teil 7 von 24: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Die Welt: das Reichsland 6144 × 4608, im Süden das Bergland (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
 const wo_T0 = performance.now();
@@ -97,11 +97,11 @@ const ZONES = [
   { id: 'auwald', name: 'Der Auwald', monsters: ['nix', 'werwolf'], label: { x: 5120, y: 2440 } },
   { id: 'piratennest', name: 'Das Piratennest', monsters: ['pirat', 'pschuetze'], label: { x: 5700, y: 1720 } },
   // Das Bergland im Süden (Version 25)
-  { id: 'schwarzwald', name: 'Der Schwarzwald', monsters: ['wolf', 'schrat', 'wegelagerer'], label: { x: 820, y: 3560 } },
+  { id: 'schwarzwald', name: 'Der Schwarzwald', monsters: ['wolf', 'schrat', 'wegelagerer'], label: { x: 1180, y: 3960 } },
   { id: 'annaberg', name: 'Die Bergstadt Annaberg', monsters: [], label: { x: 2900, y: 3300 } },
   { id: 'silberrevier', name: 'Das Silberrevier', monsters: ['kobold', 'grubengeist', 'wegelagerer'], label: { x: 2420, y: 4200 } },
   { id: 'schanze', name: 'Die Söldnerschanze', monsters: ['doppelsoeldner', 'hakenschuetze'], label: { x: 4400, y: 3330 } },
-  { id: 'hochgebirge', name: 'Das Hochgebirge', monsters: ['baer', 'geier', 'eislicht'], label: { x: 5300, y: 4440 } }
+  { id: 'hochgebirge', name: 'Das Hochgebirge', monsters: ['baer', 'geier', 'eislicht'], label: { x: 5250, y: 4320 } }
 ];
 const wo_ZI = {}; ZONES.forEach((z, i) => { wo_ZI[z.id] = i; });
 /* Gebietskerne: Ellipsen [cx, cy, rx, ry] */

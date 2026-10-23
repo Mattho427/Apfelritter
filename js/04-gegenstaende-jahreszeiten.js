@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 4 von 23: Gegenstände und Symbole, Weltgrafiken, Jahreszeiten.
+/* Der Apfelritter, Teil 4 von 24: Gegenstände und Symbole, Weltgrafiken, Jahreszeiten.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Gegenstände: Äpfel, Reichsapfel, Herz, Adler, Siegel, Symbole, Geschosse ============ */
 const bi_I = {
