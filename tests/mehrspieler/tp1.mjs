@@ -1,5 +1,6 @@
 // Mehrspieler über die Zeit: Botenpost, Markt (auch Wettlauf und Verkäufer offline), Länderwettstreit, Ordenshaus
 import { launch, wait, OUT } from './harness.mjs';
+import { zeigeTafel, schliesseTafel } from '../pfad.mjs';
 const H = await launch(3, { init: { fn: () => { window.__wx = 'klar'; }, arg: 0 } });
 await H.start(['Hans', 'Grete', 'Kunz'], ['reich', 'frankreich', 'england']);
 let [A, B, C] = H.pages.map(P => P.p);
@@ -103,7 +104,7 @@ await ev(B, () => { closePanel(); const n = NPCS.find(n => n.id === 'kaemmerer')
 await wait(400); await cab(B, 'ordhaus');
 await ev(B, () => closePanel()); await wait(500); await cab(B, 'ordhaus_welt');
 await ev(B, () => { fameTab = 'laender'; renderFameTab(); });
-await (await B.$('#fameList')).screenshot({ path: OUT + 'as_fame_lw.png' });
+await zeigeTafel(B, '#fameList'); await (await B.$('#fameList')).screenshot({ path: OUT + 'as_fame_lw.png' }); await schliesseTafel(B);
 console.log('Dokument Hans:', JSON.stringify(H.DBS.get('heroes/user0')).length, 'Bytes');
 console.log(H.errors().join('\n') || 'keine Fehler');
 await H.done();

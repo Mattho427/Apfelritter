@@ -1,4 +1,4 @@
-import { chromium, ROOT, OUT, GAME, PAGE, MOBILE } from '../pfad.mjs';
+import { chromium, ROOT, OUT, GAME, PAGE, MOBILE, zeigeTafel } from '../pfad.mjs';
 const browser = await chromium.launch();
 const p = await (await browser.newContext({ viewport: { width: 1000, height: 1100 } })).newPage();
 const errs = [];
@@ -59,6 +59,6 @@ for (const id of ['adler', 'krone']){
   await p.waitForTimeout(500);
   await (await p.$('#game')).screenshot({ path: OUT + 'f_ext_' + id + '.png' });
 }
-await (await p.$('.notes')).screenshot({ path: OUT + 'f_notes.png' });
+await zeigeTafel(p); await (await p.$('.notespanel')).screenshot({ path: OUT + 'f_notes.png' });
 console.log(errs.join('\n') || 'keine Fehler');
 await browser.close();

@@ -1,4 +1,5 @@
 import { launch, wait, OUT } from './harness.mjs';
+import { zeigeTafel, schliesseTafel } from '../pfad.mjs';
 const H = await launch(2);
 await H.start(['Hans', 'Grete'], ['reich', 'frankreich']);
 const [A, B] = H.pages.map(P => P.p);
@@ -41,7 +42,7 @@ await A.evaluate(() => closePanel());
 await wait(400); await cab(B, 'or_tag.png');
 await A.evaluate(() => { document.querySelector('[data-ft="orden"]').click(); }); await wait(200);
 console.log('fame orden:', await A.evaluate(() => $('fameList').textContent));
-const note = await A.evaluateHandle(() => document.getElementById('fameList').closest('.note')); await note.asElement().screenshot({ path: OUT + 'or_fame.png' });
+await zeigeTafel(A, '#fameList'); const note = await A.evaluateHandle(() => document.getElementById('fameList').closest('.note')); await note.asElement().screenshot({ path: OUT + 'or_fame.png' }); await schliesseTafel(A);
 console.log('DB', JSON.stringify([...H.DBS].filter(([k]) => k.startsWith('heroes/')).map(([k, v]) => [v.nm, v.oid, v.okz, v.owp, v.ogm, v.ow])));
 console.log(H.errors().join('\n') || 'keine Fehler');
 await H.done();

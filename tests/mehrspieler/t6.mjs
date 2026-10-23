@@ -1,4 +1,5 @@
 import { launch, wait, OUT } from './harness.mjs';
+import { zeigeTafel, schliesseTafel } from '../pfad.mjs';
 const H = await launch(2);
 await H.start(['Hans', 'Grete'], ['reich', 'spanien']);
 const [A, B] = H.pages.map(P => P.p);
@@ -10,8 +11,9 @@ await wait(1500);
 console.log('DB', JSON.stringify([...H.DBS].filter(([k]) => k.startsWith('heroes/')).map(([k, v]) => [v.nm, v.je, v.jw, v.jl, v.fs, v.fk, v.fj, v.fb])));
 for (const t of ['tjost', 'feste']){
   await A.evaluate(t => { document.querySelector('[data-ft="' + t + '"]').click(); }, t); await wait(200);
+  await zeigeTafel(A, '#fameList');
   const note = await A.evaluateHandle(() => document.getElementById('fameList').closest('.note'));
-  await note.asElement().screenshot({ path: OUT + 'fame_' + t + '.png' });
+  await note.asElement().screenshot({ path: OUT + 'fame_' + t + '.png' }); await schliesseTafel(A);
   console.log(t, await A.evaluate(() => $('fameList').textContent));
 }
 console.log('best stein', await B.evaluate(() => JSON.stringify(festBest('stein'))));

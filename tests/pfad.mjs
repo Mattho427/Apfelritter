@@ -15,3 +15,14 @@ fs.rmSync(OUT + 'js', { recursive: true, force: true }); fs.cpSync(path.join(ROO
 export const GAME = url.pathToFileURL(path.join(ROOT, 'index.html')).href;   // die Seite selbst
 export const PAGE = url.pathToFileURL(OUT + 'page.html').href;               // mit UTF-8-Hülle
 export const MOBILE = url.pathToFileURL(OUT + 'mobile.html').href;
+// Die Tafeln liegen im Fenster „Tafeln und Hilfe“: vor einem Bildschirmfoto die Tafel mit dem Element sel öffnen, danach wieder schließen
+export async function zeigeTafel(p, sel){
+  await p.evaluate(sel => {
+    if (typeof openNotes !== 'function') return;
+    openNotes();
+    const n = sel && document.querySelector(sel), note = n && n.closest('.note');
+    if (note) showNote([...document.querySelectorAll('#notes > .note')].indexOf(note));
+  }, sel);
+  await p.waitForTimeout(250);
+}
+export async function schliesseTafel(p){ await p.evaluate(() => { if (typeof closeNotes === 'function' && !$('ovNotes').hidden) closeNotes(); }); }

@@ -1,4 +1,4 @@
-import { chromium, ROOT, OUT, GAME, PAGE, MOBILE } from '../pfad.mjs';
+import { chromium, ROOT, OUT, GAME, PAGE, MOBILE, zeigeTafel } from '../pfad.mjs';
 const browser = await chromium.launch();
 const p = await (await browser.newContext({ viewport: { width: 1000, height: 1100 } })).newPage();
 const errs = [];
@@ -63,6 +63,6 @@ await p.keyboard.press('Escape');
 // Gasthaus: absitzen beim Eintreten
 await p.evaluate(() => { HERO.riding = true; const i = INN_BY.ochse; G.knight.x = i.dx; G.knight.y = i.dy + 2; enterInn(i); });
 console.log('inn riding', await p.evaluate(() => HERO.riding + ' ' + !!G.inside));
-await (await p.$('.notes')).screenshot({ path: OUT + 'h_notes.png' });
+await zeigeTafel(p); await (await p.$('.notespanel')).screenshot({ path: OUT + 'h_notes.png' });
 console.log(errs.join('\n') || 'keine Fehler');
 await browser.close();
