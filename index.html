@@ -484,6 +484,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 .stx b{display:block; font-weight:400; font-size:19px; line-height:1.05;}
 .stx small{display:block; font-size:15px; line-height:1.1; color:var(--parchment-lo);}
 .stx small.cmp{color:#bfae7a;}
+@media (max-width:480px){ .shoprow{grid-template-columns:auto minmax(0, 1fr);} .shoprow > button, .shoprow > .sbtns{grid-column:2; justify-self:start;} }
 .sbtns{display:flex; gap:6px; flex-wrap:wrap; justify-content:end;}
 #btnTalkClose{justify-self:center;}
 .maplabels span small{display:block; font-family:var(--f-body); font-size:.78em; text-align:center; color:#4a3422;}
@@ -772,6 +773,11 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
       <p class="tip">Im Gasthaus wird nicht gekämpft. Hier trefft Ihr andere Ritter, hört Neuigkeiten und stärkt Euch: Eine Speise und ein Getränk wirken zugleich, jeweils 15 Minuten Spielzeit. Beim Wirt mietet Ihr eine Kammer, dann erwacht Ihr nach dem Tod dort.</p>
     </div>
     <div class="note">
+      <h3>Waffenarten</h3>
+      <ul class="list" id="wtList"></ul>
+      <p class="tip">Waffen gibt es als Beute und beim Zeugmeister in der Reichsstadt, gleich neben dem Schmied. Hellebarde, Zweihänder und Armbrust brauchen beide Hände: Wer eine davon führt, legt den Schild ab und verliert dessen Rüstung und Abwehr. Mit der Waffe ändern sich die Fähigkeiten R und F. Die Armbrust zielt von selbst auf den nächsten Gegner in Blickrichtung.</p>
+    </div>
+    <div class="note">
       <h3>Pferde und Schmied</h3>
       <ul class="list" id="horseList"></ul>
       <p class="tip">Pferde verkauft der Stallmeister in der Reichsburg. Mit H sitzt Ihr auf und ab. Im Sattel wird der Hieb zum Lanzenstoß: Das Pferd stürmt vor, die Lanze trifft hart und betäubt. Trifft Euch ein Monster, werft es Euch aus dem Sattel. Der Schmied Wolf am Markt der Reichsstadt härtet Waffen und Rüstungen bis +5.</p>
@@ -892,6 +898,15 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 
 <script>
 "use strict";
+/* Fingerabdruck dieses Skripts: Zwischenspeicher gelten nur für genau diese Fassung */
+const SRC_HASH = (() => { try { const s = document.currentScript ? document.currentScript.textContent : ''; let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return s.length + ':' + h; } catch(e){ return ''; } })();
+/* Bilder der Tafeln unter dem Spiel: erst nach dem Start malen, sichtbare zuerst, der Rest nach und nach */
+const LAZY = { q: [], go: false, io: null };
+try { LAZY.io = new IntersectionObserver(es => { if (LAZY.go) for (const e of es) if (e.isIntersecting) lazyNow(e.target); }, { rootMargin: '300px' }); } catch(e){}
+function lazySrc(im, fn){ if (LAZY.go){ try { im.src = fn(); } catch(e){} return; } im._lz = fn; LAZY.q.push(im); }
+function lazyNow(im){ const fn = im._lz; if (!fn) return; im._lz = null; if (LAZY.io) LAZY.io.unobserve(im); try { im.src = fn(); } catch(e){ console.warn(e); } }
+function lazyPump(){ const t0 = performance.now(); while (LAZY.q.length && performance.now() - t0 < 12) lazyNow(LAZY.q.shift()); if (LAZY.q.length) setTimeout(lazyPump, 40); }
+function lazyStart(){ if (LAZY.go) return; LAZY.go = true; if (LAZY.io) for (const im of LAZY.q) LAZY.io.observe(im); setTimeout(lazyPump, 300); }
 /* ============ Grundlagen (gemeinsam für alle Module) ============ */
 const WW = 6144, WH = 3072;          // Größe der Welt in Weltpixeln
 const WS = 2;                        // Feinpixel je Weltpixel: Weltbilder und Boden in doppelter Auflösung, Spielkoordinaten in Feinpixeln
@@ -1191,8 +1206,12 @@ function kn_upperF(atk){
   else for (let y = 19; y <= 22; y++) kn_seg(g, y, [[5, y === 22 ? 'MHD' : 'LHD']]);
   // linker Arm: Armkachel über dem Schild
   kn_seg(g, 16, [[21, 'KLMD']]);
-  // Schild
-  kn_shield(g, 17, 17, 11, 20, 'front');
+  // Schild, bei zweihändiger Waffe der freie linke Arm
+  if (kn_F.noShield){
+    kn_seg(g, 17, [[21, 'DGLD']]); kn_seg(g, 18, [[21, 'KLDK']]);
+    for (let y = 19; y <= 22; y++) kn_seg(g, y, [[22, y === 22 ? 'DHM' : 'DHL']]);
+    kn_art(g, 21, 23, ['KDDK', 'DHHLD', 'DLHGL', 'DMLLM', '.DK.']);
+  } else kn_shield(g, 17, 17, 11, 20, 'front');
   return g;
 }
 const kn_HAND_F = ['KDDK', 'DLHHD', 'LGHLD', 'MLLMD', '.KD.'];
@@ -1259,11 +1278,11 @@ function kn_upperB(atk){
   if (atk){ kn_line(g, 22, 19, 16, 21, 'L'); kn_line(g, 23, 19, 17, 21, 'M'); }
   else for (let y = 19; y <= 22; y++) kn_seg(g, y, [[21, y === 22 ? 'MHD' : 'LHD']]);
   // linker Arm am Schild: Rückseite aus Holz, Unterarm in den Riemen
-  kn_shield(g, 1, 17, 11, 20, 'back');
+  if (!kn_F.noShield) kn_shield(g, 1, 17, 11, 20, 'back');
   kn_seg(g, 16, [[5, 'KLMD']]);
   for (let y = 17; y <= 24; y++) kn_seg(g, y, [[6, y === 17 ? 'DLGD' : 'LHMD']]);
   kn_seg(g, 25, [[5, 'DLHHD']]); kn_seg(g, 26, [[5, 'MLLMD']]);
-  for (const y of [19, 23]) for (let x = 3; x <= 10; x++) kn_px(g, x, y, x === 3 || x === 10 ? 'A' : 'N');
+  if (!kn_F.noShield) for (const y of [19, 23]) for (let x = 3; x <= 10; x++) kn_px(g, x, y, x === 3 || x === 10 ? 'A' : 'N');
   return g;
 }
 const kn_HAND_B = ['KDDK', 'DLHHD', 'LHHMD', 'MLLMD', '.DK.'];
@@ -1371,12 +1390,13 @@ function kn_swordArmAtkS(S){
 const kn_HAND_S = ['DLHD', 'LGHMD', 'MLLMD', '.KDK'];
 function kn_side(f, m, atk){
   const g = kn_new(), b = kn_BOB[f], U = kn_S(g, m, b), Lg = kn_S(g, m, 0);
-  if (!m) kn_shield(g, 18, 17 + b, 7, 20, 'front', true);                       // ferner Schild vor der Brust
+  if (!m && !kn_F.noShield) kn_shield(g, 18, 17 + b, 7, 20, 'front', true);    // ferner Schild vor der Brust
   else { U.seg(21, [[14, 'MLD']]); U.seg(22, [[15, 'DMD']]); }                 // ferner Schwertarm
   kn_legsS(Lg, ...kn_STRIDE[f]);
   kn_mailS(Lg);
   kn_bodyS(U);
   if (!m){ if (atk) kn_swordArmAtkS(U); else kn_swordArmS(U); }
+  else if (kn_F.noShield) kn_swordArmS(U);                                     // zweihändig: naher Arm frei
   else {                                                                        // naher Schildarm mit Schild
     U.seg(16, [[13, 'LHMD']]); U.seg(17, [[13, 'DLGHD']]);
     kn_shield(g, 5, 17 + b, 10, 20, 'front');
@@ -1610,13 +1630,14 @@ const GEAR_STEEL = [
 const GEAR_PLUME = [null, null, { F:'#1e3a7a', f:'#4a6ac8', g:'#a8c0f4' }, { F:'#4a1e5a', f:'#8a4aa8', g:'#cfa2e8' }, { F:'#8a4a0c', f:'#e0a028', g:'#ffe68a' }];
 const GEAR_RIM = [null, null, 'ar', 'or', 'or'];
 const GEAR_NAME = ['matt geschmiedet', 'blank poliert', 'gebläut', 'geschwärzt mit Messing', 'vergoldet'];
-const lookOf = eq => { const r = it => it ? String(it.r) : 'n'; return r(eq.ruestung) + r(eq.helm) + r(eq.schild) + (eq.waffe ? eq.waffe.b + '' + eq.waffe.r : 'nn'); };
-const LOOK_RE = /^[0-4n]{5}$/;
+const lookOf = eq => { const r = it => it ? String(it.r) : 'n', wt = wtOf(eq.waffe); return r(eq.ruestung) + r(eq.helm) + (WT[wt].hand === 2 ? 'x' : r(eq.schild)) + (eq.waffe ? eq.waffe.b + '' + eq.waffe.r : 'nn') + (wt === 'schwert' ? '' : WT[wt].code); };
+const LOOK_RE = /^[0-4n]{2}[0-4nx][0-4n]{2}[shza]?$/;
 function knightFaction(fid, body){
   const base = KN_FACTIONS[fid] || KN_FACTIONS.reich;
   if (!body) return base;
-  const a = body[0] === 'n' ? 0 : +body[0], h = body[1] === 'n' ? -1 : +body[1], s = body[2] === 'n' ? -1 : +body[2];
+  const a = body[0] === 'n' ? 0 : +body[0], h = body[1] === 'n' ? -1 : +body[1], s = body[2] === 'n' || body[2] === 'x' ? -1 : +body[2];
   const F = Object.create(base);
+  F.noShield = body[2] === 'x';
   F.pal = Object.assign({}, base.pal, GEAR_STEEL[a] || {}, h >= 2 ? GEAR_PLUME[h] : {});
   if (s >= 2) F.rim = GEAR_RIM[s];
   return F;
@@ -1653,6 +1674,93 @@ function swordSet(wl){
 }
 
 
+/* ---------- Hellebarde, Zweihänder, Armbrust: waagrecht nach rechts, Griffpunkt gx/gy, wie das Schwert in 64 Drehungen ---------- */
+const WOOD_C = ['#2a1810', '#4a2c1a', '#6a4426', '#8a5c34'];
+function kn_hellebardeLook(b, r){
+  const C = SW_COL[r], I = C.I, sh = [44, 46, 48, 50, 52][b], grip = 12;
+  const c = canvasOf(sh + 12, 22), g = c.getContext('2d'), cy = 10;
+  const P = (t, q, col) => { g.fillStyle = col; g.fillRect(Math.round(t) + 1, Math.round(cy + q), 1, 1); };
+  // Schaft aus Eschenholz, Eisenschuh am Ende, Lederwicklung am Griff
+  for (let t = 0; t < sh; t++){ P(t, 0, t % 7 === 3 ? WOOD_C[2] : WOOD_C[3]); P(t, 1, WOOD_C[1]); }
+  P(0, 0, I[2]); P(0, 1, I[1]); P(1, 0, I[3]); P(1, 1, I[1]);
+  for (let t = grip - 2; t < grip + 3; t++){ P(t, 0, C.Lr[t % 2 ? 3 : 2]); P(t, 1, C.Lr[t % 2 ? 1 : 0]); }
+  // Schaftfedern: Eisenbänder unter dem Kopf
+  for (let t = sh - 9; t < sh; t++){ P(t, -1, I[2]); P(t, 2, I[1]); }
+  // Beil oben mit sichelförmiger Schneide
+  for (let q = -1; q >= -7; q--){
+    const wide = q <= -5 ? -q - 4 : 0, t0 = sh - 7 - wide, t1 = sh - 1 + Math.round(wide * .5);
+    for (let t = t0; t <= t1; t++) P(t, q, q === -7 ? C.b1 : q === -6 ? (t === t0 || t === t1 ? I[2] : I[4]) : (t === t0 ? I[1] : I[3]));
+  }
+  // Haken unten, Stoßklinge vorn
+  for (let k = 0; k < 4; k++) P(sh - 4 - k, 2 + Math.round(k * .8), k === 3 ? I[1] : I[2]);
+  for (let t = sh; t < sh + 9; t++){ P(t, 0, C.b1); if (t < sh + 6) P(t, 1, C.b2); }
+  P(sh + 9, .5, '#f4f6f7');
+  if (r >= 2) P(sh - 3, -4, '#ffffff');
+  if (C.gem) P(sh - 4, 0, C.gem);
+  return { img: c, gx: grip + 1.5, gy: cy + .5 };
+}
+function kn_zweiLook(b, r){
+  const C = SW_COL[r], I = C.I, grip = [8, 9, 10, 10, 11][b], ric = 4, blade = [28, 31, 34, 36, 38][b], gw = 5;
+  const gEnd = 2 + grip, bl0 = gEnd + 1, tip = bl0 + ric + blade, wq = gw + 2;
+  const c = canvasOf(tip + 4, wq * 2 + 4), g = c.getContext('2d'), cy = wq + 1;
+  const P = (t, q, col) => { g.fillStyle = col; g.fillRect(Math.round(t) + 1, Math.round(cy + q), 1, 1); };
+  // Knauf, lange Hilze
+  for (let q = -1; q <= 2; q++) P(0, q - .5, q < 0 ? I[3] : q < 2 ? I[2] : I[1]);
+  P(1, 0, I[4]); P(1, 1, I[2]);
+  for (let t = 2; t < gEnd; t++){ P(t, 0, t % 2 ? C.Lr[3] : C.Lr[2]); P(t, 1, t % 2 ? C.Lr[1] : C.Lr[0]); }
+  // breite Parierstange mit Enden nach vorn
+  for (let q = -gw; q <= gw + 1; q++) P(gEnd, q, q < 0 ? I[3] : q < 2 ? I[2] : I[1]);
+  P(gEnd + 1, -gw, I[2]); P(gEnd + 2, -gw, I[1]); P(gEnd + 1, gw + 1, I[1]); P(gEnd + 2, gw + 1, I[0]);
+  // Fehlschärfe mit Leder und Parierhaken
+  for (let t = bl0; t < bl0 + ric; t++){ P(t, 0, C.Lr[2]); P(t, 1, C.Lr[0]); }
+  P(bl0 + ric - 1, -1, I[3]); P(bl0 + ric - 1, -2, I[2]); P(bl0 + ric - 1, 2, I[2]); P(bl0 + ric - 1, 3, I[1]);
+  // Klinge drei Pixel breit, beim Flamberg gewellt
+  const wave = b === 3;
+  for (let t = bl0 + ric; t < tip - 5; t++){ const o = wave ? Math.round(Math.sin(t * .9) * .7) : 0; P(t, -1 + o, C.b1); P(t, o, C.b1); P(t, 1 + o, C.b2); }
+  for (let t = tip - 5; t < tip; t++){ P(t, t < tip - 2 ? 0 : .5, C.tip); if (t < tip - 3) P(t, 1, C.b2); }
+  P(tip, .5, '#f4f6f7');
+  if (r >= 2) for (let t = bl0 + ric + 2; t < tip - 6; t += 6) P(t, -1, '#ffffff');
+  if (C.gem) P(gEnd, .5, C.gem);
+  return { img: c, gx: 2 + grip * .55 + 1, gy: cy };
+}
+function kn_armbrustLook(b, r){
+  const C = SW_COL[r], I = C.I, st = [20, 21, 22, 23, 24][b], sp = [6, 7, 7, 8, 8][b];
+  const c = canvasOf(st + 8, sp * 2 + 6), g = c.getContext('2d'), cy = sp + 2;
+  const P = (t, q, col) => { g.fillStyle = col; g.fillRect(Math.round(t) + 1, Math.round(cy + q), 1, 1); };
+  // Säule aus Holz, hinten der breitere Kolben, unten Abzug
+  for (let t = 0; t < st; t++){ P(t, 0, t % 6 === 2 ? WOOD_C[2] : WOOD_C[3]); P(t, 1, WOOD_C[1]); if (t < 6){ P(t, -1, WOOD_C[2]); P(t, 2, WOOD_C[0]); } }
+  P(8, 2, I[2]); P(8, 3, I[1]); P(9, 3, I[1]);
+  // Bolzen in der Rinne mit Federn
+  for (let t = 10; t < st + 2; t++) P(t, -1, t < 12 ? '#c8c0a8' : '#8a6a44');
+  P(st + 2, -1, I[3]); P(st + 3, -1, I[4]);
+  // Bogen quer an der Spitze (Horn oder Stahl), die Enden nach hinten gebogen
+  const pb = st - 2, bow = b >= 2 ? I : ['#3a2a18', '#5a4226', '#7a5a34', '#9a7448', '#b08a5a'];
+  for (let q = -sp; q <= sp + 1; q++){ const bend = Math.round(((q - .5) / sp) ** 2 * 2.5); P(pb - bend, q, bow[3]); P(pb - bend + 1, q, bow[1]); }
+  // Sehne von den Bogenenden zur Nuss
+  for (let q = -sp + 1; q <= sp; q++){ const tt = Math.round(pb - 3 - (sp - Math.abs(q - .5)) * .8); P(tt, q, '#d8d0b8'); }
+  P(12, 0, I[2]);
+  if (r >= 2) P(pb, -sp, '#ffffff');
+  if (C.gem) P(4, 0, C.gem);
+  return { img: c, gx: 7.5, gy: cy + .5 };
+}
+const WEAPON_LOOK = {};
+function weaponSet(wt, wl){
+  if (wt === 'schwert' || !WT[wt]) return swordSet(wl);
+  if (!wl || wl[0] === 'n') wl = '21';
+  const key = wt + wl;
+  return WEAPON_LOOK[key] || (WEAPON_LOOK[key] = (() => {
+    const S = (wt === 'hellebarde' ? kn_hellebardeLook : wt === 'zweihaender' ? kn_zweiLook : kn_armbrustLook)(+wl[0], +wl[1]);
+    return Array.from({ length: 64 }, (_, i) => rotateNN(S.img, i / 64 * Math.PI * 2, S.gx + .5, S.gy + .5));
+  })());
+}
+/* Haltung ohne Hieb: Hellebarde aufrecht, Zweihänder über der Schulter, Armbrust gesenkt in der Hand */
+const WT_CARRY = {
+  hellebarde:  { down: { x: -9, y: -21, a: -1.72, behind: false }, up: { x: 9, y: -21, a: -1.42, behind: true }, right: { x: 4, y: -22, a: -1.3, behind: false }, left: { x: -4, y: -22, a: -1.84, behind: true } },
+  zweihaender: { down: { x: -8, y: -22, a: -1.95, behind: false }, up: { x: 8, y: -22, a: -1.2, behind: true }, right: { x: 2, y: -24, a: -2.1, behind: false }, left: { x: -2, y: -24, a: -1.05, behind: true } },
+  armbrust:    { down: { x: -8, y: -21, a: 2.0, behind: false }, up: { x: 8, y: -21, a: Math.PI - 2.0, behind: true }, right: { x: 1, y: -22, a: 1.2, behind: false }, left: { x: -3, y: -23, a: Math.PI - 1.2, behind: true } }
+};
+/* Armbrust im Anschlag: Griffpunkt je Blickrichtung, gedreht wird nach dem Ziel */
+const XB_AIM = { down: { x: 2, y: -28, behind: false }, up: { x: 5, y: -37, behind: true }, right: { x: 3, y: -23, behind: false }, left: { x: -3, y: -23, behind: true } };
 /* ---------- Zusammensetzen ---------- */
 function kn_frame(grid, handGrid){
   const rows = grid.map(r => r.join(''));
@@ -1726,11 +1834,12 @@ const KN_SETS = {}, KN_LOOKS = {};
 /* Bildersatz eines Ritters: Herkunft und Aussehen der Ausrüstung (look, siehe lookOf) */
 function knightSet(id, look){
   if (!KN_FACTIONS[id]) id = 'reich';
-  if (!look || !LOOK_RE.test(look)) return KN_SETS[id] || (KN_SETS[id] = Object.assign(kn_buildSet(id), { key: id, sword: null, wr: 1 }));
+  if (!look || !LOOK_RE.test(look)) return KN_SETS[id] || (KN_SETS[id] = Object.assign(kn_buildSet(id), { key: id, sword: null, wr: 1, wt: 'schwert' }));
   const key = id + '|' + look;
   if (KN_LOOKS[key]) return KN_LOOKS[key];
   const bk = id + '|' + look.slice(0, 3), body = KN_SETS[bk] || (KN_SETS[bk] = kn_buildSet(id, look.slice(0, 3)));
-  return (KN_LOOKS[key] = Object.assign({}, body, { key: bk, sword: swordSet(look.slice(3)), wr: look[4] === 'n' ? 1 : +look[4] }));
+  const wt = WT_BY_CODE[look[5]] || 'schwert';
+  return (KN_LOOKS[key] = Object.assign({}, body, { key: bk, sword: wt === 'schwert' ? swordSet(look.slice(3, 5)) : weaponSet(wt, look.slice(3, 5)), wr: look[4] === 'n' ? 1 : +look[4], wt }));
 }
 const KNIGHT_SET0 = knightSet('reich');
 const KNIGHT = KNIGHT_SET0.walk, KNIGHT_ATK = KNIGHT_SET0.atk, KNIGHT_HIT = KNIGHT_SET0.hit, KNIGHT_FALL = KNIGHT_SET0.fall, KNIGHT_PLATE = KNIGHT_SET0.plate;
@@ -7513,15 +7622,24 @@ const wp_CACHES = [new Map(), new Map(), new Map(), new Map()];
 const wp_cacheOf = kind => wp_CACHES[seaKey(kind, wp_SEA)].get(kind);
 /* makeProp(kind, seed) -> { img, ax, ay, foot, occl, extra, wins, v }; gleicher seed = gleiches Bild (v Spielart).
    img hat WS-fache Größe (Feinpixel), ax, ay, foot, occl und extra sind in Weltpixeln. */
+/* Beim ersten Besuch werden alle Bilder gemalt und ihre Maße gemerkt (Fuß, Verdeckung, Fenster, Zubehör). Danach stehen die Maße
+   sofort bereit, die Platzierung bleibt gleich, und die Bilder entstehen erst im Hintergrund oder kurz bevor man sie sieht. */
+const PM_KEY = 'apfelritter_pm';
+const PM = (() => { try { const o = JSON.parse(localStorage.getItem(PM_KEY) || 'null'); return o && o.h === SRC_HASH && SRC_HASH ? o.m : null; } catch(e){ return null; } })();
+const PM_NEW = {}, PM_BLANK = new Map();
+const pmBlank = (w, h) => { const k = w + 'x' + h; let c = PM_BLANK.get(k); if (!c){ c = canvasOf(w, h); PM_BLANK.set(k, c); } return c; };
 function makeProp(kind, seed){
   const e = wp_K[kind];
   if (!e){ console.warn('makeProp: unbekannte Art', kind); return null; }
   const n = e[1], sv = Math.floor(Math.abs(+seed || 0) * 977) + Math.floor(Math.abs(+seed || 0));
   const v = Math.floor(wp_h(sv, 11, 4049) * n);
-  const p = wp_paintV(kind, v, wp_SEA);
+  const sk = seaKey(kind, wp_SEA), mk = sk + '|' + kind + '|' + v, done = wp_CACHES[sk].get(kind), m = PM && PM[mk];
+  let p;
+  if (m && !(done && done[v])) p = { img: pmBlank(m.w, m.h), ax: m.ax, ay: m.ay, foot: m.foot, occl: m.occl, extra: m.extra || {}, wins: m.wins, lz: true };
+  else { p = wp_paintV(kind, v, wp_SEA); if (!m) PM_NEW[mk] = { w: p.img.width, h: p.img.height, ax: p.ax, ay: p.ay, foot: p.foot, occl: p.occl, extra: p.extra, wins: p.wins }; }
   const ex = {};
   for (const k in p.extra){ const val = p.extra[k]; ex[k] = Array.isArray(val) ? val.map(q => Object.assign({}, q)) : (val && typeof val === 'object') ? Object.assign({}, val) : val; }
-  return { img: p.img, ax: p.ax, ay: p.ay, foot: p.foot.map(r => r.slice()), occl: p.occl ? p.occl.slice() : null, extra: ex, wins: p.wins, v };
+  return { img: p.img, ax: p.ax, ay: p.ay, foot: p.foot.map(r => r.slice()), occl: p.occl ? p.occl.slice() : null, extra: ex, wins: p.wins, v, lz: !!p.lz };
 }
 /* Bild einer Spielart in einer Jahreszeit: bei Bedarf gemalt, dann behalten */
 function wp_paintV(kind, v, sea){
@@ -8388,7 +8506,7 @@ const wo_PI = [];         // interne Zusatzdaten je Objekt (Fußflächen in Welt
 function wo_add(kind, x, y, P, noCol){
   x = Math.round(x); y = Math.round(y);
   const ex = P.extra || {};
-  const e = { kind, x, y, img: P.img, ax: P.ax, ay: P.ay, wins: P.wins || null, v: P.v,
+  const e = { kind, x, y, img: P.img, ax: P.ax, ay: P.ay, wins: P.wins || null, v: P.v, lz: !!P.lz,
     occl: P.occl ? [x + P.occl[0], y + P.occl[1], x + P.occl[2], y + P.occl[3]] : null,
     apple: !!ex.apples, crown: ex.crown ? { x: x + ex.crown.x, y: y + ex.crown.y } : null, shake: 0, door: ex.door ? x + ex.door.x : null };
   const feet = [];
@@ -10037,14 +10155,18 @@ function wo_store(ci, cj, id){
   if (!wo_WFX.has(key)) wo_WFX.set(key, wo_glints(ci, cj));
   return e;
 }
-const wo_JOBROWS = 16;   // Feinzeilen je Bild beim Vorausrechnen
+const wo_JOBROWS = 8;    // Feinzeilen je Bild beim Vorausrechnen (klein, damit kein Bild stockt)
 function drawGround(g, camX, camY){
   camX = Math.round(camX); camY = Math.round(camY);
   const c0 = Math.max(0, Math.floor(camX / wo_CP)), c1 = Math.min(wo_NCX - 1, Math.floor((camX + W - 1) / wo_CP)), r0 = Math.max(0, Math.floor(camY / wo_CP)), r1 = Math.min(wo_NCY - 1, Math.floor((camY + H - 1) / wo_CP));
-  let made = 0, stale = null;
+  let made = 0, stale = null, miss = null, nMiss = 0;
   const now = performance.now();
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) if (!wo_CACHE.has(r * wo_NCX + c)) nMiss++;
+  const lazy = nMiss > 1 || (G && G.mode === 'title');   // Titelbild, Sprung (Fähre, Neustart): Platzhalter und Häppchen statt Stocken
   for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++){
-    const had = wo_CACHE.has(r * wo_NCX + c), e = wo_chunk(c, r), X = c * wo_CP - camX, Y = r * wo_CP - camY;
+    const X0 = c * wo_CP - camX, Y0 = r * wo_CP - camY;
+    if (lazy && !wo_CACHE.has(r * wo_NCX + c)){ wo_holder(g, c, r, X0, Y0); if (!miss) miss = [c, r]; continue; }
+    const had = wo_CACHE.has(r * wo_NCX + c), e = wo_chunk(c, r), X = X0, Y = Y0;
     if (!had) made++;
     else if (e.s !== wo_GSEA && !stale) stale = [c, r];
     if (e.prev){
@@ -10053,18 +10175,24 @@ function drawGround(g, camX, camY){
       else { g.drawImage(e.prev, X, Y); g.globalAlpha = f; g.drawImage(e.c, X, Y); g.globalAlpha = 1; }
     } else g.drawImage(e.c, X, Y);
   }
+  if (miss){ const t0 = performance.now(), B = G && G.mode === 'title' ? 14 : 22; while (performance.now() - t0 < B){ if (wo_jobStep(miss[0], miss[1])) break; } return; }
   if (made){ wo_JOB = null; return; }
   // sichtbarer Chunk aus der alten Jahreszeit: zuerst und schneller neu malen
   if (stale){ const t0 = performance.now(); while (performance.now() - t0 < 4 && !wo_jobStep(stale[0], stale[1])); return; }
   // vorausschauend höchstens einen Nachbarchunk je Bild vorbereiten, in Streifen
   const cx = Math.floor((camX + W / 2) / wo_CP), cy = Math.floor((camY + H / 2) / wo_CP);
-  for (let d = 1; d <= 2; d++) for (let r = cy - d; r <= cy + d; r++) for (let c = cx - d; c <= cx + d; c++){
+  for (let d = 1, dm = W <= 700 ? 1 : 2; d <= dm; d++) for (let r = cy - d; r <= cy + d; r++) for (let c = cx - d; c <= cx + d; c++){
     if (c < 0 || r < 0 || c >= wo_NCX || r >= wo_NCY) continue;
     const ce = wo_CACHE.get(r * wo_NCX + c);
     if (ce && ce.s === wo_GSEA) continue;
     if (Math.abs(c - cx) < d && Math.abs(r - cy) < d) continue;
     wo_jobStep(c, r); return;
   }
+}
+/* Platzhalter für einen noch nicht gemalten Bodenteil: die kleine Karte, weich vergrößert */
+function wo_holder(g, c, r, X, Y){
+  const s = MINIMAP.width / wo_NCX;
+  g.save(); g.imageSmoothingEnabled = true; g.drawImage(MINIMAP, c * s, r * s, s, s, X, Y, wo_CP, wo_CP); g.restore();
 }
 let wo_JOB = null;
 /* ein Schritt beim Vorausrechnen eines Chunks; true, wenn er fertig ist */
@@ -10245,7 +10373,7 @@ const MAP_LABELS = ZONES.map(z => ({ x: z.label.x, y: z.label.y, name: z.name })
 /* Startbereich vorbereiten, damit das erste Bild nicht stockt */
 (function wo_warm(){
   const cx = START.x - W / 2, cy = START.y - 22 - H / 2;
-  for (let r = Math.max(0, (cy >> 8)); r <= Math.min(wo_NCY - 1, ((cy + H) >> 8)); r++) for (let c = Math.max(0, cx >> 8); c <= Math.min(wo_NCX - 1, (cx + W) >> 8); c++) wo_chunk(c, r);
+  void cx; void cy;   // der Boden entsteht beim ersten Zeichnen in Häppchen (siehe drawGround)
 })();
 const wo_STARTMS = performance.now() - wo_T0;
 
@@ -10449,7 +10577,8 @@ const gZone = (x, y) => zoneAt(Math.floor(x / WS), Math.floor(y / WS));
 const gZid = (x, y) => wo_zid(Math.floor(x / WS), Math.floor(y / WS));
 const GSTART = gPt(START);
 /* Objekte, Feuer und Rauch für das Spiel in Feinpixeln (die Welt behält ihre eigenen Daten für den Boden) */
-const GPROPS = PROPS.map(p => ({ kind: p.kind, x: p.x * WS, y: p.y * WS, img: p.img, ax: p.ax * WS, ay: p.ay * WS,
+if (Object.keys(PM_NEW).length && SRC_HASH){ try { localStorage.setItem(PM_KEY, JSON.stringify({ h: SRC_HASH, m: Object.assign({}, PM || {}, PM_NEW) })); } catch(e){} }
+const GPROPS = PROPS.map(p => ({ kind: p.kind, lz: p.lz, x: p.x * WS, y: p.y * WS, img: p.img, ax: p.ax * WS, ay: p.ay * WS,
   occl: p.occl ? p.occl.map(v => v * WS) : null, apple: p.apple, crown: p.crown ? gPt(p.crown) : null, shake: 0, door: p.door == null ? null : p.door * WS, wins: p.wins, v: p.v, img0: p.img }));
 if (wp_SEA === 3) for (const p of GPROPS) if (p.v == null) p.img = snowCached(p.img0);   // eigene Bauten (Mauern, Meiler) im Winter
 const GFIRES = FIRES.map(f => ({ x: f.x * WS, y: f.y * WS, big: f.big })), GSMOKES = SMOKES.map(gPt);
@@ -10601,6 +10730,54 @@ const AFFIX = {
   block: { suf:'der Wacht',  v: il => 3 + il * .5,  fmt: v => '+' + v + ' % Abwehr', only:'schild' }
 };
 const EPIC_PRE = ['Barbarossas', 'Rolands', 'Siegfrieds', 'Dietrichs', 'Hildebrands', 'Wielands', 'Ottos', 'Rudolfs', 'Maximilians'];
+/* ---------- Waffenarten: Schwert, Hellebarde, Zweihänder, Armbrust ----------
+   dmg Schaden je Treffer (ganzer Hieb), cd Pause zwischen Hieben, reach Reichweite, swing Dauer des Hiebs, arc halber Hiebbogen, hand 2 = ohne Schild */
+const WT = {
+  schwert:     { n: 'Schwert', dmg: 1, cd: 1, reach: 1, swing: 1, arc: 1.45, hand: 1, kb: 1, code: 's', d: 'schnell; mit Schild in der anderen Hand' },
+  hellebarde:  { n: 'Hellebarde', dmg: 1.3, cd: 1.25, reach: 1.5, swing: 1.2, arc: 1.15, hand: 2, kb: 1.5, code: 'h', d: 'trifft auf große Reichweite; zweihändig, ohne Schild' },
+  zweihaender: { n: 'Zweihänder', dmg: 1.75, cd: 1.45, reach: 1.25, swing: 1.3, arc: 1.95, hand: 2, kb: 1.3, code: 'z', d: 'wuchtig und breit, aber langsam; zweihändig, ohne Schild' },
+  armbrust:    { n: 'Armbrust', dmg: 1.55, cd: 1.7, reach: 0, swing: 1, arc: 0, hand: 2, kb: .7, code: 'a', ranged: true, d: 'schießt Bolzen auf Abstand; zweihändig, ohne Schild' }
+};
+const WT_BY_CODE = { s: 'schwert', h: 'hellebarde', z: 'zweihaender', a: 'armbrust' };
+const WT_BASES = {
+  hellebarde: ['Bauernspieß', 'Partisane', 'Glefe', 'Hellebarde', 'Rossschinder'],
+  zweihaender: ['Schlachtschwert', 'Bidenhänder', 'Zweihänder', 'Flamberg', 'Paratschwert'],
+  armbrust: ['Jagdarmbrust', 'Hornbogenarmbrust', 'Stahlarmbrust', 'Windenarmbrust', 'Prunkarmbrust']
+};
+const wtOf = it => it && it.s === 'waffe' && it.wt && WT[it.wt] ? it.wt : 'schwert';
+const baseName = it => it.s === 'waffe' && it.wt && WT_BASES[it.wt] ? WT_BASES[it.wt][it.b] : BASES[it.s][it.b];
+const rollWt = () => { const q = Math.random(); return q < .55 ? null : q < .7 ? 'hellebarde' : q < .85 ? 'zweihaender' : 'armbrust'; };
+const heroWt = () => HERO && HERO.eq ? wtOf(HERO.eq.waffe) : 'schwert';
+const WT_ICON_ROWS = {
+  hellebarde: ['..............4.', '.............45.', '.......33...454.', '......34455.4...', '......345554....', '.......34554....', '.........nm.4...', '........nm......',
+    '.......nm.......', '......nm........', '.....nm.........', '....nm..........', '...nm...........', '..nm............', '.2m.............', '................'],
+  zweihaender: ['..............45', '.............454', '............454.', '...........454..', '..........454...', '.........454....', '........454.....', '.......454......',
+    '..3...454.......', '...3.454........', '....3hh.........', '....hh3.........', '...nm..3........', '..nm............', '.nm.............', 'ii..............'],
+  armbrust: ['................', '..........3.....', '.........w43....', '........w..3....', '.......w...3....', '......w....3....', 'qnnnnnnnnnn34445', 'mmmmmmmmmm.3....',
+    '......w2...3....', '.......w...3....', '........w..3....', '.........w43....', '..........3.....', '................', '................', '................']
+};
+const WT_ICON = {}; for (const w in WT_ICON_ROWS) WT_ICON[w] = bi_icon(WT_ICON_ROWS[w]);
+/* Symbole der Fähigkeiten je Waffe: Linien in ein 16 × 16-Raster, die letzten zwei Punkte als Spitze */
+function wt_rows(base, lines){
+  const R = (base || Array(16).fill('................')).map(r => r.split(''));
+  for (const [x0, y0, x1, y1, c, h] of lines){
+    const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) || 1;
+    for (let i = 0; i <= n; i++){ const x = Math.round(x0 + (x1 - x0) * i / n), y = Math.round(y0 + (y1 - y0) * i / n); if (R[y] && R[y][x] !== undefined) R[y][x] = h && i >= n - 1 ? h[i - n + 1] : c; }
+  }
+  return R.map(r => r.join(''));
+}
+const WT_SKICON = {
+  armbrust: {
+    rund: bi_icon(wt_rows(null, [[1, 14, 14, 12, 'm', '45'], [1, 14, 12, 5, 'm', '45'], [1, 14, 6, 2, 'm', '45'], [1, 14, 2, 14, 'w'], [1, 13, 1, 14, 'w']])),
+    stoss: bi_icon(wt_rows(wt_rows(null, [[5, 6, 5, 10, 'r'], [6, 6, 6, 10, 'R'], [7, 7, 7, 9, 'r'], [10, 6, 10, 10, 'r'], [11, 6, 11, 10, 'R'], [12, 7, 12, 9, 'r']]), [[1, 8, 15, 8, 'm', '45'], [1, 7, 2, 7, 'w'], [1, 9, 2, 9, 'w']]))
+  },
+  hellebarde: { stoss: bi_icon(WT_ICON_ROWS.hellebarde, wt_rows(null, [[3, 15, 7, 11, 'x'], [6, 15, 9, 12, 'y'], [0, 12, 3, 9, 'y']])) },
+  zweihaender: { stoss: bi_icon(WT_ICON_ROWS.zweihaender, wt_rows(null, [[9, 0, 10, 1, 'j'], [14, 5, 15, 6, 'j'], [8, 3, 9, 3, 'i'], [12, 7, 12, 8, 'i'], [11, 0, 11, 0, 'w'], [15, 3, 15, 3, 'w']])) }
+};
+const WT_SKURL = {};
+const wtSkUrl = (w, id) => WT_SKICON[w] && WT_SKICON[w][id] ? WT_SKURL[w + id] || (WT_SKURL[w + id] = urlOf(WT_SKICON[w][id], 3)) : null;
+const WT_URL = {};
+const wtUrl = w => WT_URL[w] || (WT_URL[w] = urlOf(WT_ICON[w], 3));
 const UNIQUES = {
   raubritter: { s:'waffe', n:'Das Reichsschwert', aff:['str', 'crit', 'spd'] },
   lindwurm:   { s:'schild', n:'Drachenschuppenschild', aff:['block', 'arm', 'hp'] },
@@ -10613,15 +10790,16 @@ function makeItem(s, il, r, o){
   o = o || {};
   il = clamp(Math.round(il), 1, 22);
   const b = clamp(Math.floor((il - 1) / 4), 0, 4), R = RARITY[r], it = { s, il, r, b, a:{} };
-  if (s === 'waffe') it.dmg = Math.max(1, Math.round((3 + il * 1.3) * R.m * rand(.94, 1.06)));
+  if (s === 'waffe'){ const wt = o.wt || (o.name ? null : rollWt()); if (wt && wt !== 'schwert' && WT[wt]) it.wt = wt; }   // berühmte Klingen bleiben Schwerter
+  if (s === 'waffe') it.dmg = Math.max(1, Math.round((3 + il * 1.3) * R.m * rand(.94, 1.06) * (it.wt ? WT[it.wt].dmg : 1)));
   else if (ARM_MUL[s]) it.arm = Math.max(1, Math.round((1 + il) * ARM_MUL[s] * R.m * rand(.94, 1.06)));
   let pool = Object.keys(AFFIX).filter(k => !AFFIX[k].only || AFFIX[k].only === s);
   const keys = o.aff ? o.aff.slice() : [], n = R.aff + (s === 'kleinod' ? 1 : 0);
   while (keys.length < n && pool.length){ const k = pick(pool); pool = pool.filter(x => x !== k); keys.push(k); }
   for (const k of keys) it.a[k] = Math.max(1, Math.round(AFFIX[k].v(il) * R.m * rand(.75, 1.1) * (keys.length > 2 ? .85 : 1)));
   if (o.name) it.n = o.name;
-  else if (r === 3) it.n = pick(EPIC_PRE) + ' ' + BASES[s][b];
-  else it.n = BASES[s][b] + (keys.length ? ' ' + AFFIX[keys[0]].suf : '');
+  else if (r === 3) it.n = pick(EPIC_PRE) + ' ' + baseName(it);
+  else it.n = baseName(it) + (keys.length ? ' ' + AFFIX[keys[0]].suf : '');
   if (o.u) it.u = o.u;
   it.v = Math.round((4 + il * 1.6) * [1, 2.2, 5, 11, 25][r]);
   it.id = Date.now().toString(36) + (itemSeq++).toString(36);
@@ -10741,11 +10919,12 @@ const WARE_ICON = (() => {
   };
 })();
 const SLOT_ICON = { waffe:'sword', helm:'helm', ruestung:'heart', schild:'shield', beine:'boot', kleinod:'ring' };
-const iconOf = it => it.s === 'ware' ? WARE_ICON[it.w] : (it.u && UNIQUE_ICON[it.u]) || ICONS[SLOT_ICON[it.s]];
+const iconOf = it => it.s === 'ware' ? WARE_ICON[it.w] : (it.u && UNIQUE_ICON[it.u]) || (it.s === 'waffe' && it.wt && WT_ICON[it.wt]) || ICONS[SLOT_ICON[it.s]];
+const iconKey = it => it.u || it.w || (it.s === 'waffe' && it.wt ? 'w_' + it.wt : it.s);
 /* Auf dem Boden: Symbol mit Kontur in der Farbe der Seltenheit */
 const groundIconCache = new Map();
 function groundIcon(it){
-  const key = (it.u || it.w || it.s) + it.r;
+  const key = iconKey(it) + it.r;
   let c = groundIconCache.get(key);
   if (!c){ c = addOutline(iconOf(it), it.r ? RARITY[it.r].c : '#16120f'); groundIconCache.set(key, c); }
   return c;
@@ -11360,13 +11539,15 @@ let HERO = null;
 /* abgeleitete Werte aus Stufe und Ausrüstung */
 function heroStats(h){
   const L = h.lvl, s = { hp: 30 + 10 * L, dmg: 4 + 1.5 * L, arm: 0, crit: 5, spd: 0, block: 0 };
+  const wtH = WT[wtOf(h.eq.waffe)], two = wtH.hand === 2, wd = h.eq.waffe && h.eq.waffe.dmg || 0;
   for (const slot of SLOTS){
-    const it = h.eq[slot]; if (!it) continue;
+    const it = h.eq[slot]; if (!it || (two && slot === 'schild')) continue;
     if (it.dmg) s.dmg += it.dmg;
     if (it.arm) s.arm += it.arm;
     for (const [k, v] of Object.entries(it.a || {})){ if (k === 'str') s.dmg += v; else s[k] += v; }
   }
-  if (h.eq.schild) s.block += 20;
+  if (h.eq.schild && !two) s.block += 20;
+  if (wtH.dmg !== 1) s.dmg = (s.dmg - wd) * wtH.dmg + wd;   // die ganze Wucht des Hiebs; die Waffe selbst trägt die Art schon in sich
   // Herkunft und Stärkung durch Speis und Trank
   s.regen = 1;
   const fx = [(KN_FACTIONS[h.f] || KN_FACTIONS.reich).bonus].concat([h.food, h.drink].map(b => b && b.t > 0 && FARE_BY[b.id] ? FARE_BY[b.id].fx : null));
@@ -11376,7 +11557,7 @@ function heroStats(h){
   ehStats(h, s);   // Ehrenstufen: je ein halbes Hundertstel Leben und Schaden
   s.hp = Math.round(s.hp);
   s.dmg = Math.round(s.dmg); s.block = Math.min(60, s.block); s.crit = Math.min(50, s.crit);
-  s.cd = .6 / (1 + s.spd / 100);
+  s.cd = .6 / (1 + s.spd / 100) * wtH.cd;
   s.mit = s.arm / (s.arm + 30 + 8 * L);
   return s;
 }
@@ -11843,7 +12024,7 @@ const LIFE_SPOTS = (() => {
       if (R() < .25) add({ k: 'spatz', x: p.x - 40, y: p.y + 50, r: 40, n: [3, 5] });
     }
     if (p.kind === 'stadthaus' && R() < .22) add({ k: R() < .5 ? 'katze' : 'huhn', x: p.x, y: p.y + 60, r: 60, n: [1, 3] });
-    if (p.kind === 'marktstand') add({ p: 'stand', t: ['haendler'], x: p.x + 4, y: p.y - 14, base: p.y, dir: 'down', ware: ware(p.img), n: [1, 1] });
+    if (p.kind === 'marktstand') add({ p: 'stand', t: ['haendler'], x: p.x + 4, y: p.y - 14, base: p.y, dir: 'down', ware: p.v != null ? p.v : ware(p.img), n: [1, 1] });
     if (p.kind === 'muehle') add({ p: 'walk', t: ['knecht'], x: p.x - 80, y: p.y + 60, r: 80, n: [1, 1] });
     if (p.kind === 'kirche' && z === 'stadt') add({ k: 'taube', x: p.x + 40, y: p.y + 80, r: 50, n: [4, 6] });
   }
@@ -12366,7 +12547,7 @@ function seaTick(){
 function seaApply(s){
   SEA.cur = s; SEA.job = null; wo_ICE = s === 3;
   for (const p of GPROPS){
-    p.img = p.v != null ? wp_paintV(p.kind, p.v, s).img : s === 3 ? snowCached(p.img0) : p.img0;
+    p.img = p.v != null ? wp_paintV(p.kind, p.v, s).img : s === 3 ? snowCached(p.img0) : p.img0; p.lz = false;
     if (p.wins && p.wins.length){ const n = nightImg(p.img, p.wins); p.nimg = n.img; p.lights = n.lit.map(([x, y]) => [p.x - p.ax + x, p.y - p.ay + y]); }
   }
   wo_GSEA = s;
@@ -12439,7 +12620,7 @@ function nightImg(img, wins){
   return r;
 }
 for (const p of GPROPS){
-  if (!p.wins || !p.wins.length) continue;
+  if (!p.wins || !p.wins.length || p.lz) continue;
   const n = nightImg(p.img, p.wins);
   p.nimg = n.img; p.lights = n.lit.map(([x, y]) => [p.x - p.ax + x, p.y - p.ay + y]);
 }
@@ -12464,7 +12645,12 @@ function skyLights(cam){
   evLights(v, L);
   for (const f of GFIRES) if (v(f.x, f.y, 260)) L.push([f.x, f.y - 8, f.big ? 300 : 210, 1, 1]);
   for (const inn of INNS) if (v(inn.dx, inn.y, 200)) L.push([inn.dx, inn.y - 30, 150, .85, 1]);
-  for (const p of propsInView(cam)) if (p.lights) for (const [x, y] of p.lights) L.push([x, y, 96, .6, 1]);
+  for (const p of propsInView(cam)) if (p.lights && p.lights.length){
+    if (p.lights.length === 1){ L.push([p.lights[0][0], p.lights[0][1], 96, .6, 1]); continue; }
+    let sx = 0, sy = 0, d = 0; for (const [x, y] of p.lights){ sx += x; sy += y; } sx /= p.lights.length; sy /= p.lights.length;
+    for (const [x, y] of p.lights) d = Math.max(d, Math.hypot(x - sx, y - sy));
+    L.push([sx, sy, 96 + d * .9, Math.min(.85, .6 + p.lights.length * .04), 1]);
+  }
   for (const m of G.mons){
     if (m.k === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 130, .9, 2]);
     if (m.k === 'tod' && m.st !== 'hidden' && v(m.x, m.y, 120)) L.push([m.x, m.y - 30, 90, .4, 3]);
@@ -12496,6 +12682,7 @@ function drawSkyLight(cam){
   const nl = clamp(SKY.night * 1.3, 0, 1);
   for (const [x, y, r, kk, c] of lights){
     const px = (x - cam.x) / 2, py = (y - cam.y) / 2, rr = r / 2, a = kk * (c === 0 ? .55 + .45 * nl : 1);
+    if (px < -rr || py < -rr || px > lw + rr || py > lh + rr) continue;
     const gr = g.createRadialGradient(px, py, 0, px, py, rr);
     gr.addColorStop(0, 'rgba(0,0,0,' + a.toFixed(2) + ')'); gr.addColorStop(.55, 'rgba(0,0,0,' + (a * .55).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = gr; g.fillRect(px - rr, py - rr, rr * 2, rr * 2);
@@ -12507,7 +12694,9 @@ function drawSkyLight(cam){
     ctx.globalCompositeOperation = 'lighter';
     for (const [x, y, r, kk, c] of lights){
       if (!c) continue;
-      const px = x - cam.x, py = y - cam.y, rr = r * .6, gr = ctx.createRadialGradient(px, py, 0, px, py, rr);
+      const px = x - cam.x, py = y - cam.y, rr = r * .6;
+      if (px < -rr || py < -rr || px > W + rr || py > H + rr) continue;
+      const gr = ctx.createRadialGradient(px, py, 0, px, py, rr);
       gr.addColorStop(0, 'rgba(' + LIGHT_COL[c] + ',' + (.2 * kk * nl).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(' + LIGHT_COL[c] + ',0)');
       ctx.fillStyle = gr; ctx.fillRect(px - rr, py - rr, rr * 2, rr * 2);
     }
@@ -13008,16 +13197,16 @@ function bodyCircles(m){
 const vulnerable = m => !m.sub && m.mode !== 'back' && (m.k !== 'tod' || !(m.st === 'hidden' || m.st === 'fade' || (m.st === 'appear' && m.sT > .45)));
 const centerOf = m => { const c = bodyCircles(m)[0]; return { x: c.x, y: c.y }; };
 const gripOf = k => ({ x: k.x + KNIGHT_GRIP[k.dir].x, y: k.y + KNIGHT_GRIP[k.dir].y });
-const reachOf = k => SWORD.len - SWORD.gripBack + 3 + (k.mult > 1.2 ? 4 : 0);
+const reachOf = k => { const w = wtK(k); return (SWORD.len - SWORD.gripBack + 3) * WT[w].reach * (w === 'hellebarde' && k.mult >= 1.75 ? 1.6 : 1) + (k.mult > 1.2 ? 4 : 0); };
 function swingAngle(k){ const p = clamp(1 - k.atkT / k.atkLen, 0, 1), e = 1 - (1 - p) * (1 - p); return k.swA0 + (k.swA1 - k.swA0) * e; }
 const canAct = () => G.mode === 'play' && G.knight.hp > 0 && !G.joust && !G.fgame;
 const canFight = () => canAct() && !G.inside;
 
-function startSwing(k, full, mult, len){
-  const [fx, fy] = DIRV[k.dir], base = Math.atan2(fy, fx);
-  k.atkLen = len; k.atkT = len; k.swing++; k.mult = mult;
+function startSwing(k, full, mult, len, arcO){
+  const [fx, fy] = DIRV[k.dir], base = Math.atan2(fy, fx), arc = arcO || WT[wtK(k)].arc || 1.45;
+  k.atkLen = len; k.atkT = len; k.swing++; k.mult = mult; k.skF = false;
   if (full){ k.swA0 = base - Math.PI; k.swA1 = base + Math.PI; }
-  else { k.swA0 = base - 1.45; k.swA1 = base + 1.45; }
+  else { k.swA0 = base - arc; k.swA1 = base + arc; }
 }
 function attack(){
   if (G.fgame){ fgThrow(); return; }
@@ -13029,7 +13218,8 @@ function attack(){
     return;
   }
   if (k.atkCd > 0 || !canFight() || k.bashT > 0) return;
-  startSwing(k, false, 1, SWING);
+  if (heroWt() === 'armbrust'){ xbShoot(0); k.atkCd = ST.cd; return; }
+  startSwing(k, false, 1, SWING * WT[heroWt()].swing);
   k.atkCd = ST.cd;
   Sound.swing();
 }
@@ -13037,14 +13227,21 @@ function skillRund(){
   const k = G.knight;
   if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 3 || G.cd.rund > 0 || k.bashT > 0) return;
-  startSwing(k, true, 1.4, SWING * 1.4);
-  k.atkCd = Math.max(k.atkCd, SWING * 1.4); G.cd.rund = 6;
+  const w = heroWt();
+  if (w === 'armbrust'){ xbShoot(1); k.atkCd = Math.max(k.atkCd, ST.cd); G.cd.rund = 6; return; }   // Bolzenfächer
+  const zw = w === 'zweihaender', len = SWING * 1.4 * WT[w].swing;
+  startSwing(k, true, zw ? 1.8 : 1.4, len);
+  k.atkCd = Math.max(k.atkCd, len); G.cd.rund = zw ? 7 : 6;
   Sound.swing(); setTimeout(() => Sound.swing(), 120);
 }
 function skillStoss(){
   const k = G.knight;
   if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 6 || G.cd.stoss > 0) return;
+  const w = heroWt();
+  if (w === 'armbrust'){ if (k.bashT > 0) return; xbShoot(2); k.atkCd = Math.max(k.atkCd, ST.cd); G.cd.stoss = 9; return; }   // Durchschuss
+  if (w === 'hellebarde'){ if (k.bashT > 0) return; startSwing(k, false, 1.8, .28, .2); k.skF = true; k.atkCd = Math.max(k.atkCd, .3); G.cd.stoss = 9; Sound.swing(); return; }
+  if (w === 'zweihaender'){ if (k.bashT > 0) return; startSwing(k, false, 2.4, SWING * 1.7, .55); k.skF = true; k.atkCd = Math.max(k.atkCd, SWING * 1.7); G.cd.stoss = 10; Sound.swing(); G.shake = Math.max(G.shake, .12); return; }
   const [fx, fy] = DIRV[k.dir];
   k.bashT = .26; k.bx = fx; k.by = fy; k.bashHit = new Set(); k.atkT = 0;
   G.cd.stoss = 9; Sound.bash();
@@ -13160,13 +13357,15 @@ function sellMeat(){
   updateHud(); markDirty(true);
 }
 function swingHits(){
-  const k = G.knight;
+  const k = G.knight, w = heroWt();
+  if (w === 'armbrust') return;   // die Bolzen treffen selbst (kbTick)
   for (const m of G.mons.slice()){
     if (m.hitBy === k.swing || !vulnerable(m)) continue;
     if (!bodyCircles(m).some(c => inSwing(k, c.x, c.y, c.hr))) continue;
     m.hitBy = k.swing;
     const h = rollHit(k.mult * (m.k === 'raubritter' && m.st === 'stun' ? 1.5 : 1));
-    damage(m, h.dmg, h.crit, 1);
+    if (k.skF && !MON[m.k].boss) m.stunT = Math.max(m.stunT || 0, w === 'zweihaender' ? 1.5 : 1);
+    damage(m, h.dmg, h.crit, WT[w].kb * (k.skF ? 1.6 : 1));
   }
   for (const e of huntTargets(k, 100)){
     const b = huntBody(e);
@@ -13589,6 +13788,7 @@ function update(dt){
   updateLoot(dt);
   if (G.mode === 'play') updateMons(dt);
   if (G.mode === 'play') updateShots(dt);
+  kbTick(dt);
   updateLife(dt);
   skyEvents(dt);
   updateFx(dt);
@@ -14146,6 +14346,7 @@ function updateDungeon(dt){
   peerHits();
   updateLoot(dt);
   if (G.mode === 'play'){ updateMons(dt); updateShots(dt); }
+  kbTick(dt);
   updateFx(dt); updateBossBar(); dgNear();
   if (M.D.group) dgGroupTick(M);
   if (M.D.zb) zbTick(M, dt);
@@ -14318,6 +14519,7 @@ function renderDungeon(){
   for (const it of list) it.d();
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
   for (const s of G.shots) if (s.k === 'bolt') drawShot(s);
+  kbDraw();
   for (const p of G.parts){ if (p.glow) continue; ctx.globalAlpha = p.s ? Math.min(.6, p.life * .5) : .85; ctx.fillStyle = p.c; ctx.fillRect(p.x | 0, p.y | 0, p.s || 1, p.s || 1); }
   ctx.globalAlpha = 1;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -14694,7 +14896,7 @@ function drawFgameUI(){
     : g.kind === 'stein' ? 'Würfe übrig ' + g.tries + ',  bester ' + (g.best ? g.best.toFixed(1).replace('.', ',') : '–') + ' Ellen,  Rekord 12,5' : 'Zeit ' + Math.ceil(g.time) + ',  Lehrbuben ' + g.kids.filter(c => !c.gone).length + ',  getroffen ' + g.got + ' von 10';
   ctx.fillStyle = 'rgba(16,14,20,.62)'; ctx.fillRect(W / 2 - 170, 6, 340, 34);
   drawText(head, W / 2, 9, '#ffd98a'); drawText(info, W / 2, 24, '#ffffff');
-  const btnTxt = touchUI() ? 'Hieb' : 'Leertaste';
+  const btnTxt = touchUI() ? $('btnAtk').textContent : 'Leertaste';
   if (g.kind === 'klettern' && g.st === 'climb'){
     const u = Math.sin(g.ph), w = .5 - g.stage * .06, bx = W - 40, by = H / 2 - 70, bh = 140;
     ctx.fillStyle = OUT; ctx.fillRect(bx - 2, by - 2, 18, bh + 4); ctx.fillStyle = '#4a4650'; ctx.fillRect(bx, by, 14, bh);
@@ -14764,7 +14966,26 @@ function shadow(x, y, w, a){
   ctx.fillRect(x0 + e, y0 - 1, w - e * 2, 1); ctx.fillRect(x0, y0, w, 2); ctx.fillRect(x0 + e, y0 + 2, w - e * 2, 1);
 }
 const underProp = (p, o) => o.y < p.y && o.x > p.occl[0] && o.x < p.occl[2] && o.y > p.occl[1] && o.y < p.occl[3];
+/* Bild einer Requisite nachmalen (aus dem Zwischenspeicher der Maße gesetzt) */
+function propLazy(p){
+  p.lz = false;
+  const q = wp_paintV(p.kind, p.v, SEA.cur);
+  p.img = q.img; p.img0 = q.img;
+  if (p.wins && p.wins.length){ const n = nightImg(p.img, p.wins); p.nimg = n.img; p.lights = n.lit.map(([x, y]) => [p.x - p.ax + x, p.y - p.ay + y]); }
+}
+/* im Hintergrund: fehlende Bilder malen, die nächsten zuerst; je Bild ein paar Millisekunden */
+const PL = { list: null, i: 0, at: null };
+function propPump(budget){
+  if (!PL.list){
+    const k = G.knight, by = new Map(); PL.at = { x: k.x, y: k.y };
+    for (const p of GPROPS) if (p.lz){ const key = p.kind + '|' + p.v, d = Math.hypot(p.x - k.x, p.y - k.y); let e = by.get(key); if (!e){ e = { d, ps: [] }; by.set(key, e); } else if (d < e.d) e.d = d; e.ps.push(p); }
+    PL.list = [...by.values()].sort((a, b) => a.d - b.d); PL.i = 0;
+  }
+  const t0 = performance.now();
+  while (PL.i < PL.list.length && performance.now() - t0 < budget){ for (const p of PL.list[PL.i++].ps) if (p.lz) propLazy(p); }
+}
 function drawProp(p){
+  if (p.lz) propLazy(p);
   const off = p.shake > 0 ? ((G.t * 30 | 0) % 2 ? 1 : -1) : 0;
   const see = G.mode !== 'title' && p.occl && (underProp(p, G.knight) || G.mons.some(m => !MON[m.k].fly && underProp(p, m)));
   const a0 = see ? .45 : 1;
@@ -14827,20 +15048,28 @@ function drawKnightAt(k, set, dead, dieP){
   }
   const f = k.moving ? 1 + ((k.anim | 0) % 4) : 0;
   const hit = k === G.knight && k.inv > .4 && k.inv < .55 + 1e-3;
-  const fr = hit ? (set.hit || KNIGHT_HIT)[k.dir][0] : (k.atkT > 0 ? set.atk : set.walk)[k.dir][f];
+  const wt = set.wt || 'schwert';
+  const fr = hit ? (set.hit || KNIGHT_HIT)[k.dir][0] : (k.atkT > 0 && wt !== 'armbrust' ? set.atk : set.walk)[k.dir][f];
   let sword, behind;
-  if (k.bashT > 0){
+  if (wt === 'armbrust' && !(k.bashT > 0)){
+    const sh = k.atkT > 0, c = (sh ? XB_AIM : WT_CARRY.armbrust)[k.dir], fw = set.walk[k.dir][f], a = sh ? k.swA0 : c.a, rc = sh ? clamp(k.atkT / k.atkLen, 0, 1) * 3 : 0;
+    behind = c.behind;
+    sword = () => {
+      drawSword(ctx, Math.round(k.x + c.x - Math.cos(a) * rc), Math.round(k.y + c.y - Math.sin(a) * rc), a, SW);
+      if (fw.hands) ctx.drawImage(fw.hands, Math.round(k.x - KS.ax), Math.round(k.y - KS.ay));
+    };
+  } else if (k.bashT > 0){
     behind = k.dir !== 'down';
     sword = () => { const c = KNIGHT_CARRY[k.dir]; drawSword(ctx, Math.round(k.x + c.x), Math.round(k.y + c.y), c.a, SW); };
   } else if (k.atkT > 0){
-    const gp = gripOf(k), a = swingAngle(k);
+    const gp = thrustGp(k, wt), a = swingAngle(k);
     behind = k.dir === 'up' || k.dir === 'left' || Math.sin(a) < -.4;
     sword = () => {
       drawTrail(k, gp, a, set.wr); drawSword(ctx, Math.round(gp.x), Math.round(gp.y), a, SW);
       if (k.dir !== 'up') ctx.drawImage(KNIGHT_FIST, Math.round(gp.x - KNIGHT_FIST.width / 2), Math.round(gp.y - KNIGHT_FIST.height / 2));
     };
   } else {
-    const c = KNIGHT_CARRY[k.dir], fw = set.walk[k.dir][f];
+    const c = (WT_CARRY[wt] || KNIGHT_CARRY)[k.dir], fw = set.walk[k.dir][f];
     behind = c.behind;
     sword = () => {
       drawSword(ctx, Math.round(k.x + c.x), Math.round(k.y + c.y), c.a, SW);
@@ -15079,6 +15308,7 @@ function render(){
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
   drawSky(cam);
   for (const s of G.shots) if (s.k === 'bolt') drawShot(s);
+  kbDraw();
   for (const p of G.parts){
     if (p.glow) continue;
     ctx.globalAlpha = p.s ? Math.min(.6, p.life * .5) : .85;
@@ -15189,7 +15419,8 @@ function drawRain(){
 const MM_W = 96, MM_H = 72, MM_S = GW / MINIMAP.width;
 const MM_Z = W >= 800 ? 2 : 1, mmCv = canvasOf(MM_W + 4, MM_H + 4), mmG = mmCv.getContext('2d');
 function drawMiniMap(k, cam){
-  drawMiniMap1(mmG, k, cam, 2, 2);
+  G.mmN = ((G.mmN | 0) + 1) % 3;
+  if (!G.mmN || G.mmK !== HERO) { drawMiniMap1(mmG, k, cam, 2, 2); G.mmK = HERO; }
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(mmCv, Math.round(W - (MM_W + 4) * MM_Z - 6), Math.round(H - (MM_H + 4) * MM_Z - 6), Math.round((MM_W + 4) * MM_Z), Math.round((MM_H + 4) * MM_Z));
 }
@@ -15268,6 +15499,7 @@ function questTarget(){
   }
   return null;
 }
+const QARROW = [];
 function drawQuestArrow(k){
   const t = questTarget(); if (!t) return;
   const dx = t.x - k.x, dy = t.y - k.y;
@@ -15275,14 +15507,19 @@ function drawQuestArrow(k){
   const a = Math.atan2(dy, dx), c = Math.cos(a), s = Math.sin(a);
   const sc = Math.min((W / 2 - 30) / Math.abs(c || 1e-6), (H / 2 - 30) / Math.abs(s || 1e-6));
   const cx = Math.round(W / 2 + c * sc), cy = Math.round(H / 2 + s * sc);
-  const pulse = (G.t * 3 | 0) % 2;
-  for (let y = -16; y <= 16; y++) for (let x = -16; x <= 16; x++){
-    const u = (x * c + y * s) / 1.4, v = (-x * s + y * c) / 1.4;     // u entlang, v quer
-    const inside = u <= 9 && u >= -5 && Math.abs(v) <= (9 - u) * .5;
-    const edge = u <= 9.8 && u >= -5.8 && Math.abs(v) <= (9.8 - u) * .55 + .45;
-    if (inside){ ctx.fillStyle = u > 3 ? (pulse ? '#ffffff' : '#fff0a0') : '#ffd541'; ctx.fillRect(cx + x, cy + y, 1, 1); }
-    else if (edge){ ctx.fillStyle = OUT; ctx.fillRect(cx + x, cy + y, 1, 1); }
+  const pulse = (G.t * 3 | 0) % 2, ai = ((Math.round(a / (Math.PI * 2) * 64) % 64) + 64) % 64, key = ai + pulse * 64;
+  let img = QARROW[key];
+  if (!img){
+    const aq = ai / 64 * Math.PI * 2, qc = Math.cos(aq), qs = Math.sin(aq), cg = (img = QARROW[key] = canvasOf(33, 33)).getContext('2d');
+    for (let y = -16; y <= 16; y++) for (let x = -16; x <= 16; x++){
+      const u = (x * qc + y * qs) / 1.4, v = (-x * qs + y * qc) / 1.4;     // u entlang, v quer
+      const inside = u <= 9 && u >= -5 && Math.abs(v) <= (9 - u) * .5;
+      const edge = u <= 9.8 && u >= -5.8 && Math.abs(v) <= (9.8 - u) * .55 + .45;
+      if (inside){ cg.fillStyle = u > 3 ? (pulse ? '#ffffff' : '#fff0a0') : '#ffd541'; cg.fillRect(x + 16, y + 16, 1, 1); }
+      else if (edge){ cg.fillStyle = OUT; cg.fillRect(x + 16, y + 16, 1, 1); }
+    }
   }
+  ctx.drawImage(img, cx - 16, cy - 16);
   drawText(t.label, clamp(cx - c * 30, 60, W - 60), clamp(cy - s * 24 - 6, 6, H - 18), '#ffd541');
 }
 
@@ -15339,9 +15576,11 @@ document.querySelectorAll('[data-seal]').forEach(im => { im.src = SEAL_URL; });
 const ICON_URL = {};
 for (const [name, c] of Object.entries(ICONS)) ICON_URL[name] = urlOf(c, 3);
 const NPC_URL = {};
-for (const n of NPCS) NPC_URL[n.id] = urlOf(n.art.frames[0], 3);
+for (const n of NPCS) Object.defineProperty(NPC_URL, n.id, { configurable: true, enumerable: true,
+  get(){ const v = urlOf(n.art.frames[0], 3); Object.defineProperty(NPC_URL, n.id, { value: v, writable: true, configurable: true, enumerable: true }); return v; },
+  set(v){ Object.defineProperty(NPC_URL, n.id, { value: v, writable: true, configurable: true, enumerable: true }); } });
 const itemUrls = new Map();
-function itemUrl(it){ const key = it.u || it.w || it.s; if (!itemUrls.has(key)) itemUrls.set(key, urlOf(iconOf(it), 3)); return itemUrls.get(key); }
+function itemUrl(it){ const key = iconKey(it); if (!itemUrls.has(key)) itemUrls.set(key, urlOf(iconOf(it), 3)); return itemUrls.get(key); }
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 function btn(label, onClick, cls){ const b = el('button', cls || 'tbtn', label); b.type = 'button'; b.addEventListener('click', e => { e.stopPropagation(); Sound.click(); onClick(); }); return b; }
 
@@ -15367,7 +15606,7 @@ const BEASTS = [
 ];
 for (const [kind, name, desc] of BEASTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name), v = el('span', 'val' + (MON[kind].boss ? ' bad' : ''), MON[kind].boss ? 'Anführer' : '');
-  im.src = urlOf(artOf(kind).idle.r[0].img, 2); im.alt = '';
+  lazySrc(im, () => urlOf(artOf(kind).idle.r[0].img, 2)); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh, v); $('beasts').append(li);
 }
 /* Leben im Reichsland: Tiere und Leute */
@@ -15383,16 +15622,16 @@ for (const [kind, name, desc, person] of [
   ['moench', 'Mönche und Pilger', 'im Klostergarten und unterwegs auf den Straßen', true]
 ]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
-  im.src = urlOf(person ? vkPerson(kind, 0).stand.right : trArt(kind, 0).stand, 2); im.alt = '';
+  lazySrc(im, () => urlOf(person ? vkPerson(kind, 0).stand.right : trArt(kind, 0).stand, 2)); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh); $('lifeList').append(li);
 }
 /* Die Ritter Europas: Tafel und Auswahl beim Anlegen */
 const PLATE_URL = {};
 for (const id of FACTION_IDS){
-  const F = KN_FACTIONS[id], set = knightSet(id);
-  PLATE_URL[id] = urlOf(set.plate, 3);
+  const F = KN_FACTIONS[id];
+  Object.defineProperty(PLATE_URL, id, { configurable: true, enumerable: true, get(){ const v = urlOf(knightSet(id).plate, 3); Object.defineProperty(PLATE_URL, id, { value: v, writable: true, enumerable: true }); return v; } });
   const li = el('li'), im = el('img'), tx = el('div');
-  im.src = PLATE_URL[id]; im.alt = F.knight + ' in Wappenrock und Rüstung';
+  lazySrc(im, () => PLATE_URL[id]); im.alt = F.knight + ' in Wappenrock und Rüstung';
   tx.append(el('b', null, F.knight), el('small', null, F.name + ' · ' + F.ruler), el('span', null, F.desc), el('small', 'bonus', 'Vorteil: ' + F.bonusText + ' · Schlachtruf: „' + F.cry + '“'));
   li.append(im, tx); $('knightList').append(li);
 }
@@ -15401,7 +15640,7 @@ function renderPick(){
   for (const id of FACTION_IDS){
     const F = KN_FACTIONS[id], b = el('button', 'fpick'), im = el('img');
     b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(G.pickF === id));
-    im.src = PLATE_URL[id]; im.alt = '';
+    lazySrc(im, () => PLATE_URL[id]); im.alt = '';
     b.append(im, el('span', null, F.name.replace(/^(Heiliges Römisches |Königreich )/, '')));
     b.addEventListener('click', () => { G.pickF = id; Sound.click(); renderPick(); });
     box.append(b);
@@ -15412,7 +15651,7 @@ function renderPick(){
 /* Pferde: Tafel */
 for (const hid of HORSE_IDS){
   const h = HORSES[hid], li = el('li'), im = el('img'), wh = el('span', 'what', h.name);
-  im.src = urlOf(horseSet(hid, 'reich').right[4].under, 1); im.alt = ''; im.className = 'horseimg';
+  lazySrc(im, () => urlOf(horseSet(hid, 'reich').right[4].under, 1)); im.alt = ''; im.className = 'horseimg';
   wh.append(el('small', null, h.desc));
   li.append(im, wh, el('span', 'val', h.price + ' Gulden'));
   $('horseList').append(li);
@@ -15420,14 +15659,14 @@ for (const hid of HORSE_IDS){
 /* Harnisch, Turnier, Tag und Nacht: Tafeln */
 for (let r = 0; r < 5; r++){
   const li = el('li'), im = el('img'), wh = el('span', 'what', GEAR_NAME[r][0].toUpperCase() + GEAR_NAME[r].slice(1));
-  im.src = urlOf(knightSet('reich', '' + r + r + r + 'nn').walk.down[0].img, 1); im.alt = '';
+  lazySrc(im, () => urlOf(knightSet('reich', '' + r + r + r + 'nn').walk.down[0].img, 1)); im.alt = '';
   wh.append(el('small', null, 'Harnisch, ' + RARITY[r].n + (r >= 2 ? ', mit Federbusch' : '')));
   if (r) wh.style.color = '#' + [1, 3, 5].map(i => Math.round(parseInt(RARITY[r].c.slice(i, i + 2), 16) * .55).toString(16).padStart(2, '0')).join('');   // Farbe der Güte, dunkler fürs Pergament
   li.append(im, wh); $('gearList').append(li);
 }
 for (const f of JOUST_FOES){
-  const li = el('li'), im = el('img'), wh = el('span', 'what', f.name), set = knightSet(f.f, f.look);
-  set.url = set.url || urlOf(set.icon, 3); im.src = set.url; im.alt = '';
+  const li = el('li'), im = el('img'), wh = el('span', 'what', f.name);
+  lazySrc(im, () => { const set = knightSet(f.f, f.look); return set.url || (set.url = urlOf(set.icon, 3)); }); im.alt = '';
   wh.append(el('small', null, 'Stufe ' + f.lvl + ', ' + f.prize + ' Gulden, ' + f.trophy.name));
   li.append(im, wh); $('joustList').append(li);
 }
@@ -15440,7 +15679,7 @@ for (const [ic, name, desc] of [['sonne', 'Morgen, 4 bis 9 Uhr', 'Morgenrot, oft
 /* Feste und Gasthaus: Tafeln */
 for (const f of FESTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', f.name);
-  im.src = urlOf(FEST_ART[f.id] || (FEST_ART[f.id] = np_frames(f.host.o, f.host.pal)).frames[0], 2); im.alt = '';
+  lazySrc(im, () => urlOf(FEST_ART[f.id] || (FEST_ART[f.id] = np_frames(f.host.o, f.host.pal)).frames[0], 2)); im.alt = '';
   wh.append(el('small', null, SEA_NAME[FESTS.indexOf(f)] + ', ' + f.where + '. ' + f.host.name + ' lädt zum ' + f.gameName + ', Preis: ' + f.prize + '.'));
   li.append(im, wh); $('festList').append(li);
 }
@@ -15456,7 +15695,7 @@ for (const [f, name, desc] of [['reich', 'Gruppe', 'bis zu vier Ritter. Erschlä
   ['frankreich', 'Tjost gegen einen Ritter', 'auf der Turnierwiese vor dem Osttor: Wer fordert, reitet die südliche Bahn. Der Sieger bekommt Ehrensold vom Herold und Punkte für die Turnierwertung; Zuschauer sehen oben links den Stand.'],
   ['spanien', 'Handel', 'Gegenstände aus dem Rucksack und Gulden. Getauscht wird erst, wenn beide für genau diese Angebote einverstanden sind.']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
-  im.src = knightUrl(f); im.alt = '';
+  lazySrc(im, () => knightUrl(f)); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh); $('mpList').append(li);
 }
 { const li = el('li'), im = el('img'), wh = el('span', 'what', 'Würfeln gegen einen Ritter');
@@ -15464,16 +15703,16 @@ for (const [f, name, desc] of [['reich', 'Gruppe', 'bis zu vier Ritter. Erschlä
   wh.append(el('small', null, 'im Gasthaus um 5, 20 oder 50 Gulden: beide werfen drei Würfel und dürfen einmal nachwerfen, der bessere Wurf gewinnt den Einsatz des anderen.')); li.append(im, wh); $('mpList').append(li); }
 queueMicrotask(() => {   // Ordensbanner erst, wenn das Ordensmodul geladen ist
 for (const [src, name, desc] of [[orBanner([3, 7, 0]), 'Ritterorden', 'beim Herold gegründet (100 Gulden) mit Namen, Kürzel und Wappen; Ordensritter nehmen andere auf, die vor ihnen stehen. Jede Woche eine gemeinsame Aufgabe mit Ordenslohn, „/o“ vor einer Nachricht schreibt nur an den Orden.'],
-  [knightSet('frankreich').icon, 'Großes Turnier', 'beim Herold ausgerufen: bis zu acht Ritter im K.-o.-System, ein Tjost nach dem anderen. Startgeld 20 Gulden, der Sieger bekommt drei Fünftel des Topfs, beim ersten Mal den Goldenen Turnierhelm.']]){
+  [() => knightSet('frankreich').icon, 'Großes Turnier', 'beim Herold ausgerufen: bis zu acht Ritter im K.-o.-System, ein Tjost nach dem anderen. Startgeld 20 Gulden, der Sieger bekommt drei Fünftel des Topfs, beim ersten Mal den Goldenen Turnierhelm.']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
-  im.src = urlOf(src, 3); im.alt = '';
+  lazySrc(im, () => urlOf(typeof src === 'function' ? src() : src, 3)); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh); $('mpList').append(li);
 }
 });
 for (const [art, name, desc] of [[BOSS_ART.raubritter, 'Überfall auf Lindach', 'jeden Spieltag um 9 Uhr, also alle 24 Minuten: Eine Raubritterbande zieht ins Dorf, das dann nicht mehr sicher ist. Sind genug Räuber vertrieben (je mehr Ritter, desto mehr), stellt sich ihr Hauptmann Eppelein von Gailingen.'],
   [ghostArt(MON_ART.werwolf), 'Die Wilde Jagd', 'jede Spielnacht um 22 Uhr, im Wechsel über dem Finsterwald, dem Moor und dem Galgenberg: der Wilde Jäger mit seinen Geisterhunden. Bis zum Morgengrauen muss er gebannt sein.']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
-  im.src = urlOf(art.idle.r[0].img, 1); im.alt = '';
+  lazySrc(im, () => urlOf(art.idle.r[0].img, 1)); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh); $('evList').append(li);
 }
 /* Nachmittags im Dreitagewechsel (Bilder: Eimer, Rattenkönig, Kaiser) */
@@ -15481,9 +15720,9 @@ queueMicrotask(() => {   // Eimer und Rattenbild sind weiter unten erklärt
   const BK = canvasOf(14, 17); BK.getContext('2d').drawImage(BUCKET, 0, 0);
   for (const [src, name, desc] of [[BK, 'Brand der Reichsstadt', 'jeden dritten Spieltag um 15 Uhr: Acht Häuser fangen nacheinander Feuer. Füllt am Brunnen einen Eimer (E) und löscht am brennenden Haus; je mehr Ritter, desto mehr Eimer braucht ein Feuer.'],
     [null, 'Der Rattenkönig', 'am folgenden Spieltag um 15 Uhr im Dorf am Fluss: Pestratten in Scharen, dann kriecht der Rattenkönig aus dem Kornspeicher. Sein Leben teilen sich alle Kämpfer.'],
-    [knightSet('reich', '44444').icon, 'Der Kaiser kommt', 'am dritten Spieltag um 15 Uhr: Kaiser Karl zieht mit zwei Reichsrittern von der Reichsburg in die Reichsstadt. An drei Stellen lauern Strauchdiebe, der Zug wartet, bis sie vertrieben sind.']]){
+    [() => knightSet('reich', '44444').icon, 'Der Kaiser kommt', 'am dritten Spieltag um 15 Uhr: Kaiser Karl zieht mit zwei Reichsrittern von der Reichsburg in die Reichsstadt. An drei Stellen lauern Strauchdiebe, der Zug wartet, bis sie vertrieben sind.']]){
     const li = el('li'), im = el('img'), wh = el('span', 'what', name);
-    im.src = urlOf(src || MON_ART.ratte.idle.r[0].img, src === BK ? 3 : 2); im.alt = '';
+    lazySrc(im, () => urlOf(typeof src === 'function' ? src() : src || MON_ART.ratte.idle.r[0].img, src === BK ? 3 : 2)); im.alt = '';
     wh.append(el('small', null, desc)); li.append(im, wh); $('evList').append(li);
   } });
 /* Jahreszeiten, Gewölbe, Jagd: Tafeln */
@@ -15500,23 +15739,23 @@ for (const [im0, name, desc] of [[SEA_ICON.bluete, 'Frühling', 'die Apfelbäume
 }
 for (const id of ['krypta', 'keller']){
   const D = DG_DEF[id], li = el('li'), im = el('img'), wh = el('span', 'what', D.name);
-  im.src = urlOf(wp_paintV('abgang', D.style, 1).img, 1); im.alt = ''; im.className = 'horseimg';
+  lazySrc(im, () => urlOf(wp_paintV('abgang', D.style, 1).img, 1)); im.alt = ''; im.className = 'horseimg';
   wh.append(el('small', null, 'Stufe ' + D.lvl[0] + '–' + D.lvl[1] + ', ' + (id === 'krypta' ? 'neben der Klosterkirche' : 'im Hof der Raubritterburg') + '. ' + D.elite.name + ' bewacht ' + D.chest + '.'));
   li.append(im, wh); $('dgList').append(li);
 }
 { const D = DG_DEF.bergwerk, li = el('li'), im = el('img'), wh = el('span', 'what', D.name);
-  im.src = urlOf(wp_paintV('stollen', 0, 1).img, 1); im.alt = ''; im.className = 'horseimg';
+  lazySrc(im, () => urlOf(wp_paintV('stollen', 0, 1).img, 1)); im.alt = ''; im.className = 'horseimg';
   wh.append(el('small', null, 'im Finsterwald, für Gruppen: Die Stufe richtet sich nach dem stärksten Gefährten (ab 8). Zwei Fallgitter öffnen sich nur, wenn zwei Ritter die Hebel in den Seitenstollen zugleich ziehen. Der Bergdrache bewacht ' + D.chest + ', sein Leben teilen sich alle Kämpfer.'));
   li.append(im, wh); $('dgList').append(li); }
 { const D = DG_DEF.zollburg, li = el('li'), im = el('img'), wh = el('span', 'what', D.name);
-  im.src = urlOf(wp_paintV('rad', 0, 1).img, 1); im.alt = ''; im.className = 'horseimg';
+  lazySrc(im, () => urlOf(wp_paintV('rad', 0, 1).img, 1)); im.alt = ''; im.className = 'horseimg';
   wh.append(el('small', null, 'unter dem Zollturm auf der Pirateninsel, für vier Ritter, Stufe 18 bis 22: Zwei Fallgitter heben sich nur, wenn zwei Ritter die Schleusenräder zugleich drehen. Im Thronsaal taucht der Nöck zweimal ab und flutet den Saal; dann müssen zwei Ritter die Schieber an der Nordwand zugleich öffnen, während die anderen den Flutwellen durch die Lücke ausweichen. Wer ihn zum ersten Mal bezwingt, bekommt seine Krone.'));
   li.append(im, wh); $('dgList').append(li); }
 for (const [kind, name, wares] of [['hase', 'Hase', ['hasenbalg', 'wildbret']], ['reh', 'Reh', ['rehfell', 'wildbret']], ['hirsch', 'Hirsch', ['geweih', 'hirschfell', 'wildbret']],
   ['fuchs', 'Fuchs', ['fuchsbalg']], ['wildschwein', 'Wildschwein', ['hauer', 'schwarte', 'wildbret']]]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name + (kind === 'wildschwein' ? ' (wehrt sich)' : ''));
-  im.src = urlOf(trArt(kind, 0).stand, 2); im.alt = '';
-  const sm = el('small'); for (const w of wares){ const ic = el('img'); ic.src = urlOf(WARE_ICON[w], 2); ic.alt = ''; ic.style.cssText = 'width:20px;height:20px;vertical-align:middle;margin-right:2px'; sm.append(ic); }
+  lazySrc(im, () => urlOf(trArt(kind, 0).stand, 2)); im.alt = '';
+  const sm = el('small'); for (const w of wares){ const ic = el('img'); lazySrc(ic, () => urlOf(WARE_ICON[w], 2)); ic.alt = ''; ic.style.cssText = 'width:20px;height:20px;vertical-align:middle;margin-right:2px'; sm.append(ic); }
   sm.append(wares.map(w => WARES[w].n).join(', ')); wh.append(sm);
   li.append(im, wh); $('huntList').append(li);
 }
@@ -15675,6 +15914,7 @@ function renderSkills(){
   set.url = set.url || urlOf(set.icon, 3);
   for (const id of ['stoss', 'ruf']){ const im = document.querySelector('[data-skill="' + id + '"] img'); if (im) im.src = set.url; }
   const rb = document.querySelector('[data-skill="ruf"]'); if (rb) rb.title = 'Schlachtruf „' + F.cry + '“: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer';
+  wtSkillUi();
 }
 const HO_ICON = {};
 function horseIcon(hid){ const c = canvasOf(16, 16), sp = horseSet(hid, HERO ? HERO.f : 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; }
@@ -15763,9 +16003,10 @@ function itemCard(it, compare){
   const box = el('div', 'icard'), head = el('div', 'ihead'), im = el('img');
   im.src = itemUrl(it); im.alt = ''; im.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
   const nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
-  const sub = el('small', null, SLOT_NAME[it.s] + ' · Stufe ' + it.il + ' · ' + RARITY[it.r].n);
+  const sub = el('small', null, (it.s === 'waffe' ? WT[wtOf(it)].n : SLOT_NAME[it.s]) + ' · Stufe ' + it.il + ' · ' + RARITY[it.r].n);
   const tx = el('div'); tx.append(nm, sub); head.append(im, tx); box.append(head);
   const ul = el('ul', 'ilines'); for (const l of itemLines(it)) ul.append(el('li', null, l)); box.append(ul);
+  if (it.s === 'waffe') box.append(el('p', 'idiff', WT[wtOf(it)].n + ': ' + WT[wtOf(it)].d + '.'));
   if (compare){
     const diff = statDiff(it);
     if (diff.length){
@@ -15781,9 +16022,10 @@ function equipFrom(i){
   const it = HERO.inv[i]; if (!it || it.s === 'ware') return;
   const old = HERO.eq[it.s];
   HERO.eq[it.s] = it; HERO.inv[i] = old || null;
+  if (!wtFix(it, i, old)) return;
   refreshStats(); Sound.equip(); updateHud(); markDirty(true);
   G.sel = { from:'eq', slot: it.s };
-  renderBag();
+  renderBag(); renderSkills();
 }
 function unequip(slot){
   const it = HERO.eq[slot], j = HERO.inv.indexOf(null);
@@ -15792,7 +16034,7 @@ function unequip(slot){
   HERO.inv[j] = it; HERO.eq[slot] = null;
   refreshStats(); Sound.equip(); updateHud(); markDirty(true);
   G.sel = { from:'inv', i: j };
-  renderBag();
+  renderBag(); renderSkills();
 }
 function selItem(){
   const s = G.sel; if (!s) return null;
@@ -15968,6 +16210,7 @@ function renderTalk0(view){
     if (n.smith) opts.append(btn('Ausrüstung verbessern', () => renderTalk('smith'), 'opt'));
     if (n.joust) opts.append(btn('Zum Tjost antreten', () => renderTalk('joust'), 'opt'), btn('Großes Turnier' + (tnView() ? ' (' + (tnView().T.st === 'an' ? 'Anmeldung' : 'läuft') + ')' : ''), () => renderTalk('turnier'), 'opt'), btn('Wappenrolle: Ritterorden' + (HERO.or ? ' (' + HERO.or.kz + ')' : ''), () => renderTalk('orden'), 'opt'));
     strTalkOpts(n, opts);
+    wtTalkOpts(n, opts);
     ehTalkOpts(n, opts);
     asTalkOpts(n, opts);
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
@@ -16029,6 +16272,8 @@ function renderTalk0(view){
     turnierView(body, opts);
   } else if (typeof view === 'string' && view.startsWith('orden')){
     ordenView(view, body, opts);
+  } else if (typeof view === 'string' && /^wt[A-Z]/.test(view)){
+    wtView(view, body, opts);
   } else if (typeof view === 'string' && /^eh[A-Z]/.test(view)){
     ehView(view, body, opts);
   } else if (typeof view === 'string' && /^str/.test(view)){
@@ -16530,8 +16775,9 @@ function readPeer(p){
   const sin = INN_BY[s.in] || (typeof s.in === 'string' && /^dg:[a-z]+$/.test(s.in) && DG_DEF[s.in.slice(3)]) ? s.in : 0;   // Gasthaus oder Gewölbe
   if (Math.hypot(q.tx - q.x, q.ty - q.y) > 300 || sin !== (q.in || 0)){ q.x = q.tx; q.y = q.ty; }
   q.dir = DIRV[s.d] ? s.d : 'down'; q.moving = !!s.mv; q.dead = !!s.dead; q.lk = typeof s.lk === 'string' && LOOK_RE.test(s.lk) ? s.lk : ''; q.lance = s.ln ? 1 : 0;
+  q.wt = WT_BY_CODE[q.lk[5]] || 'schwert';
   q.nm = cleanName(s.nm) || 'Ritter'; q.lv = num(s.lv, 1, MAX_LVL, 1) | 0; q.f = KN_FACTIONS[s.f] ? s.f : 'reich'; q.in = sin; q.ride = HORSES[s.ri] && !q.in ? s.ri : null;
-  if (s.sw !== q.sw){ q.sw = s.sw; q.atkLen = num(s.sl, .1, 1, SWING); q.atkT = q.atkLen; q.swA0 = num(s.sa, -10, 10, 0); q.swA1 = num(s.se, -10, 10, 0); q.mult = num(s.m, .5, 2, 1); }
+  if (s.sw !== q.sw){ q.sw = s.sw; q.atkLen = num(s.sl, .1, 1, SWING); q.atkT = q.atkLen; q.swA0 = num(s.sa, -10, 10, 0); q.swA1 = num(s.se, -10, 10, 0); q.mult = num(s.m, .5, 2.5, 1); if (q.wt === 'armbrust') xbPeer(q); }
   netRead(q, p, s);
   return q;
 }
@@ -16663,7 +16909,7 @@ function netRead(q, p, s){
   const obj = v => v && typeof v === 'object' && !Array.isArray(v) ? v : null;
   q.peer = p.peer; q.by = p.by || null; q.z = typeof s.z === 'string' ? s.z.slice(0, 16) : '';
   q.hp = num(s.hp, 0, 100, 100);
-  q.cb = Array.isArray(s.cb) ? [num(s.cb[0], 1, 400, 5), num(s.cb[1], 0, 60, 5)] : [Math.round(4 + q.lv * 2.5), 5];
+  q.cb = Array.isArray(s.cb) ? [num(s.cb[0], 1, 800, 5), num(s.cb[1], 0, 60, 5)] : [Math.round(4 + q.lv * 2.5), 5];
   q.rq = obj(s.q); q.an = obj(s.a); q.jo = obj(s.jo); q.tr = obj(s.tr); q.dc = obj(s.dc); q.ev = obj(s.ev); q.fr = obj(s.fr);
   const pt = obj(s.pt); q.pt = pt && typeof pt.id === 'string' && /^[a-z0-9]{3,12}$/.test(pt.id) ? { id: pt.id, t: +pt.t || 0 } : null;
   q.bz = typeof s.bz === 'string' ? s.bz.slice(0, 2) : '';
@@ -16934,7 +17180,7 @@ function peerHits(){
   const here = hereId();
   for (const q of PEERS.values()){
     if ((q.in || 0) !== here || q.dead) continue;
-    if (q.atkT > 0) for (const m of G.mons.slice()){
+    if (q.atkT > 0 && q.wt !== 'armbrust') for (const m of G.mons.slice()){
       if (!vulnerable(m) || (m.pHit && m.pHit[q.peer] === q.sw)) continue;
       if (!bodyCircles(m).some(c => inSwing(q, c.x, c.y, c.hr))) continue;
       (m.pHit = m.pHit || {})[q.peer] = q.sw;
@@ -17004,11 +17250,11 @@ function cleanItem(o){
   if (!SLOTS.includes(o.s)) return null;
   const il = clamp(o.il | 0, 1, 22), r = clamp(o.r | 0, 0, 4), up = clamp(o.up | 0, 0, 5), M = RARITY[r].m * 1.1 * (1 + .12 * up) + .5;
   const it = { s: o.s, il, r, b: clamp(o.b | 0, 0, 4), a: {} };
-  if (o.s === 'waffe') it.dmg = clamp(o.dmg | 0, 1, Math.round((3 + il * 1.3) * M) + 5);
+  if (o.s === 'waffe'){ if (WT[o.wt] && o.wt !== 'schwert') it.wt = o.wt; it.dmg = clamp(o.dmg | 0, 1, Math.round((3 + il * 1.3) * M * (it.wt ? WT[it.wt].dmg : 1)) + 5); }
   else if (ARM_MUL[o.s]) it.arm = clamp(o.arm | 0, 1, Math.round((1 + il) * ARM_MUL[o.s] * M) + 5);
   let n = 0;
   for (const k in (o.a && typeof o.a === 'object' ? o.a : {})) if (AFFIX[k] && (!AFFIX[k].only || AFFIX[k].only === o.s) && n++ < 4) it.a[k] = clamp(o.a[k] | 0, 1, Math.round(AFFIX[k].v(il) * M) + 3);
-  it.n = cleanText(o.n, 40) || BASES[o.s][it.b];
+  it.n = cleanText(o.n, 40) || baseName(it);
   if (o.u && UNIQUES[o.u]) it.u = o.u;
   it.v = clamp(o.v | 0, 1, Math.round((4 + il * 1.6) * 25 * 3));
   if (up){
@@ -19574,7 +19820,7 @@ ST_CH.push(
 /* Tafel unter dem Spiel: die acht Kapitel */
 for (const [C, who] of ST_CH.map((C, i) => [C, ['bote', 'luther', 'sickingen', 'jaecklein', 'goetz', 'kaspar', 'winzer', 'johann'][i]])){
   const li = el('li'), im = el('img'), wh = el('span', 'what', 'Kapitel ' + C.n + ': ' + C.t);
-  im.src = stPortrait(ST_CAST[who]); im.alt = ''; im.className = 'stimg';
+  lazySrc(im, () => stPortrait(ST_CAST[who])); im.alt = ''; im.className = 'stimg';
   wh.append(el('small', null, C.year + ', ab Stufe ' + C.lvl + '. ' + C.d)); li.append(im, wh); $('stList').append(li);
 }
 
@@ -20117,10 +20363,10 @@ function asFameLw(box){
 queueMicrotask(() => {
   for (const [img, name, desc] of [[NPC_ART.postmeister.frames[0], 'Kaiserliche Post', 'beim Postmeister in der Reichsstadt oder beim Postreiter in der Reichsburg: Briefe an jeden Ritter, auch wenn er gerade nicht spielt, mit bis zu ' + POST_GOLD + ' Gulden und einem Gegenstand als Beilage. Porto ' + PORTO + ' Gulden.'],
     [NPC_ART.marktvogt.frames[0], 'Marktplatz', 'beim Marktvogt in der Reichsstadt: Waren für andere Ritter einstellen und ihre Angebote kaufen. Wer zuerst zahlt, bekommt die Ware; der Verkäufer erhält sein Geld beim nächsten Besuch, die Stadt behält ein Zwanzigstel.'],
-    [knightSet('england').icon, 'Länderwettstreit', 'jede Woche: Alles, was ein Ritter vollbringt, bringt seinem Land Punkte. Die Ritter des Siegerlandes haben in der folgenden Woche +5 % Erfahrung und Gulden und holen beim Herold einen Wochenlohn ab.'],
+    [() => knightSet('england').icon, 'Länderwettstreit', 'jede Woche: Alles, was ein Ritter vollbringt, bringt seinem Land Punkte. Die Ritter des Siegerlandes haben in der folgenden Woche +5 % Erfahrung und Gulden und holen beim Herold einen Wochenlohn ab.'],
     [NPC_ART.kaemmerer.frames[0], 'Ordenshaus', 'beim Ordenskämmerer neben dem Herold: Die Ritter eines Ordens spenden Gulden und bauen ihr Haus in fünf Stufen aus, jede bringt allen einen Vorteil.']]){
     const li = el('li'), im = el('img'), wh = el('span', 'what', name);
-    im.src = urlOf(img, img.width > 20 ? 2 : 3); im.alt = '';
+    lazySrc(im, () => { const c = typeof img === 'function' ? img() : img; return urlOf(c, c.width > 20 ? 2 : 3); }); im.alt = '';
     wh.append(el('small', null, desc)); li.append(im, wh); $('mpList').append(li);
   }
 });
@@ -20824,20 +21070,172 @@ function zbKill(m){
 /* Tafeln: Fische des Stroms, Ehre */
 for (const id of Object.keys(FISH).filter(id => !FISH[id].junk)){
   const F = FISH[id], li = el('li'), im = el('img'), wh = el('span', 'what', F.n);
-  im.src = urlOf(WARE_ICON['f_' + id], 2); im.alt = '';
+  lazySrc(im, () => urlOf(WARE_ICON['f_' + id], 2)); im.alt = '';
   wh.append(el('small', null, F.cm[0] + ' bis ' + F.cm[1] + ' cm' + (F.r === 2 ? ', sehr selten' : F.r ? ', selten' : ''))); li.append(im, wh); $('fishNote').append(li);
 }
 for (const [icon, name, desc] of [[ICONS.eagle, 'Ehrenstufen', 'nach Stufe 20, je ' + ehNeed(0) + ' Erfahrung und mehr'], [ICONS.coin, 'Wochenprüfungen', 'drei Aufgaben je Woche beim Reichsherold in Speyer'],
   [wappenImg('reich'), 'Wappen', Object.keys(WAPPEN).length + ' Wappen, aus Trophäen oder für Ehrenzeichen'], [UNIQUE_ICON.noeck, 'Trophäen', TROPHIES.length + ' Taten im Trophäenbuch'], [ICONS.sword, 'Ehrentitel', Object.keys(HT).length + ' Titel, vom Ehrenritter bis zur Legende']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
-  im.src = urlOf(icon, 2); im.alt = ''; wh.append(el('small', null, desc)); li.append(im, wh); $('ehNote').append(li);
+  lazySrc(im, () => urlOf(icon, 2)); im.alt = ''; wh.append(el('small', null, desc)); li.append(im, wh); $('ehNote').append(li);
 }
 
+
+/* ============ Waffenarten im Kampf: Bolzen, Fähigkeiten je Waffe, Zeugmeister ============
+   Die Armbrust schießt statt zu hauen; jeder Schuss zählt wie ein Hieb (sw), Mitspieler erzeugen den Bolzen daraus selbst und
+   rechnen ihn wie einen Hieb des anderen. Die Art des Schusses steckt in der Hiebdauer (sl .25 / .26 Fächer / .27 Durchschuss). */
+const wtK = k => k === G.knight ? heroWt() : (k.wt || 'schwert');
+const WT_SKILL = {
+  schwert: { hieb: 'Schwerthieb im Bogen', rund: ['Rundhieb', 'trifft alles rundherum, 140 % Schaden'], stoss: ['Schildstoß', 'Sprung nach vorn, betäubt, wehrt Geschosse ab'] },
+  hellebarde: { hieb: 'Hieb mit der Hellebarde, trifft weit', rund: ['Weiter Schwung', 'die Hellebarde kreist weit um Euch, 140 % Schaden'], stoss: ['Hellebardenstoß', 'langer Stoß nach vorn, 180 % Schaden, wirft zurück und betäubt'] },
+  zweihaender: { hieb: 'Hieb mit dem Zweihänder, breit und schwer', rund: ['Wirbelhieb', 'der Zweihänder kreist um Euch, 180 % Schaden'], stoss: ['Mordschlag', 'schwerer Schlag nach vorn, 240 % Schaden, betäubt'] },
+  armbrust: { hieb: 'Bolzen in Blickrichtung, zielt auf den nächsten Gegner davor', rund: ['Bolzenfächer', 'fünf Bolzen zugleich im Fächer, je 75 % Schaden'], stoss: ['Durchschuss', 'ein Bolzen durch alle Gegner hindurch, 220 % Schaden'] }
+};
+/* Fähigkeitenleiste: Namen und Bilder nach der Waffe */
+function wtSkillUi(){
+  const w = heroWt(), S = WT_SKILL[w];
+  for (const id of ['rund', 'stoss']){ const b = document.querySelector('[data-skill="' + id + '"]'); if (!b) continue; b.title = S[id][0] + ': ' + S[id][1]; b.setAttribute('aria-label', S[id][0] + (touchUI() ? '' : ', Taste ' + (id === 'rund' ? 'R' : 'F'))); }
+  const hb = document.querySelector('[data-skill="hieb"]');
+  if (hb){ hb.querySelector('img').src = w === 'schwert' ? ICON_URL.sword : wtUrl(w); hb.title = (w === 'armbrust' ? 'Schuss: ' : 'Hieb: ') + S.hieb; hb.setAttribute('aria-label', (w === 'armbrust' ? 'Schuss' : 'Hieb') + (touchUI() ? '' : ', Leertaste')); }
+  const ab = $('btnAtk'); if (ab){ ab.textContent = w === 'armbrust' ? 'Schuss' : 'Hieb'; ab.setAttribute('aria-label', w === 'armbrust' ? 'Armbrustschuss' : WT[w].n + 'hieb'); }   // große Taste auf dem Handy
+  const ri = document.querySelector('[data-skill="rund"] img'); if (ri) ri.src = wtSkUrl(w, 'rund') || ICON_URL.sweep;
+  const si = document.querySelector('[data-skill="stoss"] img'); if (si && w !== 'schwert') si.src = wtSkUrl(w, 'stoss') || wtUrl(w);
+}
+/* Zweihändig: Schild und Zweihandwaffe schließen einander aus; das andere Stück wandert in den Rucksack */
+function wtFix(it, i, old){
+  if (WT[wtOf(HERO.eq.waffe)].hand !== 2 || !HERO.eq.schild) return true;
+  const other = it.s === 'schild' ? 'waffe' : 'schild', j = HERO.inv.indexOf(null);
+  if (j < 0){
+    HERO.eq[it.s] = old || null; HERO.inv[i] = it;
+    logLine('Eine zweihändige Waffe und ein Schild gehen nicht zusammen, und im Rucksack ist kein Platz für ' + (other === 'schild' ? 'den Schild.' : 'die Waffe.'), '#ff9a8a');
+    Sound.click(); renderBag(); return false;
+  }
+  HERO.inv[j] = HERO.eq[other]; HERO.eq[other] = null;
+  logLine(other === 'schild' ? 'Für die zweihändige Waffe kommt der Schild in den Rucksack.' : 'Für den Schild kommt die zweihändige Waffe in den Rucksack.', '#d8c69c');
+  return true;
+}
+/* ---------- Armbrust: zielen, schießen, Bolzen ---------- */
+function xbAim(k, base){
+  let best = null, bd = 400;
+  for (const m of G.mons){
+    if (!vulnerable(m) || (m.mode === 'idle' && !m.story && m.k === 'irrlicht')) continue;
+    const c = centerOf(m), gp = gripOf(k), dx = c.x - gp.x, dy = c.y - gp.y, d = Math.hypot(dx, dy);
+    if (d > bd) continue;
+    const da = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - base), Math.cos(Math.atan2(dy, dx) - base)));
+    if (da < .62){ bd = d; best = Math.atan2(dy, dx); }
+  }
+  return best == null ? base : best;
+}
+function xbShoot(kind){
+  const k = G.knight, [fx, fy] = DIRV[k.dir], a = kind === 1 ? Math.atan2(fy, fx) : xbAim(k, Math.atan2(fy, fx));   // der Fächer streut in Blickrichtung
+  k.swing++; k.swA0 = k.swA1 = a; k.atkLen = .25 + kind * .01; k.atkT = .25; k.mult = kind === 1 ? .75 : kind === 2 ? 2.2 : 1; k.skF = false;
+  for (const d of kind === 1 ? [-.36, -.18, 0, .18, .36] : [0]) kbFire(k, a + d, k.mult, kind === 2, true);
+  Sound.bolt(); if (kind) G.shake = Math.max(G.shake, .08);
+  G.combatT = 0; sendPresence(true);
+}
+function xbPeer(q){
+  if (typeof samePlace === 'function' && !samePlace(q)) return;
+  if (Math.hypot(q.x - G.knight.x, q.y - G.knight.y) > 1200) return;
+  const kind = clamp(Math.round((q.atkLen - .25) * 100), 0, 2);
+  for (const d of kind === 1 ? [-.36, -.18, 0, .18, .36] : [0]) kbFire(q, q.swA0 + d, q.mult, kind === 2, false);
+}
+function kbFire(src, a, mult, pierce, own){
+  const gp = gripOf(src), sp = 430;
+  (G.kbolts = G.kbolts || []).push({ x: gp.x + Math.cos(a) * 16, y: gp.y + Math.sin(a) * 12, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .85, h: src.y - gp.y, mult, pierce, own, src, hit: new Set() });
+}
+function kbTick(dt){
+  const L = G.kbolts; if (!L || !L.length) return;
+  for (let i = L.length - 1; i >= 0; i--){
+    const b = L[i];
+    b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
+    let gone = b.life <= 0 || b.x < 0 || b.y < 0 || b.x > GW || b.y > GH || gBlocked(b.x - 1, b.y + b.h - 2, b.x + 1, b.y + b.h, true);
+    if (!gone) for (const m of G.mons.slice()){
+      if (b.hit.has(m) || !vulnerable(m)) continue;
+      if (!bodyCircles(m).some(c => Math.hypot(c.x - b.x, c.y - b.y) < c.hr + 4)) continue;
+      b.hit.add(m);
+      if (b.own){ const h = rollHit(b.mult); damage(m, h.dmg, h.crit, WT.armbrust.kb); }
+      else { const q = b.src, cb = q.cb || [5, 5], crit = Math.random() * 100 < cb[1]; damage(m, Math.max(1, Math.round(cb[0] * b.mult * rand(.9, 1.1) * (crit ? 1.75 : 1))), crit, WT.armbrust.kb, q); }
+      if (!b.pierce){ gone = true; break; }
+    }
+    if (!gone && b.own && !DG_ON) for (const e of huntTargets({ x: b.x, y: b.y + b.h }, 60)){
+      if (b.hit.has(e)) continue;
+      const hb = huntBody(e); if (Math.hypot(hb.x - b.x, hb.y - b.y) > hb.r + 4) continue;
+      b.hit.add(e); huntHit(e, rollHit(b.mult)); if (!b.pierce){ gone = true; break; }
+    }
+    if (gone){ L.splice(i, 1); burst(b.x, b.y, ['#c8c0a8', '#8a6a44'], 4, 40); }
+  }
+}
+function kbDraw(){
+  const L = G.kbolts; if (!L || !L.length) return;
+  for (const b of L){
+    const a = Math.atan2(b.vy, b.vx), r = BOLT_ROT[((Math.round(a / (Math.PI * 2) * 32) % 32) + 32) % 32];
+    ctx.fillStyle = 'rgba(18,16,22,.3)'; ctx.fillRect(Math.round(b.x) - 2, Math.round(b.y + b.h), 5, 1);
+    ctx.drawImage(r.img, Math.round(b.x - r.ox), Math.round(b.y - r.oy));
+  }
+}
+/* Griffpunkt beim Hellebardenstoß: die Waffe fährt nach vorn */
+function thrustGp(k, wt){
+  const gp = gripOf(k);
+  if (wt !== 'hellebarde' || !(k.mult >= 1.75) || !(k.atkT > 0)) return gp;
+  const p = 1 - k.atkT / k.atkLen, e = Math.sin(Math.min(1, p * 1.4) * Math.PI) * 12, [fx, fy] = DIRV[k.dir];
+  return { x: gp.x + fx * e, y: gp.y + fy * e * .7 };
+}
+
+/* ---------- Zeugmeister in der Reichsstadt: Waffen jeder Art und ein Rat dazu ---------- */
+NPC_ART.zeugmeister = np_frames({ robe: 'short', hat: 'filz', beard: true, belt: true, apron: 'linen', hair: ['h', 'j'] }, { 1: '#3a2418', 2: '#523424', 3: '#6c4632', 4: '#885a40', 5: '#2a2a30', 6: '#3a3a42', 7: '#4e4e58', 8: '#62626e' });
+{ const at = gNear(3060, 2392);
+  NPCS.push({ id: 'zeugmeister', key: 'zeugmeister', name: 'Zeugmeister Wolf Behaim', role: 'Waffen', hub: 'stadt', x: at.x, y: at.y, art: NPC_ART.zeugmeister, zeug: true,
+    greet: ['Im Zeughaus der Reichsstadt liegt alles, was ein Kriegsmann braucht: Spieße, Hellebarden, Zweihänder und Armbrüste.', 'Die Schweizer schwören auf die Hellebarde, die Landsknechte auf den Zweihänder. Und die Jäger auf die Armbrust.', 'Ein Zweihänder will zwei Hände, Herr Ritter. Den Schild lasst dann im Rucksack.'] }); }
+function wtTalkOpts(n, opts){
+  if (!n.zeug) return;
+  opts.append(btn('Waffen kaufen', () => renderTalk('wtLaden'), 'opt'), btn('Welche Waffe passt zu mir?', () => renderTalk('wtInfo'), 'opt'));
+}
+function wtView(view, body, opts){
+  const n = G.talk && G.talk.n || NPCS.find(q => q.zeug);
+  if (view === 'wtLaden'){
+    $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden. Jede Art einmal, geschmiedet für einen Ritter Eurer Stufe.';
+    if (!n.wstock || n.wstockLvl !== HERO.lvl || nowS() > n.wstockT){
+      n.wstock = ['schwert', 'hellebarde', 'zweihaender', 'armbrust'].map(wt => makeItem('waffe', HERO.lvl, 1, { wt }));
+      n.wstockLvl = HERO.lvl; n.wstockT = nowS() + 300;
+    }
+    n.wstock.forEach((it, i) => {
+      if (!it) return;
+      const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
+      const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
+      const diff = statDiff(it).map(([nn, d]) => (d > 0 ? '+' : '−') + Math.abs(d) + ' ' + nn).join(', ');
+      t.append(nm, el('small', null, WT[wtOf(it)].n + ' · ' + itemLines(it).join(' · ')), el('small', 'cmp', diff ? 'Statt jetzt: ' + diff : ''));
+      const cost = it.v * 4, b = btn(cost + ' Gulden', () => {
+        const j = HERO.inv.indexOf(null);
+        if (HERO.gold < cost || j < 0) return;
+        HERO.gold -= cost; HERO.inv[j] = it; n.wstock[i] = null; Sound.coin(); logItem('Gekauft: ', it); updateHud(); markDirty(true); renderTalk('wtLaden');
+      }, 'tbtn');
+      b.disabled = HERO.gold < cost || HERO.inv.indexOf(null) < 0;
+      r.append(ic, t, b); body.append(r);
+    });
+    body.append(el('p', 'hint', 'Ausrüsten im Rucksack (I). Eine zweihändige Waffe legt den Schild ab.'));
+    opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn')); body.append(opts); return;
+  }
+  if (view === 'wtInfo'){
+    $('talkText').textContent = 'Jede Waffe kämpft anders, und mit der Waffe ändern sich auch Eure Fähigkeiten R und F.';
+    for (const w of ['schwert', 'hellebarde', 'zweihaender', 'armbrust']){
+      const S = WT_SKILL[w], r = el('div', 'shoprow'), ic = el('img'); ic.src = w === 'schwert' ? ICON_URL.sword : wtUrl(w); ic.alt = '';
+      const t = el('div', 'stx'); t.append(el('b', null, WT[w].n), el('small', null, WT[w].d), el('small', null, 'R: ' + S.rund[0] + ' – ' + S.rund[1] + '. F: ' + S.stoss[0] + ' – ' + S.stoss[1] + '.'));
+      r.append(ic, t); body.append(r);
+    }
+    opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn')); body.append(opts); return;
+  }
+}
+/* Tafel unter dem Spiel */
+for (const w of ['schwert', 'hellebarde', 'zweihaender', 'armbrust']){
+  const S = WT_SKILL[w], li = el('li'), im = el('img'), wh = el('span', 'what', WT[w].n);
+  lazySrc(im, () => w === 'schwert' ? ICON_URL.sword : wtUrl(w)); im.alt = '';
+  wh.append(el('small', null, WT[w].d + '. R: ' + S.rund[0] + ', F: ' + S.stoss[0] + '.')); li.append(im, wh); $('wtList').append(li);
+}
 let last = performance.now();
 function frame(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   update(dt); render();
   if (HERO && G.mode !== 'title'){ updateHp(); updateSkillCd(); }
+  if (!PL.list || PL.i < PL.list.length){ if (PL.at && Math.hypot(G.knight.x - PL.at.x, G.knight.y - PL.at.y) > 1500) PL.list = null; propPump(G.mode === 'title' ? 8 : 4); }
   requestAnimationFrame(frame);
 }
 function boot(){
@@ -20850,7 +21248,7 @@ function boot(){
   showOverlay('ovStart');
   updateZone();
   initCloud();
-  requestAnimationFrame(t => { last = t; frame(t); });
+  requestAnimationFrame(t => { last = t; frame(t); setTimeout(lazyStart, 250); });
 }
 boot();
 
