@@ -177,12 +177,12 @@ const RARITY = [
 const SLOTS = ['waffe', 'helm', 'ruestung', 'schild', 'beine', 'kleinod'];
 const SLOT_NAME = { waffe:'Waffe', helm:'Helm', ruestung:'Rüstung', schild:'Schild', beine:'Beine', kleinod:'Kleinod' };
 const BASES = {
-  waffe: ['Kurzschwert', 'Reitschwert', 'Ritterschwert', 'Langschwert', 'Anderthalbhänder'],
-  helm: ['Lederhaube', 'Eisenhut', 'Beckenhaube', 'Schaller', 'Armet'],
-  ruestung: ['Gambeson', 'Kettenhemd', 'Brigantine', 'Halbharnisch', 'Plattenharnisch'],
-  schild: ['Holzschild', 'Rundschild', 'Tartsche', 'Dreiecksschild', 'Pavese'],
-  beine: ['Lederstiefel', 'Reitstiefel', 'Kettenhosen', 'Beinröhren', 'Beinharnisch'],
-  kleinod: ['Pilgerzeichen', 'Kupferring', 'Silberring', 'Bernsteinamulett', 'Goldkette']
+  waffe: ['Kurzschwert', 'Reitschwert', 'Ritterschwert', 'Langschwert', 'Anderthalbhänder', 'Panzerstecher', 'Kurschwert', 'Kaiserschwert'],
+  helm: ['Lederhaube', 'Eisenhut', 'Beckenhaube', 'Schaller', 'Armet', 'Burgunderhelm', 'Riefelhelm', 'Prunkhelm'],
+  ruestung: ['Gambeson', 'Kettenhemd', 'Brigantine', 'Halbharnisch', 'Plattenharnisch', 'Feldharnisch', 'Riefelharnisch', 'Prunkharnisch'],
+  schild: ['Holzschild', 'Rundschild', 'Tartsche', 'Dreiecksschild', 'Pavese', 'Rondartsche', 'Stechtartsche', 'Prunkschild'],
+  beine: ['Lederstiefel', 'Reitstiefel', 'Kettenhosen', 'Beinröhren', 'Beinharnisch', 'Kuhmaulschuhe', 'Riefelbeinzeug', 'Prunkbeinzeug'],
+  kleinod: ['Pilgerzeichen', 'Kupferring', 'Silberring', 'Bernsteinamulett', 'Goldkette', 'Siegelring', 'Rubinkreuz', 'Vlieskette']
 };
 const ARM_MUL = { helm:.8, ruestung:1.6, schild:1.2, beine:1 };
 const AFFIX = {
@@ -191,13 +191,18 @@ const AFFIX = {
   crit:  { suf:'des Falken', v: il => 1 + il * .22, fmt: v => '+' + v + ' % Volltreffer' },
   spd:   { suf:'des Windes', v: il => 2 + il * .45, fmt: v => '+' + v + ' % Hiebtempo' },
   arm:   { suf:'der Eiche',  v: il => 1 + il * .8,  fmt: v => '+' + v + ' Rüstung' },
-  block: { suf:'der Wacht',  v: il => 3 + il * .5,  fmt: v => '+' + v + ' % Abwehr', only:'schild' }
+  block: { suf:'der Wacht',  v: il => 3 + il * .5,  fmt: v => '+' + v + ' % Abwehr', only:'schild' },
+  // Bergland (ab Gegenstandsstufe 15)
+  xp:    { suf:'des Gelehrten', v: il => 1 + il * .12, fmt: v => '+' + v + ' % Erfahrung', only:'kleinod', min: 15 },
+  gold:  { suf:'des Fuggers', v: il => 2 + il * .25, fmt: v => '+' + v + ' % Gulden', only:'kleinod', min: 15 },
+  holy:  { suf:'des heiligen Georg', v: il => 3 + il * .4, fmt: v => '+' + v + ' % gegen Untote', only:'waffe', min: 15 },
+  leech: { suf:'des Blutegels', v: il => 1 + il * .07, fmt: v => '+' + v + ' % Lebensraub', only:'waffe', min: 15 }
 };
 const EPIC_PRE = ['Barbarossas', 'Rolands', 'Siegfrieds', 'Dietrichs', 'Hildebrands', 'Wielands', 'Ottos', 'Rudolfs', 'Maximilians'];
 /* ---------- Kleine Bibel: in der Nebenhand statt des Schildes ----------
    Liegt im Platz des Schildes (nh: 'bibel'), hat keine Rüstung und keine Abwehr. Dafür gibt sie mehr Leben, schnellere Erholung
    und mehr Schaden gegen Untote und Geister, und F wird zum Gebet, das heilt. */
-const BIB_BASES = ['Abgegriffene kleine Bibel', 'Kleine Bibel', 'Kleine Bibel mit Messingschließe', 'Kleine Bibel mit Goldschnitt', 'Kleine Prachtbibel'];
+const BIB_BASES = ['Abgegriffene kleine Bibel', 'Kleine Bibel', 'Kleine Bibel mit Messingschließe', 'Kleine Bibel mit Goldschnitt', 'Kleine Prachtbibel', 'Kleine Bibel mit Silberbeschlag', 'Kleine Bibel mit Edelsteinen', 'Kaiserliche Prachtbibel'];
 const BIB_UNDEAD = 25, BIB_HEAL = 30, BIB_CD = 15;
 const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1, grubengeist: 1, eislicht: 1, bergmoench: 1 };   // Untote und Geister
 const isBib = it => !!(it && it.s === 'schild' && it.nh === 'bibel');
@@ -218,7 +223,7 @@ const TIERE = { werwolf: 1, wolf: 1, baer: 1, ratte: 1, rabe: 1, geier: 1, lindw
 const MENSCHEN = { pluend: 1, armbrust: 1, pirat: 1, pschuetze: 1, wegelagerer: 1, doppelsoeldner: 1, hakenschuetze: 1, raubritter: 1, rotbart: 1, feldhauptmann: 1 };
 /* Zuschlag gegen diesen Gegner: Bibel und Segen gegen Untote, Meisterschaften je Gegnerart */
 function foeMul(m){
-  let u = UNDEAD[m.k] ? (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0) + (hasTal('geissel') ? 20 : 0) : 0;
+  let u = UNDEAD[m.k] ? (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0) + (hasTal('geissel') ? 20 : 0) + (ST && ST.holy || 0) : 0;
   if (TIERE[m.k] && hasTal('jaeger')) u += 15;
   if (MENSCHEN[m.k] && hasTal('schreck')) u += 15;
   return 1 + u / 100;
@@ -238,9 +243,9 @@ const WT = {
 };
 const WT_BY_CODE = { s: 'schwert', h: 'hellebarde', z: 'zweihaender', a: 'armbrust' };
 const WT_BASES = {
-  hellebarde: ['Bauernspieß', 'Partisane', 'Glefe', 'Hellebarde', 'Rossschinder'],
-  zweihaender: ['Schlachtschwert', 'Bidenhänder', 'Zweihänder', 'Flamberg', 'Paratschwert'],
-  armbrust: ['Jagdarmbrust', 'Hornbogenarmbrust', 'Stahlarmbrust', 'Windenarmbrust', 'Prunkarmbrust']
+  hellebarde: ['Bauernspieß', 'Partisane', 'Glefe', 'Hellebarde', 'Rossschinder', 'Ahlspieß', 'Luzerner Hammer', 'Prunkhellebarde'],
+  zweihaender: ['Schlachtschwert', 'Bidenhänder', 'Zweihänder', 'Flamberg', 'Paratschwert', 'Gassenhauer', 'Ritterbidenhänder', 'Prunkzweihänder'],
+  armbrust: ['Jagdarmbrust', 'Hornbogenarmbrust', 'Stahlarmbrust', 'Windenarmbrust', 'Prunkarmbrust', 'Wallarmbrust', 'Meisterarmbrust', 'Kaiserliche Armbrust']
 };
 const wtOf = it => it && it.s === 'waffe' && it.wt && WT[it.wt] ? it.wt : 'schwert';
 const baseName = it => it.s === 'waffe' && it.wt && WT_BASES[it.wt] ? WT_BASES[it.wt][it.b] : isBib(it) ? BIB_BASES[it.b] : BASES[it.s][it.b];
@@ -285,18 +290,40 @@ const UNIQUES = {
   tatzelwurm: { s:'beine', n:'Tatzelwurmstiefel', aff:['spd', 'hp', 'arm'] },
   bergmoench: { s:'kleinod', n:'Das Grubenlicht des Bergmönchs', aff:['hp', 'crit', 'str'] },
   feldhauptmann: { s:'waffe', n:'Wüsts Bidenhänder', wt:'zweihaender', aff:['str', 'crit', 'spd'] },
-  ruebezahl:  { s:'ruestung', n:'Rübezahls Bergharnisch', aff:['hp', 'arm', 'str'] }
+  ruebezahl:  { s:'ruestung', n:'Rübezahls Bergharnisch', aff:['hp', 'arm', 'str'] },
+  // Fundstücke: sehr selten, bei jedem Gegner ab Stufe 20 (fd: true)
+  eisenhand:  { s:'kleinod', n:'Die eiserne Hand', aff:['str', 'crit', 'leech'], fd: true },
+  kurhut:     { s:'helm', n:'Der Kurfürstenhut', aff:['hp', 'arm', 'xp'], fd: true },
+  fuggerkette:{ s:'kleinod', n:'Die Goldkette der Fugger', aff:['gold', 'hp', 'crit'], fd: true },
+  georgsspiess:{ s:'waffe', wt:'hellebarde', n:'Der Georgsspieß', aff:['holy', 'str', 'crit'], fd: true },
+  maxharnisch:{ s:'ruestung', n:'Kaiser Maximilians Turnierharnisch', aff:['hp', 'arm', 'spd'], fd: true },
+  stechschild:{ s:'schild', n:'Die Stechtartsche des Kaisers', aff:['block', 'arm', 'hp'], fd: true },
+  obersten:   { s:'beine', n:'Die Kuhmaulschuhe des Feldobersten', aff:['spd', 'hp', 'arm'], fd: true }
 };
+const FUNDE = Object.keys(UNIQUES).filter(k => UNIQUES[k].fd);
+/* ---------- Rüstungssätze: Teile mit gleichem Satz geben gemeinsam Boni ---------- */
+const SETS = {
+  riefel: { n: 'Riefelharnisch', d: 'der geriefelte Harnisch im Stil Kaiser Maximilians', parts: { helm: 'Riefelhelm des Kaisers', ruestung: 'Riefelbrust des Kaisers', beine: 'Riefelbeinzeug des Kaisers', schild: 'Riefelrondartsche des Kaisers' },
+    bon: [[2, 'arm', 12, '+12 % Rüstung'], [4, 'hp', 8, '+8 % Leben'], [4, 'dmg', 5, '+5 % Schaden']] },
+  landsknecht: { n: 'Landsknechtstracht', d: 'geschlitzt und gepufft, wie es die Doppelsöldner tragen', parts: { helm: 'Federbarett des Doppelsöldners', ruestung: 'Geschlitztes Wams', beine: 'Pluderhosen des Doppelsöldners', waffe: 'Katzbalger des Doppelsöldners' },
+    bon: [[2, 'spd', 6, '+6 % Hiebtempo'], [4, 'crit', 6, '+6 % Volltreffer'], [4, 'dmg', 8, '+8 % Schaden']] }
+};
+function makeSetItem(set, slot, il){
+  const S = SETS[set], aff = { helm: ['hp', 'arm'], ruestung: ['hp', 'arm'], beine: ['spd', 'hp'], schild: ['block', 'arm'], waffe: ['str', 'crit'] }[slot];
+  const it = makeItem(slot, il, 3, { name: S.parts[slot], aff, wt: slot === 'waffe' ? 'schwert' : undefined });
+  it.set = set; return it;
+}
+const setCount = (h, set) => SLOTS.filter(s => h.eq[s] && h.eq[s].set === set).length;
 let itemSeq = 0;
 function makeItem(s, il, r, o){
   o = o || {};
-  il = clamp(Math.round(il), 1, 22);
-  const b = clamp(Math.floor((il - 1) / 4), 0, 4), R = RARITY[r], it = { s, il, r, b, a:{} };
+  il = clamp(Math.round(il), 1, 32);
+  const b = clamp(Math.floor((il - 1) / 4), 0, 7), R = RARITY[r], it = { s, il, r, b, a:{} };
   if (s === 'waffe'){ const wt = o.wt || (o.name ? null : rollWt()); if (wt && wt !== 'schwert' && WT[wt]) it.wt = wt; }   // berühmte Klingen bleiben Schwerter
   if (s === 'schild'){ const nh = o.nh || (o.name ? null : rollNh()); if (nh === 'bibel') it.nh = nh; }   // manchmal liegt statt des Schildes eine kleine Bibel
   if (s === 'waffe') it.dmg = Math.max(1, Math.round((3 + il * 1.3) * R.m * rand(.94, 1.06) * (it.wt ? WT[it.wt].dmg : 1)));
   else if (ARM_MUL[s] && !it.nh) it.arm = Math.max(1, Math.round((1 + il) * ARM_MUL[s] * R.m * rand(.94, 1.06)));
-  let pool = Object.keys(AFFIX).filter(k => (!AFFIX[k].only || AFFIX[k].only === s) && !(it.nh && k === 'block'));
+  let pool = Object.keys(AFFIX).filter(k => (!AFFIX[k].only || AFFIX[k].only === s) && (!AFFIX[k].min || il >= AFFIX[k].min) && !(it.nh && k === 'block'));
   const keys = o.aff ? o.aff.slice() : it.nh ? ['hp'] : [], n = R.aff + (s === 'kleinod' ? 1 : 0) + (it.nh ? 1 : 0);
   pool = pool.filter(x => !keys.includes(x));
   while (keys.length < n && pool.length){ const k = pick(pool); pool = pool.filter(x => x !== k); keys.push(k); }
@@ -315,7 +342,7 @@ function itemLines(it){
   const out = [];
   if (it.dmg) out.push(it.dmg + ' Schaden');
   if (it.arm) out.push(it.arm + ' Rüstung');
-  for (const [k, v] of Object.entries(it.a || {})) out.push(AFFIX[k].fmt(v));
+  for (const [k, v] of Object.entries(it.a || {})) if (AFFIX[k]) out.push(AFFIX[k].fmt(v));
   if (isBib(it)) out.push('+' + BIB_UNDEAD + ' % gegen Untote');
   return out;
 }
@@ -416,6 +443,11 @@ const WARE_ICON = (() => {
     wildbret: bi_icon(['................', '................', '...........ww...', '..........wxxw..', '..........wxw...', '.........xw.....', '....RRRRx.......', '...RSSSRR.......',
       '..RSSwSSRr......', '..RSSSSRRr......', '..RSSRRRrr......', '..RRRRRrr.......', '...rRRrr........', '....rrr.........', '................', '................']),
     hasenbalg: pelt('y', 'x', '4'), rehfell: pelt('m', 'n', 'p', true), hirschfell: pelt('l', 'm', 'n'), schwarte: pelt('l', 'y', 'm'),
+    wolfspelz: pelt('1', '2', '3'), baerenfell: pelt('l', 'm', 'n', true),
+    silbererz: bi_icon(['................', '................', '................', '......xxx.......', '....xx444xx.....', '...x4w44344x....', '..x44434w444x...', '..x4w4444434x...',
+      '..x34444w444x...', '...x444w4433x...', '...xx3444433x...', '.....xx333xx....', '.......xxx......', '................', '................', '................']),
+    geierfeder: bi_icon(['................', '............nm..', '...........nmm..', '..........nmml..', '.........nmml...', '........nmml....', '.......nmml.....', '......nmml......',
+      '.....nmml.......', '....nmml........', '...nwml.........', '...wl...........', '..w.............', '.w..............', '................', '................']),
     fuchsbalg: bi_icon(['................', '.s.s............', '.sSSs...........', '..sSSSs.........', '...sSwSSs.......', '....sSSSSs......', '.....sSSSSs.....', '......sSSSSs....',
       '.......sSSSs....', '........sSSSs...', '.........sSSws..', '..........sSwws.', '...........swww.', '............ww..', '................', '................']),
     geweih: bi_icon(['................', '.w...........w..', '.q.w.......w.q..', '..qq.q...q.qq...', '...qqq...qqq....', '....qq...qq.....', '..w.qq...qq.w...', '...qqq...qqq....',

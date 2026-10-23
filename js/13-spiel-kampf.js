@@ -558,8 +558,14 @@ const WARES = {
   geweih:     { n:'Hirschgeweih', v: 32, r: 1 },
   fuchsbalg:  { n:'Fuchsbalg', v: 18, r: 1 },
   hauer:      { n:'Keilerhauer', v: 24, r: 1 },
-  schwarte:   { n:'Wildschweinschwarte', v: 11 }
+  schwarte:   { n:'Wildschweinschwarte', v: 11 },
+  // Bergland: Beute von Gegnern
+  silbererz:  { n:'Silbererz', v: 22, r: 1, berg: true },
+  wolfspelz:  { n:'Wolfspelz', v: 16, berg: true },
+  baerenfell: { n:'Bärenfell', v: 42, r: 1, berg: true },
+  geierfeder: { n:'Bartgeierfeder', v: 14, berg: true }
 };
+const MON_WARE = { kobold: ['silbererz', .3], grubengeist: ['silbererz', .2], wolf: ['wolfspelz', .4], baer: ['baerenfell', .5], geier: ['geierfeder', .35] };
 const WARE_MAX = 10;   // Stück je Stapel
 /* hp: Vielfaches des eigenen Schadens; drops: [Ware, Wahrscheinlichkeit]; fight: wehrt sich */
 const HUNT = {
@@ -636,6 +642,7 @@ function swingHits(){
     if (fm !== 1) h.dmg = Math.round(h.dmg * fm);
     if (k.skF && !MON[m.k].boss) m.stunT = Math.max(m.stunT || 0, w === 'zweihaender' ? 1.5 : 1);
     damage(m, h.dmg, h.crit, WT[w].kb * (k.skF ? 1.6 : 1));
+    leech(h.dmg);
   }
   for (const e of huntTargets(k, 100)){
     const b = huntBody(e);
@@ -717,6 +724,12 @@ function bashHits(){
     G.shake = Math.max(G.shake, .15);
   }
 }
+/* Lebensraub: ein Teil des Schadens heilt den Ritter */
+function leech(dmg){
+  if (!ST.leech) return;
+  const k = G.knight, hl = Math.round(dmg * ST.leech / 100); if (hl < 1 || k.hp >= ST.hp) return;
+  k.hp = Math.min(ST.hp, k.hp + hl); if (Math.random() < .3) floatText(k.x, k.y - KS.ay - 2, '+' + hl, '#c8343c', 1);
+}
 function damage(m, dmg, crit, kbMul, src){
   const mine = !src || src === G.knight, k = mine ? G.knight : src, c = centerOf(m);
   if (m.sub){ if (mine && G.t - (m.subMsg || 0) > 1.2){ m.subMsg = G.t; floatText(c.x, c.y - 20, 'unter Wasser', '#9fdcff'); } return; }
@@ -782,6 +795,7 @@ function kill(m){
     const u = UNIQUES[m.k];
     if (first || Math.random() < .2) dropLoot(from, 'item', 0, makeItem(u.s, m.lvl + 1, 4, { name: u.n, aff: u.aff, u: m.k, wt: u.wt }));
     for (let j = 0; j < 2; j++) dropLoot(from, 'item', 0, makeItem(pick(SLOTS), m.lvl, rollRarity(true)));
+    if (BOSSES[m.k] && BOSSES[m.k].lvl >= 22 && Math.random() < .3){ const set = pick(Object.keys(SETS)); dropLoot(from, 'item', 0, makeSetItem(set, pick(Object.keys(SETS[set].parts)), m.lvl)); }   // Anführer im Bergland: Satzteil
     showBanner(m.k === 'tod' ? 'Der Tod weicht' : m.k === 'lindwurm' ? 'Der Lindwurm ist erschlagen' : m.k === 'wels' ? 'Der Waller ist gefangen' : d.name + ' fällt', first ? 'Seine Beute liegt vor dir' : 'Er kehrt wieder');
     logLine((m.k === 'tod' ? 'Der Tod' : d.name) + ' ist bezwungen.', '#ecd27a');
     pushFame();
@@ -789,6 +803,9 @@ function kill(m){
     if (Math.random() < .55) dropLoot(from, 'gold', monGold(m.lvl));
     if (Math.random() < .07) dropLoot(from, 'potion');
     if (Math.random() < .16) dropLoot(from, 'item', 0, makeItem(pick(SLOTS), m.lvl, rollRarity(false)));
+    const mw = MON_WARE[m.k]; if (mw && Math.random() < mw[1]) dropLoot(from, 'item', 0, makeWare(mw[0]));   // Bergland: Erz, Felle, Federn
+    if (m.lvl >= 20 && Math.random() < .004){ const u = UNIQUES[pick(FUNDE)], key = Object.keys(UNIQUES).find(k => UNIQUES[k] === u); dropLoot(from, 'item', 0, makeItem(u.s, m.lvl + 1, 4, { name: u.n, aff: u.aff, u: key, wt: u.wt })); }   // Fundstück
+    if (m.lvl >= 21 && Math.random() < .006){ const set = pick(Object.keys(SETS)); dropLoot(from, 'item', 0, makeSetItem(set, pick(Object.keys(SETS[set].parts)), m.lvl)); }   // Satzteil
   }
   if (m.elite){
     for (let j = 0; j < 3; j++) dropLoot(from, 'gold', monGold(m.lvl) * 2);
@@ -826,7 +843,7 @@ function updateLoot(dt){
 function pickUp(a){
   const k = G.knight;
   if (a.t === 'gold'){
-    const gn = Math.round(a.n * (1 + asGoldBonus()) * (hasTal('beute') ? 1.2 : 1));   // Ruhm des Landes, Ordenshaus, Beutegier
+    const gn = Math.round(a.n * (1 + asGoldBonus()) * (hasTal('beute') ? 1.2 : 1) * (1 + (ST.gold || 0) / 100));   // Ruhm des Landes, Ordenshaus, Beutegier
     HERO.gold += gn; Sound.coin();
     floatText(a.x, a.y - 14, '+' + gn + ' Gulden', '#ffd541');
   } else if (a.t === 'potion'){
@@ -863,7 +880,7 @@ function fullMsg(txt){
 /* ============ Erfahrung und Stufen ============ */
 function gainXp(n){
   if (HERO.mood && HERO.mood.t > 0) n = Math.round(n * 1.1);
-  n = Math.round(n * (1 + asXpBonus()) * (hasTal('lern') ? 1.08 : 1));   // Ruhm des Landes, Ordenshaus, Lernbegier
+  n = Math.round(n * (1 + asXpBonus()) * (hasTal('lern') ? 1.08 : 1) * (1 + (ST.xp || 0) / 100));   // Ruhm des Landes, Ordenshaus, Lernbegier
   if (HERO.lvl >= MAX_LVL){ ehGain(n); return; }   // nach Stufe 30: Ehrenstufen
   HERO.xp += n;
   while (HERO.lvl < MAX_LVL && HERO.xp >= xpNeed(HERO.lvl)){ HERO.xp -= xpNeed(HERO.lvl); HERO.lvl++; levelUp(); }

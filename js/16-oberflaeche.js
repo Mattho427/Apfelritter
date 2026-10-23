@@ -543,7 +543,7 @@ function drawFullMap(){
 function openMap(){ if (G.inside || !openPanel('ovMap')) return; drawFullMap(); $('btnMapClose').focus({ preventScroll: true }); }
 
 /* ---------- Rucksack und Ausrüstung ---------- */
-const STAT_ROWS = [['hp', 'Leben'], ['dmg', 'Schaden'], ['arm', 'Rüstung'], ['crit', '% Volltreffer'], ['spd', '% Hiebtempo'], ['block', '% Abwehr']];
+const STAT_ROWS = [['hp', 'Leben'], ['dmg', 'Schaden'], ['arm', 'Rüstung'], ['crit', '% Volltreffer'], ['spd', '% Hiebtempo'], ['block', '% Abwehr'], ['xp', '% Erfahrung'], ['gold', '% Gulden'], ['holy', '% gegen Untote'], ['leech', '% Lebensraub']];
 function statDiff(it){
   const cur = heroStats(HERO), nxt = heroStats(Object.assign({}, HERO, { eq: Object.assign({}, HERO.eq, { [it.s]: it }) }));
   return STAT_ROWS.map(([k, n]) => [n, nxt[k] - cur[k]]).filter(([, d]) => d);
@@ -553,7 +553,7 @@ function itemCard(it, compare){
     const box = el('div', 'icard'), head = el('div', 'ihead'), im = el('img');
     im.src = itemUrl(it); im.alt = ''; im.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
     const nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
-    const tx = el('div'); tx.append(nm, el('small', null, (WARES[it.w].fish ? 'Fang aus dem Wasser' : 'Handelsware aus der Jagd') + (it.q > 1 ? ', ' + it.q + ' Stück' : ''))); head.append(im, tx); box.append(head);
+    const tx = el('div'); tx.append(nm, el('small', null, (WARES[it.w].fish ? 'Fang aus dem Wasser' : WARES[it.w].berg ? 'Beute aus dem Bergland' : 'Handelsware aus der Jagd') + (it.q > 1 ? ', ' + it.q + ' Stück' : ''))); head.append(im, tx); box.append(head);
     box.append(el('p', 'idiff', WARES[it.w].wirt ? 'Der Krämer kauft es, der Wirt zahlt mehr.' : 'Der Krämer kauft es.'));
     box.append(el('p', 'ival', 'Wert: ' + itemValue(it) + ' Gulden'));
     return box;
@@ -564,6 +564,12 @@ function itemCard(it, compare){
   const sub = el('small', null, (it.s === 'waffe' ? WT[wtOf(it)].n : isBib(it) ? 'Nebenhand' : SLOT_NAME[it.s]) + ' · Stufe ' + it.il + ' · ' + RARITY[it.r].n);
   const tx = el('div'); tx.append(nm, sub); head.append(im, tx); box.append(head);
   const ul = el('ul', 'ilines'); for (const l of itemLines(it)) ul.append(el('li', null, l)); box.append(ul);
+  if (it.set && SETS[it.set]){   // Rüstungssatz: Teile und Boni
+    const S = SETS[it.set], n = setCount(HERO, it.set), p = el('div', 'iset');
+    p.append(el('b', null, 'Satz: ' + S.n + ' (' + n + ' von ' + Object.keys(S.parts).length + ' angelegt)'));
+    for (const [need, , , txt] of S.bon) p.append(el('small', n >= need ? 'on' : '', need + ' Teile: ' + txt));
+    box.append(p);
+  }
   if (it.s === 'waffe') box.append(el('p', 'idiff', WT[wtOf(it)].n + ': ' + WT[wtOf(it)].d + '.'));
   if (isBib(it)) box.append(el('p', 'idiff', 'In der Nebenhand statt des Schildes: keine Rüstung und keine Abwehr, dafür schnellere Erholung, +' + BIB_UNDEAD + ' % Schaden gegen Untote und Geister, und F wird zum Gebet (heilt ' + BIB_HEAL + ' % des Lebens).'));
   if (compare){
@@ -623,7 +629,7 @@ function renderBag0(){
   }
   HERO.inv.forEach((it, i) => { const sb = slotBtn(it, '', () => { G.sel = it ? { from:'inv', i } : null; renderBag(); }, () => equipFrom(i), G.sel && G.sel.from === 'inv' && G.sel.i === i); sb.dataset.slot = 'inv:' + i; grid.append(sb); });
   const st = ST;
-  for (const [k, n] of [['Stufe', HERO.lvl + ' · ' + titleOf(HERO.lvl)], ['Leben', st.hp], ['Schaden', st.dmg], ['Rüstung', st.arm + ' (−' + Math.round(st.mit * 100) + ' %)'], ['Volltreffer', st.crit + ' %'], ['Hiebtempo', '+' + st.spd + ' %'], ['Abwehr', st.block + ' %'], ['Gulden', HERO.gold], ['Erschlagen', HERO.kills], ['Harnisch', GEAR_NAME[HERO.eq.ruestung ? HERO.eq.ruestung.r : 0]]].concat(HERO.joust ? [['Tjost', HERO.joust.wins + ' Siege']] : []).concat(HERO.hunted ? [['Gejagt', HERO.hunted + ' Stück Wild']] : []).concat(HERO.lvl >= MAX_LVL || HERO.eh.n ? [['Ehrenstufe', HERO.eh.n + ' (' + HERO.eh.xp + ' / ' + ehNeed(HERO.eh.n) + ')'], ['Ehrenzeichen', HERO.ez | 0], ['Trophäen', (HERO.trs || []).length + ' von ' + TROPHIES.length]] : [])){
+  for (const [k, n] of [['Stufe', HERO.lvl + ' · ' + titleOf(HERO.lvl)], ['Leben', st.hp], ['Schaden', st.dmg], ['Rüstung', st.arm + ' (−' + Math.round(st.mit * 100) + ' %)'], ['Volltreffer', st.crit + ' %'], ['Hiebtempo', '+' + st.spd + ' %'], ['Abwehr', st.block + ' %'], ...[['xp', 'Erfahrung'], ['gold', 'Gulden mehr'], ['holy', 'gegen Untote'], ['leech', 'Lebensraub']].filter(([q]) => st[q]).map(([q, t]) => [t, '+' + st[q] + ' %']), ['Gulden', HERO.gold], ['Erschlagen', HERO.kills], ['Harnisch', GEAR_NAME[HERO.eq.ruestung ? HERO.eq.ruestung.r : 0]]].concat(HERO.joust ? [['Tjost', HERO.joust.wins + ' Siege']] : []).concat(HERO.hunted ? [['Gejagt', HERO.hunted + ' Stück Wild']] : []).concat(HERO.lvl >= MAX_LVL || HERO.eh.n ? [['Ehrenstufe', HERO.eh.n + ' (' + HERO.eh.xp + ' / ' + ehNeed(HERO.eh.n) + ')'], ['Ehrenzeichen', HERO.ez | 0], ['Trophäen', (HERO.trs || []).length + ' von ' + TROPHIES.length]] : [])){
     stats.append(el('dt', null, k), el('dd', null, n));
   }
   $('bagCount').textContent = HERO.inv.filter(Boolean).length + ' / 24';
@@ -889,7 +895,8 @@ function renderTalk0(view){
     b1.disabled = HERO.gold < price || HERO.potions >= 20; b5.disabled = HERO.gold < price * 5 || HERO.potions > 15;
     row.append(im, tx, el('span', 'sbtns')); row.lastChild.append(b1, b5);
     body.append(row);
-    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ n.stock = [makeItem(pick(SLOTS), HERO.lvl, 0), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl + 1, 1)]; n.stockLvl = HERO.lvl; n.stockT = nowS() + 300; }
+    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ const rich = n.hub === 'annaberg';   // die Bergstadt ist reich: bessere Ware
+      n.stock = [makeItem(pick(SLOTS), HERO.lvl, rich ? 1 : 0), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl, rich ? 2 : 1), makeItem(pick(SLOTS), HERO.lvl + 1, rich ? 2 : 1)]; n.stockLvl = HERO.lvl; n.stockT = nowS() + 300; }
     n.stock.forEach((it, i) => {
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
       const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;

@@ -112,7 +112,7 @@ let HERO = null;
 
 /* abgeleitete Werte aus Stufe und Ausrüstung */
 function heroStats(h){
-  const L = h.lvl, s = { hp: 30 + 10 * L, dmg: 4 + 1.5 * L, arm: 0, crit: 5, spd: 0, block: 0 };
+  const L = h.lvl, s = { hp: 30 + 10 * L, dmg: 4 + 1.5 * L, arm: 0, crit: 5, spd: 0, block: 0, xp: 0, gold: 0, holy: 0, leech: 0 };
   const wtH = WT[wtOf(h.eq.waffe)], two = wtH.hand === 2, wd = h.eq.waffe && h.eq.waffe.dmg || 0;
   for (const slot of SLOTS){
     const it = h.eq[slot]; if (!it || (two && slot === 'schild')) continue;
@@ -128,6 +128,8 @@ function heroStats(h){
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
   if (!two && isBib(h.eq.schild)) s.regen *= 1.5;   // die Bibel: schneller wieder bei Kräften
   if (h.bless && h.bless.t > 0){ s.hp *= 1.08; s.regen = Math.max(s.regen, 1.5); }   // Segen aus der Kirche
+  for (const id in SETS){ const n = SLOTS.filter(sl => h.eq[sl] && h.eq[sl].set === id && !(two && sl === 'schild')).length;   // Rüstungssätze
+    for (const [need, k, v] of SETS[id].bon) if (n >= need){ if (k === 'hp' || k === 'dmg' || k === 'arm') s[k] *= 1 + v / 100; else s[k] += v; } }
   if (h.tal){ const T = Object.values(h.tal);   // Meisterschaften
     if (T.includes('haut')) s.hp *= 1.08; if (T.includes('klinge')) s.dmg *= 1.06; if (T.includes('falke')) s.crit += 4; if (T.includes('flink')) s.spd += 8;
     if (T.includes('wall') && h.eq.schild && !two && !isBib(h.eq.schild)){ s.block += 6; s.arm *= 1.1; }
@@ -137,7 +139,7 @@ function heroStats(h){
   if (ASV && ASV.ord >= 4) s.dmg *= 1.03;   // Ordenshaus: Waffenkammer, Ordenshof
   if (ASV && ASV.ord >= 5) s.hp *= 1.05;
   ehStats(h, s);   // Ehrenstufen: je ein halbes Hundertstel Leben und Schaden
-  s.hp = Math.round(s.hp);
+  s.hp = Math.round(s.hp); s.arm = Math.round(s.arm);
   s.dmg = Math.round(s.dmg); s.block = Math.min(60, s.block); s.crit = Math.min(50, s.crit);
   s.cd = .6 / (1 + s.spd / 100) * wtH.cd;
   s.mit = s.arm / (s.arm + 30 + 8 * L);

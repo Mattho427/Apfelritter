@@ -162,7 +162,7 @@ function wkClaim(i){
   gainXp(1200);
   if (W.c.every(Boolean)){
     HERO.ez += 3;
-    const it = makeItem(pick(SLOTS), clamp(HERO.lvl + 1, 1, 22), Math.random() < .5 ? 4 : 3), j = HERO.inv.indexOf(null);
+    const it = makeItem(pick(SLOTS), clamp(HERO.lvl + 1, 1, 32), Math.random() < .5 ? 4 : 3), j = HERO.inv.indexOf(null);
     if (j >= 0){ HERO.inv[j] = it; logLine('Alle drei Prüfungen der Woche bestanden! Der Reichsherold überreicht 3 Ehrenzeichen und ' + it.n + '.', '#ecd27a'); }
     else { HERO.ez += 2; logLine('Alle drei Prüfungen der Woche bestanden! Der Rucksack ist voll, also gibt der Herold 5 Ehrenzeichen.', '#ecd27a'); }
     showBanner('Woche der Ehre', 'alle Prüfungen bestanden');
@@ -262,7 +262,7 @@ function ehView(view, body, opts){
   if (view === 'ehLaden'){
     $('talkText').textContent = 'Ihr habt ' + (HERO.ez | 0) + ' Ehrenzeichen. Ehrenzeichen gibt es für jede Ehrenstufe und für bestandene Wochenprüfungen.';
     const buy = (cost, fn) => { if ((HERO.ez | 0) < cost) return; HERO.ez -= cost; fn(); Sound.coin(); updateHud(); markDirty(true); pushFame(); renderTalk('ehLaden'); };
-    const lv = clamp(HERO.lvl + 2, 1, 22);
+    const lv = clamp(HERO.lvl + 2, 1, 32);
     for (const s of SLOTS){
       const b = btn('12 Ehrenzeichen', () => buy(12, () => { const j = HERO.inv.indexOf(null); if (j < 0){ HERO.ez += 12; logLine('Euer Rucksack ist voll.', '#d8c69c'); return; } const it = makeItem(s, lv, 4, { name: BASES[s][clamp(Math.floor((lv - 1) / 4), 0, 4)] + ' des Reiches' }); HERO.inv[j] = it; logLine('Der Reichsherold überreicht Euch ' + it.n + '.', '#f4aa3c'); }), 'tbtn');
       b.disabled = (HERO.ez | 0) < 12;

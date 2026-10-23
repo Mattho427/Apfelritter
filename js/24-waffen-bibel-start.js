@@ -75,7 +75,7 @@ function kbTick(dt){
       if (b.hit.has(m) || !vulnerable(m)) continue;
       if (!bodyCircles(m).some(c => Math.hypot(c.x - b.x, c.y - b.y) < c.hr + 4)) continue;
       b.hit.add(m);
-      if (b.own){ const h = rollHit(b.mult); damage(m, Math.round(h.dmg * foeMul(m)), h.crit, WT.armbrust.kb); }
+      if (b.own){ const h = rollHit(b.mult), d = Math.round(h.dmg * foeMul(m)); damage(m, d, h.crit, WT.armbrust.kb); leech(d); }
       else { const q = b.src, cb = q.cb || [5, 5], crit = Math.random() * 100 < cb[1]; damage(m, Math.max(1, Math.round(cb[0] * b.mult * rand(.9, 1.1) * (crit ? 1.75 : 1))), crit, WT.armbrust.kb, q); }
       if (!b.pierce){ gone = true; break; }
     }
