@@ -1136,6 +1136,7 @@ const Sound = {
   thunder(){ this.noise(1.6, .22, 380); this.noise(.25, .12, 2500); },
   squeak(){ this.tone(1800, .05, 'square', .02, 400); this.tone(2100, .05, 'square', .02, 300, .08); },
   bolt(){ this.tone(900, .08, 'triangle', .05, -600); this.noise(.05, .04, 3000); },
+  gun(){ this.noise(.28, .12, 900); this.tone(70, .3, 'square', .06, -30); this.noise(.5, .03, 400, .1); },
   parry(){ this.tone(1400, .12, 'square', .04, -200); this.tone(2100, .1, 'triangle', .03, 0, .02); },
   fire(){ this.noise(.5, .1, 900); this.tone(140, .4, 'sawtooth', .03, -60); },
   scythe(){ this.noise(.2, .08, 2400); this.tone(300, .25, 'sawtooth', .03, -200); },

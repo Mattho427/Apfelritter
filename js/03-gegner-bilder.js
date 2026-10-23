@@ -505,6 +505,7 @@ const mo_AB = {
 };
 /* Armbrust: B = Kolbenende, Winkel ang; st: 0 = gespannt und geladen, 1 = abgeschossen. Liefert Bolzenaustritt. */
 function mo_xbow(P, B, ang, st){
+  if (mo_AB.gun) return mo_gun(P, B, ang, st);
   const C = mo_AB, ux = Math.cos(ang), uy = Math.sin(ang), px = -uy, py = ux;
   const at = (a, b) => [B[0] + ux * a + px * b, B[1] + uy * a + py * b];
   const F = at(19, 0), nut = at(11, -1);
@@ -538,6 +539,27 @@ function mo_xbow(P, B, ang, st){
     const f0 = at(10, -2.6), f1 = at(11, -2.6); mo_put(P, f0[0], f0[1], mo_LK.fea, 3); mo_put(P, f1[0], f1[1], mo_LK.fea, 2);
   }
   return at(24, -1.6);
+}
+/* Hakenbüchse (um 1520): Holzschaft, Eisenlauf mit dem Haken darunter, Luntenschloss mit glimmender Lunte; st 1 = Schuss mit Mündungsfeuer */
+function mo_gun(P, B, ang, st){
+  const C = mo_AB, ux = Math.cos(ang), uy = Math.sin(ang), px = -uy, py = ux;
+  const at = (a, b) => [B[0] + ux * a + px * b, B[1] + uy * a + py * b];
+  const s0 = at(0, .8), s1 = at(12, 0);
+  mo_cap(P, s0[0], s0[1], s1[0], s1[1], 2, 1.2, C.wod, { k: 1.2 });                      // Schaft
+  const l0 = at(6, -.6), l1 = at(26, -.6);
+  mo_cap(P, l0[0], l0[1], l1[0], l1[1], 1.1, 1, mo_LK.stl, { k: 1.4 });                    // Lauf
+  const m = at(26.5, -.6); mo_put(P, m[0], m[1], mo_DARK, 0);
+  const h0 = at(17, .6), h1 = at(18, 3.2), h2 = at(16, 3.6);
+  mo_line(P, h0[0], h0[1], h1[0], h1[1], mo_LK.stl, 2); mo_line(P, h1[0], h1[1], h2[0], h2[1], mo_LK.stl, 1);   // Haken
+  const sp = at(8, -2.2), lu = at(7.5, -3.6);
+  mo_line(P, at(9.5, -1)[0], at(9.5, -1)[1], sp[0], sp[1], mo_LK.stl, 3);                 // Hahn (Schlange)
+  mo_put(P, lu[0], lu[1], C.str, 2); mo_glow(P, lu[0], lu[1], '#ff9030', 1); mo_halo(P, lu[0], lu[1], 1.6, '#ff7020', .35);   // Lunte
+  const band = at(20, -.6); mo_put(P, band[0], band[1], C.brs || mo_LK.och, 3);
+  if (st){
+    for (const [a, b, c2, al] of [[28, -.6, '#fff4c0', 1], [29.5, -.6, '#ffd060', 1], [31, -1.5, '#ff9030', .9], [31, .4, '#ff9030', .9], [32.5, -.6, '#ff7020', .7]]){ const q = at(a, b); mo_glow(P, q[0], q[1], c2, al); }
+    const q = at(29, -.6); mo_halo(P, q[0], q[1], 4.5, '#ffb040', .5);
+  }
+  return at(26.5, -.6);
 }
 /* Bolzenaustritt (Spitze des aufgelegten Bolzens) relativ zum Anker */
 function mo_muzzle(p){ const ux = Math.cos(p.ang), uy = Math.sin(p.ang); return { x: Math.round(p.B[0] + ux * 24 + uy * 1.6), y: Math.round(p.B[1] + uy * 24 - ux * 1.6) }; }
@@ -1106,7 +1128,9 @@ const mo_RABE = {
 
 /* ---------- Irrlicht: fahlgrüne, flackernde Flamme mit Lichthof ---------- */
 const mo_IR = mo_mat('#2a7a52b0', '#47c483d8', '#86f0b0', '#c4ffd8', '#f0fff6');
+const mo_IRC = { m: mo_IR, g: ['#3cd08a', '#7af0b0', '#bfffd8', '#eafff2', '#ffffff'], spark: '#e0fff0', halo: '#5ef0a0' };   // Farben (das Eislicht tauscht sie)
 function mo_irrlicht(P, p){
+  const IC = mo_IRC;
   P.noOutline = true;
   const k = (p.k || 1) * 1.15, ph = p.ph || 0, top = p.top || 9, r0 = 3.6 * k;
   for (let y = -Math.ceil(top * k) - 1; y <= 7; y++) for (let x = -8; x <= 8; x++){
@@ -1116,12 +1140,12 @@ function mo_irrlicht(P, p){
     else { const hgt = -Y / (top * k), wv = Math.sin(hgt * 4 + ph) * hgt * 1.6, wd = r0 * (1 - hgt) * (1 - hgt * .2); d = wd > .2 ? Math.abs(X - wv) / wd : 2; if (hgt > 1) d = 2; }
     if (d > 1) continue;
     const v = 1 - d, lv = clamp(Math.floor(v * 4.6 + (dither(x, y) - .5) * .9 + (Y > -2 && Y < 2 ? .6 : 0)), 0, 4);
-    mo_put(P, x, y, mo_IR, lv);
-    mo_glow(P, x, y, ['#3cd08a', '#7af0b0', '#bfffd8', '#eafff2', '#ffffff'][lv], lv > 2 ? 1 : .7);
+    mo_put(P, x, y, IC.m, lv);
+    mo_glow(P, x, y, IC.g[lv], lv > 2 ? 1 : .7);
   }
   // Funken
-  for (const [x, y] of p.sp || []){ mo_put(P, x, y, mo_IR, 3); mo_glow(P, x, y, '#e0fff0', 1); }
-  mo_halo(P, 0, 0, p.halo || 10, '#5ef0a0', p.ha || .34);
+  for (const [x, y] of p.sp || []){ mo_put(P, x, y, IC.m, 3); mo_glow(P, x, y, IC.spark, 1); }
+  mo_halo(P, 0, 0, p.halo || 10, IC.halo, p.ha || .34);
 }
 const mo_IRR = {
   idle: [{ ph: 0, top: 9 }, { ph: 2, top: 8, sp: [[2, -10]] }],
@@ -2252,6 +2276,448 @@ const mo_NOECKP = {
   act: [{ ph: .5, raise: 1, bx: -2 }, { ph: 2, thr: 1, bx: 3, by: 1 }]
 };
 BOSS_ART.noeck = Object.assign(mo_set(128, 124, 60, 116, mo_noeck, mo_NOECKP), { reach: 58 });
-/* vorläufig: Bilder der Bergland-Gegner (werden ersetzt) */
-for (const [k, from] of [['wolf', 'werwolf'], ['schrat', 'moor'], ['wegelagerer', 'pluend'], ['kobold', 'ratte'], ['grubengeist', 'moor'], ['doppelsoeldner', 'pluend'], ['hakenschuetze', 'armbrust'], ['baer', 'werwolf'], ['geier', 'rabe'], ['eislicht', 'irrlicht']]) if (!MON_ART[k]) MON_ART[k] = MON_ART[from];
-for (const [k, from] of [['tatzelwurm', 'wels'], ['bergmoench', 'tod'], ['feldhauptmann', 'rotbart'], ['ruebezahl', 'raubritter']]) if (!MON_ART[k] && !BOSS_ART[k]) BOSS_ART[k] = BOSS_ART[from] || MON_ART[from];
+/* ============ Bergland (Version 25): Gegner aus Schwarzwald, Silberrevier, Söldnerschanze und Hochgebirge ============ */
+/* ---------- Vierbeiner im Profil (Blick rechts): Grauwolf und Braunbär teilen sich den Maler, S ist der Bauplan der Art ----------
+   Pose p: bx, by Leib; tilt Neigung (+ Kopf tiefer); hd [dx, dy] Kopf; jaw 0..3; ears 1 angelegt; tail Schwanzwinkel;
+   hf, ff, hn, fn Fußpunkte (fern hinten, fern vorn, nah hinten, nah vorn), y 0 = Boden */
+function mo_quad(P, S, p){
+  const C = S.C, bx = p.bx || 0, by = p.by || 0, tl = p.tilt || 0, hd = p.hd || [0, 0];
+  const hip = [S.hip[0] + bx, S.hip[1] + by - tl * 3], sho = [S.sho[0] + bx, S.sho[1] + by + tl * 3];
+  const furT = (L, sd) => mo_strand(L, sd);
+  const leg = (fore, near, foot) => {
+    const b = near ? 0 : -.26, top = fore ? [sho[0] - 1, sho[1] + 2] : [hip[0] + 1, hip[1] + 1], [r0, r1] = fore ? S.legR[1] : S.legR[0];
+    if (fore){
+      const pas = [foot[0] - .5, foot[1] - S.paw * 1.4], el = mo_ik(top[0], top[1], pas[0], pas[1], S.legL[1][0], S.legL[1][1], -1);
+      mo_cap(P, top[0], top[1], el[0], el[1], r0 * 1.25, r1, near ? C.fur : C.fur, { b, d: .3, tex: furT(10, 3) });
+      mo_cap(P, el[0], el[1], pas[0], pas[1], r1, r1 * .8, C.fur, { b, tex: furT(8, 4) });
+      mo_cap(P, pas[0], pas[1], foot[0] + S.paw * .6, foot[1] - S.paw * .5, r1 * .8, S.paw * .55, C.fur, { b: b - .04 });
+    } else {
+      const hock = [foot[0] - S.hock[0], foot[1] - S.hock[1]], kn = mo_ik(top[0], top[1], hock[0], hock[1], S.legL[0][0], S.legL[0][1], 1);
+      mo_cap(P, top[0], top[1], kn[0], kn[1], r0 * 1.5, r1 * 1.1, C.fur, { b, d: .3, tex: furT(10, 5) });      // Keule
+      mo_cap(P, kn[0], kn[1], hock[0], hock[1], r1 * 1.05, r1 * .8, C.fur, { b, tex: furT(8, 6) });
+      mo_cap(P, hock[0], hock[1], foot[0] + S.paw * .5, foot[1] - S.paw * .5, r1 * .8, S.paw * .55, C.fur, { b: b - .04 });
+    }
+    mo_ell(P, foot[0] + S.paw * .4, foot[1] - S.paw * .45, S.paw, S.paw * .6, C.fur, { b: b - .05 });
+    for (let k = 0; k < 3; k++) mo_put(P, foot[0] + S.paw * .9 + k * .8, foot[1] - .5, mo_BONE, near ? 2 : 0);   // Krallen
+    mo_end(P, near ? 2 : 1);
+  };
+  // Schwanz hinter allem
+  if (S.tail){
+    const ta = (p.tail || 0) + S.tail.a, t0 = [hip[0] - S.tail.o, hip[1] - 1];
+    let px = t0[0], py = t0[1];
+    for (let k = 1; k <= S.tail.n; k++){
+      const a = ta + k * S.tail.curl, nx = px + Math.cos(a) * S.tail.seg, ny = py + Math.sin(a) * S.tail.seg, r = S.tail.r * (1 - k / (S.tail.n + 2) * .45);
+      mo_cap(P, px, py, nx, ny, r, r * .9, C.fur, { d: .4, tex: (x, y, lv, u, v) => (k === S.tail.n && u > .5 ? [C.sad, lv - 1] : mo_hash(x, y, 9) < .3 ? lv + 1 : undefined) });
+      px = nx; py = ny;
+    }
+    mo_shag(P, [C.fur], -1, 0, .45, 31, 1, true);
+    mo_end(P, 1);
+  }
+  leg(false, false, p.hf); leg(true, false, p.ff);
+  // Leib: Keule hinten, tiefe Brust vorn, Bauch hell
+  mo_cap(P, hip[0], hip[1], sho[0], sho[1], S.rH, S.rS, C.fur, { d: .35, tex: (x, y, lv, u, v) => {
+    if (v > .5) return [C.bel, clamp(lv - (v > .8 ? 1 : 0), 0, 4)];
+    if (v < -.45 && S.saddle && u > .15 && u < .85) return [C.sad, clamp(lv, 0, 3)];
+    const lane = Math.round(v * 4), seg = Math.floor((x + mo_hash(lane, 3, 17) * 3) / 3), q = mo_hash(lane + 40, seg, 17);
+    return q < .22 ? lv + 1 : q > .82 ? lv - 1 : undefined;
+  } });
+  if (S.hump) mo_ell(P, sho[0] - 2, sho[1] - S.rS * .45, S.hump, S.hump * .8, C.fur, { d: .3, k: .55, tex: mo_furPoly(21, .3) });
+  mo_ell(P, sho[0] + 1, sho[1] + S.rS * .25, S.rS * .85, S.rS * .95, C.fur, { d: .3, tex: (x, y, lv, u, v) => (v > .35 ? [C.bel, clamp(lv, 0, 4)] : mo_hash(x >> 1, y, 23) < .25 ? lv + 1 : undefined) });
+  mo_shag(P, [C.fur], 0, -1, .5, 27, 1, true); mo_shag(P, [C.bel, C.fur], 0, 1, .55, 29, 2, true);
+  mo_end(P);
+  // Hals und Kopf
+  const neck = [sho[0] + S.neck[0], sho[1] + S.neck[1]], hx = neck[0] + S.head[0] + hd[0], hy = neck[1] + S.head[1] + hd[1] + tl * 6, j = p.jaw || 0;
+  mo_cap(P, sho[0], sho[1] - 1, hx - 1, hy + 1, S.rS * .8, S.skull[1] * .9, C.fur, { d: .3, tex: furT(10, 8) });
+  if (p.mane) mo_shag(P, [C.fur], 0, -1, .7, 33, 2, true);
+  mo_end(P);
+  // Ohren
+  const ea = p.ears ? .9 : 0;
+  for (const [ox, sh] of S.ears){
+    const e0x = hx + ox, e0y = hy - S.skull[1] * .7;
+    if (S.roundEar) mo_ell(P, e0x - ea, e0y - 1.2 + ea, S.roundEar, S.roundEar * .9, C.fur, { b: sh });
+    else mo_poly(P, [[e0x - 2, e0y + .5], [e0x - .6 - ea * 2.8, e0y - 5 + ea * 2.8], [e0x + 1.8, e0y]], C.fur, { cyl: .3, b: sh });
+  }
+  mo_end(P, 1);
+  // Schädel, Schnauze, Unterkiefer
+  mo_ell(P, hx, hy, S.skull[0], S.skull[1], C.fur, { b: .05, d: .3, tex: (x, y, lv) => (mo_hash(x, y, 41) < .2 ? lv + 1 : undefined) });
+  const m0 = [hx + S.skull[0] * .5, hy + .4], m1 = [hx + S.snout[0], hy + S.snout[1]];
+  mo_cap(P, m0[0], m0[1], m1[0], m1[1], S.snout[2], S.snout[3], C.fur, { b: .08, tex: (x, y, lv, u, v) => (v > .3 ? [C.bel, clamp(lv, 0, 4)] : undefined) });
+  if (j){
+    mo_poly(P, [[m0[0], m0[1] + 1], [m1[0], m1[1] + 1], [m1[0] - .5, m1[1] + 1 + j], [m0[0] + 1, m0[1] + 2]], C.mou, { cyl: .2, lv: 1 });
+    mo_cap(P, m0[0], m0[1] + 1.5 + j * .4, m1[0] - 1.4, m1[1] + 1.4 + j, S.snout[3], S.snout[3] * .8, C.fur, { b: -.05 });
+    for (let k = 0; k < 2; k++){ mo_put(P, m1[0] - 1 - k * 2, m1[1] + 1, mo_BONE, 4); mo_put(P, m1[0] - 2 - k * 2, m1[1] + j, mo_BONE, 3); }
+  } else mo_line(P, m0[0] + 1, m0[1] + 1.4, m1[0] - .5, m1[1] + 1, C.skn, 1);
+  mo_ell(P, m1[0] + .6, m1[1] - .4, S.snout[3] * .75, S.snout[3] * .65, C.skn, { b: .1 });   // Nase
+  mo_end(P, 1);
+  // Auge mit Glanz
+  const ex = hx + S.eye[0], ey = hy + S.eye[1];
+  mo_put(P, ex, ey, C.eye, 2); mo_put(P, ex - 1, ey, mo_DARK, 0); mo_put(P, ex, ey - 1, C.fur, 1);
+  mo_glow(P, ex, ey, S.glow, .9); mo_halo(P, ex, ey, 1.8, S.glow, .3);
+  leg(false, true, p.hn); leg(true, true, p.fn);
+}
+const mo_WOLF = {
+  C: { fur: mo_mat('#16151a', '#26252a', '#3a3838', '#504c48', '#68625a', '#827a70', '#9a9286'), bel: mo_mat('#4a463e', '#6a6458', '#8a8474', '#aaa292', '#c4bcaa'),
+       sad: mo_mat('#0e0e10', '#1a1a1e', '#2a2a2e', '#3a3a3e'), skn: mo_mat('#0e0c0c', '#1e1a1a', '#2e2828'), mou: mo_mat('#26090b', '#4c1416', '#74241f', '#93392d'), eye: mo_mat('#6a5010', '#b08a20', '#e8c040') },
+  hip: [-10, -17], sho: [8, -18], rH: 5.1, rS: 6.3, legL: [[7.5, 6.5], [8, 7]], legR: [[2.6, 1.7], [2.3, 1.6]], hock: [-2.5, 5], paw: 1.8, saddle: true,
+  neck: [4, -3], head: [5, -2], skull: [4.3, 3.7], snout: [8.8, 1.4, 2.5, 1.5], ears: [[-1.2, -.25], [.6, 0]], eye: [1.6, -1], glow: '#ffd050',
+  tail: { a: Math.PI * .82, curl: .1, n: 5, seg: 2.6, r: 2.4, o: 3 }
+};
+const mo_WOLFP = {
+  idle: [{ hf: [-13, 0], ff: [8, 0], hn: [-10, 0], fn: [11, 0], tail: 0 }, { by: .5, hf: [-13, 0], ff: [8, 0], hn: [-10, 0], fn: [11, 0], tail: .08, hd: [0, 1] }],
+  move: [
+    { hf: [-18, 0], hn: [-15, -1], ff: [14, -3], fn: [17, 0], tail: -.1 },
+    { by: -1, tilt: .04, hf: [-11, -3], hn: [-8, 0], ff: [6, 0], fn: [9, -2], tail: .05 },
+    { hf: [-14, 0], hn: [-17, -2], ff: [16, 0], fn: [12, -3], tail: -.1 },
+    { by: -1, tilt: .04, hf: [-7, 0], hn: [-10, -3], ff: [9, -2], fn: [5, 0], tail: .05 }],
+  act: [
+    { by: 3, tilt: .18, jaw: 1, ears: 1, mane: 1, hd: [1, 2], hf: [-12, 0], hn: [-9, 0], ff: [9, 0], fn: [12, 0], tail: .25 },
+    { by: -6, tilt: -.12, jaw: 3, mane: 1, hd: [2, -1], hf: [-20, -5], hn: [-18, -3], ff: [19, -11], fn: [22, -9], tail: -.3 }]
+};
+const mo_BAER = {
+  C: { fur: mo_mat('#120c09', '#20160e', '#332316', '#48321f', '#5f432a', '#775636', '#8e6a44'), bel: mo_mat('#3e2c1e', '#58402c', '#72583e', '#8c7052', '#a68a68'),
+       sad: mo_mat('#0e0a08', '#1a120c', '#281c12'), skn: mo_mat('#0c0a0a', '#1c1616', '#2c2424'), mou: mo_mat('#26090b', '#4c1416', '#74241f', '#93392d'), eye: mo_mat('#2a1a0a', '#4a3010', '#7a5420') },
+  hip: [-13, -22], sho: [10, -23], rH: 8, rS: 9.2, legL: [[10, 9], [10.5, 9]], legR: [[4.2, 3], [3.8, 2.8]], hock: [-2, 4], paw: 2.8, hump: 6,
+  neck: [5, -2], head: [7, -1], skull: [6.3, 5.7], snout: [9, 2.6, 3.7, 2.7], ears: [[-2.8, -.25], [.8, 0]], roundEar: 2.5, eye: [2, -1.6], glow: '#ffb040',
+  tail: { a: Math.PI * .9, curl: 0, n: 1, seg: 2.5, r: 2.2, o: 6 }
+};
+const mo_BAERP = {
+  idle: [{ hf: [-15, 0], ff: [10, 0], hn: [-12, 0], fn: [13, 0] }, { by: .7, hf: [-15, 0], ff: [10, 0], hn: [-12, 0], fn: [13, 0], hd: [0, 1] }],
+  move: [
+    { hf: [-19, 0], hn: [-12, -2], ff: [8, 0], fn: [16, -2] },
+    { by: -1, hf: [-15, -2], hn: [-15, 0], ff: [12, -2], fn: [12, 0] },
+    { hf: [-12, -2], hn: [-19, 0], ff: [16, -2], fn: [8, 0] },
+    { by: -1, hf: [-15, 0], hn: [-15, -2], ff: [12, 0], fn: [12, -2] }],
+  act: [
+    { by: 2, tilt: .14, jaw: 2, ears: 1, hd: [2, 2], hf: [-14, 0], hn: [-11, 0], ff: [11, 0], fn: [14, 0] },
+    { by: -4, tilt: -.08, jaw: 3, hd: [3, -1], hf: [-18, 0], hn: [-16, 0], ff: [20, -8], fn: [23, -6] }]
+};
+MON_ART.wolf = mo_set(64, 40, 32, 37, (P, p) => mo_quad(P, mo_WOLF, p), mo_WOLFP);
+MON_ART.baer = mo_set(76, 50, 38, 47, (P, p) => mo_quad(P, mo_BAER, p), mo_BAERP);
+/* ---------- Abwandlungen: neue Farben und Waffen für vorhandene Gestalten ---------- */
+const mo_WEG = {   // Wegelagerer: Jägergrün und Leder, dunkle Gugel statt Barett
+  red: mo_mat('#16200f', '#243218', '#344622', '#475a2e', '#5b6e3a'), och: mo_mat('#3a2a16', '#56401f', '#73582c', '#8e703a'),
+  gry: mo_mat('#231a12', '#382a1d', '#4e3c2a', '#655038'), ber: mo_mat('#16130f', '#262018', '#382f24', '#4a3f30'), fea: mo_mat('#3a2e1e', '#5a4a30', '#7a6644', '#96805a')
+};
+const mo_DS = {    // Doppelsöldner: grell geschlitzt in Rot und Gelb, weißes Futter, riesige Feder
+  red: mo_mat('#4a0c0c', '#7a1414', '#a8221c', '#c83a28', '#e0583a'), och: mo_mat('#6a5010', '#9a7a1c', '#c8a030', '#e6c44c', '#f6dc74'),
+  gry: mo_mat('#4a4a46', '#787670', '#a6a49c', '#cfcdc4'), lin: mo_mat('#6a665a', '#949080', '#bab6a4', '#dcd8c6'),
+  ber: mo_mat('#4a0c0c', '#7a1414', '#a8221c', '#c83a28'), fea: mo_mat('#8a8a84', '#b4b4ac', '#dcdcd4', '#fafaf4')
+};
+const mo_FH = {    // Feldhauptmann Balthasar Wüst: Schwarz und Gold, rotes Futter, weiße Straußenfeder
+  red: mo_mat('#0e0e12', '#1a1a20', '#2a2a32', '#3c3c46', '#50505c'), och: mo_mat('#5a3e10', '#8a6420', '#c49a3a', '#e8c45a', '#fbe08a'),
+  gry: mo_mat('#4a0c0c', '#7a1414', '#a8221c', '#c83a28'), lin: mo_mat('#7a7468', '#a49e90', '#cac4b4', '#e8e2d2'),
+  ber: mo_mat('#0e0e12', '#1a1a20', '#2a2a32', '#3c3c46'), fea: mo_mat('#9a9a94', '#c4c4bc', '#e8e8e0', '#ffffff'), hai: mo_mat('#2a1a0e', '#4a2e16', '#6a4422', '#8a5c30')
+};
+MON_ART.wegelagerer = mo_with(mo_LK, mo_WEG, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+MON_ART.doppelsoeldner = mo_with(mo_LK, mo_DS, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+BOSS_ART.feldhauptmann = mo_with(mo_LK, mo_FH, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+MON_ART.hakenschuetze = mo_with(mo_AB, {   // Hakenbüchsenschütze: Sturmhaube, blaues Wams, Hakenbüchse statt Armbrust
+  gun: true, hat: mo_mat('#16181c', '#2c3036', '#4a5058', '#6e767e', '#98a0a6'), brg: mo_mat('#141a2e', '#1e2842', '#2c3a5a', '#3e4e74', '#52648e'),
+  wam: mo_mat('#4a4636', '#6a6450', '#8a826a', '#a69e84'), hos: mo_mat('#2a1418', '#421e24', '#5c2a30', '#76383e')
+}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true }));
+MON_ART.grubengeist = mo_with(mo_MO, {   // Grubengeist: fahle, bläuliche Haut, weißer Bergkittel mit Kapuze, Staub statt Kraut
+  skn: mo_mat('#1a2026', '#2a343e', '#3e4c58', '#566a78', '#7088a0', '#90a8bc'), hai: mo_mat('#4a4e54', '#6a7078', '#8a9098'),
+  cap: mo_mat('#6a6e70', '#8e9294', '#b2b6b6', '#d2d6d4'), rop: mo_mat('#3a3a3a', '#5a5a58', '#7a7a76'),
+  wol: mo_mat('#5a5e60', '#7a7e80', '#9a9ea0', '#b8bcbc'), wed: mo_mat('#3a3a3c', '#545456', '#6e6e70', '#8a8a8c', '#a6a6a8')
+}, () => mo_set(50, 54, 25, 52, mo_moor, mo_MOOR));
+MON_ART.geier = mo_with(mo_RB, {   // Bartgeier: dunkle Schwingen, rostbraun, heller Kopf
+  fea: mo_mat('#1a120c', '#2e2016', '#4a3420', '#6a4c2e', '#8a6a42', '#b08c5c'), bk: mo_mat('#4a4434', '#7a735c', '#a69e80', '#cbc4a6')
+}, () => mo_set(36, 34, 18, 17, mo_rabe, mo_RABE));
+MON_ART.eislicht = mo_with(mo_IRC, {   // Eislicht: kaltes Blau statt Grün
+  m: mo_mat('#2a5a8ab0', '#4a8ac4d8', '#8ac4f0', '#c4e4ff', '#f4faff'), g: ['#3c8ad0', '#7ab4f0', '#bfdcff', '#eaf4ff', '#ffffff'], spark: '#e8f4ff', halo: '#6ab4ff'
+}, () => mo_set(22, 28, 11, 17, mo_irrlicht, mo_IRR));
+/* ---------- Kobold: Bergmännlein mit roter Zipfelmütze, grauem Bart, Lederkittel und Keilhaue ---------- */
+const mo_KB = {
+  skn: mo_mat('#1e2216', '#2e3420', '#42482c', '#585e3a', '#70764a', '#8a8e5e'), cap: mo_mat('#3a0c0c', '#5e1414', '#84201c', '#a8342a', '#c44c38'),
+  tun: mo_mat('#1e150e', '#30231a', '#463424', '#5c4630', '#72583e'), hos: mo_mat('#16161a', '#24242a', '#36363e', '#4a4a54'),
+  brd: mo_mat('#4a4640', '#6e6a60', '#948e82', '#b6b0a2', '#d2ccbe'), eye: mo_mat('#6a5010', '#b08a20', '#e8c040')
+};
+function mo_kobold(P, p){
+  const C = mo_KB, bx = p.bx || 0, by = p.by || 0, ln = p.lean || 0, hipY = -7 + by, shY = -14 + by;
+  const leg = (fx, lift, near) => {
+    const b = near ? 0 : -.28, hx = bx + (near ? 1.2 : -1.2);
+    mo_cap(P, hx, hipY, fx, -2.2 - lift, 1.6, 1.2, C.hos, { b });
+    mo_poly(P, [[fx - 1.5, -2.6 - lift], [fx + 1.5, -2.6 - lift], [fx + 4, -1.2 - lift], [fx + 4.4, -lift], [fx - 1.6, -lift]], C.tun, { b: b - .05, cyl: .4, ny: -.3 });   // Schnabelschuh
+    mo_end(P, 1);
+  };
+  const arm = (hand, near) => {
+    const b = near ? 0 : -.3, sx = bx + (near ? 2 : -2) + ln * 2, sy = shY + 1.5;
+    const el = mo_ik(sx, sy, hand[0], hand[1], 3.6, 3.6, near ? -1 : -1);
+    mo_cap(P, sx, sy, el[0], el[1], 1.4, 1.2, C.tun, { b }); mo_cap(P, el[0], el[1], hand[0], hand[1], 1.1, 1, C.skn, { b });
+    mo_ell(P, hand[0], hand[1], 1.3, 1.2, C.skn, { b: b + .05 });
+    mo_end(P, 1);
+  };
+  arm(p.fh, false); leg(p.ff, p.fl || 0, false);
+  // Keilhaue: Stiel durch beide Hände, Eisen am Ende quer
+  const g = p.nh, ux = Math.cos(p.pa), uy = Math.sin(p.pa), e = [g[0] + ux * 9, g[1] + uy * 9], b0 = [g[0] - ux * 3, g[1] - uy * 3];
+  mo_cap(P, b0[0], b0[1], e[0], e[1], .8, .8, mo_LK.wod, { k: 1.2 });
+  const px = -uy, py = ux;
+  mo_cap(P, e[0] - px * 2.6, e[1] - py * 2.6, e[0] + px * 4.4 + ux, e[1] + py * 4.4 + uy, 1.2, .5, mo_LK.stl, { k: 1.3 });
+  mo_end(P, 1);
+  // Kittel mit Gürtel
+  const t = [[-3.4, shY], [3.6, shY], [4.6, hipY + 1], [5.4, hipY + 3.4], [-5, hipY + 3.4], [-4.4, hipY + 1]].map(q => [q[0] + bx + (q[1] < hipY ? ln * 2 : 0), q[1]]);
+  mo_poly(P, t, C.tun, { cyl: .8, d: .4, tex: (x, y, lv) => (y === Math.round(hipY) ? [mo_LK.lea, 1] : (x + y) % 5 === 0 ? lv - 1 : undefined) });
+  mo_put(P, bx + 1 + ln, hipY, mo_LK.och, 3);   // Gürtelschnalle
+  mo_end(P);
+  leg(p.nf, p.nl || 0, true);
+  // Kopf: groß, Knollennase, Spitzohr, glühendes Auge
+  const hx = bx + 2 + ln * 3.5, hy = shY - 4.6;
+  mo_poly(P, [[hx - 3.8, hy - 1.2], [hx - 6.8, hy - 4.6], [hx - 2.4, hy - 2.6]], C.skn, { cyl: .3, b: -.05 });   // Ohr
+  mo_ell(P, hx, hy, 4.4, 4, C.skn, { d: .3, tex: (x, y, lv) => (mo_hash(x, y, 51) < .12 ? lv - 1 : undefined) });
+  mo_ell(P, hx + 4.2, hy + .9, 1.9, 1.6, C.skn, { b: .12 });   // Nase
+  mo_end(P, 1);
+  mo_poly(P, [[hx - 1.5, hy + 2], [hx + 4.5, hy + 2.4], [hx + 3.6, hy + 5.6], [hx + 1.4, hy + 8 + (p.beard || 0)], [hx - 1.2, hy + 5]], C.brd, { cyl: .6, d: .5, tex: (x, y, lv) => ((x & 1) ? lv - 1 : undefined) });   // Bart
+  if (p.grin){ mo_line(P, hx + 1.4, hy + 2.8, hx + 3.6, hy + 2.6, mo_DARK, 0); mo_put(P, hx + 2.5, hy + 3, mo_BONE, 4); }
+  mo_end(P, 1);
+  const ex = hx + 1.8, ey = hy - .8;
+  mo_put(P, ex, ey, C.eye, 2); mo_put(P, ex + 1, ey, C.eye, 1); mo_put(P, ex - .5, ey - 1.2, C.skn, 0); mo_put(P, ex + .7, ey - 1.4, C.skn, 0);   // Brauen
+  mo_glow(P, ex, ey, '#ffd050', .9); mo_halo(P, ex + .5, ey, 1.8, '#ffc040', .32);
+  // Zipfelmütze, nach hinten gebogen, Quaste
+  const tw = p.cap || 0;
+  mo_poly(P, [[hx - 4.6, hy - 1.6], [hx - 3, hy - 4.2], [hx - 2.2, hy - 7.4], [hx - 4.8, hy - 10.6 + tw], [hx - 8.4, hy - 11 + tw * 1.4], [hx - 6, hy - 8.2], [hx - .2, hy - 5], [hx + 3.6, hy - 3.4], [hx + 4.4, hy - 1.8]], C.cap, { cyl: .6, d: .4, ny: -.2 });
+  mo_line(P, hx - 4.4, hy - 1.4, hx + 4.2, hy - 1.8, C.cap, 0);
+  mo_ell(P, hx - 8.8, hy - 10.4 + tw * 1.4, 1.3, 1.3, C.brd, { b: .1 });
+  mo_end(P, 1);
+  arm(p.nh, true);
+}
+const mo_KOBP = {
+  idle: [{ ff: -2, nf: 2, fh: [1, -9], nh: [3, -10], pa: -2.1 }, { by: .5, ff: -2, nf: 2, fh: [1, -8.5], nh: [3, -9.5], pa: -2.05, cap: .5 }],
+  move: [
+    { ff: -4, nf: 4, fl: 0, nl: 1.5, lean: .2, fh: [2, -9], nh: [4, -10], pa: -2.1 },
+    { by: -.8, ff: -1, nf: 1, fl: 1, lean: .2, fh: [2, -9.5], nh: [4, -10.5], pa: -2.0, cap: .8 },
+    { ff: 3, nf: -3, fl: 1.5, nl: 0, lean: .2, fh: [2, -9], nh: [4, -10], pa: -2.1 },
+    { by: -.8, ff: 1, nf: -1, nl: 1, lean: .2, fh: [2, -9.5], nh: [4, -10.5], pa: -2.0, cap: .8 }],
+  act: [
+    { by: .5, lean: -.4, ff: -3, nf: 3, fh: [-1, -17], nh: [0, -18], pa: -2.4, grin: 1, cap: 1.2 },
+    { by: 1.5, lean: .8, ff: -3, nf: 5, fh: [6, -8], nh: [8, -9], pa: .5, grin: 1, beard: 1, cap: -1 }]
+};
+MON_ART.kobold = mo_set(40, 36, 20, 33, mo_kobold, mo_KOBP);
+/* ---------- Waldschrat: wandelnder Baumgeist aus Rinde und Moos, Astarme, Wurzelfüße, Krone aus Zweigen und Laub ---------- */
+const mo_SR = {
+  brk: mo_mat('#140f0a', '#22190f', '#332517', '#463321', '#5a432c', '#6e5538'), mos: mo_mat('#1a2410', '#2a3a18', '#3e5222', '#566a2e', '#70843c'),
+  lef: mo_mat('#122010', '#1e3416', '#2c4a1e', '#3e6228', '#547a34', '#6e9242'), inn: mo_mat('#4a3420', '#6a4c2e', '#8a6a42', '#a68858')
+};
+const mo_barkTex = sd => (x, y, lv, u, v) => { const lane = Math.floor(x / 2 + mo_hash(0, y >> 2, sd) * 1.5); if ((lane & 1) && mo_hash(lane, y >> 1, sd) < .6) return lv - 1; if (mo_N(x * .3, y * .3) > .72) return [mo_SR.mos, clamp(lv, 0, 4)]; return undefined; };
+function mo_schrat(P, p){
+  const C = mo_SR, bx = p.bx || 0, by = p.by || 0, ln = p.lean || 0;
+  const hip = [bx, -22 + by], sh = [bx + ln * 6, -42 + by];
+  const leg = (f, near) => {
+    const b = near ? 0 : -.3, top = [hip[0] + (near ? 2.5 : -2.5), hip[1]], kn = mo_ik(top[0], top[1], f[0], f[1] - 2, 11, 11, 1);
+    mo_cap(P, top[0], top[1], kn[0], kn[1], 4, 3.2, C.brk, { b, d: .3, tex: mo_barkTex(3) });
+    mo_cap(P, kn[0], kn[1], f[0], f[1] - 2, 3.2, 3, C.brk, { b, tex: mo_barkTex(4) });
+    for (const [dx, dy] of [[5.5, 1], [3, 1.5], [-3.5, 1]]) mo_cap(P, f[0], f[1] - 2, f[0] + dx, f[1] + dy - 1, 2, .6, C.brk, { b: b - .05 });   // Wurzelzehen
+    mo_end(P, 1);
+  };
+  const arm = (A, near) => {
+    const b = near ? 0 : -.32, s0 = [sh[0] + (near ? 3.5 : -3.5), sh[1] + 2], el = A[0], hd = A[1];
+    mo_cap(P, s0[0], s0[1], el[0], el[1], 3, 2.4, C.brk, { b, tex: mo_barkTex(7) });
+    mo_cap(P, el[0], el[1], hd[0], hd[1], 2.4, 1.6, C.brk, { b, tex: mo_barkTex(8) });
+    const dx = hd[0] - el[0], dy = hd[1] - el[1], l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l;
+    for (let f = -1.5; f <= 1.5; f++){ const a = Math.atan2(uy, ux) + f * .35, fl = 6 - Math.abs(f); mo_line(P, hd[0], hd[1], hd[0] + Math.cos(a) * fl, hd[1] + Math.sin(a) * fl, C.brk, near ? 3 : 1); mo_put(P, hd[0] + Math.cos(a) * (fl + 1), hd[1] + Math.sin(a) * (fl + 1), C.brk, 1); }
+    if (near) for (let k = 0; k < 3; k++){ const q = [el[0] + (hd[0] - el[0]) * (.3 + k * .25), el[1] + (hd[1] - el[1]) * (.3 + k * .25)]; mo_ell(P, q[0], q[1] - 1.6, 1.8, 1.2, C.lef, { b: .05 }); }   // Blätter am Arm
+    mo_end(P, 1);
+  };
+  arm(p.fa, false); leg(p.fl, false);
+  // Rumpf: knorriger Stamm
+  const tr = [[sh[0] - 6.5, sh[1] - 2], [sh[0] + 6, sh[1] - 2.5], [sh[0] + 7.4, sh[1] + 6], [hip[0] + 7.2, hip[1] - 2], [hip[0] + 6, hip[1] + 3], [hip[0] - 6, hip[1] + 3], [hip[0] - 7.4, hip[1] - 3], [sh[0] - 7.6, sh[1] + 7]];
+  mo_poly(P, tr, C.brk, { cyl: .9, d: .3, tex: mo_barkTex(11) });
+  mo_ell(P, bx + ln * 3 + 2, -31 + by, 2.4, 3, C.inn, { b: -.05 }); mo_ell(P, bx + ln * 3 + 2, -31 + by, 1.2, 1.6, mo_DARK, { lv: 0 });   // Astloch
+  mo_end(P);
+  leg(p.nl, true);
+  // Kopf: Knorren mit glühenden Augenhöhlen, Mund wie ein Riss, Moosbart
+  const hx = sh[0] + 2 + ln * 2, hy = sh[1] - 7;
+  mo_poly(P, [[hx - 6, hy + 4], [hx - 5.6, hy - 3], [hx - 2, hy - 6], [hx + 4, hy - 5.4], [hx + 6.6, hy - 1], [hx + 6, hy + 5], [hx, hy + 6.4]], C.brk, { cyl: .8, d: .3, tex: mo_barkTex(13) });
+  for (const ox of [-1.6, 3]){ mo_ell(P, hx + ox, hy - 1, 1.5, 1.2, mo_DARK, { lv: 0 }); }
+  if (p.roar) mo_poly(P, [[hx - 1, hy + 2.4], [hx + 4.6, hy + 2], [hx + 3.6, hy + 4.6], [hx, hy + 4.4]], mo_DARK, { lv: 0 });
+  else mo_line(P, hx - .6, hy + 3, hx + 4, hy + 2.6, mo_DARK, 0);
+  mo_end(P, 1);
+  mo_poly(P, [[hx - 3, hy + 4], [hx + 5.4, hy + 3.8], [hx + 4, hy + 9 + (p.sway || 0)], [hx + 1, hy + 12], [hx - 1.6, hy + 8]], C.mos, { cyl: .6, d: .5, tex: (x, y, lv) => ((x + y) & 1 ? lv - 1 : undefined) });
+  for (const ox of [-1.6, 3]){ mo_glow(P, hx + ox, hy - 1, '#a8ff7a', 1); mo_glow(P, hx + ox + .6, hy - 1, '#d8ffb0', .8); mo_halo(P, hx + ox, hy - 1, 2.4, '#7aff5a', .35); }
+  mo_end(P, 1);
+  // Krone: Zweige mit Laubbüscheln
+  const sw = p.sway || 0;
+  for (const [a, l, sd] of [[-2.2, 10, 1], [-1.75, 12, 2], [-1.35, 11, 3], [-.95, 9, 4], [-2.6, 8, 5]]){
+    const x1 = hx + Math.cos(a) * l + sw, y1 = hy - 4 + Math.sin(a) * l;
+    mo_cap(P, hx + Math.cos(a) * 3, hy - 4 + Math.sin(a) * 3, x1, y1, 1.4, .6, C.brk, { b: .05 });
+    mo_ell(P, x1, y1 - 1, 4 + (sd & 1), 3.2, C.lef, { d: .5, tex: (x, y, lv) => (mo_hash(x, y, sd) < .3 ? lv + 1 : mo_hash(x, y, sd + 9) < .2 ? lv - 2 : undefined) });
+  }
+  mo_end(P, 1);
+  arm(p.na, true);
+}
+const mo_SCHP = {
+  idle: [{ fl: [-4, 0], nl: [4, 0], fa: [[-8, -32], [-7, -22]], na: [[9, -33], [11, -23]] }, { by: .6, sway: .8, fl: [-4, 0], nl: [4, 0], fa: [[-8, -31], [-6, -21]], na: [[9, -32], [12, -22]] }],
+  move: [
+    { lean: .1, fl: [-7, 0], nl: [6, -1], fa: [[-6, -32], [-2, -23]], na: [[8, -34], [9, -24]] },
+    { by: -1, lean: .1, sway: 1, fl: [-3, -2], nl: [3, 0], fa: [[-8, -33], [-6, -23]], na: [[10, -33], [13, -24]] },
+    { lean: .1, fl: [6, -1], nl: [-7, 0], fa: [[-9, -33], [-9, -23]], na: [[10, -32], [15, -24]] },
+    { by: -1, lean: .1, sway: -1, fl: [3, 0], nl: [-3, -2], fa: [[-8, -33], [-6, -23]], na: [[10, -33], [13, -24]] }],
+  act: [
+    { by: -1, lean: -.15, sway: -1.5, roar: 1, fl: [-5, 0], nl: [5, 0], fa: [[-6, -50], [-2, -60]], na: [[9, -51], [13, -61]] },
+    { by: 2, lean: .45, sway: 1.5, roar: 1, fl: [-6, 0], nl: [8, 0], fa: [[6, -36], [16, -28]], na: [[14, -36], [24, -24]] }]
+};
+MON_ART.schrat = mo_set(64, 72, 30, 68, mo_schrat, mo_SCHP);
+/* ---------- Der Tatzelwurm: Echsenleib mit zwei Vordertatzen und Katzenkopf, Rückenkamm, gelbe Augen ---------- */
+const mo_TZ = {
+  skn: mo_mat('#0e120a', '#1a2210', '#283418', '#384820', '#4a5e2a', '#5e7434', '#748a40'), bel: mo_mat('#4a3e1e', '#6a5a2a', '#8a7838', '#a89448', '#c2ae5c'),
+  crs: mo_mat('#2a0e0c', '#4a1612', '#6e2418', '#923820'), fur: mo_mat('#1e1810', '#30261a', '#463826', '#5e4c34', '#786244'), mou: mo_mat('#26090b', '#4c1416', '#74241f', '#93392d'),
+  eye: mo_mat('#6a5010', '#b08a20', '#f0c838')
+};
+function mo_tatzel(P, p){
+  const C = mo_TZ, ph = p.ph || 0, lift = p.lift || 0, N = 10, pts = [], by = p.by || 0, j = p.open || 0;
+  for (let i = 0; i <= N; i++){
+    const t = i / N, x = -46 + t * 70, wav = Math.sin(t * 4.4 + ph) * (1 - t * .8) * 3.4;
+    pts.push([x, -16 + Math.pow(1 - t, 2) * 12 + wav + by - (t > .7 ? lift * (t - .7) * 34 : 0), 1.8 + Math.pow(t, .65) * 10.4]);
+  }
+  const sh = pts[8];
+  const leg = (near, foot) => {
+    const b = near ? 0 : -.3, top = [sh[0] + (near ? 2 : -3), sh[1] + sh[2] * .35], el = mo_ik(top[0], top[1], foot[0], foot[1] - 3, 8.5, 8, -1);
+    mo_cap(P, top[0], top[1], el[0], el[1], 4.4, 3.4, C.skn, { b, d: .3, tex: (x, y, lv) => ((x + y * 2) % 4 === 0 ? lv - 1 : undefined) });
+    mo_cap(P, el[0], el[1], foot[0], foot[1] - 3, 3.4, 2.8, C.skn, { b });
+    mo_ell(P, foot[0] + 1.5, foot[1] - 2, 4, 2.4, C.skn, { b: b - .05 });
+    for (let k = 0; k < 4; k++) mo_put(P, foot[0] + 4.5 + k * .9, foot[1] - 1 + (k & 1), mo_BONE, near ? 3 : 1);
+    mo_end(P, 1);
+  };
+  leg(false, p.ff);
+  for (let i = 1; i < N - 1; i++){ const a = pts[i], h = 2.4 + (i % 2) * 2 + a[2] * .3; mo_poly(P, [[a[0] - 2.4, a[1] - a[2] + 1.5], [a[0] + .5, a[1] - a[2] - h], [a[0] + 3, a[1] - a[2] + 1.5]], C.crs, { cyl: .3 }); }
+  mo_end(P, 1);
+  for (let i = 0; i < N; i++){
+    const a = pts[i], b = pts[i + 1];
+    mo_cap(P, a[0], a[1], b[0], b[1], a[2], b[2], C.skn, { b: .02, d: .3, tex: (x, y, lv, u, v) => v > .42 ? [C.bel, clamp(lv + ((x & 2) ? 0 : -1), 0, 4)] : (Math.sin((x - y * .3) * .5) > .84 ? lv - 2 : ((x + (y & 1) * 2) % 4 === 0 ? lv - 1 : undefined)) });
+  }
+  mo_end(P);
+  // Katzenkopf
+  const h = pts[N], hx = h[0] + 5, hy = h[1] - 5;
+  for (const [ox, b] of [[-4.5, -.25], [2, 0]]) mo_poly(P, [[hx + ox - 3.4, hy - 5], [hx + ox - 1.2, hy - 14], [hx + ox + 3, hy - 5.8]], C.fur, { cyl: .3, b });
+  for (const ox of [-4.5, 2]) mo_poly(P, [[hx + ox - 1.6, hy - 6], [hx + ox - .8, hy - 11], [hx + ox + 1.2, hy - 6.4]], C.crs, { cyl: .2, b: .1 });
+  mo_ell(P, hx, hy, 9, 8, C.fur, { d: .35, tex: (x, y, lv) => ((x - y) % 3 === 0 ? lv - 1 : mo_hash(x, y, 61) < .2 ? lv + 1 : undefined) });
+  mo_ell(P, hx + 7, hy + 2.4, 4.6, 3.8, C.fur, { b: .1, tex: (x, y, lv, u, v) => (v > .15 ? [C.bel, clamp(lv, 0, 4)] : undefined) });
+  if (j){
+    mo_poly(P, [[hx + 2, hy + 4], [hx + 11.5, hy + 3.4], [hx + 11, hy + 4.4 + j * 2.6], [hx + 3, hy + 5.6 + j]], C.mou, { cyl: .2, lv: 1 });
+    mo_cap(P, hx + 2.6, hy + 6 + j, hx + 9.6, hy + 5.2 + j * 2.6, 2, 1.5, C.fur, { b: -.05 });
+    mo_line(P, hx + 10, hy + 3.6, hx + 10, hy + 6.4 + j, mo_BONE, 4); mo_line(P, hx + 7, hy + 3.8, hx + 7, hy + 5.6 + j * .7, mo_BONE, 3);
+  } else mo_line(P, hx + 5, hy + 4.4, hx + 10.6, hy + 4, mo_DARK, 0);
+  mo_ell(P, hx + 11, hy + .6, 1.6, 1.3, C.crs, { b: .2 });
+  mo_end(P, 1);
+  for (const [dx, dy] of [[11, -1.5], [12, .6], [11, 2.6]]) mo_line(P, hx + 8, hy + 2, hx + 8 + dx, hy + 2 + dy, mo_BONE, 2);
+  const ex = hx + 3.4, ey = hy - 1.6;
+  mo_ell(P, ex, ey, 2.4, 2, C.eye, { b: .2 }); mo_line(P, ex + .3, ey - 1.5, ex + .3, ey + 1.5, mo_DARK, 0);
+  mo_glow(P, ex, ey, '#ffd84a', 1); mo_halo(P, ex, ey, 3.4, '#ffc030', .4);
+  leg(true, p.nf);
+}
+const mo_TZP = {
+  idle: [{ ph: 0, ff: [11, 0], nf: [16, 0] }, { ph: 1, by: .5, ff: [11, 0], nf: [16, 0] }],
+  move: [{ ph: 0, ff: [6, 0], nf: [20, -2] }, { ph: 1.6, ff: [10, -2], nf: [15, 0] }, { ph: 3.2, ff: [18, -2], nf: [7, 0] }, { ph: 4.8, ff: [14, 0], nf: [11, -2] }],
+  act: [{ ph: .6, lift: 1, open: 1.4, ff: [10, 0], nf: [15, 0] }, { ph: 2.2, lift: -.2, by: 2, open: 2.8, ff: [22, -4], nf: [27, -3] }]
+};
+BOSS_ART.tatzelwurm = Object.assign(mo_set(116, 72, 58, 66, mo_tatzel, mo_TZP), { reach: 44 });
+/* ---------- Der Bergmönch: riesiger Kuttengeist mit Grubenlampe und Fäustel, unten zerfließt er in Nebel ---------- */
+const mo_BM = {
+  rob: mo_mat('#0e0c10', '#18151c', '#24202a', '#322c3a', '#423a4c'), mst: mo_mat('#4a4e5ac0', '#6a7080a0', '#8a90a080', '#aab0c060'),
+  rop: mo_mat('#3a3020', '#5a4a30', '#7a6644'), brd: mo_mat('#4a4c50', '#6e7074', '#94969a', '#b8babc'), skn: mo_mat('#3a3e44', '#5a6068', '#7a8088'),
+  lmp: mo_mat('#2a1e0c', '#4a3614', '#6a4e1e', '#8a6a2a'), fla: mo_mat('#c86a10', '#f0a030', '#ffd870', '#fff4c0')
+};
+function mo_bergmoench(P, p){
+  const C = mo_BM, by = p.by || 0, sw = p.sw || 0;
+  // Nebelsaum: unten durchscheinend
+  for (let y = 4; y < 22; y++){ const w = 15 + y * .4 + Math.sin(y * .7 + sw) * 1.5; for (let x = -Math.round(w); x <= Math.round(w); x++){ const q = mo_hash(x, y, 71 + (sw * 3 | 0)), e = 1 - Math.abs(x) / w; if (q < (1 - y / 22) * .55 * (.4 + e)) mo_put(P, x, y + by, C.mst, clamp(3 - (y / 6 | 0) - (q > .3 ? 1 : 0), 0, 3)); } }
+  mo_end(P, 0);
+  // ferner Arm mit Lampe an der Kette
+  const sh = [-6, -36 + by], la = p.lamp;
+  mo_cap(P, sh[0], sh[1], la[0], la[1] - 6, 4, 3, C.rob, { b: -.3 });
+  mo_line(P, la[0], la[1] - 6, la[0], la[1] - 2, C.rop, 1);
+  mo_poly(P, [[la[0] - 3, la[1] - 2], [la[0] + 3, la[1] - 2], [la[0] + 2.4, la[1] + 5], [la[0] - 2.4, la[1] + 5]], C.lmp, { cyl: .6 });
+  mo_ell(P, la[0], la[1] + 1.6, 1.6, 2.4, C.fla, { lv: 3 });
+  mo_end(P, 1);
+  mo_glow(P, la[0], la[1] + 1, '#fff4c0', 1); mo_halo(P, la[0], la[1] + 1.5, 9, '#ffc850', .42);
+  // Kutte: weit, mit Falten, Strick als Gürtel
+  mo_poly(P, [[-9, -44 + by], [7, -45 + by], [12, -30 + by], [15, -10 + by], [17, 6 + by], [-17, 6 + by], [-15, -10 + by], [-12, -30 + by]], C.rob, { cyl: .9, d: .4, fold: (x, y) => Math.sin(x * .55 + y * .05) * .35 });
+  mo_line(P, -11, -26 + by, 11, -27 + by, C.rop, 2); mo_line(P, 4, -26 + by, 6, -14 + by, C.rop, 1); mo_put(P, 6, -13 + by, C.rop, 2);
+  mo_end(P);
+  // Kapuze, darin Dunkelheit, glühende Augen, langer grauer Bart
+  const hx = 2, hy = -50 + by;
+  mo_poly(P, [[hx - 10, hy + 8], [hx - 9, hy - 3], [hx - 4, hy - 10], [hx + 4, hy - 10.5], [hx + 9, hy - 4], [hx + 10, hy + 6], [hx + 6, hy + 9]], C.rob, { cyl: .8, d: .3 });
+  mo_ell(P, hx + 2, hy + 1, 5.6, 5.4, mo_DARK, { lv: 0 });
+  mo_poly(P, [[hx - 2, hy + 4], [hx + 7, hy + 4], [hx + 6, hy + 14], [hx + 2.6, hy + 20 + sw * .6], [hx - 1, hy + 12]], C.brd, { cyl: .6, d: .5, tex: (x, y, lv) => ((x & 1) ? lv - 1 : undefined) });
+  mo_end(P, 1);
+  for (const ox of [0, 4]){ mo_glow(P, hx + ox, hy, '#bfe8ff', 1); mo_glow(P, hx + ox + 1, hy, '#7ac8ff', .8); mo_halo(P, hx + ox + .5, hy, 2.6, '#6ab8ff', .4); }
+  // naher Arm mit Fäustel
+  const s2 = [7, -37 + by], hd = p.ham, el = mo_ik(s2[0], s2[1], hd[0], hd[1], 10, 10, p.hb || 1);
+  mo_cap(P, s2[0], s2[1], el[0], el[1], 4.2, 3.4, C.rob, { d: .3 }); mo_cap(P, el[0], el[1], hd[0], hd[1], 3.4, 2.6, C.rob, {});
+  mo_ell(P, hd[0], hd[1], 2.2, 2, C.skn, { b: .05 });
+  const a = p.ha, ux = Math.cos(a), uy = Math.sin(a), e = [hd[0] + ux * 13, hd[1] + uy * 13];
+  mo_cap(P, hd[0] - ux * 2, hd[1] - uy * 2, e[0], e[1], 1, 1, mo_LK.wod, { k: 1.2 });
+  mo_cap(P, e[0] - uy * 4, e[1] + ux * 4, e[0] + uy * 4, e[1] - ux * 4, 2.6, 2.6, mo_LK.stl, { k: 1.3 });
+  mo_end(P, 1);
+}
+const mo_BMP = {
+  idle: [{ sw: 0, lamp: [-14, -24], ham: [12, -22], ha: -1.3 }, { sw: 1.5, by: 1, lamp: [-15, -23], ham: [12, -21], ha: -1.25 }],
+  move: [{ sw: 0, lamp: [-16, -24], ham: [12, -22], ha: -1.3 }, { sw: 1, by: 1, lamp: [-13, -23], ham: [12, -21], ha: -1.3 }, { sw: 2, lamp: [-11, -24], ham: [12, -22], ha: -1.3 }, { sw: 3, by: 1, lamp: [-14, -23], ham: [12, -21], ha: -1.3 }],
+  act: [{ sw: 1, lamp: [-16, -30], ham: [6, -58], ha: -2.4, hb: -1 }, { sw: 2, by: 2, lamp: [-10, -20], ham: [22, -24], ha: .4 }]
+};
+BOSS_ART.bergmoench = mo_set(96, 100, 48, 62, mo_bergmoench, mo_BMP);
+/* ---------- Rübezahl: der Riese der Berge, wilder Bart und Haar, Fellumhang, ein Baumstamm als Keule ---------- */
+const mo_RZ = {
+  skn: mo_mat('#3a2418', '#5c3a26', '#7e5236', '#9c6a48', '#b4825a'), hai: mo_mat('#2e2a26', '#4a4640', '#6a645c', '#8c867c', '#aaa498'),
+  cap: mo_mat('#16200f', '#243218', '#344622', '#475a2e', '#5b6e3a'), fur: mo_mat('#1e160e', '#302418', '#463624', '#5e4a32', '#786044'),
+  tun: mo_mat('#2a1e12', '#3e2c1a', '#544024', '#6a5430'), brk: mo_SR.brk, lef: mo_SR.lef
+};
+function mo_ruebezahl(P, p){
+  const C = mo_RZ, bx = p.bx || 0, by = p.by || 0, ln = p.lean || 0, hip = [bx, -36 + by], sh = [bx + ln * 10, -66 + by];
+  const leg = (f, near) => {
+    const b = near ? 0 : -.3, top = [hip[0] + (near ? 4 : -4), hip[1]], kn = mo_ik(top[0], top[1], f[0], f[1] - 4, 17, 17, 1);
+    mo_cap(P, top[0], top[1], kn[0], kn[1], 6, 4.8, C.tun, { b, d: .3 });
+    mo_cap(P, kn[0], kn[1], f[0], f[1] - 4, 5, 4.6, C.fur, { b, tex: mo_furPoly(7, .2) });     // Fellwickel
+    mo_poly(P, [[f[0] - 4, f[1] - 5], [f[0] + 4, f[1] - 5], [f[0] + 9, f[1] - 2], [f[0] + 9, f[1]], [f[0] - 5, f[1]]], C.fur, { b: b - .05, cyl: .4, ny: -.3 });
+    mo_end(P, 1);
+  };
+  const arm = (hand, near) => {
+    const b = near ? 0 : -.3, s0 = [sh[0] + (near ? 9 : -9), sh[1] + 3], el = mo_ik(s0[0], s0[1], hand[0], hand[1], 15, 14, near ? -1 : 1);
+    mo_cap(P, s0[0], s0[1], el[0], el[1], 5.6, 4.6, C.skn, { b, d: .3, tex: (x, y, lv) => (mo_hash(x, y, 81) < .15 ? lv - 1 : undefined) });
+    mo_cap(P, el[0], el[1], hand[0], hand[1], 4.6, 4, C.skn, { b });
+    mo_ell(P, hand[0], hand[1], 4, 3.6, C.skn, { b: b + .05 });
+    mo_end(P, 1);
+  };
+  // Fellumhang hinter allem
+  mo_poly(P, [[sh[0] - 12, sh[1] - 2], [sh[0] + 4, sh[1] - 4], [sh[0] - 2, hip[1] + 10], [hip[0] - 20 - (p.wind || 0) * 3, hip[1] + 24], [hip[0] - 22 - (p.wind || 0) * 4, hip[1] + 4]], C.fur, { cyl: .7, d: .4, tex: mo_furPoly(9, .4) });
+  mo_shag(P, [C.fur], -1, 1, .5, 13, 2, true);
+  mo_end(P, 1);
+  arm(p.fh, false); leg(p.fl, false);
+  // Rumpf: Kittel, breiter Gürtel
+  mo_poly(P, [[sh[0] - 12, sh[1]], [sh[0] + 12, sh[1] - 1], [hip[0] + 13, hip[1] + 2], [hip[0] + 12, hip[1] + 12], [hip[0] - 12, hip[1] + 12], [hip[0] - 13, hip[1] + 2]], C.tun, { cyl: .9, d: .4, tex: (x, y, lv) => (Math.abs(y - hip[1] - 2) < 2 ? [mo_LK.lea, lv > 2 ? 3 : 1] : ((x * 3 + y) % 7 === 0 ? lv - 1 : undefined)) });
+  mo_ell(P, hip[0] + 2 + ln * 3, hip[1] + 2, 2.6, 2, mo_LK.och, { b: .1 });   // Schnalle
+  mo_end(P);
+  leg(p.nl, true);
+  // Kopf: Gesicht, buschige Brauen, mächtiger Bart, wildes Haar, Kranz aus Tannengrün
+  const hx = sh[0] + 3 + ln * 4, hy = sh[1] - 9;
+  mo_ell(P, hx, hy - 2, 11, 10, C.hai, { d: .5, tex: mo_furPoly(15, -.4) });   // Haar hinten
+  mo_ell(P, hx + 2, hy, 7.6, 8, C.skn, { d: .3 });
+  mo_ell(P, hx + 8.6, hy + 1, 2.6, 2.4, C.skn, { b: .15 });   // Nase
+  mo_poly(P, [[hx - 5, hy + 1], [hx + 10, hy + 2], [hx + 11, hy + 10], [hx + 6 + (p.wind || 0), hy + 22], [hx, hy + 24], [hx - 5, hy + 14]], C.hai, { cyl: .7, d: .5, tex: (x, y, lv) => ((x + (y >> 1)) % 3 === 0 ? lv - 1 : undefined) });   // Bart
+  if (p.roar) mo_ell(P, hx + 5, hy + 6, 2.6, 1.6 + p.roar, mo_DARK, { lv: 0 });
+  mo_line(P, hx + 1, hy - 4, hx + 8, hy - 5, C.hai, 1); mo_line(P, hx + 1, hy - 3, hx + 7, hy - 4, C.hai, 0);   // Brauen
+  mo_end(P, 1);
+  const ex = hx + 5, ey = hy - 2;
+  mo_put(P, ex, ey, mo_BONE, 4); mo_put(P, ex + 1, ey, mo_DARK, 0);
+  mo_glow(P, ex, ey, '#bfe8ff', .9); mo_halo(P, ex, ey, 2.6, '#8acfff', .35);
+  for (let k = 0; k < 9; k++){ const a = Math.PI + k / 8 * Math.PI, x = hx + Math.cos(a) * 9.5, y = hy - 4 + Math.sin(a) * 7; mo_ell(P, x, y, 2.2, 1.6, C.cap, { b: (k & 1) * .1 }); }
+  mo_end(P, 1);
+  // Keule: junger Baumstamm mit Wurzelstock, in beiden Händen
+  const g = p.nh, a = p.ca, ux = Math.cos(a), uy = Math.sin(a), e = [g[0] + ux * 34, g[1] + uy * 34], t0 = [g[0] - ux * 6, g[1] - uy * 6];
+  mo_cap(P, t0[0], t0[1], e[0], e[1], 2.6, 5, C.brk, { d: .3, tex: mo_barkTex(17) });
+  for (const [o, l] of [[-1, 6], [.6, 7], [1.4, 5]]){ const aa = a + o, q = [e[0] + Math.cos(aa) * l, e[1] + Math.sin(aa) * l]; mo_cap(P, e[0], e[1], q[0], q[1], 2.2, .8, C.brk, {}); }
+  mo_ell(P, e[0] - ux * 8 - uy * 3, e[1] - uy * 8 + ux * 3, 3, 2, C.lef, { b: .05 });
+  mo_end(P, 1);
+  arm(p.nh, true);
+}
+const mo_RZP = {
+  idle: [{ fl: [-7, 0], nl: [7, 0], fh: [-12, -40], nh: [16, -40], ca: -1.2 }, { by: 1, wind: .5, fl: [-7, 0], nl: [7, 0], fh: [-12, -39], nh: [16, -39], ca: -1.18 }],
+  move: [
+    { lean: .1, fl: [-12, 0], nl: [10, -2], fh: [-8, -40], nh: [18, -42], ca: -1.1, wind: 1 },
+    { by: -2, lean: .1, fl: [-4, -3], nl: [4, 0], fh: [-12, -41], nh: [18, -43], ca: -1.15, wind: 1.5 },
+    { lean: .1, fl: [10, -2], nl: [-12, 0], fh: [-14, -40], nh: [19, -42], ca: -1.1, wind: 1 },
+    { by: -2, lean: .1, fl: [4, 0], nl: [-4, -3], fh: [-12, -41], nh: [18, -43], ca: -1.15, wind: 1.5 }],
+  act: [
+    { lean: -.15, roar: 1, fl: [-9, 0], nl: [9, 0], fh: [-6, -72], nh: [6, -76], ca: -2.3, wind: 2 },
+    { by: 3, lean: .5, roar: 2, fl: [-12, 0], nl: [14, 0], fh: [14, -44], nh: [24, -40], ca: .25, wind: 3 }]
+};
+BOSS_ART.ruebezahl = Object.assign(mo_set(120, 116, 56, 112, mo_ruebezahl, mo_RZP), { reach: 54 });

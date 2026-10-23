@@ -719,7 +719,7 @@ function renderDungeon(){
   list.sort((p, q) => p.y - q.y);
   for (const it of list) it.d();
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
-  for (const s of G.shots) if (s.k === 'bolt') drawShot(s);
+  for (const s of G.shots) if (s.k === 'bolt' || s.k === 'ball') drawShot(s);
   kbDraw();
   for (const p of G.parts){ if (p.glow) continue; ctx.globalAlpha = p.s ? Math.min(.6, p.life * .5) : .85; ctx.fillStyle = p.c; ctx.fillRect(p.x | 0, p.y | 0, p.s || 1, p.s || 1); }
   ctx.globalAlpha = 1;

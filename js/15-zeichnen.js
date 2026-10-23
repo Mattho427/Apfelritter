@@ -203,7 +203,11 @@ function drawPlate(m){
 }
 const BOLT_ROT = (() => { const out = []; const b = ITEM_ART.bolt; for (let i = 0; i < 32; i++) out.push(rotateNN(b, i / 32 * Math.PI * 2, b.width / 2, b.height / 2)); return out; })();
 function drawShot(s){
-  if (s.k === 'bolt'){
+  if (s.k === 'ball'){   // Bleikugel der Hakenbüchse mit kurzer Rauchspur
+    const l = Math.hypot(s.vx, s.vy) || 1, ux = s.vx / l, uy = s.vy / l;
+    for (let i = 1; i <= 4; i++){ ctx.globalAlpha = .35 - i * .07; ctx.fillStyle = '#c8c4bc'; ctx.fillRect(Math.round(s.x - ux * i * 3), Math.round(s.y - uy * i * 3), 2, 2); }
+    ctx.globalAlpha = 1; ctx.fillStyle = '#1a1a1e'; ctx.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 3, 3); ctx.fillStyle = '#8a8a90'; ctx.fillRect(Math.round(s.x) - 1, Math.round(s.y) - 1, 1, 1);
+  } else if (s.k === 'bolt'){
     const a = Math.atan2(s.vy, s.vx), r = BOLT_ROT[((Math.round(a / (Math.PI * 2) * 32) % 32) + 32) % 32];
     ctx.drawImage(r.img, Math.round(s.x - r.ox), Math.round(s.y - r.oy));
   } else {
@@ -349,7 +353,7 @@ function render(){
   festOverlay(cam); drawFgameWorld(cam);
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
   drawSky(cam);
-  for (const s of G.shots) if (s.k === 'bolt') drawShot(s);
+  for (const s of G.shots) if (s.k === 'bolt' || s.k === 'ball') drawShot(s);
   kbDraw();
   for (const p of G.parts){
     if (p.glow) continue;

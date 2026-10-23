@@ -206,8 +206,11 @@ function aiMove(m, dt, k, dx, dy, dist){
         const mz = muzzleOf(m);
         if (m.sT > .3){ const ty = k.y - KBODY, l = Math.hypot(k.x - mz.x, ty - mz.y) || 1; m.ax = (k.x - mz.x) / l; m.ay = (ty - mz.y) / l; }
         if (m.sT <= 0){
-          G.shots.push({ x: mz.x, y: mz.y, vx: m.ax * 240, vy: m.ay * 240, life: 2.2, k:'bolt', h: mz.h, dmg, from: m });
-          Sound.bolt(); m.rl = rand(2, 2.7); m.st = 'shot'; m.sT = .25;
+          const gun = !!artOf(m.k).gun;
+          G.shots.push({ x: mz.x, y: mz.y, vx: m.ax * (gun ? 330 : 240), vy: m.ay * (gun ? 330 : 240), life: 2.2, k: gun ? 'ball' : 'bolt', h: mz.h, dmg, from: m });
+          if (gun){ Sound.gun(); for (let i = 0; i < 7; i++) G.parts.push({ x: mz.x + m.ax * 6, y: mz.y + m.ay * 6, vx: m.ax * rand(10, 40) + rand(-12, 12), vy: m.ay * rand(10, 40) - rand(6, 20), life: rand(.6, 1.1), c: i < 2 ? '#ffd060' : '#bcb8b0', g: -10, s: 1 }); }
+          else Sound.bolt();
+          m.rl = rand(2, 2.7) * (gun ? 1.25 : 1); m.st = 'shot'; m.sT = .25;
         }
       } else if (m.st === 'shot'){ if (m.sT <= 0) m.st = 'go'; }
       break;
@@ -313,7 +316,7 @@ function aiMove(m, dt, k, dx, dy, dist){
 }
 /* Austrittspunkte (Bolzen, Feuer) in Weltkoordinaten; h = Höhe über dem Boden */
 function muzzleOf(m){
-  const art = artOf('armbrust'), mz = art.muzzle || { x: 14, y: -26 };
+  const art = artOf(m.k).muzzle ? artOf(m.k) : artOf('armbrust'), mz = art.muzzle || { x: 14, y: -26 };
   return { x: m.x + mz.x * m.dir, y: m.y + mz.y, h: -mz.y };
 }
 function mouthOf(m){
