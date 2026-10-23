@@ -62,13 +62,15 @@ const SKILLS = [
 
 /* Gebiete: Stufenbereich der Monster; Burg und Stadt sind sicher */
 const ZONE_LV = { obstgarten:[1, 3], fluss:[2, 4], dorf:[3, 6], friedhof:[5, 8], lager:[6, 9], galgen:[7, 10], wald:[8, 12], schlachtfeld:[10, 14], moor:[12, 16], ruine:[14, 18],
-  weinberge:[15, 18], auwald:[16, 19], piratennest:[18, 21] };
-const SAFE = { burg:true, stadt:true, weiler:true, speyer:true, fischerdorf:true };
+  weinberge:[15, 18], auwald:[16, 19], piratennest:[18, 21],
+  schwarzwald:[19, 22], silberrevier:[21, 24], schanze:[23, 26], hochgebirge:[26, 30] };
+const SAFE = { burg:true, stadt:true, weiler:true, speyer:true, fischerdorf:true, annaberg:true };
 const ZONE_MOBS = {
   obstgarten:['wieder', 'pluend'], fluss:['ratte', 'moor'], dorf:['ratte', 'pluend'], friedhof:['wieder', 'rabe'],
   lager:['pluend', 'armbrust'], galgen:['rabe', 'wieder'], wald:['werwolf', 'armbrust', 'rabe'],
   schlachtfeld:['wieder', 'pluend', 'rabe'], moor:['moor', 'irrlicht'], ruine:['pluend', 'armbrust'],
-  weinberge:['pluend', 'armbrust', 'rabe'], auwald:['nix', 'werwolf', 'moor'], piratennest:['pirat', 'pschuetze']
+  weinberge:['pluend', 'armbrust', 'rabe'], auwald:['nix', 'werwolf', 'moor'], piratennest:['pirat', 'pschuetze'],
+  schwarzwald:['wolf', 'schrat', 'wegelagerer'], silberrevier:['kobold', 'grubengeist', 'wegelagerer'], schanze:['doppelsoeldner', 'hakenschuetze'], hochgebirge:['baer', 'geier', 'eislicht']
 };
 const ZONE_INFO = {
   obstgarten:'Unter der Burg. Wiedergänger und Plünderer, gut für den Anfang.',
@@ -88,7 +90,12 @@ const ZONE_INFO = {
   fischerdorf:'Fischerhütten, Netze und Kähne am Ufer. Der Fischer verkauft Angeln und kauft jeden Fang. Hier seid Ihr sicher.',
   weinberge:'Rebhänge über Speyer. Landsknechte, die aus Italien heimkehren, plündern die Winzerhöfe.',
   auwald:'Weiden, Altwasser und Nebel am Strom. Nöcke lauern im Wasser, Wölfe im Dickicht.',
-  piratennest:'Die Insel im Altarm. Hinrich Rotbart und seine Flusspiraten überfallen von hier die Rheinschiffe.'
+  piratennest:'Die Insel im Altarm. Hinrich Rotbart und seine Flusspiraten überfallen von hier die Rheinschiffe.',
+  schwarzwald:'Dunkler Tann voller Fichten. Wölfe jagen in Rudeln, Waldschrate wandeln zwischen den Stämmen, in der Teufelsschlucht haust der Tatzelwurm.',
+  annaberg:'Die Bergstadt am Silberbach, erst vor wenigen Jahren gegründet und schon reich vom Silber. Kirche St. Annen, Gasthaus und Bergamt. Hier seid Ihr sicher.',
+  silberrevier:'Halden, Göpel und Stollen. In den alten Gruben hausen Kobolde und die Geister verschütteter Knappen; im Altenberg-Stollen wandelt der Bergmönch.',
+  schanze:'Ein Heer von Landsknechten ohne Sold hat sich hinter Schanzkörben verschanzt. Doppelsöldner und Hakenbüchsenschützen, angeführt von ihrem Feldhauptmann.',
+  hochgebirge:'Fels, Geröll und ewiger Schnee. Bären und Bartgeier, Eislichter über den Gletschern, und auf seinem Felsenthron Rübezahl, der Herr der Berge.'
 };
 const zoneLvText = id => ZONE_LV[id] ? 'Stufe ' + ZONE_LV[id][0] + '–' + ZONE_LV[id][1] : SAFE[id] ? 'sicher' : '';
 
@@ -110,13 +117,30 @@ const MON = {
   wels:       { name:'Der Waller', hp:68, dmg:2.6, xp:21, spd:34, r:16, hr:22, boss:true, wade:true },
   raubritter: { name:'Kunz der Schwarze', hp:50, dmg:2.6, xp:16, spd:40, r:15, hr:20, boss:true },
   lindwurm:   { name:'Der Lindwurm', hp:55, dmg:2.2, xp:18, spd:56, r:14, hr:16, boss:true, wade:true },
-  tod:        { name:'Der Tod', hp:45, dmg:2.8, xp:17, spd:0, r:14, hr:20, boss:true, fly:true }
+  tod:        { name:'Der Tod', hp:45, dmg:2.8, xp:17, spd:0, r:14, hr:20, boss:true, fly:true },
+  // Bergland (Version 25)
+  wolf:           { name:'Grauwolf', hp:2.4, dmg:1.35, xp:1.2, spd:66, r:10, hr:12 },
+  schrat:         { name:'Waldschrat', hp:4.4, dmg:1.5, xp:1.5, spd:24, r:11, hr:14 },
+  wegelagerer:    { name:'Wegelagerer', hp:3.1, dmg:1.4, xp:1.25, spd:48, r:9, hr:11 },
+  kobold:         { name:'Kobold', hp:1.7, dmg:1.1, xp:1, spd:70, r:7, hr:9 },
+  grubengeist:    { name:'Grubengeist', hp:3.8, dmg:1.3, xp:1.4, spd:28, r:10, hr:12 },
+  doppelsoeldner: { name:'Doppelsöldner', hp:3.9, dmg:1.6, xp:1.45, spd:46, r:9, hr:11 },
+  hakenschuetze:  { name:'Hakenbüchsenschütze', hp:2.4, dmg:1.55, xp:1.35, spd:40, r:9, hr:11 },
+  baer:           { name:'Braunbär', hp:5.2, dmg:1.7, xp:1.7, spd:46, r:13, hr:16 },
+  geier:          { name:'Bartgeier', hp:1.5, dmg:1.1, xp:1, spd:96, r:9, hr:12, fly:true },
+  eislicht:       { name:'Eislicht', hp:1.7, dmg:1.2, xp:1.1, spd:46, r:7, hr:9, fly:true },
+  tatzelwurm:     { name:'Der Tatzelwurm', hp:62, dmg:2.7, xp:22, spd:50, r:14, hr:18, boss:true },
+  bergmoench:     { name:'Der Bergmönch', hp:66, dmg:2.9, xp:23, spd:0, r:14, hr:22, boss:true, fly:true },
+  feldhauptmann:  { name:'Feldhauptmann Balthasar Wüst', hp:64, dmg:3, xp:24, spd:50, r:12, hr:15, boss:true },
+  ruebezahl:      { name:'Rübezahl', hp:84, dmg:3.3, xp:28, spd:42, r:18, hr:26, boss:true }
 };
 const artOf = k => MON_ART[k] || BOSS_ART[k];
 const monHp = (k, L) => Math.round((1.5 + MON[k].hp * .9) * (6 + 2.7 * L));
-const NIGHT_BEAST = { werwolf: 1, irrlicht: 1, wieder: 1, nix: 1 };
+const NIGHT_BEAST = { werwolf: 1, irrlicht: 1, wieder: 1, nix: 1, wolf: 1, grubengeist: 1, eislicht: 1 };
 /* Kampfweise: Spielarten kämpfen wie ihr Vorbild */
-const AI_KIND = { pirat: 'pluend', rotbart: 'pluend', pschuetze: 'armbrust', nix: 'moor', wels: 'werwolf' };
+const AI_KIND = { pirat: 'pluend', rotbart: 'pluend', pschuetze: 'armbrust', nix: 'moor', wels: 'werwolf',
+  wolf: 'werwolf', schrat: 'moor', wegelagerer: 'pluend', kobold: 'ratte', grubengeist: 'moor', doppelsoeldner: 'pluend', hakenschuetze: 'armbrust', baer: 'werwolf', geier: 'rabe', eislicht: 'irrlicht',
+  tatzelwurm: 'werwolf', bergmoench: 'tod', feldhauptmann: 'pluend', ruebezahl: 'raubritter' };
 const aiK = k => AI_KIND[k] || k;
 const monDmg = (k, L) => Math.max(1, Math.round((2.5 + 1.5 * L) * MON[k].dmg * (NIGHT_BEAST[k] && isNight() ? 1.25 : 1)));
 const monXp = (k, L) => Math.round((10 + 5 * L) * MON[k].xp);
@@ -132,11 +156,15 @@ const BOSSES = {
   wels:       { lvl:20, zone:'auwald' },
   raubritter: { lvl:19, zone:'ruine' },
   lindwurm:   { lvl:16, zone:'moor' },
-  tod:        { lvl:14, zone:'schlachtfeld' }
+  tod:        { lvl:14, zone:'schlachtfeld' },
+  tatzelwurm: { lvl:23, zone:'schwarzwald' },
+  bergmoench: { lvl:25, zone:'silberrevier' },
+  feldhauptmann: { lvl:27, zone:'schanze' },
+  ruebezahl:  { lvl:31, zone:'hochgebirge' }
 };
-const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder', rotbart:'pirat', wels:'nix' };
+const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder', rotbart:'pirat', wels:'nix', tatzelwurm:'wolf', bergmoench:'grubengeist', feldhauptmann:'doppelsoeldner', ruebezahl:'eislicht' };
 const BIND = { burg: gNear(1900, 456), stadt: gNear(2972, 2380), speyer: gNear(5060, 1420) };
-const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt', weiler:'Dorf Lindach', speyer:'Reichsstadt Speyer', fischerdorf:'Fischerdorf Altrip' };
+const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt', weiler:'Dorf Lindach', speyer:'Reichsstadt Speyer', fischerdorf:'Fischerdorf Altrip', annaberg:'Bergstadt Annaberg' };
 
 /* ============ Beute: Seltenheit, Grundformen, Zusätze ============ */
 const RARITY = [
@@ -171,7 +199,7 @@ const EPIC_PRE = ['Barbarossas', 'Rolands', 'Siegfrieds', 'Dietrichs', 'Hildebra
    und mehr Schaden gegen Untote und Geister, und F wird zum Gebet, das heilt. */
 const BIB_BASES = ['Abgegriffene kleine Bibel', 'Kleine Bibel', 'Kleine Bibel mit Messingschließe', 'Kleine Bibel mit Goldschnitt', 'Kleine Prachtbibel'];
 const BIB_UNDEAD = 25, BIB_HEAL = 30, BIB_CD = 15;
-const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1 };   // Untote und Geister
+const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1, grubengeist: 1, eislicht: 1, bergmoench: 1 };   // Untote und Geister
 const isBib = it => !!(it && it.s === 'schild' && it.nh === 'bibel');
 const heroBib = () => !!(HERO && HERO.eq && isBib(HERO.eq.schild));
 const rollNh = () => Math.random() < .15 ? 'bibel' : null;
@@ -232,7 +260,11 @@ const UNIQUES = {
   lindwurm:   { s:'schild', n:'Drachenschuppenschild', aff:['block', 'arm', 'hp'] },
   tod:        { s:'kleinod', n:'Der Reichsapfel', aff:['hp', 'str', 'crit'] },
   rotbart:    { s:'waffe', n:'Rotbarts Entermesser', aff:['crit', 'spd', 'str'] },
-  wels:       { s:'kleinod', n:'Die Wallerperle', aff:['hp', 'block', 'crit'] }
+  wels:       { s:'kleinod', n:'Die Wallerperle', aff:['hp', 'block', 'crit'] },
+  tatzelwurm: { s:'beine', n:'Tatzelwurmstiefel', aff:['spd', 'hp', 'arm'] },
+  bergmoench: { s:'kleinod', n:'Das Grubenlicht des Bergmönchs', aff:['hp', 'crit', 'str'] },
+  feldhauptmann: { s:'waffe', n:'Wüsts Bidenhänder', wt:'zweihaender', aff:['str', 'crit', 'spd'] },
+  ruebezahl:  { s:'ruestung', n:'Rübezahls Bergharnisch', aff:['hp', 'arm', 'str'] }
 };
 let itemSeq = 0;
 function makeItem(s, il, r, o){

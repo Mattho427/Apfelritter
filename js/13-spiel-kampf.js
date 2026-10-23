@@ -118,7 +118,7 @@ function createMonster(kind, x, y, lvl, slot){
     alpha: 1, stunT: 0, backT: 0, uid: ++monSeq, seen: 0 };
   m.max = m.hp;
   if (kind === 'lindwurm') m.trail = [];
-  if (kind === 'rabe' || kind === 'irrlicht'){ m.y = y - 24; m.hy = y; }
+  if (aiK(kind) === 'rabe' || aiK(kind) === 'irrlicht'){ m.y = y - 24; m.hy = y; }
   G.mons.push(m);
   return m;
 }
@@ -127,10 +127,11 @@ const leashOf = m => MON[m.k].boss ? 420 : 520;
 function engage(m, social){
   if (m.mode === 'fight' || m.mode === 'back') return;
   m.mode = 'fight'; m.t = 0; m.walking = false;
-  m.st = { raubritter:'walk', tod:'wind', rabe:'circle' }[m.k] || 'go';
-  m.sT = m.k === 'raubritter' ? 1.5 : m.k === 'lindwurm' ? 2 : m.k === 'tod' ? .7 : m.k === 'rabe' ? rand(1.2, 2) : 0;
+  const ai = aiK(m.k);
+  m.st = { raubritter:'walk', tod:'wind', rabe:'circle' }[ai] || 'go';
+  m.sT = ai === 'raubritter' ? 1.5 : m.k === 'lindwurm' ? 2 : ai === 'tod' ? .7 : ai === 'rabe' ? rand(1.2, 2) : 0;
   if (!social){
-    if (m.k === 'werwolf') Sound.howl(); else if (m.k === 'rabe') Sound.caw(); else if (m.k === 'ratte') Sound.squeak(); else if (m.k === 'rotbart') Sound.horn();
+    if (m.k === 'werwolf' || m.k === 'wolf') Sound.howl(); else if (ai === 'rabe') Sound.caw(); else if (ai === 'ratte') Sound.squeak(); else if (m.k === 'rotbart') Sound.horn();
     if (MON[m.k].boss){ Sound.horn(); G.flash = .3; showBanner(m.nm || MON[m.k].name, 'Stufe ' + m.lvl + ' · Anführer'); }
     for (const o of G.mons) if (o !== m && o.mode === 'idle' && !MON[o.k].boss && Math.hypot(o.x - m.x, o.y - m.y) < 80) engage(o, true);
   }
@@ -139,14 +140,15 @@ function engage(m, social){
 function goHome(m){
   if (m.mode === 'back') return;
   m.mode = 'back'; m.st = 'idle'; m.backT = 0; m.stunT = 0; m.walking = true;
-  if (m.k === 'tod'){ m.st = 'fade'; m.sT = .5; }
+  if (aiK(m.k) === 'tod'){ m.st = 'fade'; m.sT = .5; }
 }
 function idleMove(m, dt){
   const d = MON[m.k];
   if (d.fly){
-    if (m.k === 'rabe'){ const a = m.t * .9 + m.uid; m.dir = Math.cos(a + 1.57) > 0 ? -1 : 1; return [(m.hx + Math.cos(a) * 34 - m.x) * 2, (m.hy - 30 + Math.sin(a) * 10 - m.y) * 2]; }
-    if (m.k === 'irrlicht') return [(m.hx + Math.cos(m.t * .7) * 20 - m.x) * 1.5, (m.hy - 22 + Math.sin(m.t * 1.3) * 8 - m.y) * 1.5];
-    if (m.k === 'tod'){ m.alpha = Math.min(1, (m.alpha == null ? 1 : m.alpha) + dt); return [(m.hx - m.x) * 2, (m.hy - 20 + Math.sin(m.t) * 3 - m.y) * 2]; }
+    const ai = aiK(m.k);
+    if (ai === 'rabe'){ const a = m.t * .9 + m.uid; m.dir = Math.cos(a + 1.57) > 0 ? -1 : 1; return [(m.hx + Math.cos(a) * 34 - m.x) * 2, (m.hy - 30 + Math.sin(a) * 10 - m.y) * 2]; }
+    if (ai === 'irrlicht') return [(m.hx + Math.cos(m.t * .7) * 20 - m.x) * 1.5, (m.hy - 22 + Math.sin(m.t * 1.3) * 8 - m.y) * 1.5];
+    if (ai === 'tod'){ m.alpha = Math.min(1, (m.alpha == null ? 1 : m.alpha) + dt); return [(m.hx - m.x) * 2, (m.hy - 20 + Math.sin(m.t) * 3 - m.y) * 2]; }
   }
   m.wT -= dt;
   if (m.walking){
@@ -177,7 +179,7 @@ function aiMove(m, dt, k, dx, dy, dist){
     }
     case 'pluend': {
       m.sT -= dt;
-      const reach = (artOf('pluend').reach || 36), fast = m.k === 'rotbart';
+      const reach = (artOf(m.k).reach || artOf('pluend').reach || 36), fast = !!MON[m.k].boss;
       if (m.st === 'go'){
         const side = m.x < k.x ? 1 : -1, gx = k.x - side * (reach - 4), gy = k.y, gdx = gx - m.x, gdy = gy - m.y, gl = Math.hypot(gdx, gdy) || 1;
         if (gl > 3){ mvx = gdx / gl * m.spd * 1.2; mvy = gdy / gl * m.spd * 1.2; }
@@ -212,7 +214,7 @@ function aiMove(m, dt, k, dx, dy, dist){
     }
     case 'werwolf': {
       m.sT -= dt;
-      const wl = m.k === 'wels';
+      const wl = !!MON[m.k].boss;
       if (m.st === 'go'){ [mvx, mvy] = toK(m.spd * 1.1); if (dist < (wl ? 150 : 100) && m.t > (wl ? 1.6 : 1)){ m.st = 'aim'; m.sT = wl ? .9 : .6; } }
       else if (m.st === 'aim'){ if (m.sT > .25){ m.ax = dx / dist; m.ay = dy / dist; m.dir = dx > 0 ? 1 : -1; } if (m.sT <= 0){ m.st = 'dash'; m.sT = wl ? .55 : .42; if (wl){ Sound.hit(); G.shake = .2; } else Sound.howl(); } }
       else if (m.st === 'dash'){ mvx = m.ax * (wl ? 260 : 290); mvy = m.ay * (wl ? 260 : 290); if (m.sT <= 0){ m.st = 'rest'; m.sT = wl ? 1.1 : .7; } }
@@ -339,9 +341,9 @@ function updateMons(dt){
   for (let i = G.rising.length - 1; i >= 0; i--){
     const r = G.rising[i]; r.t -= dt;
     if (Math.random() < .6){
-      const wisp = r.kind === 'irrlicht', boss = MON[r.kind].boss;
+      const wisp = aiK(r.kind) === 'irrlicht', boss = MON[r.kind].boss;
       G.parts.push({ x: r.x + rand(-9, 9), y: r.y - (wisp ? 10 : 0), vx: rand(-14, 14), vy: rand(-45, -14), life: .5,
-        c: wisp ? '#6fe8b0' : boss ? '#b3202a' : r.kind === 'moor' ? '#33413f' : '#3e3022', g: 70, glow: wisp || boss });
+        c: wisp ? '#6fe8b0' : boss ? '#b3202a' : aiK(r.kind) === 'moor' ? '#33413f' : '#3e3022', g: 70, glow: wisp || boss });
     }
     if (r.t > 0) continue;
     G.rising.splice(i, 1);
@@ -372,7 +374,7 @@ function updateMons(dt){
     }
     if (m.mode === 'back'){
       m.backT += dt;
-      if (m.k === 'tod'){
+      if (aiK(m.k) === 'tod'){
         m.sT -= dt; m.alpha = clamp(m.sT / .5, 0, 1);
         if (m.sT <= 0){ m.x = m.hx; m.y = m.hy - 20; m.alpha = 0; m.mode = 'idle'; m.st = 'idle'; m.hp = m.max; }
       } else {
@@ -381,7 +383,7 @@ function updateMons(dt){
         else { const sp = Math.max(60, (m.spd || 40) * 1.7); mvx = ddx / l * sp; mvy = ddy / l * sp; m.dir = ddx > 0 ? 1 : -1; m.hp = Math.min(m.max, m.hp + m.max * dt * .5); }
       }
     }
-    if (m.mode === 'fight' && ['wieder', 'moor', 'ratte', 'irrlicht'].includes(m.k) && Math.abs(mvx) > 1) m.dir = mvx > 0 ? 1 : -1;
+    if (m.mode === 'fight' && ['wieder', 'moor', 'ratte', 'irrlicht'].includes(aiK(m.k)) && Math.abs(mvx) > 1) m.dir = mvx > 0 ? 1 : -1;
     if (m.mode === 'fight' && aiK(m.k) === 'werwolf' && m.st === 'go' && Math.abs(mvx) > 1) m.dir = mvx > 0 ? 1 : -1;
     const ground = !d.fly && (m.k !== 'lindwurm' || DG_ON);
     if (ground && m.st !== 'dash' && m.st !== 'charge') [mvx, mvy] = steer(m, mvx, mvy, d.wade);
@@ -416,11 +418,11 @@ function updateMons(dt){
   }
   if (!alive) return;
   for (const m of G.mons){
-    if (m.mode !== 'fight' || m.stunT > 0 || m.k === 'tod' || m.k === 'noeck' || aiK(m.k) === 'pluend' || aiK(m.k) === 'armbrust') continue;
-    if (m.k === 'raubritter' && m.st === 'stun') continue;
+    if (m.mode !== 'fight' || m.stunT > 0 || aiK(m.k) === 'tod' || m.k === 'noeck' || aiK(m.k) === 'pluend' || aiK(m.k) === 'armbrust') continue;
+    if (aiK(m.k) === 'raubritter' && m.st === 'stun') continue;
     const touch = bodyCircles(m).some(c => Math.hypot(c.x - k.x, c.y - (k.y - KBODY)) < c.r + 10);
     if (!touch) continue;
-    const mul = m.st === 'dash' || m.st === 'dive' || m.st === 'charge' ? 1.3 : m.k === 'raubritter' ? .6 : 1;
+    const mul = m.st === 'dash' || m.st === 'dive' || m.st === 'charge' ? 1.3 : aiK(m.k) === 'raubritter' ? .6 : 1;
     if (hurt(m, monDmg(m.k, m.lvl) * mul) && aiK(m.k) === 'moor') k.slowT = 1.6;
     if (G.mode !== 'play') return;
   }
@@ -626,7 +628,7 @@ function swingHits(){
     if (m.hitBy === k.swing || !vulnerable(m)) continue;
     if (!bodyCircles(m).some(c => inSwing(k, c.x, c.y, c.hr))) continue;
     m.hitBy = k.swing;
-    const h = rollHit(k.mult * (m.k === 'raubritter' && m.st === 'stun' ? 1.5 : 1));
+    const h = rollHit(k.mult * (aiK(m.k) === 'raubritter' && m.st === 'stun' ? 1.5 : 1));
     const ub = (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0);   // Kleine Bibel, Segen
     if (UNDEAD[m.k] && ub) h.dmg = Math.round(h.dmg * (1 + ub / 100));
     if (k.skF && !MON[m.k].boss) m.stunT = Math.max(m.stunT || 0, w === 'zweihaender' ? 1.5 : 1);
@@ -706,8 +708,8 @@ function bashHits(){
     if (!bodyCircles(m).some(c => Math.hypot(c.x - (k.x + k.bx * 12), c.y - (k.y - KBODY + k.by * 8)) < c.hr + 12)) continue;
     k.bashHit.add(m.uid);
     const h = rollHit(.8);
-    if (!MON[m.k].boss){ m.stunT = 1.6; if (m.st === 'thrust' || m.st === 'aim' || m.st === 'dash' || m.st === 'dive') m.st = m.k === 'rabe' ? 'circle' : 'go'; }
-    else if (m.k === 'raubritter' && (m.st === 'wind' || m.st === 'walk')){ m.st = 'stun'; m.sT = 1.3; }
+    if (!MON[m.k].boss){ m.stunT = 1.6; if (m.st === 'thrust' || m.st === 'aim' || m.st === 'dash' || m.st === 'dive') m.st = aiK(m.k) === 'rabe' ? 'circle' : 'go'; }
+    else if (aiK(m.k) === 'raubritter' && (m.st === 'wind' || m.st === 'walk')){ m.st = 'stun'; m.sT = 1.3; }
     damage(m, h.dmg, h.crit, 2.2);
     G.shake = Math.max(G.shake, .15);
   }
@@ -722,9 +724,9 @@ function damage(m, dmg, crit, kbMul, src){
   if (mine){ G.combatT = 0; m.mine = (m.mine || 0) + dmg; if (m.ev && EVT.cur && m.ev.id === EVT.cur.id){ EVT.cur.contrib = true; if (m.ev.boss) EVT.cur.dmg += dmg; } }
   if (m.mode === 'idle') engage(m);
   const dx = c.x - k.x, dy = c.y - (k.y - KBODY), l = Math.hypot(dx, dy) || 1;
-  const kb = (MON[m.k].boss ? (m.k === 'raubritter' && m.st === 'stun' ? 80 : 0) : aiK(m.k) === 'moor' ? 90 : 160) * (kbMul || 1);
+  const kb = (MON[m.k].boss ? (aiK(m.k) === 'raubritter' && m.st === 'stun' ? 80 : 0) : aiK(m.k) === 'moor' ? 90 : 160) * (kbMul || 1);
   m.vx += dx / l * kb; m.vy += dy / l * kb;
-  if ((m.k === 'werwolf' || (aiK(m.k) === 'pluend' && m.k !== 'rotbart')) && m.st === 'aim'){ m.st = 'rest'; m.sT = .5; }
+  if ((aiK(m.k) === 'werwolf' || aiK(m.k) === 'pluend') && !MON[m.k].boss && m.st === 'aim'){ m.st = 'rest'; m.sT = .5; }
   burst(c.x, c.y, ['#ffffff', '#c3ccd8', '#8a2a2a'], crit ? 10 : 6, crit ? 100 : 70, true);
   floatText(c.x + rand(-6, 6), c.y - 16, dmg, crit ? '#ffd541' : '#ffffff', crit ? 2 : 1);
   if (m.hp <= 0) kill(m); else Sound.hit();
@@ -735,7 +737,11 @@ const DEATH_COLORS = {
   rabe:['#2e2638', '#6a5e86'], irrlicht:['#6fe8b0', '#effff6'], raubritter:['#46404e', '#b3202a', '#c9a227'],
   lindwurm:['#4a6a3a', '#33502a', '#ffcc33', '#a3242a'], tod:['#1e1a22', '#d8d2bc', '#ff3030'],
   pirat:['#2b3648', '#a29a80', '#842a21'], pschuetze:['#3e3123', '#842a21', '#5e626a'], nix:['#24443a', '#1f4a26', '#9fdcc8'],
-  rotbart:['#6e1518', '#d0a843', '#c8561e'], wels:['#323c27', '#7a7460', '#9fb8b6'], noeck:['#244b4c', '#9fdcff', '#c19a36', '#1d4a29']
+  rotbart:['#6e1518', '#d0a843', '#c8561e'], wels:['#323c27', '#7a7460', '#9fb8b6'], noeck:['#244b4c', '#9fdcff', '#c19a36', '#1d4a29'],
+  wolf:['#5a5650', '#3a3632', '#7a2a2a'], schrat:['#3a2c1e', '#4f5c2a', '#6a5438'], wegelagerer:['#3e4a2e', '#6a5030', '#c79a7a'], kobold:['#4a5a3a', '#c8a040', '#2a2420'],
+  grubengeist:['#8aa0b0', '#3a3a40', '#cfe8ff'], doppelsoeldner:['#b8281e', '#e0c040', '#6a6e76'], hakenschuetze:['#2a3a5a', '#5e626a', '#d8d0c0'], baer:['#4a3220', '#2e1e12', '#7a2a2a'],
+  geier:['#5a4a38', '#d8c8a0', '#2a2018'], eislicht:['#9fdcff', '#ffffff'], tatzelwurm:['#4a5a2a', '#c8a040', '#a3242a'], bergmoench:['#2a2830', '#ffd070', '#8aa0b0'],
+  feldhauptmann:['#b8281e', '#e0c040', '#1a1a20'], ruebezahl:['#5a4a38', '#8a8a80', '#d8d0c0', '#3a5a2a']
 };
 function kill(m){
   const i = G.mons.indexOf(m); if (i >= 0) G.mons.splice(i, 1);
@@ -748,7 +754,7 @@ function kill(m){
   HERO.kills++; G.shake = Math.max(G.shake, .08); orCount('kills'); lwAdd(d.boss || m.elite ? 10 : 1);
   if (d.boss || m.elite) orCount('boss');
   Sound.kill();
-  burst(c.x, c.y, DEATH_COLORS[m.k], d.boss ? 50 : 16, d.boss ? 140 : 80, m.k === 'irrlicht');
+  burst(c.x, c.y, DEATH_COLORS[m.k], d.boss ? 50 : 16, d.boss ? 140 : 80, aiK(m.k) === 'irrlicht');
   if (m.k === 'lindwurm') for (const s of wurmSegs(m)) burst(s.x, s.cy, DEATH_COLORS.lindwurm, 8, 70);
   if (m.slot){ m.slot.mon = null; m.slot.t = d.boss ? 240 : rand(40, 70); }
   // Erfahrung
@@ -757,7 +763,7 @@ function kill(m){
   const xp = byMate ? 0 : Math.round(monXp(m.k, m.lvl) * xpMul(m.lvl - HERO.lvl) * (1 + .1 * partyNear().length));   // Gefährten in der Nähe: je ein Zehntel mehr
   if (xp > 0 && HERO.lvl < MAX_LVL) floatText(k.x, k.y - KS.ay - 10, '+' + xp + ' EP', '#c9a6ff', 1, 1.2);
   // Beute
-  const gy = m.k === 'tod' ? m.y + 24 : (d.fly ? m.y + 24 : m.y), from = { x: m.x, y: gy };
+  const gy = aiK(m.k) === 'tod' ? m.y + 24 : (d.fly ? m.y + 24 : m.y), from = { x: m.x, y: gy };
   for (const it of m.loot) dropLoot(from, it.t, it.n, it.it);
   if (m.story && m.story.boss){   // Anführer der Hauptgeschichte: reiche Beute, aber nicht die Beute der Weltbosse
     G.flash = .4; Sound.thunder();
@@ -771,7 +777,7 @@ function kill(m){
     for (let j = 0; j < 4; j++) dropLoot(from, 'gold', monGold(m.lvl) * 3);
     dropLoot(from, 'potion'); dropLoot(from, 'potion');
     const u = UNIQUES[m.k];
-    if (first || Math.random() < .2) dropLoot(from, 'item', 0, makeItem(u.s, m.lvl + 1, 4, { name: u.n, aff: u.aff, u: m.k }));
+    if (first || Math.random() < .2) dropLoot(from, 'item', 0, makeItem(u.s, m.lvl + 1, 4, { name: u.n, aff: u.aff, u: m.k, wt: u.wt }));
     for (let j = 0; j < 2; j++) dropLoot(from, 'item', 0, makeItem(pick(SLOTS), m.lvl, rollRarity(true)));
     showBanner(m.k === 'tod' ? 'Der Tod weicht' : m.k === 'lindwurm' ? 'Der Lindwurm ist erschlagen' : m.k === 'wels' ? 'Der Waller ist gefangen' : d.name + ' fällt', first ? 'Seine Beute liegt vor dir' : 'Er kehrt wieder');
     logLine((m.k === 'tod' ? 'Der Tod' : d.name) + ' ist bezwungen.', '#ecd27a');

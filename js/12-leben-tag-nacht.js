@@ -694,8 +694,8 @@ function skyLights(cam){
     L.push([sx, sy, 96 + d * .9, Math.min(.85, .6 + p.lights.length * .04), 1]);
   }
   for (const m of G.mons){
-    if (m.k === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 130, .9, 2]);
-    if (m.k === 'tod' && m.st !== 'hidden' && v(m.x, m.y, 120)) L.push([m.x, m.y - 30, 90, .4, 3]);
+    if (aiK(m.k) === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 130, .9, 2]);
+    if (aiK(m.k) === 'tod' && m.st !== 'hidden' && v(m.x, m.y, 120)) L.push([m.x, m.y - 30, 90, .4, 3]);
   }
   for (const s of G.shots) if (s.k === 'fire') L.push([s.x, s.y, 140, .9, 1]);
   for (const a of G.loot) if (a.t === 'item' && a.it.r >= 2 && v(a.x, a.y, 60)) L.push([a.x, a.y - 10, 60, .6, 0]);

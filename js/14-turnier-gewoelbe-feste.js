@@ -668,7 +668,7 @@ function dgLights(cam){
   for (const [x, y] of M.torches) if (v(x, y, 170)) L.push([x, y, 150 + Math.sin(G.t * 9 + x) * 6, 1, 1]);
   for (const o of M.objs) if (o.fire && v(o.x, o.y, 200)) L.push([o.x, o.y - 40, 190 + Math.sin(G.t * 7 + o.x) * 8, 1, 1]);
   L.push([M.stair.x, M.stair.y, 170, .8, 2]);
-  for (const m of G.mons) if (m.k === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 140, .9, 3]);
+  for (const m of G.mons) if (aiK(m.k) === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 140, .9, 3]);
   for (const s of G.shots) if (s.k === 'fire') L.push([s.x, s.y, 140, .9, 1]);
   return L;
 }
@@ -707,7 +707,7 @@ function renderDungeon(){
   for (const m of G.mons){
     if (!inView(m.x, m.y, cam)) continue;
     if (m.elite){ ctx.globalAlpha = .35 + Math.sin(G.t * 4) * .12; ctx.fillStyle = '#b3202a'; ctx.beginPath(); ctx.ellipse(m.x, m.y - 1, 18, 6, 0, 0, 6.283); ctx.fill(); ctx.globalAlpha = 1; }
-    if (m.k === 'irrlicht') shadow(m.x, m.y + 18, 6, .18); else shadow(m.x, m.y - 1, Math.max(10, artOf(m.k).w * .55), .38);
+    if (aiK(m.k) === 'irrlicht') shadow(m.x, m.y + 18, 6, .18); else shadow(m.x, m.y - 1, Math.max(10, artOf(m.k).w * .55), .38);
   }
   const list = [];
   for (const s of M.segs) if (s.x1 > cam.x && s.x0 < cam.x + W && s.key > cam.y && s.y0 < cam.y + H) list.push({ y: s.key, d: () => dgSeg(s, k) });

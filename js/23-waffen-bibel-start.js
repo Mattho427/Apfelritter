@@ -40,7 +40,7 @@ function wtFix(it, i, old){
 function xbAim(k, base){
   let best = null, bd = 400;
   for (const m of G.mons){
-    if (!vulnerable(m) || (m.mode === 'idle' && !m.story && m.k === 'irrlicht')) continue;
+    if (!vulnerable(m) || (m.mode === 'idle' && !m.story && aiK(m.k) === 'irrlicht')) continue;
     const c = centerOf(m), gp = gripOf(k), dx = c.x - gp.x, dy = c.y - gp.y, d = Math.hypot(dx, dy);
     if (d > bd) continue;
     const da = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - base), Math.cos(Math.atan2(dy, dx) - base)));

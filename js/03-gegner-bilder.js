@@ -2252,3 +2252,6 @@ const mo_NOECKP = {
   act: [{ ph: .5, raise: 1, bx: -2 }, { ph: 2, thr: 1, bx: 3, by: 1 }]
 };
 BOSS_ART.noeck = Object.assign(mo_set(128, 124, 60, 116, mo_noeck, mo_NOECKP), { reach: 58 });
+/* vorläufig: Bilder der Bergland-Gegner (werden ersetzt) */
+for (const [k, from] of [['wolf', 'werwolf'], ['schrat', 'moor'], ['wegelagerer', 'pluend'], ['kobold', 'ratte'], ['grubengeist', 'moor'], ['doppelsoeldner', 'pluend'], ['hakenschuetze', 'armbrust'], ['baer', 'werwolf'], ['geier', 'rabe'], ['eislicht', 'irrlicht']]) if (!MON_ART[k]) MON_ART[k] = MON_ART[from];
+for (const [k, from] of [['tatzelwurm', 'wels'], ['bergmoench', 'tod'], ['feldhauptmann', 'rotbart'], ['ruebezahl', 'raubritter']]) if (!MON_ART[k] && !BOSS_ART[k]) BOSS_ART[k] = BOSS_ART[from] || MON_ART[from];
