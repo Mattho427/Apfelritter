@@ -775,7 +775,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
     <div class="note">
       <h3>Waffenarten</h3>
       <ul class="list" id="wtList"></ul>
-      <p class="tip">Waffen gibt es als Beute und beim Zeugmeister in der Reichsstadt, gleich neben dem Schmied. Hellebarde, Zweihänder und Armbrust brauchen beide Hände: Wer eine davon führt, legt den Schild ab und verliert dessen Rüstung und Abwehr. Mit der Waffe ändern sich die Fähigkeiten R und F. Die Armbrust zielt von selbst auf den nächsten Gegner in Blickrichtung.</p>
+      <p class="tip">Waffen gibt es als Beute und beim Zeugmeister in der Reichsstadt, gleich neben dem Schmied. Hellebarde, Zweihänder und Armbrust brauchen beide Hände: Wer eine davon führt, legt den Schild ab und verliert dessen Rüstung und Abwehr. Mit der Waffe ändern sich die Fähigkeiten R und F. Die Armbrust zielt von selbst auf den nächsten Gegner in Blickrichtung. Eine kleine Bibel findet Ihr bei den Untoten; sie kommt in die Nebenhand statt des Schildes.</p>
     </div>
     <div class="note">
       <h3>Pferde und Schmied</h3>
@@ -1187,6 +1187,9 @@ const kn_EAGLE_F = [
   '.eEeeeeeEe.',
   '.e.e.e.e.e.',
   '...reeer...'];
+const KN_BIB_F = ['555555', '577a75', '57aaa5', '577a75', '577a75', '578775', 'tttTT5'];   // roter Einband, Messingkreuz, Schnitt unten
+const KN_BIB_B = ['5555', 'T775', 'T785', 'T775', 'T775', 'T775', '5555'];
+const KN_BIB_S = ['555', '57T', '5aT', '57T', '57T', '57T', '555'];
 function kn_upperF(atk){
   const g = kn_new();
   kn_tabard(g, [11, 17]);
@@ -1210,7 +1213,8 @@ function kn_upperF(atk){
   if (kn_F.noShield){
     kn_seg(g, 17, [[21, 'DGLD']]); kn_seg(g, 18, [[21, 'KLDK']]);
     for (let y = 19; y <= 22; y++) kn_seg(g, y, [[22, y === 22 ? 'DHM' : 'DHL']]);
-    kn_art(g, 21, 23, ['KDDK', 'DHHLD', 'DLHGL', 'DMLLM', '.DK.']);
+    if (kn_F.bible){ kn_art(g, 22, 21, KN_BIB_F); kn_art(g, 21, 23, ['KDK', 'DHL', 'DLM', 'DLM', '.D.']); }
+    else kn_art(g, 21, 23, ['KDDK', 'DHHLD', 'DLHGL', 'DMLLM', '.DK.']);
   } else kn_shield(g, 17, 17, 11, 20, 'front');
   return g;
 }
@@ -1279,6 +1283,7 @@ function kn_upperB(atk){
   else for (let y = 19; y <= 22; y++) kn_seg(g, y, [[21, y === 22 ? 'MHD' : 'LHD']]);
   // linker Arm am Schild: Rückseite aus Holz, Unterarm in den Riemen
   if (!kn_F.noShield) kn_shield(g, 1, 17, 11, 20, 'back');
+  if (kn_F.bible) kn_art(g, 1, 21, KN_BIB_B);
   kn_seg(g, 16, [[5, 'KLMD']]);
   for (let y = 17; y <= 24; y++) kn_seg(g, y, [[6, y === 17 ? 'DLGD' : 'LHMD']]);
   kn_seg(g, 25, [[5, 'DLHHD']]); kn_seg(g, 26, [[5, 'MLLMD']]);
@@ -1395,8 +1400,8 @@ function kn_side(f, m, atk){
   kn_legsS(Lg, ...kn_STRIDE[f]);
   kn_mailS(Lg);
   kn_bodyS(U);
-  if (!m){ if (atk) kn_swordArmAtkS(U); else kn_swordArmS(U); }
-  else if (kn_F.noShield) kn_swordArmS(U);                                     // zweihändig: naher Arm frei
+  if (!m){ if (atk) kn_swordArmAtkS(U); else kn_swordArmS(U); if (kn_F.bible) U.art(19, 18, KN_BIB_S); }
+  else if (kn_F.noShield){ kn_swordArmS(U); if (kn_F.bible) U.art(13, 20, KN_BIB_S); }                                     // zweihändig: naher Arm frei
   else {                                                                        // naher Schildarm mit Schild
     U.seg(16, [[13, 'LHMD']]); U.seg(17, [[13, 'DLGHD']]);
     kn_shield(g, 5, 17 + b, 10, 20, 'front');
@@ -1630,14 +1635,14 @@ const GEAR_STEEL = [
 const GEAR_PLUME = [null, null, { F:'#1e3a7a', f:'#4a6ac8', g:'#a8c0f4' }, { F:'#4a1e5a', f:'#8a4aa8', g:'#cfa2e8' }, { F:'#8a4a0c', f:'#e0a028', g:'#ffe68a' }];
 const GEAR_RIM = [null, null, 'ar', 'or', 'or'];
 const GEAR_NAME = ['matt geschmiedet', 'blank poliert', 'gebläut', 'geschwärzt mit Messing', 'vergoldet'];
-const lookOf = eq => { const r = it => it ? String(it.r) : 'n', wt = wtOf(eq.waffe); return r(eq.ruestung) + r(eq.helm) + (WT[wt].hand === 2 ? 'x' : r(eq.schild)) + (eq.waffe ? eq.waffe.b + '' + eq.waffe.r : 'nn') + (wt === 'schwert' ? '' : WT[wt].code); };
-const LOOK_RE = /^[0-4n]{2}[0-4nx][0-4n]{2}[shza]?$/;
+const lookOf = eq => { const r = it => it ? String(it.r) : 'n', wt = wtOf(eq.waffe); return r(eq.ruestung) + r(eq.helm) + (WT[wt].hand === 2 ? 'x' : isBib(eq.schild) ? 'b' : r(eq.schild)) + (eq.waffe ? eq.waffe.b + '' + eq.waffe.r : 'nn') + (wt === 'schwert' ? '' : WT[wt].code); };
+const LOOK_RE = /^[0-4n]{2}[0-4nxb][0-4n]{2}[shza]?$/;
 function knightFaction(fid, body){
   const base = KN_FACTIONS[fid] || KN_FACTIONS.reich;
   if (!body) return base;
-  const a = body[0] === 'n' ? 0 : +body[0], h = body[1] === 'n' ? -1 : +body[1], s = body[2] === 'n' || body[2] === 'x' ? -1 : +body[2];
+  const a = body[0] === 'n' ? 0 : +body[0], h = body[1] === 'n' ? -1 : +body[1], s = body[2] === 'n' || body[2] === 'x' || body[2] === 'b' ? -1 : +body[2];
   const F = Object.create(base);
-  F.noShield = body[2] === 'x';
+  F.noShield = body[2] === 'x' || body[2] === 'b'; F.bible = body[2] === 'b';
   F.pal = Object.assign({}, base.pal, GEAR_STEEL[a] || {}, h >= 2 ? GEAR_PLUME[h] : {});
   if (s >= 2) F.rim = GEAR_RIM[s];
   return F;
@@ -10730,6 +10735,19 @@ const AFFIX = {
   block: { suf:'der Wacht',  v: il => 3 + il * .5,  fmt: v => '+' + v + ' % Abwehr', only:'schild' }
 };
 const EPIC_PRE = ['Barbarossas', 'Rolands', 'Siegfrieds', 'Dietrichs', 'Hildebrands', 'Wielands', 'Ottos', 'Rudolfs', 'Maximilians'];
+/* ---------- Kleine Bibel: in der Nebenhand statt des Schildes ----------
+   Liegt im Platz des Schildes (nh: 'bibel'), hat keine Rüstung und keine Abwehr. Dafür gibt sie mehr Leben, schnellere Erholung
+   und mehr Schaden gegen Untote und Geister, und F wird zum Gebet, das heilt. */
+const BIB_BASES = ['Abgegriffene kleine Bibel', 'Kleine Bibel', 'Kleine Bibel mit Messingschließe', 'Kleine Bibel mit Goldschnitt', 'Kleine Prachtbibel'];
+const BIB_UNDEAD = 25, BIB_HEAL = 30, BIB_CD = 15;
+const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1 };   // Untote und Geister
+const isBib = it => !!(it && it.s === 'schild' && it.nh === 'bibel');
+const heroBib = () => !!(HERO && HERO.eq && isBib(HERO.eq.schild));
+const rollNh = () => Math.random() < .15 ? 'bibel' : null;
+const BIB_ICON = bi_icon(['................', '...rrrrrrrrrr...', '..rsRRRRRRRRRr..', '..rRhRRRRRRhRrw.', '..rRRRRijRRRRrw.', '..rRRRRijRRRRrw.', '..rRRiijjiiRRrw.', '..rRRjjjjjjRRrw.',
+  '..rRRRRijRRRRrw.', '..rRRRRijRRRRrw.', '..rRRRRijRRRRrw.', '..rRhRRRRRRhRrw.', '..rRRRRRRRRRRrx.', '...rrrrrrrrrrxx.', '....xxxxxxxxxx..', '................']);
+let BIB_URL = null;
+const bibUrl = () => BIB_URL || (BIB_URL = urlOf(BIB_ICON, 3));
 /* ---------- Waffenarten: Schwert, Hellebarde, Zweihänder, Armbrust ----------
    dmg Schaden je Treffer (ganzer Hieb), cd Pause zwischen Hieben, reach Reichweite, swing Dauer des Hiebs, arc halber Hiebbogen, hand 2 = ohne Schild */
 const WT = {
@@ -10745,7 +10763,7 @@ const WT_BASES = {
   armbrust: ['Jagdarmbrust', 'Hornbogenarmbrust', 'Stahlarmbrust', 'Windenarmbrust', 'Prunkarmbrust']
 };
 const wtOf = it => it && it.s === 'waffe' && it.wt && WT[it.wt] ? it.wt : 'schwert';
-const baseName = it => it.s === 'waffe' && it.wt && WT_BASES[it.wt] ? WT_BASES[it.wt][it.b] : BASES[it.s][it.b];
+const baseName = it => it.s === 'waffe' && it.wt && WT_BASES[it.wt] ? WT_BASES[it.wt][it.b] : isBib(it) ? BIB_BASES[it.b] : BASES[it.s][it.b];
 const rollWt = () => { const q = Math.random(); return q < .55 ? null : q < .7 ? 'hellebarde' : q < .85 ? 'zweihaender' : 'armbrust'; };
 const heroWt = () => HERO && HERO.eq ? wtOf(HERO.eq.waffe) : 'schwert';
 const WT_ICON_ROWS = {
@@ -10791,15 +10809,17 @@ function makeItem(s, il, r, o){
   il = clamp(Math.round(il), 1, 22);
   const b = clamp(Math.floor((il - 1) / 4), 0, 4), R = RARITY[r], it = { s, il, r, b, a:{} };
   if (s === 'waffe'){ const wt = o.wt || (o.name ? null : rollWt()); if (wt && wt !== 'schwert' && WT[wt]) it.wt = wt; }   // berühmte Klingen bleiben Schwerter
+  if (s === 'schild'){ const nh = o.nh || (o.name ? null : rollNh()); if (nh === 'bibel') it.nh = nh; }   // manchmal liegt statt des Schildes eine kleine Bibel
   if (s === 'waffe') it.dmg = Math.max(1, Math.round((3 + il * 1.3) * R.m * rand(.94, 1.06) * (it.wt ? WT[it.wt].dmg : 1)));
-  else if (ARM_MUL[s]) it.arm = Math.max(1, Math.round((1 + il) * ARM_MUL[s] * R.m * rand(.94, 1.06)));
-  let pool = Object.keys(AFFIX).filter(k => !AFFIX[k].only || AFFIX[k].only === s);
-  const keys = o.aff ? o.aff.slice() : [], n = R.aff + (s === 'kleinod' ? 1 : 0);
+  else if (ARM_MUL[s] && !it.nh) it.arm = Math.max(1, Math.round((1 + il) * ARM_MUL[s] * R.m * rand(.94, 1.06)));
+  let pool = Object.keys(AFFIX).filter(k => (!AFFIX[k].only || AFFIX[k].only === s) && !(it.nh && k === 'block'));
+  const keys = o.aff ? o.aff.slice() : it.nh ? ['hp'] : [], n = R.aff + (s === 'kleinod' ? 1 : 0) + (it.nh ? 1 : 0);
+  pool = pool.filter(x => !keys.includes(x));
   while (keys.length < n && pool.length){ const k = pick(pool); pool = pool.filter(x => x !== k); keys.push(k); }
-  for (const k of keys) it.a[k] = Math.max(1, Math.round(AFFIX[k].v(il) * R.m * rand(.75, 1.1) * (keys.length > 2 ? .85 : 1)));
+  for (const k of keys) it.a[k] = Math.max(1, Math.round(AFFIX[k].v(il) * R.m * rand(.75, 1.1) * (keys.length > 2 ? .85 : 1) * (it.nh && k === 'hp' ? 1.6 : 1)));
   if (o.name) it.n = o.name;
-  else if (r === 3) it.n = pick(EPIC_PRE) + ' ' + baseName(it);
-  else it.n = baseName(it) + (keys.length ? ' ' + AFFIX[keys[0]].suf : '');
+  else if (r === 3) it.n = pick(EPIC_PRE) + ' ' + (it.nh ? baseName(it)[0].toLowerCase() + baseName(it).slice(1) : baseName(it));
+  else it.n = baseName(it) + (keys.length && !it.nh ? ' ' + AFFIX[keys[0]].suf : '');
   if (o.u) it.u = o.u;
   it.v = Math.round((4 + il * 1.6) * [1, 2.2, 5, 11, 25][r]);
   it.id = Date.now().toString(36) + (itemSeq++).toString(36);
@@ -10811,6 +10831,7 @@ function itemLines(it){
   if (it.dmg) out.push(it.dmg + ' Schaden');
   if (it.arm) out.push(it.arm + ' Rüstung');
   for (const [k, v] of Object.entries(it.a || {})) out.push(AFFIX[k].fmt(v));
+  if (isBib(it)) out.push('+' + BIB_UNDEAD + ' % gegen Untote');
   return out;
 }
 
@@ -10919,8 +10940,8 @@ const WARE_ICON = (() => {
   };
 })();
 const SLOT_ICON = { waffe:'sword', helm:'helm', ruestung:'heart', schild:'shield', beine:'boot', kleinod:'ring' };
-const iconOf = it => it.s === 'ware' ? WARE_ICON[it.w] : (it.u && UNIQUE_ICON[it.u]) || (it.s === 'waffe' && it.wt && WT_ICON[it.wt]) || ICONS[SLOT_ICON[it.s]];
-const iconKey = it => it.u || it.w || (it.s === 'waffe' && it.wt ? 'w_' + it.wt : it.s);
+const iconOf = it => it.s === 'ware' ? WARE_ICON[it.w] : (it.u && UNIQUE_ICON[it.u]) || (isBib(it) && BIB_ICON) || (it.s === 'waffe' && it.wt && WT_ICON[it.wt]) || ICONS[SLOT_ICON[it.s]];
+const iconKey = it => it.u || it.w || (isBib(it) ? 'nh_bibel' : it.s === 'waffe' && it.wt ? 'w_' + it.wt : it.s);
 /* Auf dem Boden: Symbol mit Kontur in der Farbe der Seltenheit */
 const groundIconCache = new Map();
 function groundIcon(it){
@@ -11546,12 +11567,13 @@ function heroStats(h){
     if (it.arm) s.arm += it.arm;
     for (const [k, v] of Object.entries(it.a || {})){ if (k === 'str') s.dmg += v; else s[k] += v; }
   }
-  if (h.eq.schild && !two) s.block += 20;
+  if (h.eq.schild && !two && !isBib(h.eq.schild)) s.block += 20;
   if (wtH.dmg !== 1) s.dmg = (s.dmg - wd) * wtH.dmg + wd;   // die ganze Wucht des Hiebs; die Waffe selbst trägt die Art schon in sich
   // Herkunft und Stärkung durch Speis und Trank
   s.regen = 1;
   const fx = [(KN_FACTIONS[h.f] || KN_FACTIONS.reich).bonus].concat([h.food, h.drink].map(b => b && b.t > 0 && FARE_BY[b.id] ? FARE_BY[b.id].fx : null));
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
+  if (!two && isBib(h.eq.schild)) s.regen *= 1.5;   // die Bibel: schneller wieder bei Kräften
   if (ASV && ASV.ord >= 4) s.dmg *= 1.03;   // Ordenshaus: Waffenkammer, Ordenshof
   if (ASV && ASV.ord >= 5) s.hp *= 1.05;
   ehStats(h, s);   // Ehrenstufen: je ein halbes Hundertstel Leben und Schaden
@@ -13242,6 +13264,7 @@ function skillStoss(){
   if (w === 'armbrust'){ if (k.bashT > 0) return; xbShoot(2); k.atkCd = Math.max(k.atkCd, ST.cd); G.cd.stoss = 9; return; }   // Durchschuss
   if (w === 'hellebarde'){ if (k.bashT > 0) return; startSwing(k, false, 1.8, .28, .2); k.skF = true; k.atkCd = Math.max(k.atkCd, .3); G.cd.stoss = 9; Sound.swing(); return; }
   if (w === 'zweihaender'){ if (k.bashT > 0) return; startSwing(k, false, 2.4, SWING * 1.7, .55); k.skF = true; k.atkCd = Math.max(k.atkCd, SWING * 1.7); G.cd.stoss = 10; Sound.swing(); G.shake = Math.max(G.shake, .12); return; }
+  if (heroBib()){ bibPray(); return; }   // mit der Bibel in der Nebenhand: Gebet
   const [fx, fy] = DIRV[k.dir];
   k.bashT = .26; k.bx = fx; k.by = fy; k.bashHit = new Set(); k.atkT = 0;
   G.cd.stoss = 9; Sound.bash();
@@ -13364,6 +13387,7 @@ function swingHits(){
     if (!bodyCircles(m).some(c => inSwing(k, c.x, c.y, c.hr))) continue;
     m.hitBy = k.swing;
     const h = rollHit(k.mult * (m.k === 'raubritter' && m.st === 'stun' ? 1.5 : 1));
+    if (UNDEAD[m.k] && heroBib()) h.dmg = Math.round(h.dmg * (1 + BIB_UNDEAD / 100));
     if (k.skF && !MON[m.k].boss) m.stunT = Math.max(m.stunT || 0, w === 'zweihaender' ? 1.5 : 1);
     damage(m, h.dmg, h.crit, WT[w].kb * (k.skF ? 1.6 : 1));
   }
@@ -13521,6 +13545,7 @@ function kill(m){
     dropLoot(from, 'item', 0, makeItem(pick(SLOTS), m.lvl, Math.random() < .35 ? 3 : 2));
     showBanner(m.elite + ' fällt', 'Die Truhe ist frei'); logLine(m.elite + ' ist bezwungen. Die Truhe gehört Euch.', '#ecd27a'); G.flash = .3;
   }
+  bibFind(m, from);
   if (!(m.story && m.story.boss)) questProgress(m);
   ehOnKill(m);
   if (xp > 0) gainXp(xp);
@@ -15938,7 +15963,9 @@ const cdShown = {};
 function updateSkillCd(){
   for (const s of SKILLS){
     if (!s.cd) continue;
-    const v = Math.round(clamp((G.cd[s.id] || 0) / s.cd, 0, 1) * 20) / 20;
+    const c = G.cd[s.id] || 0, T = G.cdTop || (G.cdTop = {});
+    T[s.id] = c > 0 ? Math.max(T[s.id] || 0, c) : 0;
+    const v = Math.round(clamp(c / Math.max(s.cd, T[s.id]), 0, 1) * 20) / 20;
     if (cdShown[s.id] === v) continue;
     cdShown[s.id] = v;
     const b = document.querySelector('[data-skill="' + s.id + '"] .cd'); if (b) b.style.height = v * 100 + '%';
@@ -16003,10 +16030,11 @@ function itemCard(it, compare){
   const box = el('div', 'icard'), head = el('div', 'ihead'), im = el('img');
   im.src = itemUrl(it); im.alt = ''; im.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
   const nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
-  const sub = el('small', null, (it.s === 'waffe' ? WT[wtOf(it)].n : SLOT_NAME[it.s]) + ' · Stufe ' + it.il + ' · ' + RARITY[it.r].n);
+  const sub = el('small', null, (it.s === 'waffe' ? WT[wtOf(it)].n : isBib(it) ? 'Nebenhand' : SLOT_NAME[it.s]) + ' · Stufe ' + it.il + ' · ' + RARITY[it.r].n);
   const tx = el('div'); tx.append(nm, sub); head.append(im, tx); box.append(head);
   const ul = el('ul', 'ilines'); for (const l of itemLines(it)) ul.append(el('li', null, l)); box.append(ul);
   if (it.s === 'waffe') box.append(el('p', 'idiff', WT[wtOf(it)].n + ': ' + WT[wtOf(it)].d + '.'));
+  if (isBib(it)) box.append(el('p', 'idiff', 'In der Nebenhand statt des Schildes: keine Rüstung und keine Abwehr, dafür schnellere Erholung, +' + BIB_UNDEAD + ' % Schaden gegen Untote und Geister, und F wird zum Gebet (heilt ' + BIB_HEAL + ' % des Lebens).'));
   if (compare){
     const diff = statDiff(it);
     if (diff.length){
@@ -17250,10 +17278,11 @@ function cleanItem(o){
   if (!SLOTS.includes(o.s)) return null;
   const il = clamp(o.il | 0, 1, 22), r = clamp(o.r | 0, 0, 4), up = clamp(o.up | 0, 0, 5), M = RARITY[r].m * 1.1 * (1 + .12 * up) + .5;
   const it = { s: o.s, il, r, b: clamp(o.b | 0, 0, 4), a: {} };
+  if (o.s === 'schild' && o.nh === 'bibel') it.nh = 'bibel';
   if (o.s === 'waffe'){ if (WT[o.wt] && o.wt !== 'schwert') it.wt = o.wt; it.dmg = clamp(o.dmg | 0, 1, Math.round((3 + il * 1.3) * M * (it.wt ? WT[it.wt].dmg : 1)) + 5); }
-  else if (ARM_MUL[o.s]) it.arm = clamp(o.arm | 0, 1, Math.round((1 + il) * ARM_MUL[o.s] * M) + 5);
+  else if (ARM_MUL[o.s] && !it.nh) it.arm = clamp(o.arm | 0, 1, Math.round((1 + il) * ARM_MUL[o.s] * M) + 5);
   let n = 0;
-  for (const k in (o.a && typeof o.a === 'object' ? o.a : {})) if (AFFIX[k] && (!AFFIX[k].only || AFFIX[k].only === o.s) && n++ < 4) it.a[k] = clamp(o.a[k] | 0, 1, Math.round(AFFIX[k].v(il) * M) + 3);
+  for (const k in (o.a && typeof o.a === 'object' ? o.a : {})) if (AFFIX[k] && (!AFFIX[k].only || AFFIX[k].only === o.s) && !(it.nh && k === 'block') && n++ < 4) it.a[k] = clamp(o.a[k] | 0, 1, Math.round(AFFIX[k].v(il) * M * (it.nh && k === 'hp' ? 1.6 : 1)) + 3);
   it.n = cleanText(o.n, 40) || baseName(it);
   if (o.u && UNIQUES[o.u]) it.u = o.u;
   it.v = clamp(o.v | 0, 1, Math.round((4 + il * 1.6) * 25 * 3));
@@ -21099,6 +21128,8 @@ function wtSkillUi(){
   const ab = $('btnAtk'); if (ab){ ab.textContent = w === 'armbrust' ? 'Schuss' : 'Hieb'; ab.setAttribute('aria-label', w === 'armbrust' ? 'Armbrustschuss' : WT[w].n + 'hieb'); }   // große Taste auf dem Handy
   const ri = document.querySelector('[data-skill="rund"] img'); if (ri) ri.src = wtSkUrl(w, 'rund') || ICON_URL.sweep;
   const si = document.querySelector('[data-skill="stoss"] img'); if (si && w !== 'schwert') si.src = wtSkUrl(w, 'stoss') || wtUrl(w);
+  const sb = document.querySelector('[data-skill="stoss"]');
+  if (sb && w === 'schwert' && heroBib()){ sb.title = 'Gebet: heilt ' + BIB_HEAL + ' % des Lebens und löst Verlangsamung, ' + BIB_CD + ' Sekunden Pause'; sb.setAttribute('aria-label', 'Gebet' + (touchUI() ? '' : ', Taste F')); if (si) si.src = bibUrl(); }
 }
 /* Zweihändig: Schild und Zweihandwaffe schließen einander aus; das andere Stück wandert in den Rucksack */
 function wtFix(it, i, old){
@@ -21106,11 +21137,11 @@ function wtFix(it, i, old){
   const other = it.s === 'schild' ? 'waffe' : 'schild', j = HERO.inv.indexOf(null);
   if (j < 0){
     HERO.eq[it.s] = old || null; HERO.inv[i] = it;
-    logLine('Eine zweihändige Waffe und ein Schild gehen nicht zusammen, und im Rucksack ist kein Platz für ' + (other === 'schild' ? 'den Schild.' : 'die Waffe.'), '#ff9a8a');
+    logLine('Eine zweihändige Waffe und ' + (isBib(it) || isBib(HERO.eq.schild) ? 'eine Bibel' : 'ein Schild') + ' gehen nicht zusammen, und im Rucksack ist kein Platz für ' + (other === 'schild' ? (isBib(HERO.eq.schild) ? 'die Bibel.' : 'den Schild.') : 'die Waffe.'), '#ff9a8a');
     Sound.click(); renderBag(); return false;
   }
   HERO.inv[j] = HERO.eq[other]; HERO.eq[other] = null;
-  logLine(other === 'schild' ? 'Für die zweihändige Waffe kommt der Schild in den Rucksack.' : 'Für den Schild kommt die zweihändige Waffe in den Rucksack.', '#d8c69c');
+  logLine(other === 'schild' ? 'Für die zweihändige Waffe kommt ' + (isBib(HERO.inv[j]) ? 'die Bibel' : 'der Schild') + ' in den Rucksack.' : 'Für ' + (isBib(it) ? 'die Bibel' : 'den Schild') + ' kommt die zweihändige Waffe in den Rucksack.', '#d8c69c');
   return true;
 }
 /* ---------- Armbrust: zielen, schießen, Bolzen ---------- */
@@ -21230,6 +21261,27 @@ for (const w of ['schwert', 'hellebarde', 'zweihaender', 'armbrust']){
   lazySrc(im, () => w === 'schwert' ? ICON_URL.sword : wtUrl(w)); im.alt = '';
   wh.append(el('small', null, WT[w].d + '. R: ' + S.rund[0] + ', F: ' + S.stoss[0] + '.')); li.append(im, wh); $('wtList').append(li);
 }
+
+/* ============ Kleine Bibel: Gebet, Fund beim ersten Wiedergänger, Tafel ============ */
+function bibPray(){
+  const k = G.knight; if (k.bashT > 0) return;
+  const heal = Math.round(ST.hp * BIB_HEAL / 100);
+  k.hp = Math.min(ST.hp, k.hp + heal); k.slowT = 0;
+  G.cd.stoss = BIB_CD;
+  floatText(k.x, k.y - KS.ay - 2, '+' + heal, '#ffe9a0', 1);
+  burst(k.x, k.y - KBODY, ['#fff3c0', '#ecd27a', '#ffffff'], 22, 70, true);
+  Sound.potion(); updateHud();
+}
+function bibFind(m, from){
+  if (m.k !== 'wieder' || m.by !== 'me' || !HERO || HERO.bib) return;
+  HERO.bib = 1;
+  dropLoot(from, 'item', 0, makeItem('schild', m.lvl, 1, { nh: 'bibel' }));
+  logLine('Bei dem Wiedergänger liegt eine kleine Bibel. Ihr könnt sie in der Nebenhand statt des Schildes tragen.', '#ecd27a');
+}
+{ const li = el('li'), im = el('img'), wh = el('span', 'what', 'Kleine Bibel');
+  lazySrc(im, bibUrl); im.alt = '';
+  wh.append(el('small', null, 'in der Nebenhand statt des Schildes; mehr Leben, schnellere Erholung, +' + BIB_UNDEAD + ' % Schaden gegen Untote und Geister. F: Gebet, heilt ' + BIB_HEAL + ' % des Lebens.'));
+  li.append(im, wh); $('wtList').append(li); }
 let last = performance.now();
 function frame(now){
   const dt = Math.min(.05, (now - last) / 1000); last = now;
