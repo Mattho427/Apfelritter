@@ -94,6 +94,7 @@ function cleanHero(h){
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
   h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1200, +h.bless.t || 0) } : null; h.ablass = !!h.ablass;
+  h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};
   h.pilg = h.pilg && typeof h.pilg === 'object' ? { on: h.pilg.on ? 1 : 0, done: h.pilg.done ? 1 : 0, v: Object.fromEntries(Object.keys(h.pilg.v || {}).filter(k => /^[a-z]{3,20}$/.test(k)).map(k => [k, 1])) } : null;
   h.riding = !!(h.horse && h.riding);
   if (h.joust){ const j = h.joust, b = {}; for (const id of ['konrad', 'bayard', 'goetz']) if (j.beat && j.beat[id]) b[id] = true; h.joust = { wins: Math.max(0, j.wins | 0), beat: b, elo: clamp(j.elo | 0 || 1000, 100, 3000), pw: Math.max(0, j.pw | 0), pl: Math.max(0, j.pl | 0) }; }
@@ -127,6 +128,12 @@ function heroStats(h){
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
   if (!two && isBib(h.eq.schild)) s.regen *= 1.5;   // die Bibel: schneller wieder bei Kräften
   if (h.bless && h.bless.t > 0){ s.hp *= 1.08; s.regen = Math.max(s.regen, 1.5); }   // Segen aus der Kirche
+  if (h.tal){ const T = Object.values(h.tal);   // Meisterschaften
+    if (T.includes('haut')) s.hp *= 1.08; if (T.includes('klinge')) s.dmg *= 1.06; if (T.includes('falke')) s.crit += 4; if (T.includes('flink')) s.spd += 8;
+    if (T.includes('wall') && h.eq.schild && !two && !isBib(h.eq.schild)){ s.block += 6; s.arm *= 1.1; }
+    if (T.includes('zaeh')) s.regen = Math.max(s.regen, 2);
+    if (T.includes('unbeugsam')){ s.hp *= 1.06; s.arm *= 1.12; } if (T.includes('meister')){ s.dmg *= 1.08; s.crit += 3; }
+    s.arm = Math.round(s.arm); }
   if (ASV && ASV.ord >= 4) s.dmg *= 1.03;   // Ordenshaus: Waffenkammer, Ordenshof
   if (ASV && ASV.ord >= 5) s.hp *= 1.05;
   ehStats(h, s);   // Ehrenstufen: je ein halbes Hundertstel Leben und Schaden

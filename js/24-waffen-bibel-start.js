@@ -75,7 +75,7 @@ function kbTick(dt){
       if (b.hit.has(m) || !vulnerable(m)) continue;
       if (!bodyCircles(m).some(c => Math.hypot(c.x - b.x, c.y - b.y) < c.hr + 4)) continue;
       b.hit.add(m);
-      if (b.own){ const h = rollHit(b.mult); damage(m, h.dmg, h.crit, WT.armbrust.kb); }
+      if (b.own){ const h = rollHit(b.mult); damage(m, Math.round(h.dmg * foeMul(m)), h.crit, WT.armbrust.kb); }
       else { const q = b.src, cb = q.cb || [5, 5], crit = Math.random() * 100 < cb[1]; damage(m, Math.max(1, Math.round(cb[0] * b.mult * rand(.9, 1.1) * (crit ? 1.75 : 1))), crit, WT.armbrust.kb, q); }
       if (!b.pierce){ gone = true; break; }
     }
@@ -159,7 +159,7 @@ function bibPray(){
   const k = G.knight; if (k.bashT > 0) return;
   const heal = Math.round(ST.hp * BIB_HEAL / 100);
   k.hp = Math.min(ST.hp, k.hp + heal); k.slowT = 0;
-  G.cd.stoss = BIB_CD;
+  G.cd.stoss = cdT(BIB_CD, 'sturm', 3);
   floatText(k.x, k.y - KS.ay - 2, '+' + heal, '#ffe9a0', 1);
   burst(k.x, k.y - KBODY, ['#fff3c0', '#ecd27a', '#ffffff'], 22, 70, true);
   Sound.potion(); updateHud();

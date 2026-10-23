@@ -47,8 +47,8 @@ Object.assign(Sound, {
   anvil(){ this.tone(1800, .3, 'square', .028, -100); this.tone(2600, .25, 'triangle', .022, 0, .01); this.noise(.05, .06, 4000); }
 });
 
-const MAX_LVL = 20;
-const TITLES = [[1, 'Knappe'], [3, 'Ritter'], [5, 'Freiherr'], [7, 'Graf'], [9, 'Landgraf'], [11, 'Markgraf'], [13, 'Herzog'], [15, 'Kurfürst'], [17, 'König'], [20, 'Kaiser']];
+const MAX_LVL = 30;
+const TITLES = [[1, 'Knappe'], [3, 'Ritter'], [5, 'Freiherr'], [7, 'Graf'], [9, 'Landgraf'], [11, 'Markgraf'], [13, 'Pfalzgraf'], [15, 'Herzog'], [18, 'Erzherzog'], [21, 'Kurfürst'], [25, 'König'], [30, 'Kaiser']];
 const titleOf = lvl => TITLES.reduce((t, [l, n]) => lvl >= l ? n : t, 'Knappe');
 const xpNeed = lvl => Math.round(30 * Math.pow(lvl, 1.55) + 50);
 const SKILLS = [
@@ -202,6 +202,27 @@ const BIB_UNDEAD = 25, BIB_HEAL = 30, BIB_CD = 15;
 const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1, grubengeist: 1, eislicht: 1, bergmoench: 1 };   // Untote und Geister
 const isBib = it => !!(it && it.s === 'schild' && it.nh === 'bibel');
 const heroBib = () => !!(HERO && HERO.eq && isBib(HERO.eq.schild));
+/* ---------- Meisterschaften: ab Stufe 20 alle zwei Stufen eine von drei Wahlen ---------- */
+const MEISTER = [
+  { lvl: 20, opts: [{ id: 'haut', n: 'Eiserne Haut', d: '+8 % Leben' }, { id: 'klinge', n: 'Scharfe Klinge', d: '+6 % Schaden' }, { id: 'falke', n: 'Falkenblick', d: '+4 % Volltreffer' }] },
+  { lvl: 22, opts: [{ id: 'zaeh', n: 'Zähe Natur', d: 'doppelte Erholung' }, { id: 'flink', n: 'Flinker Arm', d: '+8 % Hiebtempo' }, { id: 'wall', n: 'Schildwall', d: 'mit Schild +6 % Abwehr und +10 % Rüstung' }] },
+  { lvl: 24, opts: [{ id: 'feldscher', n: 'Feldscher', d: 'Heiltränke heilen 60 % statt 45 %' }, { id: 'wirbel', n: 'Wirbelwind', d: 'Rundhieb lädt 2 Sekunden schneller' }, { id: 'sturm', n: 'Sturmlauf', d: 'Stoß und Gebet laden 3 Sekunden schneller' }] },
+  { lvl: 26, opts: [{ id: 'beute', n: 'Beutegier', d: '+20 % Gulden' }, { id: 'lern', n: 'Lernbegier', d: '+8 % Erfahrung, auch für Ehrenstufen' }, { id: 'glueck', n: 'Glückskind', d: 'gute und seltene Beute fällt öfter' }] },
+  { lvl: 28, opts: [{ id: 'geissel', n: 'Geißel der Untoten', d: '+20 % Schaden gegen Untote und Geister' }, { id: 'jaeger', n: 'Bestienjäger', d: '+15 % Schaden gegen Tiere und Ungeheuer' }, { id: 'schreck', n: 'Landsknechtsschreck', d: '+15 % Schaden gegen Menschen' }] },
+  { lvl: 30, opts: [{ id: 'feldherr', n: 'Feldherr', d: 'Schlachtruf hält 15 Sekunden und lädt 10 Sekunden schneller' }, { id: 'unbeugsam', n: 'Unbeugsam', d: '+6 % Leben, +12 % Rüstung' }, { id: 'meister', n: 'Schwertmeister', d: '+8 % Schaden, +3 % Volltreffer' }] }
+];
+const MEISTER_BY = {}; for (const t of MEISTER) for (const o of t.opts) MEISTER_BY[o.id] = Object.assign({ lvl: t.lvl }, o);
+const hasTal = id => !!(HERO && HERO.tal && Object.values(HERO.tal).includes(id));
+const cdT = (v, id, d) => hasTal(id) ? v - d : v;   // Abklingzeit mit Meisterschaft
+const TIERE = { werwolf: 1, wolf: 1, baer: 1, ratte: 1, rabe: 1, geier: 1, lindwurm: 1, tatzelwurm: 1, wels: 1, kobold: 1, schrat: 1, nix: 1, noeck: 1, ruebezahl: 1 };
+const MENSCHEN = { pluend: 1, armbrust: 1, pirat: 1, pschuetze: 1, wegelagerer: 1, doppelsoeldner: 1, hakenschuetze: 1, raubritter: 1, rotbart: 1, feldhauptmann: 1 };
+/* Zuschlag gegen diesen Gegner: Bibel und Segen gegen Untote, Meisterschaften je Gegnerart */
+function foeMul(m){
+  let u = UNDEAD[m.k] ? (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0) + (hasTal('geissel') ? 20 : 0) : 0;
+  if (TIERE[m.k] && hasTal('jaeger')) u += 15;
+  if (MENSCHEN[m.k] && hasTal('schreck')) u += 15;
+  return 1 + u / 100;
+}
 const rollNh = () => Math.random() < .15 ? 'bibel' : null;
 const BIB_ICON = bi_icon(['................', '...rrrrrrrrrr...', '..rsRRRRRRRRRr..', '..rRhRRRRRRhRrw.', '..rRRRRijRRRRrw.', '..rRRRRijRRRRrw.', '..rRRiijjiiRRrw.', '..rRRjjjjjjRRrw.',
   '..rRRRRijRRRRrw.', '..rRRRRijRRRRrw.', '..rRRRRijRRRRrw.', '..rRhRRRRRRhRrw.', '..rRRRRRRRRRRrx.', '...rrrrrrrrrrxx.', '....xxxxxxxxxx..', '................']);
@@ -288,7 +309,8 @@ function makeItem(s, il, r, o){
   it.id = Date.now().toString(36) + (itemSeq++).toString(36);
   return it;
 }
-const rollRarity = boss => { const q = Math.random(); return boss ? (q < .35 ? 3 : 2) : q < .015 ? 3 : q < .095 ? 2 : q < .4 ? 1 : 0; };
+const rollRarity = boss => { const q = Math.random() * (HERO && hasTal('glueck') ? .75 : 1);   // Meisterschaft Glückskind
+  return boss ? (q < .35 ? 3 : 2) : q < .015 ? 3 : q < .095 ? 2 : q < .4 ? 1 : 0; };
 function itemLines(it){
   const out = [];
   if (it.dmg) out.push(it.dmg + ' Schaden');

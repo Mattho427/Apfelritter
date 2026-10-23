@@ -52,7 +52,7 @@ const FISH_REAL = Object.keys(FISH).filter(id => !FISH[id].junk);
 const storyDone = h => (h.story ? h.story.c | 0 : 0);
 const ehHas = (T, k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(T, k);
 const TROPHIES = [
-  { id: 'kaiser', n: 'Vivat Imperator', d: 'Stufe 20 erreicht', ok: h => h.lvl >= MAX_LVL, wa: 'kaiser' },
+  { id: 'kaiser', n: 'Vivat Imperator', d: 'Stufe 30 erreicht', ok: h => h.lvl >= MAX_LVL, wa: 'kaiser' },
   { id: 'kunz', n: 'Das Reichsschwert', d: 'Kunz den Schwarzen bezwungen', ok: h => h.bosses.raubritter > 0, wa: 'kunz', ic: () => UNIQUE_ICON.raubritter },
   { id: 'lindwurm', n: 'Drachenschuppe', d: 'den Lindwurm im Moor erschlagen', ok: h => h.bosses.lindwurm > 0, wa: 'drache', ic: () => UNIQUE_ICON.lindwurm },
   { id: 'tod', n: 'Der Reichsapfel', d: 'den Tod auf dem Schlachtfeld vertrieben', ok: h => h.bosses.tod > 0, wa: 'tod', ic: () => UNIQUE_ICON.tod },
@@ -446,7 +446,7 @@ for (const id of Object.keys(FISH).filter(id => !FISH[id].junk)){
   lazySrc(im, () => urlOf(WARE_ICON['f_' + id], 2)); im.alt = '';
   wh.append(el('small', null, F.cm[0] + ' bis ' + F.cm[1] + ' cm' + (F.r === 2 ? ', sehr selten' : F.r ? ', selten' : ''))); li.append(im, wh); $('fishNote').append(li);
 }
-for (const [icon, name, desc] of [[ICONS.eagle, 'Ehrenstufen', 'nach Stufe 20, je ' + ehNeed(0) + ' Erfahrung und mehr'], [ICONS.coin, 'Wochenprüfungen', 'drei Aufgaben je Woche beim Reichsherold in Speyer'],
+for (const [icon, name, desc] of [[ICONS.eagle, 'Ehrenstufen', 'nach Stufe 30, je ' + ehNeed(0) + ' Erfahrung und mehr'], [ICONS.coin, 'Wochenprüfungen', 'drei Aufgaben je Woche beim Reichsherold in Speyer'],
   [wappenImg('reich'), 'Wappen', Object.keys(WAPPEN).length + ' Wappen, aus Trophäen oder für Ehrenzeichen'], [UNIQUE_ICON.noeck, 'Trophäen', TROPHIES.length + ' Taten im Trophäenbuch'], [ICONS.sword, 'Ehrentitel', Object.keys(HT).length + ' Titel, vom Ehrenritter bis zur Legende']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
   lazySrc(im, () => urlOf(icon, 2)); im.alt = ''; wh.append(el('small', null, desc)); li.append(im, wh); $('ehNote').append(li);

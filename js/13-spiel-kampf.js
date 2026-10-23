@@ -495,10 +495,10 @@ function skillRund(){
   if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 3 || G.cd.rund > 0 || k.bashT > 0) return;
   const w = heroWt();
-  if (w === 'armbrust'){ xbShoot(1); k.atkCd = Math.max(k.atkCd, ST.cd); G.cd.rund = 6; return; }   // Bolzenfächer
+  if (w === 'armbrust'){ xbShoot(1); k.atkCd = Math.max(k.atkCd, ST.cd); G.cd.rund = cdT(6, 'wirbel', 2); return; }   // Bolzenfächer
   const zw = w === 'zweihaender', len = SWING * 1.4 * WT[w].swing;
   startSwing(k, true, zw ? 1.8 : 1.4, len);
-  k.atkCd = Math.max(k.atkCd, len); G.cd.rund = zw ? 7 : 6;
+  k.atkCd = Math.max(k.atkCd, len); G.cd.rund = cdT(zw ? 7 : 6, 'wirbel', 2);
   Sound.swing(); setTimeout(() => Sound.swing(), 120);
 }
 function skillStoss(){
@@ -506,19 +506,19 @@ function skillStoss(){
   if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 6 || G.cd.stoss > 0) return;
   const w = heroWt();
-  if (w === 'armbrust'){ if (k.bashT > 0) return; xbShoot(2); k.atkCd = Math.max(k.atkCd, ST.cd); G.cd.stoss = 9; return; }   // Durchschuss
-  if (w === 'hellebarde'){ if (k.bashT > 0) return; startSwing(k, false, 1.8, .28, .2); k.skF = true; k.atkCd = Math.max(k.atkCd, .3); G.cd.stoss = 9; Sound.swing(); return; }
-  if (w === 'zweihaender'){ if (k.bashT > 0) return; startSwing(k, false, 2.4, SWING * 1.7, .55); k.skF = true; k.atkCd = Math.max(k.atkCd, SWING * 1.7); G.cd.stoss = 10; Sound.swing(); G.shake = Math.max(G.shake, .12); return; }
+  if (w === 'armbrust'){ if (k.bashT > 0) return; xbShoot(2); k.atkCd = Math.max(k.atkCd, ST.cd); G.cd.stoss = cdT(9, 'sturm', 3); return; }   // Durchschuss
+  if (w === 'hellebarde'){ if (k.bashT > 0) return; startSwing(k, false, 1.8, .28, .2); k.skF = true; k.atkCd = Math.max(k.atkCd, .3); G.cd.stoss = cdT(9, 'sturm', 3); Sound.swing(); return; }
+  if (w === 'zweihaender'){ if (k.bashT > 0) return; startSwing(k, false, 2.4, SWING * 1.7, .55); k.skF = true; k.atkCd = Math.max(k.atkCd, SWING * 1.7); G.cd.stoss = cdT(10, 'sturm', 3); Sound.swing(); G.shake = Math.max(G.shake, .12); return; }
   if (heroBib()){ bibPray(); return; }   // mit der Bibel in der Nebenhand: Gebet
   const [fx, fy] = DIRV[k.dir];
   k.bashT = .26; k.bx = fx; k.by = fy; k.bashHit = new Set(); k.atkT = 0;
-  G.cd.stoss = 9; Sound.bash();
+  G.cd.stoss = cdT(9, 'sturm', 3); Sound.bash();
 }
 function skillRuf(){
   const k = G.knight;
   if (HERO.riding && canAct()) dismount();
   if (!canFight() || HERO.lvl < 10 || G.cd.ruf > 0) return;
-  G.buffT = 10; G.cd.ruf = 30; Sound.cry();
+  G.buffT = hasTal('feldherr') ? 15 : 10; G.cd.ruf = hasTal('feldherr') ? 20 : 30; Sound.cry();
   burst(k.x, k.y - KBODY, ['#ecd27a', '#fff3c0', '#c9a227'], 30, 120, true);
   floatText(k.x, k.y - KS.ay - 4, KN_FACTIONS[HERO.f].cry, '#ecd27a', 2, 1.4);
 }
@@ -528,7 +528,7 @@ function drinkPotion(){
   if (HERO.potions <= 0){ floatText(k.x, k.y - KS.ay - 2, 'keine Tränke', '#d8c69c'); return; }
   if (k.hp >= ST.hp){ floatText(k.x, k.y - KS.ay - 2, 'volles Leben', '#d8c69c'); return; }
   HERO.potions--; G.cd.trank = 6;
-  const heal = Math.round(ST.hp * .45); k.hp = Math.min(ST.hp, k.hp + heal);
+  const heal = Math.round(ST.hp * (hasTal('feldscher') ? .6 : .45)); k.hp = Math.min(ST.hp, k.hp + heal);
   floatText(k.x, k.y - KS.ay - 2, '+' + heal, '#7fe08a', 1);
   burst(k.x, k.y - KBODY, ['#c8343c', '#f08a6a', '#ffffff'], 14, 60, true);
   Sound.potion(); updateHud(); markDirty();
@@ -632,8 +632,8 @@ function swingHits(){
     if (!bodyCircles(m).some(c => inSwing(k, c.x, c.y, c.hr))) continue;
     m.hitBy = k.swing;
     const h = rollHit(k.mult * (aiK(m.k) === 'raubritter' && m.st === 'stun' ? 1.5 : 1));
-    const ub = (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0);   // Kleine Bibel, Segen
-    if (UNDEAD[m.k] && ub) h.dmg = Math.round(h.dmg * (1 + ub / 100));
+    const fm = foeMul(m);   // Kleine Bibel, Segen, Meisterschaften
+    if (fm !== 1) h.dmg = Math.round(h.dmg * fm);
     if (k.skF && !MON[m.k].boss) m.stunT = Math.max(m.stunT || 0, w === 'zweihaender' ? 1.5 : 1);
     damage(m, h.dmg, h.crit, WT[w].kb * (k.skF ? 1.6 : 1));
   }
@@ -826,7 +826,7 @@ function updateLoot(dt){
 function pickUp(a){
   const k = G.knight;
   if (a.t === 'gold'){
-    const gn = Math.round(a.n * (1 + asGoldBonus()));   // Ruhm des Landes, Ordenshaus
+    const gn = Math.round(a.n * (1 + asGoldBonus()) * (hasTal('beute') ? 1.2 : 1));   // Ruhm des Landes, Ordenshaus, Beutegier
     HERO.gold += gn; Sound.coin();
     floatText(a.x, a.y - 14, '+' + gn + ' Gulden', '#ffd541');
   } else if (a.t === 'potion'){
@@ -863,8 +863,8 @@ function fullMsg(txt){
 /* ============ Erfahrung und Stufen ============ */
 function gainXp(n){
   if (HERO.mood && HERO.mood.t > 0) n = Math.round(n * 1.1);
-  n = Math.round(n * (1 + asXpBonus()));   // Ruhm des Landes, Ordenshaus
-  if (HERO.lvl >= MAX_LVL){ ehGain(n); return; }   // nach Stufe 20: Ehrenstufen
+  n = Math.round(n * (1 + asXpBonus()) * (hasTal('lern') ? 1.08 : 1));   // Ruhm des Landes, Ordenshaus, Lernbegier
+  if (HERO.lvl >= MAX_LVL){ ehGain(n); return; }   // nach Stufe 30: Ehrenstufen
   HERO.xp += n;
   while (HERO.lvl < MAX_LVL && HERO.xp >= xpNeed(HERO.lvl)){ HERO.xp -= xpNeed(HERO.lvl); HERO.lvl++; levelUp(); }
   if (HERO.lvl >= MAX_LVL) HERO.xp = 0;
@@ -876,7 +876,9 @@ function levelUp(){
   Sound.levelUp();
   burst(k.x, k.y - KBODY, ['#c9a227', '#ecd27a', '#ffffff'], 36, 120, true);
   const sk = SKILLS.find(s => s.lvl === L && s.cd);
-  const sub = sk ? 'Neu: ' + sk.name + ' (Taste ' + sk.key + ')' : now !== old ? 'Ihr seid nun ' + now : 'Mehr Leben und Schaden';
+  const mt = MEISTER.find(t => t.lvl === L);
+  const sub = sk ? 'Neu: ' + sk.name + ' (Taste ' + sk.key + ')' : now !== old ? 'Ihr seid nun ' + now + (mt ? ' · neue Meisterschaft' : '') : mt ? 'Neue Meisterschaft: im Rucksack wählen' : 'Mehr Leben und Schaden';
+  if (mt) logLine('Stufe ' + L + ': Ihr könnt eine neue Meisterschaft wählen (Rucksack, „Meisterschaften“).', '#ecd27a');
   showBanner(L === MAX_LVL ? 'Vivat Imperator!' : 'Stufe ' + L, sub);
   logLine('Stufe ' + L + ' erreicht. ' + sub + '.', '#ecd27a');
   renderSkills(); pushFame(); markDirty(true);

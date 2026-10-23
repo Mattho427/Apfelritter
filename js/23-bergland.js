@@ -56,3 +56,42 @@ for (const q of [
   { id: 'g14', giver: 'bergmeister', lvl: 30, boss: 'ruebezahl', zone: 'hochgebirge', need: 1, t: 'Rübezahl', after: 'g13',
     d: 'Hinter den Gletschern sitzt Rübezahl auf seinem Felsenthron, der Herr der Berge. Er schickt Stürme und Lawinen. Nur ein Ritter auf der Höhe seiner Kraft kann ihm trotzen.' }
 ]){ QUESTS.push(q); QDEF[q.id] = q; }
+
+/* ---------- Meisterschaften im Rucksack: ab Stufe 20 je zwei Stufen eine Wahl ---------- */
+const talFree = () => HERO.lvl < 20 ? 0 : MEISTER.filter(t => HERO.lvl >= t.lvl && !(HERO.tal || {})[t.lvl]).length;
+const talResetCost = () => 100 + HERO.lvl * 20;
+function talButton(box){
+  if (HERO.lvl < 20) return;
+  const n = talFree(), b = btn('Meisterschaften' + (n ? ' (' + n + ' frei)' : ''), () => { G.talView = true; G.sel = null; renderBag(); }, 'btn small');
+  b.dataset.slot = 'tal';
+  box.append(b);
+}
+function talView(box){
+  const T = HERO.tal || (HERO.tal = {}), safe = isSafe(G.zone) || !!G.inside;
+  box.append(el('h4', 'talh', 'Meisterschaften'), el('p', 'hint', 'Ab Stufe 20 dürft Ihr alle zwei Stufen eine Meisterschaft wählen. Die Wahl gilt, bis Ihr sie in einer Stadt oder einem Gasthaus gegen Gulden neu ordnet.'));
+  for (const t of MEISTER){
+    const row = el('div', 'talrow' + (HERO.lvl < t.lvl ? ' locked' : '')), head = el('b', null, 'Stufe ' + t.lvl);
+    row.append(head);
+    for (const o of t.opts){
+      const cur = T[t.lvl] === o.id, b = btn(o.n, () => {
+        if (T[t.lvl] || HERO.lvl < t.lvl) return;
+        T[t.lvl] = o.id; refreshStats(); updateHud(); markDirty(true); Sound.quest();
+        logLine('Meisterschaft gewählt: ' + o.n + ' (' + o.d + ').', '#ecd27a'); renderBag();
+      }, 'tbtn talopt' + (cur ? ' sel' : ''));
+      b.title = o.d; b.disabled = HERO.lvl < t.lvl || (!!T[t.lvl] && !cur); b.dataset.slot = 'tal:' + o.id;
+      const w = el('span', 'talo'); w.append(b, el('small', null, o.d)); row.append(w);
+    }
+    box.append(row);
+  }
+  const acts = el('div', 'acts');
+  if (Object.keys(T).length){
+    const c = talResetCost(), r = btn('Neu ordnen (' + c + ' Gulden)', () => {
+      if (!safe || HERO.gold < c) return;
+      HERO.gold -= c; HERO.tal = {}; refreshStats(); updateHud(); markDirty(true); Sound.coin(); logLine('Ihr ordnet Eure Meisterschaften neu.', '#ecd27a'); renderBag();
+    }, 'tbtn');
+    r.disabled = !safe || HERO.gold < c; r.title = safe ? '' : 'Nur in einer Stadt oder einem Gasthaus';
+    acts.append(r);
+  }
+  acts.append(btn('Zurück', () => { G.talView = false; renderBag(); }, 'tbtn'));
+  box.append(acts);
+}

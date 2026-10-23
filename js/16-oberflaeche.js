@@ -628,7 +628,8 @@ function renderBag0(){
   }
   $('bagCount').textContent = HERO.inv.filter(Boolean).length + ' / 24';
   const it = selItem();
-  if (!it){ info.append(el('p', 'hint', touchUI() ? 'Tippe einen Gegenstand an. Zweimal tippen legt ihn an.' : 'Wähle einen Gegenstand. Doppelklick legt ihn an oder ab.')); return; }
+  if (G.talView && !it){ talView(info); return; }
+  if (!it){ info.append(el('p', 'hint', touchUI() ? 'Tippe einen Gegenstand an. Zweimal tippen legt ihn an.' : 'Wähle einen Gegenstand. Doppelklick legt ihn an oder ab.')); talButton(info); return; }
   info.append(itemCard(it, G.sel.from === 'inv'));
   const acts = el('div', 'acts');
   if (G.sel.from === 'inv'){
@@ -641,7 +642,7 @@ function renderBag0(){
   } else acts.append(btn('Ablegen', () => unequip(G.sel.slot), 'btn small'));
   info.append(acts);
 }
-function openBag(){ if (!openPanel('ovBag')) return; G.sel = null; G.dropAsk = false; renderBag(); $('btnBagClose').focus({ preventScroll: true }); }
+function openBag(){ if (!openPanel('ovBag')) return; G.sel = null; G.dropAsk = false; G.talView = false; renderBag(); $('btnBagClose').focus({ preventScroll: true }); }
 
 /* ---------- Auftragsbuch ---------- */
 function renderQuests(){
@@ -653,7 +654,8 @@ function renderQuests(){
     card.append(el('h4', null, d.t), el('p', null, d.d));
     const goal = d.boss ? MON[d.boss].name + ' erschlagen' : d.kind ? d.need + ' × ' + MON[d.kind].name + ' im Gebiet ' + ZONE_BY_ID[d.zone].name : d.need + ' Monster im Gebiet ' + ZONE_BY_ID[d.zone].name;
     card.append(el('p', 'qgoal', 'Ziel: ' + goal + ' (' + zoneLvText(d.zone) + ')'));
-    card.append(el('p', 'qprog', done ? 'Erfüllt. Kehrt zum ' + (d.giver === 'vogt' ? 'Vogt in der Reichsburg' : 'Bürgermeister in der Reichsstadt') + ' zurück.' : 'Fortschritt: ' + q.n + ' / ' + d.need));
+    const gv = NPCS.find(n => n.id === d.giver);
+    card.append(el('p', 'qprog', done ? 'Erfüllt. Kehrt zurück zu ' + (gv ? gv.name + ' ' + (HUB_IN[gv.hub] || '') : 'Eurem Auftraggeber') + '.' : 'Fortschritt: ' + q.n + ' / ' + d.need));
     card.append(el('p', 'qrew', 'Lohn: ' + r.xp + ' EP, ' + r.gold + ' Gulden' + (r.rar ? ', ein ' + RARITY[r.rar].n + 'er Gegenstand' : '')));
     card.append(btn('Aufgeben', () => { HERO.quests = HERO.quests.filter(x => x !== q); renderQuests(); renderTracker(); markDirty(true); }, 'tbtn'));
     box.append(card);

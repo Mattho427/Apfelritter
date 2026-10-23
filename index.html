@@ -181,6 +181,12 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
 }
 .num{font-family:var(--f-body); font-size:.8em;}
 .panel.map{max-width:min(96%, 860px);}
+.talrow{display:flex; flex-wrap:wrap; gap:4px 8px; align-items:flex-start; margin:6px 0; padding:6px 0; border-top:1px solid rgba(201,162,39,.25);}
+.talrow > b{flex:0 0 100%; color:var(--gold); font-weight:normal;}
+.talrow.locked{opacity:.5;}
+.talo{display:flex; flex-direction:column; flex:1 1 140px; gap:2px;}
+.talo small{color:#cfc4a8; font-size:12px; line-height:1.25;}
+.talopt.sel{outline:2px solid var(--gold); background:#3a2e14;}
 .mapbox{position:relative; width:100%; max-width:800px; line-height:0; box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--gold-lo);}
 .mapbox canvas{width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
 .maplabels{position:absolute; inset:0; pointer-events:none; line-height:1;}
