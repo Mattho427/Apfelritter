@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 24 von 25: Die Ostlande: Wittenberg, Nürnberg und Augsburg, ihre Leute, Aufträge, der Fuhrmann, die Thesen.
+/* Der Apfelritter, Teil 24 von 26: Die Ostlande: Wittenberg, Nürnberg und Augsburg, ihre Leute, Aufträge, der Fuhrmann, die Thesen.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Die Ostlande (Version 26) ============

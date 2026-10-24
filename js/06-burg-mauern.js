@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 6 von 25: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
+/* Der Apfelritter, Teil 6 von 26: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltgrafiken, Teil 2: Burg, Stadtmauer, Ruine, Kleinteile ============ */
 /* Licht von links: lx = -1 (Kante links) .. 1 (rechts) */
@@ -459,6 +459,21 @@ function wp_kBanner(s){
   wp_seg(B, cx, ay - 2, cx, ay - 52, 1.6, wp_P.oak[3]); wp_set(B, cx, ay - 53, wp_P.gold[5]); wp_set(B, cx, ay - 52, wp_P.gold[3]);
   wp_xFlagCloth(B, cx + 1, ay - 50, 17, 16, s % 5);
   return wp_xRes(B, [[-2, -3, 2, 1]], null);
+}
+/* Schießscheibe der Armbrustschützen (Schützenfest): runde Holzscheibe mit gemalten Ringen auf einem Bock */
+function wp_kScheibe(s){
+  const B = wp_img(36, 54, 50), cx = B.ax, ay = B.ay, cy = ay - 30, R = 14;
+  wp_groundShadow(B, cx + 3, ay + 1, 11, 2);
+  for (const dx of [-8, 8]) wp_seg(B, cx + dx * .5, cy + 8, cx + dx, ay, 1.5, wp_P.oak[2]);
+  wp_seg(B, cx + 2, cy + 2, cx + 6, ay - 1, 1.2, wp_P.oak[1]);
+  wp_ell(B, cx, cy, R + 1, R + 1, (x, y) => wp_tone(wp_P.oak, .45 - (x - cx) * .02, x, y));
+  wp_ell(B, cx, cy, R, R, (x, y) => {
+    const d = Math.hypot(x + .5 - cx, y + .5 - cy) / R, ring = Math.floor(d * 5), lit = .62 - (x - cx) * .015 - (y - cy) * .01;
+    if (d < .2) return wp_tone(wp_P.red2, lit + .15, x, y);
+    return ring & 1 ? wp_tone(wp_P.dark, lit - .2, x, y) : wp_tone(wp_P.cloth, lit + .3, x, y);
+  });
+  wp_set(B, cx, cy, wp_P.gold[5]);
+  return wp_xRes(B, [[-9, -3, 9, 1]], null);
 }
 /* Lilienbanner des Königs von Frankreich: blaues Tuch mit drei goldenen Lilien (Kriegszug nach Pavia) */
 function wp_kLilien(s){

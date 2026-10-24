@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 5 von 25: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
+/* Der Apfelritter, Teil 5 von 26: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Bäume ============ */
 wp_P.sbark = wp_rmp(['#1d1613', '#2e241e', '#40322a', '#544237', '#685446']);                  // Fichtenrinde
@@ -2218,7 +2218,7 @@ const wp_K = {
   // Ostlande
   kiefer: [(s, v) => wp_tKiefer(s), 6], wacholder: [(s, v) => wp_tWacholder(s), 4], schlosskirche: [(s, v) => wp_bSchlosskirche(s, v), 1], schoenerbrunnen: [(s, v) => wp_kSchoenerBrunnen(s), 1],
   fuggerhaus: [(s, v) => wp_bFuggerhaus(s, v), 3], perlach: [(s, v) => wp_bPerlach(s), 1], bienenstand: [(s, v) => wp_kBienenstand(s), 2], frauenkirche: [(s, v) => wp_bFrauenkirche(s), 1],
-  lilienbanner: [(s, v) => wp_kLilien(s), 1]
+  lilienbanner: [(s, v) => wp_kLilien(s), 1], scheibe: [(s, v) => wp_kScheibe(s), 1]
 };
 const WP_KINDS = Object.keys(wp_K);
 /* Bilder je Jahreszeit: Bäume in allen vier, alles andere im Sommer- und im Winterbild */

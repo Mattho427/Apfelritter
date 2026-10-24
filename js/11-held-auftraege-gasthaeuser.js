@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 11 von 25: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
+/* Der Apfelritter, Teil 11 von 26: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */
@@ -103,7 +103,7 @@ function cleanHero(h){
   if (h.ow && (typeof h.ow !== 'object' || h.ow.w !== orWeek())) h.ow = null;
   h.tw = Math.max(0, h.tw | 0);
   h.pt = h.pt && typeof h.pt.id === 'string' && /^[a-z0-9]{3,12}$/.test(h.pt.id) && Date.now() - (+h.pt.at || 0) < 1800000 ? { id: h.pt.id, t: +h.pt.t || Date.now(), at: +h.pt.at } : null;   // Gruppe: eine halbe Stunde lang
-  if (h.frec){ const o = {}; for (const r of ['stein', 'klettern', 'springen', 'schnee']) if (+h.frec[r] > 0) o[r] = Math.round(+h.frec[r]); h.frec = o; }
+  if (h.frec){ const o = {}; for (const r of FREC.map(q => q.id)) if (+h.frec[r] > 0) o[r] = Math.round(+h.frec[r]); h.frec = o; }
   for (const key of ['evDone', 'evFirst', 'evCur']) if (h[key] && typeof h[key] !== 'object') h[key] = null;
   if (h.story) h.story = stCleanStory(h.story);
   asHero(h); strHero(h); ehHero(h);

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 12 von 25: Leben im Reichsland, Tag und Nacht, Wetter.
+/* Der Apfelritter, Teil 12 von 26: Leben im Reichsland, Tag und Nacht, Wetter.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leben im Reichsland: Tiere, Leute, Vögel ============
    Lebensorte aus der Welt; nahe beim Ritter entstehen ihre Bewohner, weit weg verschwinden sie wieder.

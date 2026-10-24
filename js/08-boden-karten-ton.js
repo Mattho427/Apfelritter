@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 8 von 25: Boden, Karten, Ton und Musik.
+/* Der Apfelritter, Teil 8 von 26: Boden, Karten, Ton und Musik.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Boden ============ */
 /* Paletten je Bodenart: 4 Kanäle zu je 12 Tönen (dunkel..hell) */

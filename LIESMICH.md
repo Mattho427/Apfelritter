@@ -4,7 +4,7 @@ Das Spiel ist ein einziges Artefakt (gleicher Link, gleiche Spielstände), beste
 
 - `index.html` – Seite, Aussehen (CSS), Menü und die Tafeln (im Fenster „Tafeln und Hilfe“); lädt am Ende die Teile aus `js/`.
   Das Spiel füllt das ganze Fenster; die Bildgröße richtet sich beim Laden nach dem Seitenverhältnis (höchstens 960 × 540).
-- `js/01-…js` bis `js/25-…js` – der Spielcode, nach Themen geteilt. Die Teile werden **in der Reihenfolge der Nummern**
+- `js/01-…js` bis `js/26-…js` – der Spielcode, nach Themen geteilt. Die Teile werden **in der Reihenfolge der Nummern**
   geladen und teilen sich alle Namen der obersten Ebene (wie früher in der einen Datei).
 
 ## Regeln beim Ändern
@@ -61,4 +61,5 @@ Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 | `js/22-kirchen.js` | Kirchen, Priester und Glaube: Innenräume, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe |
 | `js/23-bergland.js` | Das Bergland: Annaberg, Bergmeister und seine Aufträge, Meisterschaften, Tafel |
 | `js/24-ostlande.js` | Die Ostlande: Leute in Wittenberg, Nürnberg und Augsburg, Aufträge, Fuhrmann, Thesen, Kriegszüge nach Pavia und Wien, Tafel |
-| `js/25-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |
+| `js/25-feste-spiele.js` | Feste und Spiele: Ostern, Schützenfest, Martini, Fastnacht mit ihren Spielen; Mühle, Einunddreißig, Kegeln und Ringen im Gasthaus |
+| `js/26-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |

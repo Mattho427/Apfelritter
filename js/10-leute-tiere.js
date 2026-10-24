@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 10 von 25: Leute in Burg und Stadt, Tiere, Leute unterwegs.
+/* Der Apfelritter, Teil 10 von 26: Leute in Burg und Stadt, Tiere, Leute unterwegs.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leute in Burg und Stadt (von vorn, Atmen in zwei Bildern) ============ */
 const NP_BASE = {
@@ -67,8 +67,21 @@ function np_figure(o){
     px(cx, 11, 't'); px(cx, 12, 't'); px(cx - 1, 14, 's'); px(cx, 14, 's'); px(cx + 1, 14, 's');
     if (o.beard){ for (const [y, x0, x1] of [[12, -3, -2], [12, 2, 3], [13, -3, -1], [13, 1, 3], [14, -2, -2], [14, 2, 2], [15, -2, 2], [16, -1, 1]]) for (let x = x0; x <= x1; x++) px(cx + x, y, (x + y) & 1 ? hair[0] : hair[1]); px(cx - 1, 14, 's'); px(cx, 14, 's'); px(cx + 1, 14, 's'); }
   }
+  // Schembartmaske: helles Larvengesicht mit dunklen Augen, roten Wangen und gemaltem Bart
+  if (o.mask && !back){
+    for (const [y, hw] of [[8, 3], [9, 3], [10, 3], [11, 3], [12, 3], [13, 3], [14, 2]]) band(y, cx - hw, cx + hw, ['x', 'z', 'z', 'z'], .1);
+    px(cx - 2, 10, 'e'); px(cx + 2, 10, 'e'); px(cx - 2, 12, 'R'); px(cx + 2, 12, 'R'); px(cx - 1, 13, 'N'); px(cx, 13, 'N'); px(cx + 1, 13, 'N'); px(cx, 11, 'x');
+    for (const [y, x0, x1] of [[14, -3, -2], [14, 2, 3], [15, -2, 2], [16, -1, 1]]) for (let x = x0; x <= x1; x++) px(cx + x, y, 'N');
+  }
   // Kopfbedeckung
-  if (o.hat === 'eisenhut'){
+  if (o.hat === 'narr'){   // Narrenkappe: zwei Zipfel mit Schellen, Zackenkragen
+    for (const [y, hw] of [[5, 3], [6, 4], [7, 5]]) band(y, cx - hw, cx + hw, C2, .2);
+    for (let k = 0; k < 4; k++){ px(cx - 4 - k, 4 - k, k & 1 ? '6' : '7'); px(cx - 3 - k, 4 - k, '6'); px(cx + 4 + k, 4 - k, k & 1 ? '2' : '3'); px(cx + 3 + k, 4 - k, '2'); }
+    px(cx - 8, 0, 'A'); px(cx + 8, 0, 'A'); px(cx - 7, 0, 'a'); px(cx + 7, 0, 'a');
+    for (let y = 8; y <= 15; y++){ px(cx - 4, y, '6'); px(cx + 4, y, '2'); }
+    if (back) for (let y = 8; y <= 16; y++) band(y, cx - 4, cx + 4, C2, .15);
+    for (let x = cx - 6; x <= cx + 6; x++) px(x, 17, (x & 1) ? 'A' : (x < cx ? '7' : '3'));
+  } else if (o.hat === 'eisenhut'){
     for (const [y, hw] of [[3, 2], [4, 3], [5, 4], [6, 4]]) band(y, cx - hw, cx + hw, IR, .25);
     band(7, cx - 6, cx + 6, ['K', 'D', 'M', 'L']); band(8, cx - 5, cx + 5, ['K', 'K', 'D', 'D']);
   } else if (o.hat === 'barett'){
@@ -426,7 +439,18 @@ function np_side(o, f){
   }
   px(cx + 2, 10, 'e'); px(cx + 2, 9, hair[1]); px(cx - 1, 11, 't'); px(cx + 2, 13, 's');
   if (o.beard) for (const [y, x0, x1] of [[12, 0, 1], [13, 0, 3], [14, -1, 3], [15, -1, 2], [16, 0, 2]]) for (let x = x0; x <= x1; x++) px(cx + x, y, (x + y) & 1 ? hair[0] : hair[1]);
+  if (o.mask){   // Larve im Profil: lange Nase, gemalter Bart
+    for (const [y, x0, x1] of [[8, 0, 3], [9, 0, 3], [10, 0, 3], [11, 0, 4], [12, 0, 3], [13, 0, 3], [14, 0, 2]]) for (let x = x0; x <= x1; x++) px(cx + x, y, x === x0 ? 'x' : 'z');
+    px(cx + 5, 11, 'z'); px(cx + 6, 12, 'x'); px(cx + 2, 10, 'e'); px(cx + 2, 12, 'R');
+    for (const [y, x0, x1] of [[13, 1, 3], [14, 0, 3], [15, 0, 2], [16, 1, 2]]) for (let x = x0; x <= x1; x++) px(cx + x, y, 'N');
+  }
   // Kopfbedeckung
+  if (o.hat === 'narr'){
+    for (const [y, x0, x1] of [[5, -3, 2], [6, -4, 3], [7, -5, 3]]) band(y, cx + x0, cx + x1, C2, .2);
+    for (let y = 8; y <= 16; y++) band(y, cx - 5, cx - 2, C2, .1);
+    for (let k = 0; k < 5; k++) px(cx - 4 - k, 5 - k, k & 1 ? '6' : '7');
+    px(cx - 9, 0, 'A'); px(cx - 8, 0, 'a'); px(cx + 2, 4, '3'); px(cx + 3, 3, '2'); px(cx + 4, 2, 'A');
+  }
   if (o.hat === 'eisenhut'){ for (const [y, x0, x1] of [[3, -2, 1], [4, -3, 2], [5, -4, 3], [6, -4, 3]]) band(y, cx + x0, cx + x1, IR, .25); band(7, cx - 6, cx + 5, ['K', 'D', 'M', 'L']); band(8, cx - 5, cx + 4, ['K', 'K', 'D', 'D']); }
   else if (o.hat === 'barett'){ for (const [y, x0, x1] of [[4, -4, 3], [5, -6, 5], [6, -6, 6], [7, -5, 4]]) band(y, cx + x0, cx + x1, C2, .1); px(cx - 4, 3, 'z'); px(cx - 5, 2, 'z'); px(cx - 6, 1, 'x'); }
   else if (o.hat === 'haube'){ for (const [y, x0, x1] of [[5, -3, 2], [6, -4, 3], [7, -4, 3]]) band(y, cx + x0, cx + x1, LN, .2); for (let y = 8; y <= 15; y++) band(y, cx - 4, cx - 1 + (y < 10 ? 2 : 0), LN, .1); band(16, cx - 3, cx + 1, LN); }
@@ -490,6 +514,9 @@ const VK_TYPES = {
     pals: [['#3a3630', '#4e4a42', '#625e54', '#787266', '#3a3028', '#4a3e32', '#5a4c3e', '#6a5c4c']] },
   knappe:   { o: { robe:'short', hat:'kapuze', belt:true, hoe:true, beard:true, hair:['h', 'j'] },
     pals: [['#8a8678', '#aaa696', '#c8c4b2', '#e2ded0', '#2a2620', '#3a342c', '#4c453a', '#5e564a'], ['#5a5a58', '#747472', '#8e8e8a', '#a8a8a2', '#2a2620', '#3a342c', '#4c453a', '#5e564a']] },
+  schembart:{ o: { robe:'short', hat:'narr', mask:true, parti:true, belt:true, hair:['h', 'j'] },   // Schembartläufer zur Fastnacht
+    pals: [['#5a0e0e', '#861a16', '#ae2c22', '#d0483a', '#6a5010', '#9a7a1c', '#c8a030', '#e6c44c'], ['#1c4a24', '#2a6a32', '#3e8a44', '#5aaa5a', '#8a8478', '#b0aa9c', '#d0cabc', '#ebe6da'],
+      ['#14244a', '#20366a', '#30508e', '#4a6eb0', '#5a0e0e', '#861a16', '#ae2c22', '#d0483a']] },
   haendler: { o: { robe:'short', hat:'filz', apron:'leather', belt:true, hairSide:true, hair:['h', 'j'] },
     pals: [['#1e3a2e', '#2c5440', '#3e6e52', '#5a8a68', '#4a2a18', '#6a3e22', '#8a5630', '#a87040'], ['#3a1e2e', '#542c40', '#6e3e52', '#8a5a68', '#2a2a2a', '#3e3e3e', '#565656', '#6e6e6e']] }
 };
