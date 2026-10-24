@@ -24,11 +24,11 @@ FESTS.push(
     gameText:'Sechs Martinsgänse sind der Hirtin über den Markt entwischt. Fangt sie alle in einer Minute und einer Viertelminute: Lauft ihnen nach, bis sie müde werden und sich hinsetzen, dann packt sie.',
     build(B){ const w = B.obj('feuerholz', 0, 7470, 3772); B.fires.push({ x: w.x, y: w.y - 10 }); B.obj('festtisch', 0, 7400, 3820);
       for (const [x, y] of [[7330, 3768], [7550, 3768], [7330, 3826], [7550, 3826]]){ const l = B.obj('laterne', 0, x, y); B.lights.push([l.x + 10, l.y - 60, 130, .9]); } } },
-  { id:'fastnacht', sea:3, days:[3], extra:true, name:'Fastnacht', where:'auf dem Hauptmarkt in Nürnberg', tune:'fastnacht', game:'moriske', gameName:'Moriskentanz', prize:'Schembartmaske', c:[7700, 2300],
-    host:{ name:'Schembarthauptmann Endres', at:[7724, 2322], o:{ robe:'short', hat:'narr', mask:true, parti:true, belt:true, hair:['h', 'j'] }, pal:{ 1:'#5a0e0e', 2:'#861a16', 3:'#ae2c22', 4:'#d0483a', 5:'#6a5010', 6:'#9a7a1c', 7:'#c8a030', 8:'#e6c44c' },
+  { id:'fastnacht', sea:3, days:[3], extra:true, name:'Fastnacht', where:'auf dem Hauptmarkt in Nürnberg', tune:'fastnacht', game:'moriske', gameName:'Moriskentanz', prize:'Schembartmaske', c:[7752, 2300],
+    host:{ name:'Schembarthauptmann Endres', at:[7800, 2330], o:{ robe:'short', hat:'narr', mask:true, parti:true, belt:true, hair:['h', 'j'] }, pal:{ 1:'#5a0e0e', 2:'#861a16', 3:'#ae2c22', 4:'#d0483a', 5:'#6a5010', 6:'#9a7a1c', 7:'#c8a030', 8:'#e6c44c' },
       greet:['Der Schembartlauf! Seit hundert Jahren laufen die Metzger und ihre Freunde vermummt durch Nürnberg.', 'Am Ende stürmen wir die Hölle, einen Wagen voller Teufel und Narren. Aber erst wird getanzt!', 'Morgen ist Aschermittwoch. Heute ist alles erlaubt, fast alles.'] },
     gameText:'Der Vortänzer zeigt die Schritte des Moriskentanzes vor, Ihr tanzt sie nach: mit den Pfeiltasten oder dem Steuerkreuz, in derselben Reihenfolge. Fünf Runden, jede einen Schritt länger. Zweimal daneben, und die Narren lachen Euch aus.',
-    build(B){ B.obj('festtisch', 0, 7760, 2330); for (const [x, y, v] of [[7560, 2250, 0], [7980, 2250, 1]]) B.obj('banner', v, x, y);
+    build(B){ B.obj('festtisch', 0, 7716, 2342); for (const [x, y, v] of [[7560, 2250, 0], [7980, 2250, 1]]) B.obj('banner', v, x, y);
       for (const x of [7600, 7800]){ const l = B.obj('laterne', 0, x, 2336); B.lights.push([l.x + 10, l.y - 60, 130, .9]); } } }
 );
 /* Speis und Trank der neuen Feste */
@@ -79,7 +79,7 @@ Object.assign(TUNES, {
   parade([[7200, 3780], [7440, 3772], [7690, 3780], [7690, 3814], [7440, 3820], [7200, 3814]], ['knecht', 'magd', 'buergerin', 'buerger', 'magd', 'knecht'], 8, 'martini');
   // Fastnacht in Nürnberg: Schembartlauf um den Hauptmarkt, Narrentanz am Brunnen
   parade([[7500, 2264], [7700, 2258], [8060, 2264], [8060, 2332], [7700, 2338], [7500, 2332]], ['schembart'], 9, 'fastnacht');
-  add({ p: 'dance', t: ['schembart'], cx: P(7700, 2300).x, cy: P(7700, 2300).y + 6, x: P(7700, 2300).x, y: P(7700, 2300).y, r: 64, n: [5, 5], fest: 'fastnacht' });
+  add({ p: 'dance', t: ['schembart'], cx: P(7752, 2300).x, cy: P(7752, 2300).y + 6, x: P(7752, 2300).x, y: P(7752, 2300).y, r: 58, n: [5, 5], fest: 'fastnacht' });
   for (const x of [7640, 7766]) add({ p: 'stand', t: ['spielmann'], ...gNear(x, 2276), dir: 'down', n: [1, 1], fest: 'fastnacht', music: true });
 })();
 /* Rekorde der neuen Festspiele (Ruhmeshalle) */
@@ -299,13 +299,13 @@ FG.moriske = {
     const L = g.lead, A = L.art; list.push({ y: L.y, d: () => { const img = L.hop > 0 ? (A[L.dir] || A.down)[1] : A.stand[L.dir] || A.stand.down; shadow(L.x, L.y, 8, .25); ctx.drawImage(img, Math.round(L.x - A.ax), Math.round(L.y - A.ay - Math.sin(L.hop * Math.PI) * 6)); } });
   },
   ui(g){
-    const n = g.seq.length, gap = 30, x0 = W / 2 - (n - 1) * gap / 2, y = H * .2;
+    const n = g.seq.length, gap = 34, x0 = W / 2 - (n - 1) * gap / 2, y = 68;
     if (g.st === 'show' || g.st === 'play'){
-      ctx.fillStyle = 'rgba(16,14,20,.55)'; ctx.fillRect(x0 - 22, y - 18, (n - 1) * gap + 44, 36);
+      ctx.fillStyle = 'rgba(16,14,20,.78)'; ctx.fillRect(x0 - 24, y - 20, (n - 1) * gap + 48, 40);
       g.seq.forEach((d, i) => {
         const x = Math.round(x0 + i * gap);
-        if (g.st === 'show') fsArrow(x, y, d, i < g.i - 1 ? '#7a7466' : i === g.i - 1 ? '#ffd541' : '#3a3630', 1.4);
-        else fsArrow(x, y, i < g.i ? d : 'down', i < g.i ? '#9fe08a' : '#4a4650', i < g.i ? 1.4 : .7);
+        if (g.st === 'show') fsArrow(x, y, d, i < g.i - 1 ? '#8a8476' : i === g.i - 1 ? '#ffd541' : '#4a4650', 1.6);
+        else if (i < g.i) fsArrow(x, y, d, '#9fe08a', 1.6); else { ctx.fillStyle = i === g.i ? '#ffd98a' : '#5a5660'; ctx.fillRect(x - 3, y - 3, 6, 6); }
       });
       drawText(g.st === 'show' ? 'Schaut genau hin …' : 'Tanzt nach: Pfeiltasten oder Steuerkreuz', W / 2, H * .78, '#ffffff', 'c', 1.4);
     }
@@ -313,3 +313,351 @@ FG.moriske = {
   rec(g, ok){ if (ok) festRecord('moriske', g.used * 10); }
 };
 VK_SAY.schembart = ['Hoho! Der Schembart läuft!', 'Wer bin ich? Das ratet Ihr nie!', 'Narren, Teufel und Wilde Männer, heute gehört uns die Stadt!', 'Morgen wird gefastet, heute getanzt!'];
+
+/* ============ Spiele im Gasthaus (Version 27) ============
+   Vier neue Gäste in jedem Gasthaus: Schulmeister Ambrosius spielt Mühle, die Spielerin Kathrein Einunddreißig, Kegelbruder Kunz
+   lädt zum Kegeln, Ringer Jörg zum Ringen nach den Regeln des Fabian von Auerswald. Gespielt wird um 5, 20 oder 50 Gulden;
+   wer gewinnt, bekommt den doppelten Einsatz zurück, bei Gleichstand den eigenen. Siege zählen fürs Trophäenbuch (HERO.fsw). */
+INN_ART.schulmeister = np_frames({ robe:'long', hat:'barett', belt:true, beard:true, hair:['w', 'x'] },
+  { 1:'#141218', 2:'#221e28', 3:'#322c3a', 4:'#463e50', 5:'#141218', 6:'#221e28', 7:'#322c3a', 8:'#463e50' });
+INN_ART.spielerin = np_frames({ robe:'long', hat:'haube', apron:'linen', chain:true },
+  { 1:'#3a1438', 2:'#562050', 3:'#743068', 4:'#924a84', 5:'#3a2c1e', 6:'#4a3a28', 7:'#5a4a34', 8:'#6e5c44' });
+INN_ART.kegler = np_frames({ robe:'short', hat:'filz', belt:true, beard:true, hair:['h', 'j'] },
+  { 1:'#4a3a20', 2:'#64502c', 3:'#7e683a', 4:'#98804c', 5:'#2c3424', 6:'#3e4a32', 7:'#526044', 8:'#6a7a58' });
+INN_ART.ringer = np_frames({ robe:'short', belt:true, beard:true, hairSide:true, hair:['j', 'h'] },
+  { 1:'#8a8270', 2:'#aca490', 3:'#cac2ac', 4:'#e4dec8', 5:'#3a2a1c', 6:'#4e3a26', 7:'#624a32', 8:'#78603e' });
+function innMore(inn, npcs){
+  npcs.push(
+    { id:'schulmeister', key:'schulmeister_' + inn.id, name:'Schulmeister Ambrosius', role:'Mühle', x: 365, y: 235, art: INN_ART.schulmeister, fsGame: 'muehle',
+      greet:['Eine Partie Mühle, Herr Ritter? Neun Steine, drei Reihen, ein klarer Kopf.', 'Ich lehre die Kinder Latein und Rechnen. Beim Mühlespiel lerne ich selbst noch dazu.', 'Wer drei Steine in eine Reihe bringt, darf dem anderen einen nehmen. So einfach, so schwer.'] },
+    { id:'spielerin', key:'spielerin_' + inn.id, name:'Spielerin Kathrein', role:'Einunddreißig', x: 625, y: 251, art: INN_ART.spielerin, fsGame: 'karten',
+      greet:['Einunddreißig, Herr Ritter? Wer näher an die Einunddreißig kommt, gewinnt. Wer drüber kommt, verliert.', 'Die Karten sind aus Nürnberg, frisch gedruckt. Eicheln, Grün, Herz und Schellen.', 'Der Pfarrer sagt, Karten seien des Teufels Gebetbuch. Er spielt trotzdem jeden Freitag.'] },
+    { id:'kegler', key:'kegler_' + inn.id, name:'Kegelbruder Kunz', role:'Kegeln', x: 215, y: 377, art: INN_ART.kegler, fsGame: 'kegeln',
+      greet:['Hinten im Hof ist die Kegelbahn. Drei Würfe, wer mehr Kegel umwirft, gewinnt!', 'Alle Neune! Das hab ich zuletzt an Martini geschafft.', 'Zielen, Schwung holen, loslassen. Mehr ist es nicht. Eigentlich.'] },
+    { id:'ringer', key:'ringer_' + inn.id, name:'Ringer Jörg', role:'Ringen', x: 486, y: 389, art: INN_ART.ringer, fsGame: 'ringen',
+      greet:['Ringen ohne Harnisch, Herr Ritter, Mann gegen Mann. Wer zweimal liegt, hat verloren.', 'Der Auerswald, der Ringmeister des Kurfürsten, hat mir drei Griffe gezeigt. Den vierten habe ich selbst erfunden.', 'Kraft ist gut. Das richtige Maß ist besser.'] });
+}
+const FS_GAMES = {
+  muehle: { label: 'Eine Partie Mühle spielen', foe: 'Der Schulmeister', intro: 'Mühle um einen Einsatz: Jeder hat neun Steine. Erst werden sie gesetzt, dann gezogen. Drei in einer Reihe sind eine Mühle, dann nehmt Ihr dem anderen einen Stein. Wer nur noch zwei hat oder nicht mehr ziehen kann, verliert. Ihr spielt Weiß und fangt an.' },
+  karten: { label: 'Einunddreißig spielen', foe: 'Kathrein', intro: 'Einunddreißig: Sieben bis Zehn zählen ihre Augen, Unter zwei, Ober drei, König vier und das Daus elf. Ihr zieht Karten, solange Ihr wollt. Wer näher an die Einunddreißig kommt, gewinnt, wer darüber kommt, verliert sofort.' },
+  kegeln: { label: 'Auf der Kegelbahn kegeln', foe: 'Kunz', intro: 'Drei Würfe auf neun Kegel. Erst wählt Ihr die Richtung, dann den Schwung, beides mit dem Knopf, wenn die Marke richtig steht. Wer zusammen mehr Kegel umwirft, gewinnt.' },
+  ringen: { label: 'Mit Jörg ringen', foe: 'Jörg', intro: 'Ringen in drei Gängen: Jörg drückt Euch stetig zurück. Drückt den Knopf, wenn die Marke im grünen Feld steht, dann schiebt Ihr ihn zurück. Wer den anderen zu Boden bringt, gewinnt den Gang. Wer zwei Gänge gewinnt, gewinnt das Ringen.' }
+};
+function fsTalkOpts(n, opts){ if (n.fsGame && G.inside) opts.append(btn(FS_GAMES[n.fsGame].label, () => { G.fs = null; renderTalk('fsBet'); }, 'opt')); }
+function fsStart(kind, stake){
+  if (HERO.gold < stake) return;
+  HERO.gold -= stake; updateHud();
+  G.fs = Object.assign({ kind, stake, res: null }, FS_PLAY[kind].start());
+  renderTalk('fsPlay');
+}
+/* Ende eines Spiels: 1 gewonnen, 0 Gleichstand, -1 verloren */
+function fsEnd(S, res){
+  if (S.res !== null) return;
+  S.res = res;
+  if (res > 0){ HERO.gold += S.stake * 2; Sound.gold(); HERO.fsw = HERO.fsw || {}; HERO.fsw[S.kind] = (HERO.fsw[S.kind] | 0) + 1; logLine('Gewonnen! Ihr streicht ' + S.stake * 2 + ' Gulden ein.', '#ffd98a'); }
+  else if (res === 0){ HERO.gold += S.stake; logLine('Gleichstand. Jeder behält seinen Einsatz.', '#d8c69c'); }
+  else { Sound.tone(180, .3, 'triangle', .04, -60); logLine('Verloren. Der Einsatz ist weg.', '#d8c69c'); }
+  updateHud(); markDirty(true);
+}
+function fsView(view, body, opts){
+  const n = G.talk, kind = n && n.fsGame, D = FS_GAMES[kind]; if (!D) return;
+  if (view === 'fsBet' || !G.fs){
+    $('talkText').textContent = D.intro + ' Ihr habt ' + HERO.gold + ' Gulden.';
+    for (const st of [5, 20, 50]){ const b = btn('Um ' + st + ' Gulden', () => fsStart(kind, st), 'opt'); b.disabled = HERO.gold < st; opts.append(b); }
+    opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
+    body.append(opts); return;
+  }
+  const S = G.fs;
+  FS_PLAY[kind].view(S, body, opts);
+  if (S.res !== null){
+    const again = btn('Noch einmal um ' + S.stake, () => fsStart(kind, S.stake), 'opt'); again.disabled = HERO.gold < S.stake;
+    opts.append(again, btn('Anderer Einsatz', () => { G.fs = null; renderTalk('fsBet'); }, 'opt'));
+  }
+  opts.append(btn('Zurück', () => { if (S.res === null) fsEnd(S, -1); G.fs = null; renderTalk('main'); }, 'tbtn'));
+  body.append(opts);
+}
+const fsLive = S => G.fs === S && G.mode === 'menu' && G.talk && !$('ovTalk').hidden;
+
+/* ---------- Mühle ---------- */
+const MU_P = [[0, 0], [3, 0], [6, 0], [1, 1], [3, 1], [5, 1], [2, 2], [3, 2], [4, 2], [0, 3], [1, 3], [2, 3], [4, 3], [5, 3], [6, 3], [2, 4], [3, 4], [4, 4], [1, 5], [3, 5], [5, 5], [0, 6], [3, 6], [6, 6]];
+const MU_ADJ = [[1, 9], [0, 2, 4], [1, 14], [4, 10], [1, 3, 5, 7], [4, 13], [7, 11], [4, 6, 8], [7, 12], [0, 10, 21], [3, 9, 11, 18], [6, 10, 15], [8, 13, 17], [5, 12, 14, 20], [2, 13, 23], [11, 16], [15, 17, 19], [12, 16], [10, 19], [16, 18, 20, 22], [13, 19], [9, 22], [19, 21, 23], [14, 22]];
+const MU_MILLS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11], [12, 13, 14], [15, 16, 17], [18, 19, 20], [21, 22, 23], [0, 9, 21], [3, 10, 18], [6, 11, 15], [1, 4, 7], [16, 19, 22], [8, 12, 17], [5, 13, 20], [2, 14, 23]];
+const muInMill = (b, i) => MU_MILLS.some(m => m.includes(i) && m.every(j => b[j] === b[i]));
+const muCount = (b, p) => b.filter(v => v === p).length;
+const muRemovable = (b, p) => { const all = b.map((v, i) => v === p ? i : -1).filter(i => i >= 0), free = all.filter(i => !muInMill(b, i)); return free.length ? free : all; };
+function muMoves(S, p){   // alle Züge: [von, nach] (von -1 = setzen)
+  const b = S.b, out = [];
+  if (S.hand[p] > 0){ for (let i = 0; i < 24; i++) if (!b[i]) out.push([-1, i]); return out; }
+  const fly = muCount(b, p) === 3;
+  for (let i = 0; i < 24; i++) if (b[i] === p) for (const j of (fly ? [...Array(24).keys()] : MU_ADJ[i])) if (!b[j]) out.push([i, j]);
+  return out;
+}
+const muThreats = (b, p) => MU_MILLS.filter(m => m.filter(j => b[j] === p).length === 2 && m.some(j => !b[j])).map(m => m.find(j => !b[j]));
+function muCheckEnd(S){
+  for (const p of [1, 2]){
+    const left = muCount(S.b, p) + S.hand[p];
+    if (left < 3 || (S.hand[p] === 0 && !muMoves(S, p).length && muCount(S.b, p) > 3)){ fsEnd(S, p === 2 ? 1 : -1); return true; }
+  }
+  return false;
+}
+function muAI(S){
+  const b = S.b, moves = muMoves(S, 2);
+  if (!moves.length){ muCheckEnd(S); return; }
+  let best = null, bs = -1e9;
+  for (const [f, t] of moves){
+    const nb = b.slice(); if (f >= 0) nb[f] = 0; nb[t] = 2;
+    let s = Math.random() * 4;
+    if (muInMill(nb, t)) s += 100;
+    if (muThreats(b, 1).includes(t)) s += 55;                      // eine Mühle des Ritters verhindern
+    s += muThreats(nb, 2).length * 12;                             // eigene Zwickmühlen vorbereiten
+    if (f >= 0 && muThreats(nb, 1).some(x => x === f)) s -= 45;    // nicht den Weg freimachen
+    if (s > bs){ bs = s; best = [f, t]; }
+  }
+  const [f, t] = best;
+  if (f >= 0) b[f] = 0; else S.hand[2]--;
+  b[t] = 2; S.last = t;
+  if (muInMill(b, t)){
+    const rm = muRemovable(b, 1), th = muThreats(b, 1), pref = rm.filter(i => MU_MILLS.some(m => m.includes(i) && th.some(x => m.includes(x))));
+    const r = pick(pref.length ? pref : rm); b[r] = 0; S.msg = 'Der Schulmeister schließt eine Mühle und nimmt Euch einen Stein.'; Sound.tone(220, .2, 'square', .03);
+  } else S.msg = '';
+  S.turn = 1; muCheckEnd(S);
+}
+function muClick(S, i){
+  if (S.res !== null || S.turn !== 1) return;
+  const b = S.b;
+  if (S.remove){
+    if (b[i] !== 2 || !muRemovable(b, 2).includes(i)) return;
+    b[i] = 0; S.remove = false; Sound.tone(520, .1, 'square', .03);
+    if (!muCheckEnd(S)) muAfter(S);
+    return renderTalk('fsPlay');
+  }
+  if (S.hand[1] > 0){
+    if (b[i]) return;
+    b[i] = 1; S.hand[1]--; Sound.tone(330, .06, 'triangle', .03);
+  } else {
+    if (b[i] === 1){ S.sel = i; return renderTalk('fsPlay'); }
+    const fly = muCount(b, 1) === 3;
+    if (b[i] || S.sel == null || (!fly && !MU_ADJ[S.sel].includes(i))) return;
+    b[S.sel] = 0; b[i] = 1; S.sel = null; Sound.tone(330, .06, 'triangle', .03);
+  }
+  if (muInMill(b, i)){ S.remove = true; S.msg = 'Mühle! Nehmt dem Schulmeister einen Stein.'; Sound.tone(660, .15, 'square', .03); return renderTalk('fsPlay'); }
+  if (!muCheckEnd(S)) muAfter(S);
+  renderTalk('fsPlay');
+}
+function muAfter(S){
+  S.turn = 2; S.msg = 'Der Schulmeister überlegt …';
+  setTimeout(() => { if (G.fs !== S || S.res !== null) return; muAI(S); if (fsLive(S)) renderTalk('fsPlay'); }, 550);
+}
+const FS_PLAY = {};
+FS_PLAY.muehle = {
+  start: () => ({ b: Array(24).fill(0), hand: [0, 9, 9], turn: 1, sel: null, remove: false, msg: '', last: -1 }),
+  view(S, body){
+    const me = muCount(S.b, 1) + S.hand[1], op = muCount(S.b, 2) + S.hand[2];
+    $('talkText').textContent = S.res !== null ? (S.res > 0 ? 'Gewonnen! „Ihr spielt wie ein Magister, Herr Ritter.“ Ihr bekommt ' + S.stake * 2 + ' Gulden.' : 'Verloren. „Kopf hoch, die nächste Partie gehört vielleicht Euch.“')
+      : S.msg || (S.remove ? 'Mühle! Nehmt dem Schulmeister einen Stein.' : S.hand[1] > 0 ? 'Setzt einen Stein (noch ' + S.hand[1] + ' in der Hand).' : muCount(S.b, 1) === 3 ? 'Ihr habt nur noch drei Steine und dürft springen: Stein wählen, dann ein freies Feld.' : 'Zieht einen Stein: erst wählen, dann auf ein freies Nachbarfeld.');
+    body.append(el('p', 'hint', 'Ihr: ' + me + ' Steine · Schulmeister: ' + op + ' Steine · Einsatz ' + S.stake + ' Gulden'));
+    const box = el('div', 'fsboard'), NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    const P = i => [8 + MU_P[i][0] * 14, 8 + MU_P[i][1] * 14];
+    for (const [a, c] of [[0, 2], [2, 23], [23, 21], [21, 0], [3, 5], [5, 20], [20, 18], [18, 3], [6, 8], [8, 17], [17, 15], [15, 6], [1, 7], [16, 22], [9, 11], [12, 14]]){
+      const l = document.createElementNS(NS, 'line'), [x1, y1] = P(a), [x2, y2] = P(c);
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2); svg.append(l);
+    }
+    box.append(svg);
+    const can = S.res === null && S.turn === 1 ? (S.remove ? muRemovable(S.b, 2) : S.hand[1] > 0 || S.sel != null ? muMoves(S, 1).filter(m => S.hand[1] > 0 || m[0] === S.sel).map(m => m[1]) : muMoves(S, 1).map(m => m[0])) : [];
+    for (let i = 0; i < 24; i++){
+      const [x, y] = P(i), b = el('button', 'pt' + (S.b[i] === 1 ? ' w' : S.b[i] === 2 ? ' b' : '') + (S.sel === i ? ' sel' : '') + (can.includes(i) ? ' can' : '') + (S.last === i && S.b[i] === 2 ? ' last' : ''));
+      b.type = 'button'; b.style.left = x + '%'; b.style.top = y + '%';
+      b.setAttribute('aria-label', 'Feld ' + (i + 1) + (S.b[i] === 1 ? ', Euer Stein' : S.b[i] === 2 ? ', Stein des Schulmeisters' : ', frei'));
+      b.addEventListener('click', () => muClick(S, i)); box.append(b);
+    }
+    body.append(box);
+  }
+};
+
+/* ---------- Einunddreißig ---------- */
+const CA_SUIT = ['eichel', 'gruen', 'herz', 'schellen'], CA_RANK = [['7', 7], ['8', 8], ['9', 9], ['10', 10], ['U', 2], ['O', 3], ['K', 4], ['D', 11]];
+const CA_GLYPH = { 7: ['111', '001', '010', '010', '010'], 8: ['111', '101', '111', '101', '111'], 9: ['111', '101', '111', '001', '111'], 1: ['010', '110', '010', '010', '111'], 0: ['111', '101', '101', '101', '111'],
+  U: ['101', '101', '101', '101', '111'], O: ['111', '101', '101', '101', '111'], K: ['101', '110', '100', '110', '101'], D: ['110', '101', '101', '101', '110'] };
+const CA_ICON = {   // Farbzeichen, 7 × 7
+  eichel: [['..aaa..', '.aaaaa.', '.bbbbb.', '.bcbcb.', '..bbb..', '...b...', '...d...'], { a: '#5a3a1a', b: '#c89a3a', c: '#a8782a', d: '#3a2a1a' }],
+  gruen: [['...a...', '..aaa..', '.aabaa.', 'aaabaaa', '.aabaa.', '..aba..', '...d...'], { a: '#3e8a3a', b: '#2a5a26', d: '#3a2a1a' }],
+  herz: [['.aa.aa.', 'abbabba', 'abbbbba', '.abbba.', '..aba..', '...a...', '.......'], { a: '#8a1c1c', b: '#d03a2c' }],
+  schellen: [['...d...', '..aaa..', '.abbba.', '.abcba.', '.abbba.', '..aaa..', '...d...'], { a: '#8a6a1a', b: '#e0b83a', c: '#3a2a1a', d: '#3a2a1a' }]
+};
+const CA_URL = {};
+function caCard(c){
+  const key = c ? c.s + c.r : 'back'; if (CA_URL[key]) return CA_URL[key];
+  const cv = canvasOf(15, 21), g = cv.getContext('2d');
+  g.fillStyle = '#16120f'; g.fillRect(1, 0, 13, 21); g.fillRect(0, 1, 15, 19);
+  if (!c){ g.fillStyle = '#6a1a1a'; g.fillRect(1, 1, 13, 19); g.fillStyle = '#a8382a'; for (let y = 2; y < 19; y += 2) for (let x = 2 + (y >> 1) % 2; x < 13; x += 2) g.fillRect(x, y, 1, 1); return (CA_URL[key] = urlOf(cv, 3)); }
+  g.fillStyle = '#efe6cc'; g.fillRect(1, 1, 13, 19);
+  const txt = c.r === '10' ? ['1', '0'] : [c.r], col = c.s === 'herz' ? '#a8241e' : '#2a2018';
+  txt.forEach((ch, k) => CA_GLYPH[ch].forEach((row, y) => [...row].forEach((v, x) => { if (v === '1'){ g.fillStyle = col; g.fillRect(2 + k * 4 + x, 2 + y, 1, 1); } })));
+  const [rows, pal] = CA_ICON[c.s];
+  rows.forEach((row, y) => [...row].forEach((v, x) => { if (pal[v]){ g.fillStyle = pal[v]; g.fillRect(4 + x, 10 + y, 1, 1); } }));
+  return (CA_URL[key] = urlOf(cv, 3));
+}
+const caSum = h => h.reduce((a, c) => a + c.v, 0);
+FS_PLAY.karten = {
+  start(){
+    const deck = []; for (const s of CA_SUIT) for (const [r, v] of CA_RANK) deck.push({ s, r, v });
+    for (let i = deck.length - 1; i > 0; i--){ const j = (Math.random() * (i + 1)) | 0; [deck[i], deck[j]] = [deck[j], deck[i]]; }
+    return { deck, me: [deck.pop(), deck.pop()], op: [deck.pop(), deck.pop()], phase: 'play' };
+  },
+  draw(S){ S.me.push(S.deck.pop()); Sound.tone(900, .03, 'square', .02); if (caSum(S.me) > 31){ S.phase = 'done'; fsEnd(S, -1); } renderTalk('fsPlay'); },
+  stand(S){
+    const me = caSum(S.me);
+    while (caSum(S.op) < 27 && (caSum(S.op) < me || caSum(S.op) < 22) && S.deck.length) S.op.push(S.deck.pop());
+    const op = caSum(S.op); S.phase = 'done';
+    fsEnd(S, op > 31 ? 1 : me > op ? 1 : me === op ? 0 : -1);
+    renderTalk('fsPlay');
+  },
+  view(S, body, opts){
+    const me = caSum(S.me), op = caSum(S.op), row = (h, hide) => { const r = el('div', 'fscards'); h.forEach((c, i) => { const im = el('img'); im.src = caCard(hide && i > 0 ? null : c); im.alt = hide && i > 0 ? 'verdeckt' : c.r + ' ' + c.s; r.append(im); }); return r; };
+    $('talkText').textContent = S.phase === 'play' ? 'Ihr habt ' + me + '. Noch eine Karte oder halten? Einsatz ' + S.stake + ' Gulden.'
+      : me > 31 ? 'Überkauft: ' + me + '! Kathrein lächelt und nimmt Euren Einsatz.' : op > 31 ? 'Kathrein hat sich überkauft (' + op + '). Ihr gewinnt ' + S.stake * 2 + ' Gulden!'
+      : S.res > 0 ? 'Gewonnen! ' + me + ' gegen ' + op + '. Ihr bekommt ' + S.stake * 2 + ' Gulden.' : S.res === 0 ? 'Gleichstand bei ' + me + '. Jeder behält seinen Einsatz.' : 'Verloren: ' + op + ' schlägt ' + me + '.';
+    body.append(el('p', 'hint', 'Eure Karten: ' + me), row(S.me), el('p', 'hint', 'Kathrein' + (S.phase === 'play' ? '' : ': ' + op)), row(S.op, S.phase === 'play'));
+    if (S.phase === 'play'){ const b = btn('Noch eine Karte', () => FS_PLAY.karten.draw(S), 'opt'); opts.append(b, btn('Halten', () => FS_PLAY.karten.stand(S), 'opt')); }
+  }
+};
+
+/* ---------- Kegeln: Richtung und Schwung, neun Kegel in der Raute ---------- */
+const KG_PINS = (() => { const o = []; [[1], [2], [3], [2], [1]].forEach((r, j) => { const n = r[0]; for (let i = 0; i < n; i++) o.push([50 + (i - (n - 1) / 2) * 10, 20 + j * 8]); }); return o; })();
+function kgReset(S){ S.pins = KG_PINS.map(([x, y]) => ({ x, y, vx: 0, vy: 0, down: false })); S.ball = { x: 50, y: 140, vx: 0, vy: 0 }; S.st = 'aim'; S.t = 0; }
+function kgFoe(){ const out = []; for (let i = 0; i < 3; i++){ const r = Math.random(); out.push(r < .08 ? 9 : r < .2 ? 0 : 3 + ((Math.random() * 6) | 0)); } return out; }
+FS_PLAY.kegeln = {
+  start(){ const S = { throws: [], foe: kgFoe() }; kgReset(S); return S; },
+  press(S){
+    if (S.st === 'aim'){ S.aim = 50 + Math.sin(S.t * 2.2) * 26; S.st = 'power'; S.t = 0; Sound.tone(440, .05, 'square', .02); }
+    else if (S.st === 'power'){
+      S.pw = (1 - Math.cos(S.t * 3)) / 2; S.st = 'roll';
+      const dx = S.aim - 50, dy = -120, l = Math.hypot(dx, dy), sp = 40 + S.pw * 110;
+      S.ball.vx = dx / l * sp; S.ball.vy = dy / l * sp; S.spin = rand(-6, 6); Sound.tone(110, .5, 'triangle', .03, -20);
+    }
+    renderTalk('fsPlay');
+  },
+  step(S, dt){
+    S.t += dt;
+    if (S.st !== 'roll') return;
+    const B = S.ball; B.vx += S.spin * dt; B.x += B.vx * dt; B.y += B.vy * dt;
+    const f = Math.pow(.6, dt); B.vx *= f; B.vy *= f;
+    let moving = Math.hypot(B.vx, B.vy) > 6 && B.y > -10 && B.x > 4 && B.x < 96;
+    for (const p of S.pins){
+      if (!p.down && Math.hypot(p.x - B.x, p.y - B.y) < 6){ p.down = true; p.vx = B.vx * .7 + rand(-15, 15); p.vy = B.vy * .7 + rand(-10, 5); Sound.tone(rand(600, 900), .04, 'square', .02); B.vx *= .85; B.vy *= .85; }
+      if (p.down && Math.hypot(p.vx, p.vy) > 3){
+        p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= Math.pow(.25, dt); p.vy *= Math.pow(.25, dt); moving = true;
+        for (const q of S.pins) if (!q.down && Math.hypot(q.x - p.x, q.y - p.y) < 5){ q.down = true; q.vx = p.vx * .8 + rand(-8, 8); q.vy = p.vy * .8 + rand(-8, 4); }
+      }
+    }
+    if (!moving){
+      const n = S.pins.filter(p => p.down).length; S.throws.push(n); S.st = 'shown'; S.t = 0;
+      S.msg = n === 9 ? 'Alle Neune!' : n + (n === 1 ? ' Kegel' : ' Kegel');
+      if (n === 9) Sound.cheer(.7);
+      if (S.throws.length >= 3){ const me = S.throws.reduce((a, b) => a + b, 0), op = S.foe.reduce((a, b) => a + b, 0); fsEnd(S, Math.sign(me - op)); }
+      if (fsLive(S)) renderTalk('fsPlay');
+    }
+  },
+  next(S){ kgReset(S); renderTalk('fsPlay'); },
+  draw(S, g){
+    g.fillStyle = '#3a2a1a'; g.fillRect(0, 0, 100, 150);
+    for (let x = 10; x < 90; x += 8){ g.fillStyle = (x >> 3) & 1 ? '#a8804c' : '#b8905a'; g.fillRect(x, 0, 8, 150); }
+    g.fillStyle = '#2a1e12'; g.fillRect(8, 0, 2, 150); g.fillRect(90, 0, 2, 150);
+    for (const p of S.pins){ const x = Math.round(p.x), y = Math.round(p.y);
+      if (p.down){ g.fillStyle = '#16120f'; g.fillRect(x - 3, y - 1, 7, 3); g.fillStyle = '#e8e0cc'; g.fillRect(x - 2, y, 5, 1); g.fillStyle = '#a8241e'; g.fillRect(x + 1, y, 1, 1); }
+      else { g.fillStyle = '#16120f'; g.fillRect(x - 2, y - 7, 5, 9); g.fillStyle = '#efe8d4'; g.fillRect(x - 1, y - 6, 3, 7); g.fillStyle = '#a8241e'; g.fillRect(x - 1, y - 4, 3, 1); g.fillStyle = '#ffffff'; g.fillRect(x - 1, y - 6, 1, 2); }
+    }
+    const B = S.ball; g.fillStyle = '#16120f'; g.fillRect(Math.round(B.x) - 3, Math.round(B.y) - 3, 7, 7); g.fillStyle = '#5a3a1e'; g.fillRect(Math.round(B.x) - 2, Math.round(B.y) - 2, 5, 5); g.fillStyle = '#8a5a2e'; g.fillRect(Math.round(B.x) - 1, Math.round(B.y) - 2, 2, 1);
+    if (S.st === 'aim'){ const x = Math.round(50 + Math.sin(S.t * 2.2) * 26); g.fillStyle = '#ffd541'; for (let y = 60; y < 130; y += 6) g.fillRect(Math.round(50 + (x - 50) * (140 - y) / 120), y, 1, 3); }
+    if (S.st === 'power'){ const pw = (1 - Math.cos(S.t * 3)) / 2; g.fillStyle = '#16120f'; g.fillRect(93, 60, 6, 82); g.fillStyle = '#4a4650'; g.fillRect(94, 61, 4, 80); g.fillStyle = pw > .8 ? '#ff7a40' : '#9fe08a'; g.fillRect(94, 141 - Math.round(pw * 80), 4, Math.round(pw * 80)); }
+  },
+  view(S, body, opts){
+    const me = S.throws.reduce((a, b) => a + b, 0), op = S.foe.reduce((a, b) => a + b, 0), done = S.throws.length >= 3;
+    $('talkText').textContent = done ? (S.res > 0 ? 'Gewonnen! ' + me + ' gegen ' + op + ' Kegel. Kunz zahlt ' + S.stake * 2 + ' Gulden.' : S.res === 0 ? 'Gleichstand: ' + me + ' gegen ' + op + '.' : 'Verloren: ' + me + ' gegen ' + op + ' Kegel.')
+      : S.st === 'aim' ? 'Wurf ' + (S.throws.length + 1) + ' von 3: Drückt, wenn die gelbe Linie richtig zielt.' : S.st === 'power' ? 'Jetzt der Schwung: Drückt, wenn der Balken hoch genug steht.' : S.st === 'roll' ? 'Die Kugel rollt …' : (S.msg || '') + ' Weiter zum nächsten Wurf.';
+    body.append(el('p', 'hint', 'Eure Würfe: ' + (S.throws.join(' + ') || '–') + (done ? ' = ' + me : '') + ' · Kunz: ' + (done ? S.foe.join(' + ') + ' = ' + op : 'wartet')));
+    const cv = el('canvas', 'fscanvas'); cv.width = 100; cv.height = 150; body.append(cv);
+    const g = cv.getContext('2d');
+    let last = performance.now();
+    const loop = now => { if (!cv.isConnected || G.fs !== S) return; FS_PLAY.kegeln.step(S, Math.min(.05, (now - last) / 1000)); last = now; FS_PLAY.kegeln.draw(S, g); requestAnimationFrame(loop); };
+    FS_PLAY.kegeln.draw(S, g); requestAnimationFrame(loop);
+    if (!done){
+      const b = S.st === 'shown' ? btn('Nächster Wurf', () => FS_PLAY.kegeln.next(S), 'opt') : btn(S.st === 'aim' ? 'Richtung wählen' : S.st === 'power' ? 'Werfen!' : 'Die Kugel rollt …', () => FS_PLAY.kegeln.press(S), 'opt');
+      b.disabled = S.st === 'roll'; opts.append(b); setTimeout(() => { if (b.isConnected && !b.disabled) b.focus({ preventScroll: true }); }, 0);
+    }
+  }
+};
+
+/* ---------- Ringen: drei Gänge, im Takt dagegenhalten ---------- */
+FS_PLAY.ringen = {
+  start: () => ({ round: 1, wins: [0, 0], p: 0, ph: 0, zc: rand(.3, .7), zw: .22, st: 'go', flash: 0, msg: '' }),
+  press(S){
+    if (S.st !== 'go') return;
+    const m = (Math.sin(S.ph) + 1) / 2;
+    if (Math.abs(m - S.zc) < S.zw / 2){ S.p += .2 + (HERO.lvl / MAX_LVL) * .06; S.flash = .25; Sound.tone(330, .08, 'square', .03); }
+    else { S.p -= .1; Sound.tone(150, .12, 'triangle', .03, -40); }
+    S.zc = rand(.2, .8); S.zw = Math.max(.14, .24 - S.round * .02);
+  },
+  step(S, dt){
+    if (S.st === 'go'){
+      S.ph += dt * (2.6 + S.round * .5); S.p -= dt * (.16 + S.round * .04); S.flash = Math.max(0, S.flash - dt);
+      if (S.p >= 1 || S.p <= -1){
+        const w = S.p >= 1 ? 0 : 1; S.wins[w]++; S.st = 'fall'; S.t = 1.2; S.msg = w ? 'Jörg wirft Euch zu Boden!' : 'Ihr werft Jörg zu Boden!';
+        Sound.drop(); if (!w) Sound.cheer(.5);
+        if (Math.max(...S.wins) >= 2) fsEnd(S, S.wins[0] >= 2 ? 1 : -1);
+        if (fsLive(S)) renderTalk('fsPlay');
+      }
+    } else if (S.st === 'fall' && S.res === null){ S.t -= dt; if (S.t <= 0){ S.round++; S.p = 0; S.st = 'go'; S.msg = ''; if (fsLive(S)) renderTalk('fsPlay'); } }
+  },
+  draw(S, g){
+    g.fillStyle = '#4a3624'; g.fillRect(0, 0, 160, 90); g.fillStyle = '#5c4430'; for (let x = 0; x < 160; x += 12) g.fillRect(x, 60, 6, 30);
+    const cx = 80 + S.p * 26, fall = S.st === 'fall', A = INN_ART.ringer.frames[0], K = fsHeroArt().frames[0];
+    const kx = cx - 24, jx = cx + 2;
+    if (fall && S.wins[1] > S.wins[0] - (S.res > 0 ? 1 : 0) && S.msg.startsWith('Jörg')){ g.save(); g.translate(kx + 12, 70); g.rotate(-1.4); g.drawImage(K, -12, -47); g.restore(); g.drawImage(A, jx, 23); }
+    else if (fall){ g.drawImage(K, kx, 23); g.save(); g.translate(jx + 12, 70); g.rotate(1.4); g.drawImage(A, -12, -47); g.restore(); }
+    else { g.drawImage(K, kx, 23); g.drawImage(A, jx, 23); }
+    // Balken mit Marke und grünem Feld
+    g.fillStyle = '#16120f'; g.fillRect(19, 6, 122, 9); g.fillStyle = '#4a4650'; g.fillRect(20, 7, 120, 7);
+    g.fillStyle = S.flash > 0 ? '#c8ffb0' : '#5a9a4a'; g.fillRect(20 + Math.round((S.zc - S.zw / 2) * 120), 7, Math.round(S.zw * 120), 7);
+    if (S.st === 'go'){ const m = (Math.sin(S.ph) + 1) / 2; g.fillStyle = '#ffffff'; g.fillRect(19 + Math.round(m * 120), 4, 3, 13); }
+    // Kraftanzeige: wer drückt wen
+    g.fillStyle = '#16120f'; g.fillRect(39, 82, 82, 5); g.fillStyle = '#8a1c1c'; g.fillRect(40, 83, 80, 3); g.fillStyle = '#e0c040'; g.fillRect(80, 83, Math.round(S.p * 40), 3);
+  },
+  view(S, body, opts){
+    $('talkText').textContent = S.res !== null ? (S.res > 0 ? 'Gewonnen, ' + S.wins[0] + ' zu ' + S.wins[1] + '! Jörg reicht Euch die Hand und zahlt ' + S.stake * 2 + ' Gulden.' : 'Verloren, ' + S.wins[0] + ' zu ' + S.wins[1] + '. „Das nächste Mal, Herr Ritter.“')
+      : (S.msg ? S.msg + ' ' : '') + 'Gang ' + S.round + ' von 3 (' + S.wins[0] + ' zu ' + S.wins[1] + '): Drückt, wenn die weiße Marke im grünen Feld steht.';
+    const cv = el('canvas', 'fscanvas wide'); cv.width = 160; cv.height = 90; body.append(cv);
+    const g = cv.getContext('2d'); let last = performance.now();
+    const loop = now => { if (!cv.isConnected || G.fs !== S) return; FS_PLAY.ringen.step(S, Math.min(.05, (now - last) / 1000)); last = now; FS_PLAY.ringen.draw(S, g); requestAnimationFrame(loop); };
+    FS_PLAY.ringen.draw(S, g); requestAnimationFrame(loop);
+    if (S.res === null){ const b = btn('Drücken!', () => FS_PLAY.ringen.press(S), 'opt'); opts.append(b); setTimeout(() => { if (b.isConnected) b.focus({ preventScroll: true }); }, 0); }
+  }
+};
+/* der Ritter ohne Harnisch, in den Farben seines Landes */
+let FS_HERO = null;
+function fsHeroArt(){
+  const f = HERO ? HERO.f : 'reich';
+  if (FS_HERO && FS_HERO.f === f) return FS_HERO.a;
+  const C = { reich: ['#6a5010', '#9a7a1c', '#c8a030', '#e6c44c'], frankreich: ['#14244a', '#20366a', '#30508e', '#4a6eb0'], england: ['#5a0e0e', '#861a16', '#ae2c22', '#d0483a'], spanien: ['#6a1010', '#962018', '#c03a20', '#d8a030'] }[f] || ['#4a4a46', '#6a6a64', '#8a8a82', '#aaaaa0'];
+  const a = np_frames({ robe:'short', belt:true, beard:true, hair:['h', 'j'] }, { 1: C[0], 2: C[1], 3: C[2], 4: C[3], 5: '#3a2c1e', 6: '#4a3a28', 7: '#5a4a34', 8: '#6e5c44' });
+  FS_HERO = { f, a }; return a;
+}
+/* Stammgast: in allen vier Wirtshausspielen gewonnen */
+TROPHIES.splice(TROPHIES.findIndex(t => t.id === 'turnier'), 0, { id: 'stammgast', n: 'Stammgast', d: 'im Gasthaus in Mühle, Einunddreißig, Kegeln und Ringen gewonnen', ok: h => !!(h.fsw && ['muehle', 'karten', 'kegeln', 'ringen'].every(k => h.fsw[k] > 0)) });
+TROPHY_BY.stammgast = TROPHIES.find(t => t.id === 'stammgast');
+/* Tafeln: die neuen Feste und die Spiele im Gasthaus */
+for (const f of FESTS.filter(q => q.extra)){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', f.name);
+  lazySrc(im, () => urlOf((FEST_ART[f.id] || (FEST_ART[f.id] = np_frames(f.host.o, f.host.pal))).frames[0], 2)); im.alt = '';
+  wh.append(el('small', null, SEA_NAME[f.sea] + ', ' + (f.days[0] === 0 ? 'erster' : 'letzter') + ' Tag, ' + f.where + '. ' + f.host.name + (/(schlacht|suche)$/.test(f.gameName) ? ' lädt zur ' : ' lädt zum ') + f.gameName + ', Preis: ' + f.prize + '.'));
+  li.append(im, wh); $('festList').append(li);
+}
+for (const [art, name, desc] of [[INN_ART.schulmeister, 'Schulmeister Ambrosius', 'spielt Mühle um 5, 20 oder 50 Gulden: neun Steine setzen, dann ziehen; drei in einer Reihe nehmen einen Stein'],
+  [INN_ART.spielerin, 'Spielerin Kathrein', 'spielt Einunddreißig: Karten ziehen, so nah an die Einunddreißig wie möglich, aber nicht darüber'],
+  [INN_ART.kegler, 'Kegelbruder Kunz', 'lädt zum Kegeln: drei Würfe auf neun Kegel, erst die Richtung, dann der Schwung'],
+  [INN_ART.ringer, 'Ringer Jörg', 'ringt in drei Gängen: im Takt dagegenhalten, wer zweimal liegt, verliert. Wer in allen vier Spielen gewinnt, wird Stammgast']]){
+  const li = el('li'), im = el('img'), wh = el('span', 'what', name);
+  lazySrc(im, () => urlOf(art.frames[0], 2)); im.alt = '';
+  wh.append(el('small', null, desc)); li.append(im, wh); $('innFun').append(li);
+}

@@ -95,6 +95,7 @@ function cleanHero(h){
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
   h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1200, +h.bless.t || 0) } : null; h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
   h.kz = h.kz && typeof h.kz === 'object' ? { pavia: Math.max(0, h.kz.pavia | 0), wien: Math.max(0, h.kz.wien | 0) } : {};
+  h.fsw = h.fsw && typeof h.fsw === 'object' ? Object.fromEntries(['muehle', 'karten', 'kegeln', 'ringen'].map(k => [k, Math.max(0, h.fsw[k] | 0)])) : {};
   h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};
   h.pilg = h.pilg && typeof h.pilg === 'object' ? { on: h.pilg.on ? 1 : 0, done: h.pilg.done ? 1 : 0, v: Object.fromEntries(Object.keys(h.pilg.v || {}).filter(k => /^[a-z]{3,20}$/.test(k)).map(k => [k, 1])) } : null;
   h.riding = !!(h.horse && h.riding);
@@ -455,6 +456,7 @@ function innRoom(inn){
     { id:'landsknecht', key:'landsknecht_' + inn.id, name:'Landsknecht Utz', role:'Würfelspieler', x: 760, y: 371, art: INN_ART.landsknecht, dice: true,
       greet:['Lust auf ein Spielchen, Herr Ritter? Drei Würfel, ehrliche Würfel.', 'Bei Marignano hab ich meinen Sold verspielt. Heute hol ich ihn mir wieder.', 'Wer nicht wagt, der nicht gewinnt. Setzt Ihr?'] }
   ];
+  innMore(inn, npcs);   // Mühle, Einunddreißig, Kegeln, Ringen (Teil 25)
   return (inn.room = { bg, light, items, rects, npcs, candles, fire: { x: kx, y: FL + 8 } });
 }
 const roomBlocked = (rm, x, y) => rm.rects.some(r => x + 6 > r[0] && x - 6 < r[2] && y > r[1] && y - 5 < r[3]);

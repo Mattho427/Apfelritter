@@ -425,7 +425,8 @@ function festRecord(id, v){
   if (old && (r.hi ? v <= old : v >= old)) return;
   HERO.frec[id] = v;
   const top = !all || all.nm === HERO.name || (r.hi ? v > all.v : v < all.v);
-  logLine((top ? 'Rekord aller Ritter im ' : 'Neuer eigener Rekord im ') + r.name + ': ' + r.fmt(v) + '!', top ? '#ffd541' : '#ffd98a');
+  const im = /(suche|schlacht)$/.test(r.name) ? ' in der ' : ' im ';
+  logLine((top ? 'Rekord aller Ritter' : 'Neuer eigener Rekord') + im + r.name + ': ' + r.fmt(v) + '!', top ? '#ffd541' : '#ffd98a');
   if (top) Sound.cheer(1);
   pushFame(); markDirty(true);
 }

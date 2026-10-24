@@ -97,7 +97,8 @@ addEventListener('touchstart', () => setKbd(false), { passive: true, capture: tr
 /* Ziffern 1–9 für die Wahlmöglichkeiten eines Fensters */
 function numberKeys(box){
   let n = 0;
-  for (const b of box.querySelectorAll('button')){ b.removeAttribute('data-k'); if (!b.disabled && n < 9) b.dataset.k = ++n; }
+  for (const b of box.querySelectorAll('button')){ b.removeAttribute('data-k'); if (b.classList.contains('pt')) continue;   // Felder eines Spielbretts: mit den Pfeilen
+    if (!b.disabled && n < 9) b.dataset.k = ++n; }
   if (KBD.on){ const f = box.querySelector('[data-k="1"]'); if (f) f.focus({ preventScroll: true }); }
 }
 /* Pfeiltasten in Fenstern: zum nächsten Knopf in dieser Richtung */
@@ -269,8 +270,8 @@ for (const [ic, name, desc] of [['sonne', 'Morgen, 4 bis 9 Uhr', 'Morgenrot, oft
 /* Feste und Gasthaus: Tafeln */
 for (const f of FESTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', f.name);
-  lazySrc(im, () => urlOf(FEST_ART[f.id] || (FEST_ART[f.id] = np_frames(f.host.o, f.host.pal)).frames[0], 2)); im.alt = '';
-  wh.append(el('small', null, SEA_NAME[FESTS.indexOf(f)] + ', ' + f.where + '. ' + f.host.name + ' lädt zum ' + f.gameName + ', Preis: ' + f.prize + '.'));
+  lazySrc(im, () => urlOf((FEST_ART[f.id] || (FEST_ART[f.id] = np_frames(f.host.o, f.host.pal))).frames[0], 2)); im.alt = '';
+  wh.append(el('small', null, SEA_NAME[f.sea] + ', ' + f.where + '. ' + f.host.name + (/(schlacht|suche)$/.test(f.gameName) ? ' lädt zur ' : ' lädt zum ') + f.gameName + ', Preis: ' + f.prize + '.'));
   li.append(im, wh); $('festList').append(li);
 }
 for (const [art, name, desc] of [[INN_ART.spielmann, 'Spielmann Veit', 'spielt für einen Gulden einen Tanz, eine Ballade oder ein Trinklied; gute Laune bringt 10 Minuten lang 10 % mehr Erfahrung'],
@@ -817,6 +818,7 @@ function renderTalk0(view){
     ehTalkOpts(n, opts);
     asTalkOpts(n, opts);
     ostTalkOpts(n, opts);
+    fsTalkOpts(n, opts);
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -888,6 +890,8 @@ function renderTalk0(view){
     asView(view, body, opts);
   } else if (typeof view === 'string' && /^ost[A-Z]/.test(view)){
     ostView(view, body, opts);
+  } else if (typeof view === 'string' && /^fs[A-Z]/.test(view)){
+    fsView(view, body, opts);
   } else if (view === 'joust'){
     $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
       + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';
