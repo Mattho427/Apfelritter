@@ -156,6 +156,7 @@ button:focus-visible{outline:3px dashed var(--ghost); outline-offset:3px;}
 .list li{display:grid; grid-template-columns:36px 1fr auto; align-items:center; gap:10px; font-size:19px; line-height:1.1;}
 .list img{width:32px; height:32px; image-rendering:pixelated; object-fit:contain;}
 .list .what small{display:block; font-size:16px; color:#5a4a34;}
+.list li > .what:first-child{grid-column:1 / span 2;}   /* Einträge ohne Bild: Text über die Bildspalte */
 .list .val{font-variant-numeric:tabular-nums; color:#5a4a34; text-align:right; white-space:nowrap;}
 .list .bad{color:var(--blood);}
 .ranks{margin:0; padding:0; list-style:none; display:grid; gap:2px; font-size:19px; counter-reset:r;}
@@ -924,6 +925,14 @@ body{margin:0; padding:0;}
               <p class="tip">Ab Stufe 20 dürft Ihr alle zwei Stufen eine von drei Meisterschaften wählen: im Rucksack unter „Meisterschaften“. In einer Stadt oder einem Gasthaus könnt Ihr sie gegen Gulden neu ordnen.</p>
               <h3>Rüstungssätze und Fundstücke</h3>
               <ul class="list" id="satzList"></ul>
+            </div>
+            <div class="note">
+              <h3>Die Ostlande</h3>
+              <ul class="list" id="ostList"></ul>
+              <p class="tip">Östlich von Speyer und dem Bergland liegen Sachsen, Franken und Schwaben mit den sicheren Städten Wittenberg, Nürnberg und Augsburg. In jeder vergibt ein Ratsherr Aufträge, es gibt Gasthäuser, Kirchen, Händler und Schmiede, und Ihr könnt dort rasten. Die Fuhrleute in der Reichsstadt, in Speyer, in Annaberg und in den drei Städten fahren Euch gegen Gulden zu jeder anderen großen Stadt. An der Tür der Schlosskirche in Wittenberg hängen die Thesen.</p>
+              <h3>Kriegszüge</h3>
+              <ul class="list" id="kzList"></ul>
+              <p class="tip">Kriegszüge sind für Gruppen gedacht, man schafft sie aber auch allein, wenn man stark genug ist. Die Stufe richtet sich nach dem stärksten Gefährten. Gefährten im selben Kriegszug teilen offene Tore und gelöschte Lunten. Der erste Sieg bringt viel Erfahrung, ein Einzelstück und einen Eintrag im Trophäenbuch; die Kriegskasse füllt sich jeden Tag neu.</p>
             </div>
             <div class="note">
               <h3>Ehre und Trophäen</h3>

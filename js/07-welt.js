@@ -221,8 +221,10 @@ function wo_bil(G, x, y){
   return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
 }
 const wo_gidx = (x, y) => (clamp(Math.round(y * .25), 0, wo_GH - 1)) * wo_GW + clamp(Math.round(x * .25), 0, wo_GW - 1);
-/* Strecke in ein Abstandsfeld stempeln: s = Abstand − Halbbreite − Uferwelle */
+/* Strecke in ein Abstandsfeld stempeln: s = Abstand − Halbbreite − Uferwelle. Die Uferwelle ist höchstens 6,5 px groß: Wo schon ein
+   näheres Stück die Zelle um mehr unterbietet, wird sie gar nicht erst berechnet (gleiches Ergebnis, viel schneller). */
 function wo_stamp(G, D, T, typ, pts, m, wob){
+  const wmax = wob ? 7 : 0;
   for (let k = 0; k < pts.length - 1; k++){
     const [x0, y0, w0] = pts[k], [x1, y1, w1] = pts[k + 1], wm = Math.max(w0, w1) + m;
     const gx0 = Math.max(0, Math.floor((Math.min(x0, x1) - wm) / 4)), gx1 = Math.min(wo_GW - 1, Math.ceil((Math.max(x0, x1) + wm) / 4));
@@ -231,8 +233,9 @@ function wo_stamp(G, D, T, typ, pts, m, wob){
     for (let gy = gy0; gy <= gy1; gy++) for (let gx = gx0; gx <= gx1; gx++){
       const px = gx * 4, py = gy * 4;
       let t = ((px - x0) * dx + (py - y0) * dy) / L2; t = t < 0 ? 0 : t > 1 ? 1 : t;
-      const qx = x0 + dx * t - px, qy = y0 + dy * t - py, d = Math.sqrt(qx * qx + qy * qy);
-      const s = d - (w0 + (w1 - w0) * t) - (wob ? wob(px, py) : 0), i = gy * wo_GW + gx;
+      const qx = x0 + dx * t - px, qy = y0 + dy * t - py, d = Math.sqrt(qx * qx + qy * qy), i = gy * wo_GW + gx, s0 = d - (w0 + (w1 - w0) * t);
+      if (s0 - wmax >= G[i]) continue;
+      const s = wob ? s0 - wob(px, py) : s0;
       if (s < G[i]){ G[i] = s; if (D) D[i] = d; if (T) T[i] = typ; }
     }
   }

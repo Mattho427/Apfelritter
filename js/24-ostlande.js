@@ -368,3 +368,17 @@ for (const id of ['pavia', 'wien']){
     : 'Kriegszug beim Schiffmeister an der Donaulände, ab Stufe 26, für Gruppen: In sieben Minuten die Lunten in drei Pulverkammern löschen, dann den Aga der Janitscharen besiegen. Er bewacht ' + D.chest + '.'));
   li.append(im, wh); $('dgList').append(li);
 }
+/* Tafel „Die Ostlande“ im Menü */
+for (const [z, extra] of [['wittenberg', 'Ratsherr Lucas Cranach, Schmied, Fuhrmann, Gasthaus Zum Weißen Schwan, Schlosskirche mit den Thesen'], ['nuernberg', 'Ratsherr Willibald Pirckheimer, Plattner, Lebküchnerin, Stall, Fuhrmann, Gasthaus Zum Bratwurstglöcklein, drei Kirchen'],
+  ['augsburg', 'Matthäus Schwarz, Jakob Fugger, Krämer, Schmied, Fuhrmann, Gasthaus Zum Weißen Lamm, Dom, Fuggerei; vor dem Nordtor der Werber'], ['heide', 'Anführer: Hackelberg, der Wilde Jäger'],
+  ['reichswald', 'Zeidlerhof und Köhler im Wald'], ['gailingen', 'Anführer: Eppelein von Gailingen'], ['donauried', 'Anführer: das Donauweibchen; an der Donaulände der Schiffmeister'], ['lechfeld', 'Anführer: Bulcsú, der Geisterfürst']]){
+  const zz = ZONE_BY_ID[z], li = el('li'), wh = el('span', 'what', zz.name);
+  wh.append(el('small', null, (ZONE_LV[z] ? 'Stufe ' + ZONE_LV[z][0] + '–' + ZONE_LV[z][1] + ' · ' : 'sicher · ') + extra));
+  li.append(wh); $('ostList').append(li);
+}
+for (const [id, who] of [['pavia', 'beim Werber vor dem Nordtor von Augsburg'], ['wien', 'beim Schiffmeister an der Donaulände']]){
+  const D = DG_DEF[id], li = el('li'), im = el('img'), wh = el('span', 'what', D.short + ': ' + D.name);
+  lazySrc(im, () => urlOf(artOf(D.elite.k).idle.r[0].img, 1)); im.alt = ''; im.className = 'horseimg';
+  wh.append(el('small', null, 'ab Stufe ' + KZ_MIN[id] + ', ' + who + '. ' + D.goals.map((g, i) => (i ? g[0].toLowerCase() + g.slice(1) : g).replace(/: \{n\}.*$/, '')).join(', dann ') + '. ' + D.elite.name + ' bewacht ' + D.chest + '.'));
+  li.append(im, wh); $('kzList').append(li);
+}

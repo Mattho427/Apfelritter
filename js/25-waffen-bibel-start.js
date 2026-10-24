@@ -192,7 +192,7 @@ function boot(){
   showOverlay('ovStart');
   updateZone();
   initCloud();
-  requestAnimationFrame(t => { last = t; frame(t); setTimeout(lazyStart, 250); });
+  requestAnimationFrame(t => { last = t; frame(t); setTimeout(lazyStart, 250); setTimeout(mo_warm, 4000); });
 }
 boot();
 

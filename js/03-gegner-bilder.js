@@ -2416,8 +2416,20 @@ const mo_BAERP = {
     { by: 2, tilt: .14, jaw: 2, ears: 1, hd: [2, 2], hf: [-14, 0], hn: [-11, 0], ff: [11, 0], fn: [14, 0] },
     { by: -4, tilt: -.08, jaw: 3, hd: [3, -1], hf: [-18, 0], hn: [-16, 0], ff: [20, -8], fn: [23, -6] }]
 };
-MON_ART.wolf = mo_set(64, 40, 32, 37, (P, p) => mo_quad(P, mo_WOLF, p), mo_WOLFP);
-MON_ART.baer = mo_set(76, 50, 38, 47, (P, p) => mo_quad(P, mo_BAER, p), mo_BAERP);
+/* Gegner ab dem Bergland werden erst beim ersten Zugriff gemalt (artOf), das spart Ladezeit. Nach dem Laden malt mo_warm sie
+   nach und nach im Leerlauf vor, damit beim ersten Auftauchen nichts ruckelt. */
+const MO_LAZY = [];
+function mo_lazy(T, k, make){
+  Object.defineProperty(T, k, { configurable: true, enumerable: true, get(){ const v = make(); Object.defineProperty(T, k, { value: v, writable: true, configurable: true, enumerable: true }); return v; } });
+  MO_LAZY.push([T, k]);
+}
+function mo_warm(){
+  const idle = window.requestIdleCallback || (f => setTimeout(() => f({ timeRemaining: () => 50 }), 300));
+  const step = d => { while (MO_LAZY.length && d.timeRemaining() > 12){ const [T, k] = MO_LAZY.shift(); void T[k]; } if (MO_LAZY.length) idle(step, { timeout: 3000 }); };
+  idle(step, { timeout: 3000 });
+}
+mo_lazy(MON_ART, 'wolf', () => mo_set(64, 40, 32, 37, (P, p) => mo_quad(P, mo_WOLF, p), mo_WOLFP));
+mo_lazy(MON_ART, 'baer', () => mo_set(76, 50, 38, 47, (P, p) => mo_quad(P, mo_BAER, p), mo_BAERP));
 /* ---------- Abwandlungen: neue Farben und Waffen für vorhandene Gestalten ---------- */
 const mo_WEG = {   // Wegelagerer: Jägergrün und Leder, dunkle Gugel statt Barett
   red: mo_mat('#16200f', '#243218', '#344622', '#475a2e', '#5b6e3a'), och: mo_mat('#3a2a16', '#56401f', '#73582c', '#8e703a'),
@@ -2433,24 +2445,24 @@ const mo_FH = {    // Feldhauptmann Balthasar Wüst: Schwarz und Gold, rotes Fut
   gry: mo_mat('#4a0c0c', '#7a1414', '#a8221c', '#c83a28'), lin: mo_mat('#7a7468', '#a49e90', '#cac4b4', '#e8e2d2'),
   ber: mo_mat('#0e0e12', '#1a1a20', '#2a2a32', '#3c3c46'), fea: mo_mat('#9a9a94', '#c4c4bc', '#e8e8e0', '#ffffff'), hai: mo_mat('#2a1a0e', '#4a2e16', '#6a4422', '#8a5c30')
 };
-MON_ART.wegelagerer = mo_with(mo_LK, mo_WEG, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
-MON_ART.doppelsoeldner = mo_with(mo_LK, mo_DS, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
-BOSS_ART.feldhauptmann = mo_with(mo_LK, mo_FH, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
-MON_ART.hakenschuetze = mo_with(mo_AB, {   // Hakenbüchsenschütze: Sturmhaube, blaues Wams, Hakenbüchse statt Armbrust
+mo_lazy(MON_ART, 'wegelagerer', () => mo_with(mo_LK, mo_WEG, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
+mo_lazy(MON_ART, 'doppelsoeldner', () => mo_with(mo_LK, mo_DS, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
+mo_lazy(BOSS_ART, 'feldhauptmann', () => mo_with(mo_LK, mo_FH, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
+mo_lazy(MON_ART, 'hakenschuetze', () => mo_with(mo_AB, {   // Hakenbüchsenschütze: Sturmhaube, blaues Wams, Hakenbüchse statt Armbrust
   gun: true, hat: mo_mat('#16181c', '#2c3036', '#4a5058', '#6e767e', '#98a0a6'), brg: mo_mat('#141a2e', '#1e2842', '#2c3a5a', '#3e4e74', '#52648e'),
   wam: mo_mat('#4a4636', '#6a6450', '#8a826a', '#a69e84'), hos: mo_mat('#2a1418', '#421e24', '#5c2a30', '#76383e')
-}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true }));
-MON_ART.grubengeist = mo_with(mo_MO, {   // Grubengeist: fahle, bläuliche Haut, weißer Bergkittel mit Kapuze, Staub statt Kraut
+}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true })));
+mo_lazy(MON_ART, 'grubengeist', () => mo_with(mo_MO, {   // Grubengeist: fahle, bläuliche Haut, weißer Bergkittel mit Kapuze, Staub statt Kraut
   skn: mo_mat('#1a2026', '#2a343e', '#3e4c58', '#566a78', '#7088a0', '#90a8bc'), hai: mo_mat('#4a4e54', '#6a7078', '#8a9098'),
   cap: mo_mat('#6a6e70', '#8e9294', '#b2b6b6', '#d2d6d4'), rop: mo_mat('#3a3a3a', '#5a5a58', '#7a7a76'),
   wol: mo_mat('#5a5e60', '#7a7e80', '#9a9ea0', '#b8bcbc'), wed: mo_mat('#3a3a3c', '#545456', '#6e6e70', '#8a8a8c', '#a6a6a8')
-}, () => mo_set(50, 54, 25, 52, mo_moor, mo_MOOR));
-MON_ART.geier = mo_with(mo_RB, {   // Bartgeier: dunkle Schwingen, rostbraun, heller Kopf
+}, () => mo_set(50, 54, 25, 52, mo_moor, mo_MOOR)));
+mo_lazy(MON_ART, 'geier', () => mo_with(mo_RB, {   // Bartgeier: dunkle Schwingen, rostbraun, heller Kopf
   fea: mo_mat('#1a120c', '#2e2016', '#4a3420', '#6a4c2e', '#8a6a42', '#b08c5c'), bk: mo_mat('#4a4434', '#7a735c', '#a69e80', '#cbc4a6')
-}, () => mo_set(36, 34, 18, 17, mo_rabe, mo_RABE));
-MON_ART.eislicht = mo_with(mo_IRC, {   // Eislicht: kaltes Blau statt Grün
+}, () => mo_set(36, 34, 18, 17, mo_rabe, mo_RABE)));
+mo_lazy(MON_ART, 'eislicht', () => mo_with(mo_IRC, {   // Eislicht: kaltes Blau statt Grün
   m: mo_mat('#2a5a8ab0', '#4a8ac4d8', '#8ac4f0', '#c4e4ff', '#f4faff'), g: ['#3c8ad0', '#7ab4f0', '#bfdcff', '#eaf4ff', '#ffffff'], spark: '#e8f4ff', halo: '#6ab4ff'
-}, () => mo_set(22, 28, 11, 17, mo_irrlicht, mo_IRR));
+}, () => mo_set(22, 28, 11, 17, mo_irrlicht, mo_IRR)));
 /* ---------- Kobold: Bergmännlein mit roter Zipfelmütze, grauem Bart, Lederkittel und Keilhaue ---------- */
 const mo_KB = {
   skn: mo_mat('#1e2216', '#2e3420', '#42482c', '#585e3a', '#70764a', '#8a8e5e'), cap: mo_mat('#3a0c0c', '#5e1414', '#84201c', '#a8342a', '#c44c38'),
@@ -2516,7 +2528,7 @@ const mo_KOBP = {
     { by: .5, lean: -.4, ff: -3, nf: 3, fh: [-1, -17], nh: [0, -18], pa: -2.4, grin: 1, cap: 1.2 },
     { by: 1.5, lean: .8, ff: -3, nf: 5, fh: [6, -8], nh: [8, -9], pa: .5, grin: 1, beard: 1, cap: -1 }]
 };
-MON_ART.kobold = mo_set(40, 36, 20, 33, mo_kobold, mo_KOBP);
+mo_lazy(MON_ART, 'kobold', () => mo_set(40, 36, 20, 33, mo_kobold, mo_KOBP));
 /* ---------- Waldschrat: wandelnder Baumgeist aus Rinde und Moos, Astarme, Wurzelfüße, Krone aus Zweigen und Laub ---------- */
 const mo_SR = {
   brk: mo_mat('#140f0a', '#22190f', '#332517', '#463321', '#5a432c', '#6e5538'), mos: mo_mat('#1a2410', '#2a3a18', '#3e5222', '#566a2e', '#70843c'),
@@ -2580,7 +2592,7 @@ const mo_SCHP = {
     { by: -1, lean: -.15, sway: -1.5, roar: 1, fl: [-5, 0], nl: [5, 0], fa: [[-6, -50], [-2, -60]], na: [[9, -51], [13, -61]] },
     { by: 2, lean: .45, sway: 1.5, roar: 1, fl: [-6, 0], nl: [8, 0], fa: [[6, -36], [16, -28]], na: [[14, -36], [24, -24]] }]
 };
-MON_ART.schrat = mo_set(64, 72, 30, 68, mo_schrat, mo_SCHP);
+mo_lazy(MON_ART, 'schrat', () => mo_set(64, 72, 30, 68, mo_schrat, mo_SCHP));
 /* ---------- Der Tatzelwurm: Echsenleib mit zwei Vordertatzen und Katzenkopf, Rückenkamm, gelbe Augen ---------- */
 const mo_TZ = {
   skn: mo_mat('#0e120a', '#1a2210', '#283418', '#384820', '#4a5e2a', '#5e7434', '#748a40'), bel: mo_mat('#4a3e1e', '#6a5a2a', '#8a7838', '#a89448', '#c2ae5c'),
@@ -2634,7 +2646,7 @@ const mo_TZP = {
   move: [{ ph: 0, ff: [6, 0], nf: [20, -2] }, { ph: 1.6, ff: [10, -2], nf: [15, 0] }, { ph: 3.2, ff: [18, -2], nf: [7, 0] }, { ph: 4.8, ff: [14, 0], nf: [11, -2] }],
   act: [{ ph: .6, lift: 1, open: 1.4, ff: [10, 0], nf: [15, 0] }, { ph: 2.2, lift: -.2, by: 2, open: 2.8, ff: [22, -4], nf: [27, -3] }]
 };
-BOSS_ART.tatzelwurm = Object.assign(mo_set(116, 72, 58, 66, mo_tatzel, mo_TZP), { reach: 44 });
+mo_lazy(BOSS_ART, 'tatzelwurm', () => Object.assign(mo_set(116, 72, 58, 66, mo_tatzel, mo_TZP), { reach: 44 }));
 /* ---------- Der Bergmönch: riesiger Kuttengeist mit Grubenlampe und Fäustel, unten zerfließt er in Nebel ---------- */
 const mo_BM = {
   rob: mo_mat('#0e0c10', '#18151c', '#24202a', '#322c3a', '#423a4c'), mst: mo_mat('#4a4e5ac0', '#6a7080a0', '#8a90a080', '#aab0c060'),
@@ -2679,7 +2691,7 @@ const mo_BMP = {
   move: [{ sw: 0, lamp: [-16, -24], ham: [12, -22], ha: -1.3 }, { sw: 1, by: 1, lamp: [-13, -23], ham: [12, -21], ha: -1.3 }, { sw: 2, lamp: [-11, -24], ham: [12, -22], ha: -1.3 }, { sw: 3, by: 1, lamp: [-14, -23], ham: [12, -21], ha: -1.3 }],
   act: [{ sw: 1, lamp: [-16, -30], ham: [6, -58], ha: -2.4, hb: -1 }, { sw: 2, by: 2, lamp: [-10, -20], ham: [22, -24], ha: .4 }]
 };
-BOSS_ART.bergmoench = mo_set(96, 100, 48, 62, mo_bergmoench, mo_BMP);
+mo_lazy(BOSS_ART, 'bergmoench', () => mo_set(96, 100, 48, 62, mo_bergmoench, mo_BMP));
 /* ---------- Rübezahl: der Riese der Berge, wilder Bart und Haar, Fellumhang, ein Baumstamm als Keule ---------- */
 const mo_RZ = {
   skn: mo_mat('#3a2418', '#5c3a26', '#7e5236', '#9c6a48', '#b4825a'), hai: mo_mat('#2e2a26', '#4a4640', '#6a645c', '#8c867c', '#aaa498'),
@@ -2745,7 +2757,7 @@ const mo_RZP = {
     { lean: -.15, roar: 1, fl: [-9, 0], nl: [9, 0], fh: [-6, -72], nh: [6, -76], ca: -2.3, wind: 2 },
     { by: 3, lean: .5, roar: 2, fl: [-12, 0], nl: [14, 0], fh: [14, -44], nh: [24, -40], ca: .25, wind: 3 }]
 };
-BOSS_ART.ruebezahl = Object.assign(mo_set(120, 116, 56, 112, mo_ruebezahl, mo_RZP), { reach: 54 });
+mo_lazy(BOSS_ART, 'ruebezahl', () => Object.assign(mo_set(120, 116, 56, 112, mo_ruebezahl, mo_RZP), { reach: 54 }));
 /* ============ Ostlande (Version 26): Gegner aus Heide, Reichswald, Gailingen, Donauried und Lechfeld ============ */
 /* ---------- Abwandlungen: Strauchdieb, Reisiger, Irrwisch ---------- */
 const mo_SD = {    // Strauchdieb: geflicktes Graubraun, speckige Gugel
@@ -2756,11 +2768,11 @@ const mo_RS = {    // Reisiger: eiserner Harnisch statt Wams, rotes Futter, Eise
   red: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e', '#98a0a6'), och: mo_mat('#3a0e0e', '#5a1616', '#7a2420', '#9a3428'),
   gry: mo_mat('#1c1f23', '#2f3339', '#454a52', '#5d636b'), ber: mo_mat('#202226', '#3a3e44', '#5a6068', '#808890'), fea: mo_mat('#0e0e10', '#1a1a1e', '#2a2a30', '#3a3a42')
 };
-MON_ART.strauchdieb = mo_with(mo_LK, mo_SD, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
-MON_ART.reisiger = mo_with(mo_LK, mo_RS, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
-MON_ART.irrwisch = mo_with(mo_IRC, {   // Irrwisch: rötlich-gelbe Flamme über Heide und Ried
+mo_lazy(MON_ART, 'strauchdieb', () => mo_with(mo_LK, mo_SD, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
+mo_lazy(MON_ART, 'reisiger', () => mo_with(mo_LK, mo_RS, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
+mo_lazy(MON_ART, 'irrwisch', () => mo_with(mo_IRC, {   // Irrwisch: rötlich-gelbe Flamme über Heide und Ried
   m: mo_mat('#8a4a1ab0', '#c4782ad8', '#f0b050', '#ffe08a', '#fff6d8'), g: ['#d07a2a', '#f0a84a', '#ffd88a', '#fff2c8', '#ffffff'], spark: '#fff0c0', halo: '#ffb04a'
-}, () => mo_set(22, 28, 11, 17, mo_irrlicht, mo_IRR));
+}, () => mo_set(22, 28, 11, 17, mo_irrlicht, mo_IRR)));
 
 /* ---------- Keiler: borstiger Wildschweinkeiler mit Hauern (Vierbeiner-Maler) ---------- */
 const mo_KEILER = {
@@ -2781,7 +2793,7 @@ const mo_KEILERP = {
     { by: 2, tilt: .25, jaw: 1, ears: 1, mane: 1, hd: [0, 3], hf: [-12, 0], hn: [-9, 0], ff: [9, 0], fn: [12, 0] },
     { by: -2, tilt: .1, jaw: 2, mane: 1, hd: [4, 1], hf: [-20, -3], hn: [-18, -1], ff: [19, -6], fn: [22, -4] }]
 };
-MON_ART.keiler = mo_set(64, 40, 32, 37, (P, p) => mo_quad(P, mo_KEILER, p), mo_KEILERP);
+mo_lazy(MON_ART, 'keiler', () => mo_set(64, 40, 32, 37, (P, p) => mo_quad(P, mo_KEILER, p), mo_KEILERP));
 
 /* ---------- Kreuzotter: graubraune Giftschlange mit dunklem Zickzackband, rote Augen ---------- */
 const mo_KO = { sk: mo_mat('#1a1712', '#2e2a20', '#463f30', '#5e5440', '#766a52', '#8e8064'), zz: mo_mat('#0a0908', '#16130f', '#221d17'),
@@ -2814,7 +2826,7 @@ const mo_OTTERP = {
   move: [{ ph: 0 }, { ph: 1.57 }, { ph: 3.14 }, { ph: 4.71, tongue: 1 }],
   act: [{ ph: .8, rise: 1, tongue: 1 }, { ph: 1.4, rise: .5, lunge: 1.4, tongue: 1 }]
 };
-MON_ART.kreuzotter = mo_set(48, 24, 24, 21, mo_otter, mo_OTTERP);
+mo_lazy(MON_ART, 'kreuzotter', () => mo_set(48, 24, 24, 21, mo_otter, mo_OTTERP));
 
 /* ---------- Moosweiblein: kleiner Waldgeist im Mantel aus Moos, Flechtenhaar, Rindengesicht, Zweighände, Pilze ---------- */
 const mo_MW = { mos: mo_mat('#121c0e', '#1e2c14', '#2c3e1c', '#3e5226', '#526832', '#6a7e40'), hai: mo_mat('#3a4232', '#566048', '#727e62', '#929e80', '#b0baa0'),
@@ -2852,7 +2864,7 @@ const mo_MOOSP = {
   move: [{ lean: .2, sw: 1, fh: [-4, -16], nh: [7, -16] }, { by: -1, lean: .2, sw: -1, fh: [-6, -15], nh: [8, -15] }, { lean: .2, sw: 1, fh: [-3, -16], nh: [6, -17] }, { by: -1, lean: .2, sw: -1, fh: [-5, -15], nh: [8, -16] }],
   act: [{ lean: -.2, hiss: 1, fh: [-2, -30], nh: [5, -32], sp: [[3, -34], [7, -31]] }, { by: 1, lean: .6, hiss: 1, sw: 1.5, fh: [8, -18], nh: [14, -17], sp: [[16, -18], [18, -15], [15, -21]] }]
 };
-MON_ART.moosweib = mo_set(40, 40, 20, 38, mo_moosweib, mo_MOOSP);
+mo_lazy(MON_ART, 'moosweib', () => mo_set(40, 40, 20, 38, mo_moosweib, mo_MOOSP));
 
 /* ---------- Riesenkrebs: Flusskrebs, so groß wie ein Hund, olivbraun, rote Scheren ---------- */
 const mo_KR = { sh: mo_mat('#100e08', '#1e1a10', '#2e2818', '#423822', '#584a2e', '#6e5c3a'), cl: mo_mat('#2a0e08', '#4a180c', '#6e2612', '#923a1c', '#b4502a'),
@@ -2891,7 +2903,7 @@ const mo_KREBSP = {
   move: [{ ph: 0 }, { ph: 1.6, by: -.5 }, { ph: 3.1 }, { ph: 4.7, by: -.5 }],
   act: [{ ph: .5, open: 1.2, by: -1, cx: -2 }, { ph: 1, open: 0, cx: 5, bx: 2 }]
 };
-MON_ART.riesenkrebs = Object.assign(mo_set(60, 32, 26, 29, mo_krebs, mo_KREBSP), { reach: 30 });
+mo_lazy(MON_ART, 'riesenkrebs', () => Object.assign(mo_set(60, 32, 26, 29, mo_krebs, mo_KREBSP), { reach: 30 }));
 
 /* ---------- Reiter: Pferd (Vierbeiner-Maler, vergrößerbar) mit Reiter; Geisterreiter, Geisterbogner, Hackelberg, Eppelein, Bulcsú ----------
    R = Bauplan des Reiters { C: Farben, hat, weapon, mustache, ghost, z }, Pose p wie beim Vierbeiner plus hand [dx, dy], wa (Waffenwinkel), lean, draw */
@@ -3021,29 +3033,29 @@ const mo_GHR = {
   stl: mo_mat('#4a5a64', '#7a8a94', '#a8b8c0', '#d4e4ea', '#f4ffff'), wod: mo_mat('#2a3a44', '#3e5260', '#566c7a', '#70889a'), str: mo_mat('#8aa8b8', '#b4d0dc', '#dcf0f6'),
   clo: mo_mat('#2a1a3ab0', '#3e2a54c0', '#56406ed0', '#70588ae0'), gld: mo_mat('#6a6a4a', '#9a9a6a', '#cacaa0', '#f0f0d0')
 };
-MON_ART.geisterreiter = Object.assign(mo_riderSet(mo_horseSpec(mo_GH, 1, '#a8f0ff'), { C: mo_GHR, hat: 'muetze', weapon: 'sabel', mustache: true, ghost: true, z: 1 }, 80, 72, 38, 68), { reach: 34 });
-MON_ART.geisterbogner = mo_riderSet(mo_horseSpec(mo_GH, 1, '#a8f0ff'), { C: mo_GHR, hat: 'muetze', weapon: 'bogen', mustache: true, ghost: true, z: 1 }, 80, 72, 38, 68);
+mo_lazy(MON_ART, 'geisterreiter', () => Object.assign(mo_riderSet(mo_horseSpec(mo_GH, 1, '#a8f0ff'), { C: mo_GHR, hat: 'muetze', weapon: 'sabel', mustache: true, ghost: true, z: 1 }, 80, 72, 38, 68), { reach: 34 }));
+mo_lazy(MON_ART, 'geisterbogner', () => mo_riderSet(mo_horseSpec(mo_GH, 1, '#a8f0ff'), { C: mo_GHR, hat: 'muetze', weapon: 'bogen', mustache: true, ghost: true, z: 1 }, 80, 72, 38, 68));
 // Bulcsú, der Geisterfürst: größer, Purpur und fahles Gold, Krone über der Fellmütze, Federbusch
-BOSS_ART.bulcsu = Object.assign(mo_riderSet(mo_horseSpec(mo_GH, 1.3, '#ffe0a0'), { C: Object.assign({}, mo_GHR, {
+mo_lazy(BOSS_ART, 'bulcsu', () => Object.assign(mo_riderSet(mo_horseSpec(mo_GH, 1.3, '#ffe0a0'), { C: Object.assign({}, mo_GHR, {
   gar: mo_mat('#3a1a4ab0', '#542a68c0', '#6e3e86d0', '#8a56a2e0', '#a876bef0'), tri: mo_mat('#6a5a2ac0', '#9a8a3ad0', '#cabc5ae0', '#ece0a0'),
-  hat: mo_mat('#2a2014c0', '#3e3020d0', '#58462ee0', '#72603ef0') }), hat: 'krone', plume: true, weapon: 'sabel', mustache: true, ghost: true, eyeGlow: '#ffe8a0', z: 1.3 }, 104, 92, 50, 88), { reach: 46 });
+  hat: mo_mat('#2a2014c0', '#3e3020d0', '#58462ee0', '#72603ef0') }), hat: 'krone', plume: true, weapon: 'sabel', mustache: true, ghost: true, eyeGlow: '#ffe8a0', z: 1.3 }, 104, 92, 50, 88), { reach: 46 }));
 // Hackelberg, der Wilde Jäger: dunkles Jägergrün, Hirschgeweih am Hut, Saufeder, auf einem Rappen mit glühenden Augen
 const mo_RAPPE = { fur: mo_mat('#08080a', '#121214', '#1c1c20', '#28282e', '#36363e', '#46464e', '#585862'), bel: mo_mat('#121214', '#1c1c20', '#28282e', '#36363e'),
   sad: mo_mat('#060608', '#0e0e10'), skn: mo_mat('#16161a', '#24242a', '#34343c'), mou: mo_mat('#26090b', '#4c1416', '#74241f'), eye: mo_mat('#6a1a0a', '#c43a1a', '#ff7a3a') };
-BOSS_ART.hackelberg = Object.assign(mo_riderSet(mo_horseSpec(mo_RAPPE, 1.25, '#ff5a2a'), { C: {
+mo_lazy(BOSS_ART, 'hackelberg', () => Object.assign(mo_riderSet(mo_horseSpec(mo_RAPPE, 1.25, '#ff5a2a'), { C: {
   skn: mo_mat('#4a5a4a', '#6a7a68', '#8a9a86', '#aab8a4', '#c8d4c0'), gar: mo_mat('#0e160e', '#18241a', '#243426', '#324634', '#425a44'), tri: mo_mat('#3a2a14', '#5a4220', '#7a5c30', '#9a7840'),
   lea: mo_mat('#1a120c', '#2a1e14', '#3c2c1e'), boo: mo_mat('#140e0a', '#221812', '#32241a'), hat: mo_mat('#121a10', '#1e2a1a', '#2c3c26', '#3c5034'),
   hai: mo_mat('#3a3a32', '#5a5a4e', '#7a7a6a'), stl: mo_mat('#24272b', '#474c52', '#737a81', '#a1a8ae', '#d0d4d4'), wod: mo_mat('#2a1e15', '#463321', '#644b31', '#7f6445'),
   ant: mo_mat('#4a3e2e', '#7a6a50', '#a8987a', '#cec0a2'), clo: mo_mat('#2a0e0e', '#421616', '#5e2020', '#7a2c28'), str: mo_LK.lin, gld: mo_LK.och },
-  hat: 'jaeger', antler: true, weapon: 'spiess', beard: true, eyeGlow: '#ff6a3a', z: 1.25 }, 100, 92, 48, 88), { reach: 48 });
+  hat: 'jaeger', antler: true, weapon: 'spiess', beard: true, eyeGlow: '#ff6a3a', z: 1.25 }, 100, 92, 48, 88), { reach: 48 }));
 // Eppelein von Gailingen: Raubritter in blankem Harnisch auf einem Fuchs, Helm mit roter Feder, Schwert
 const mo_FUCHS = { fur: mo_mat('#1a0c06', '#2e160a', '#46220e', '#603014', '#7a401c', '#945426', '#aa6834'), bel: mo_mat('#3a1c0c', '#562a12', '#723a1a', '#8e4e26'),
   sad: mo_mat('#140806', '#22100a'), skn: mo_mat('#1a1210', '#2c1e1a', '#3e2c26'), mou: mo_mat('#26090b', '#4c1416', '#74241f'), eye: mo_mat('#1a1008', '#3a2410', '#5a3a1a') };
-BOSS_ART.eppelein = Object.assign(mo_riderSet(mo_horseSpec(mo_FUCHS, 1.25, '#2a1a0a'), { C: {
+mo_lazy(BOSS_ART, 'eppelein', () => Object.assign(mo_riderSet(mo_horseSpec(mo_FUCHS, 1.25, '#2a1a0a'), { C: {
   skn: mo_LK.skn, gar: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e', '#98a0a6', '#c4cad0'), tri: mo_mat('#4a0e0e', '#7a1616', '#a8241e', '#c83a2a'),
   lea: mo_LK.lea, boo: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e'), hat: mo_LK.stl, hai: mo_LK.hai, stl: mo_LK.stl, wod: mo_LK.wod,
   clo: mo_mat('#3a0a0a', '#5a1212', '#7a1c18', '#9a2a22'), glv: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e'), str: mo_LK.lin, gld: mo_LK.och },
-  hat: 'helm', plume: true, weapon: 'schwert', z: 1.25 }, 100, 92, 48, 88), { reach: 46 });
+  hat: 'helm', plume: true, weapon: 'schwert', z: 1.25 }, 100, 92, 48, 88), { reach: 46 }));
 
 /* ---------- Das Donauweibchen: Wasserfrau, die aus einem Strudel der Donau steigt, langes grüngoldenes Haar, Kranz aus Seerosen ---------- */
 const mo_DW = {
@@ -3099,7 +3111,7 @@ const mo_WEIBP = {
   move: [{ ph: 0, drip: 0 }, { ph: 1.6, by: 1, drip: 1 }, { ph: 3.1, drip: 2 }, { ph: 4.7, by: 1, drip: 0 }],
   act: [{ ph: .5, raise: 1, bx: -1 }, { ph: 2, thr: 1, bx: 3, by: 1 }]
 };
-BOSS_ART.donauweibchen = Object.assign(mo_set(100, 104, 50, 98, mo_weibchen, mo_WEIBP), { reach: 52 });
+mo_lazy(BOSS_ART, 'donauweibchen', () => Object.assign(mo_set(100, 104, 50, 98, mo_weibchen, mo_WEIBP), { reach: 52 }));
 
 
 /* ============ Kriegszüge (Version 26): Pavia 1525 und Wien 1529 ============ */
@@ -3109,11 +3121,11 @@ const mo_SW = {    // Schweizer: Rot und Weiß geteilt, weißes Kreuz auf der Br
   gry: mo_mat('#6a6a64', '#8e8e86', '#b4b4ac', '#d4d4cc'), ber: mo_mat('#1a1214', '#2c1e20', '#40302e', '#544240'), fea: mo_mat('#8a8a84', '#b4b4ac', '#dcdcd4', '#fafaf4'),
   cross: mo_mat('#8a8a84', '#c4c4bc', '#eeeee6', '#ffffff')
 };
-MON_ART.schweizer = mo_with(mo_LK, mo_SW, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
-MON_ART.arkebusier = mo_with(mo_AB, {   // Arkebusier im Dienst des Königs: blau-weißes Wams, Sturmhaube, Arkebuse
+mo_lazy(MON_ART, 'schweizer', () => mo_with(mo_LK, mo_SW, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
+mo_lazy(MON_ART, 'arkebusier', () => mo_with(mo_AB, {   // Arkebusier im Dienst des Königs: blau-weißes Wams, Sturmhaube, Arkebuse
   gun: true, hat: mo_mat('#16181c', '#2c3036', '#4a5058', '#6e767e', '#98a0a6'), brg: mo_mat('#0e1430', '#182248', '#243466', '#344a86', '#4a62a4'),
   wam: mo_mat('#5a5a56', '#84847e', '#acaca4', '#cacac2'), hos: mo_mat('#101830', '#1a2646', '#283860', '#3a4e7c')
-}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true }));
+}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true })));
 const mo_BRAUNER = { fur: mo_mat('#140a06', '#22120a', '#341c10', '#482818', '#5c3622', '#70462e', '#86583c'), bel: mo_mat('#2a160c', '#3e2214', '#54301e', '#6a4028'),
   sad: mo_mat('#0e0806', '#1a100a'), skn: mo_mat('#1a1210', '#2c1e1a', '#3e2c26'), mou: mo_mat('#26090b', '#4c1416', '#74241f'), eye: mo_mat('#1a1008', '#3a2410', '#5a3a1a') };
 const mo_SCHIMMEL = { fur: mo_mat('#4a4a4c', '#6a6a6e', '#8a8a8e', '#a8a8aa', '#c4c4c4', '#dcdcda', '#f0f0ec'), bel: mo_mat('#7a7a7c', '#9a9a9a', '#b8b8b6', '#d4d4d0'),
@@ -3124,29 +3136,29 @@ const mo_GDC = {   // Gendarm: blanker Harnisch, blaue Satteldecke mit goldenen 
   clo: mo_mat('#0c1230', '#16204a', '#223266', '#304684', '#4460a2'), glv: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e'), str: mo_LK.lin,
   gld: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468', '#fff0a0')
 };
-MON_ART.gendarm = Object.assign(mo_riderSet(mo_horseSpec(mo_BRAUNER, 1.1), { C: mo_GDC, hat: 'helm', plume: true, plumeC: mo_mat('#4a0e0e', '#7a1616', '#a8241e', '#c83a2a'), lily: true, weapon: 'spiess', z: 1.1 }, 88, 80, 42, 76), { reach: 40 });
-MON_ART.franz = Object.assign(mo_riderSet(mo_horseSpec(mo_SCHIMMEL, 1.3), { C: Object.assign({}, mo_GDC, {
+mo_lazy(MON_ART, 'gendarm', () => Object.assign(mo_riderSet(mo_horseSpec(mo_BRAUNER, 1.1), { C: mo_GDC, hat: 'helm', plume: true, plumeC: mo_mat('#4a0e0e', '#7a1616', '#a8241e', '#c83a2a'), lily: true, weapon: 'spiess', z: 1.1 }, 88, 80, 42, 76), { reach: 40 }));
+mo_lazy(MON_ART, 'franz', () => Object.assign(mo_riderSet(mo_horseSpec(mo_SCHIMMEL, 1.3), { C: Object.assign({}, mo_GDC, {
   tri: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468', '#fff0a0'), clo: mo_mat('#0a1036', '#141e56', '#203078', '#2e449a', '#4060be') }),
-  hat: 'helm', plume: true, plumeC: mo_mat('#8a8a84', '#b4b4ac', '#dcdcd4', '#fafaf4'), crown: true, lily: true, weapon: 'schwert', z: 1.3 }, 104, 92, 50, 88), { reach: 46 });
+  hat: 'helm', plume: true, plumeC: mo_mat('#8a8a84', '#b4b4ac', '#dcdcd4', '#fafaf4'), crown: true, lily: true, weapon: 'schwert', z: 1.3 }, 104, 92, 50, 88), { reach: 46 }));
 /* ---------- Wien: Janitscharen mit Börk, Büchsenschützen, Mineure mit Turban, der Aga ---------- */
 const mo_BORK = mo_mat('#8a8a82', '#b2b2a8', '#d4d4ca', '#ecece2', '#fafaf2'), mo_MESS = mo_mat('#5a4012', '#8c6a22', '#c09a3a', '#e8c862');
 const mo_JN = {    // Janitschar: blauer Dolama mit gelbem Futter, rote Hosen
   red: mo_mat('#0e1a34', '#18284c', '#243a66', '#344e82', '#46629c'), och: mo_mat('#5a4612', '#8a6c20', '#b89432', '#dcb84c'),
   gry: mo_mat('#3a0c0c', '#5a1414', '#7a2020', '#9a3028'), otto: { bork: mo_BORK, brs: mo_MESS }
 };
-MON_ART.janitschar = mo_with(mo_LK, mo_JN, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+mo_lazy(MON_ART, 'janitschar', () => mo_with(mo_LK, mo_JN, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
 const mo_MN = {    // Mineur: erdbraunes Gewand, Turban
   red: mo_mat('#1e160e', '#30241a', '#463626', '#5c4834', '#725a42'), och: mo_mat('#3a3020', '#564830', '#726244', '#8e7c58'),
   gry: mo_mat('#26201a', '#3a3026', '#4e4434', '#645842'), otto: { tur: mo_mat('#6a645a', '#948c7e', '#bab2a2', '#d8d0c0'), cap: mo_mat('#4a0e0e', '#7a1616', '#a8241e') }
 };
-MON_ART.mineur = mo_with(mo_LK, mo_MN, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+mo_lazy(MON_ART, 'mineur', () => mo_with(mo_LK, mo_MN, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 })));
 const mo_AGA = {   // Aga: roter Kaftan mit Gold, Börk mit Reiherbusch
   red: mo_mat('#3a0808', '#5e0e0e', '#861814', '#ac261e', '#cc3a2c'), och: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468', '#fff0a0'),
   gry: mo_mat('#0e1a34', '#18284c', '#243a66', '#344e82'), lin: mo_mat('#6a665a', '#949080', '#bab6a4', '#dcd8c6'),
   otto: { bork: mo_BORK, brs: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468'), plume: mo_mat('#4a4a46', '#6e6e68', '#94948c', '#b8b8b0'), tip: mo_mat('#141414', '#2a2a2a', '#3e3e3e') }
 };
-MON_ART.aga = mo_with(mo_LK, mo_AGA, () => Object.assign(mo_set(78, 70, 39, 67, mo_pluend, mo_PLUEND), { reach: 37 }));   // höher: Platz für den Reiherbusch
-MON_ART.tuefekci = mo_with(mo_AB, {   // Büchsenschütze der Janitscharen: Börk, roter Dolama, Luntenflinte
+mo_lazy(MON_ART, 'aga', () => mo_with(mo_LK, mo_AGA, () => Object.assign(mo_set(78, 70, 39, 67, mo_pluend, mo_PLUEND), { reach: 37 })));   // höher: Platz für den Reiherbusch
+mo_lazy(MON_ART, 'tuefekci', () => mo_with(mo_AB, {   // Büchsenschütze der Janitscharen: Börk, roter Dolama, Luntenflinte
   gun: true, otto: { bork: mo_BORK, brs: mo_MESS }, brg: mo_mat('#3a0a0a', '#5a1010', '#7a1a18', '#9a2a22', '#b83a2e'),
   wam: mo_mat('#5a4612', '#8a6c20', '#b89432', '#dcb84c'), hos: mo_mat('#0e1a34', '#18284c', '#243a66', '#344e82')
-}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true }));
+}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true })));
