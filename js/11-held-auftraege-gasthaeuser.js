@@ -94,6 +94,7 @@ function cleanHero(h){
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
   h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1200, +h.bless.t || 0) } : null; h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
+  h.kz = h.kz && typeof h.kz === 'object' ? { pavia: Math.max(0, h.kz.pavia | 0), wien: Math.max(0, h.kz.wien | 0) } : {};
   h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};
   h.pilg = h.pilg && typeof h.pilg === 'object' ? { on: h.pilg.on ? 1 : 0, done: h.pilg.done ? 1 : 0, v: Object.fromEntries(Object.keys(h.pilg.v || {}).filter(k => /^[a-z]{3,20}$/.test(k)).map(k => [k, 1])) } : null;
   h.riding = !!(h.horse && h.riding);

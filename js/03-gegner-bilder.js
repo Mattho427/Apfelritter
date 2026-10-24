@@ -368,6 +368,23 @@ function mo_slashTex(lining, n, from, to, seed){
     return undefined;
   };
 }
+/* Osmanische Kopfbedeckung (Kriegszug nach Wien): Börk der Janitscharen, hoher weißer Filz, hinten herabfallend, vorn die Messinghülse
+   für den Löffel, beim Aga mit Reiherbusch; oder der Turban der Mineure. y = Oberkante des Kopfes */
+function mo_ottoHat(P, hx, y, O){
+  if (O.tur){
+    mo_ell(P, hx - .5, y + 1.6, 5.6, 3.4, O.tur, { k: 1.1, b: .05, tex: (x, yy, lv) => ((x + yy * 2) % 4 === 0 ? lv - 1 : (x + yy * 2) % 4 === 1 ? lv + 1 : undefined) });
+    mo_ell(P, hx - .5, y - 1.4, 2.8, 1.8, O.cap, { b: .1 });
+    return;
+  }
+  mo_poly(P, [[hx - 1, y - 9], [hx - 4.5, y - 10], [hx - 8.5, y - 6], [hx - 9.5, y + 1], [hx - 7.5, y + 7], [hx - 5.5, y + 6], [hx - 6, y], [hx - 4, y - 5]], O.bork, { cyl: .5, b: -.15 });   // Lappen
+  mo_poly(P, [[hx - 4.5, y + 3], [hx + 4.2, y + 3], [hx + 2.8, y - 6], [hx + 1, y - 9.5], [hx - 2, y - 9.5], [hx - 3.9, y - 5]], O.bork, { cyl: .9, b: .05, tex: (x, yy, lv) => (yy >= y + 2 ? lv - 1 : undefined) });
+  mo_line(P, hx - 4.5, y + 2.5, hx + 4.2, y + 2.5, O.brs, 2);
+  mo_line(P, hx + 1.6, y + 2, hx + 1.6, y - 3, O.brs, 3); mo_put(P, hx + 1.6, y - 4, O.brs, 4); mo_put(P, hx + 2.6, y - 1, O.brs, 2);
+  if (O.plume){   // Reiherbusch in goldener Hülse, nach vorn geneigt, über den Börk hinaus
+    mo_ell(P, hx + 2, y - 4.5, 1.2, 1.6, O.brs, { b: .1 }); mo_glow(P, hx + 2, y - 5, '#ffe8a0', .7);
+    for (let k = 0; k < 4; k++){ const tx = hx + 3 + k * 1.8, ty = y - 20 + k * 1.5; mo_line(P, hx + 2, y - 6, tx, ty, O.plume, 3 - (k & 1)); mo_put(P, tx, ty, O.tip, 2); mo_put(P, tx + 1, ty + 1, O.tip, 1); }
+  }
+}
 function mo_pluend(P, p){
   const ang = p.ang || 0, ux = Math.cos(ang), uy = Math.sin(ang);
   p.F = [p.R[0] + ux * p.fd, p.R[1] + uy * p.fd + 1];
@@ -414,7 +431,7 @@ function mo_pluend(P, p){
     [-4.5 + L * .2, -25.5], [-6 + L * .7, -30]].map(q => [q[0] + bx, q[1] + by]);
   mo_poly(P, tq, C.red, { cyl: .9, d: .5, tex: (x, y, lv, u, v) => {
     const X = x - bx - L * (1 - v), Y = y - by;
-    for (const r of [-34, -31, -28]) if (Y === r || Y === r + 1){                         // Brustschlitze mit Puffen
+    if (!C.cross) for (const r of [-34, -31, -28]) if (Y === r || Y === r + 1){           // Brustschlitze mit Puffen (nicht bei den Schweizern: dort sitzt das Kreuz)
       const q = (X + 20 + (r === -31 ? 2 : 0)) % 4;
       if (q === 0) return [C.och, lv + (Y === r ? 1 : 0)];
       if (q === 1) return [C.och, lv - (Y === r ? 0 : 1)];
@@ -428,9 +445,10 @@ function mo_pluend(P, p){
   for (let x = -1; x <= 4; x++){ mo_put(P, x + bx + L, -37 + by, C.lin, x & 1 ? 2 : 3); mo_put(P, x + bx + L, -36 + by, C.lin, x === 4 ? 0 : 1 + (x & 1)); }
   mo_put(P, 1 + bx + L, -35 + by, C.skn, 2); mo_put(P, 2 + bx + L, -35 + by, C.lin, 1); mo_put(P, 0 + bx + L, -35 + by, C.lin, 0);
   // Flicken mit Stichen und ein Loch
-  for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) mo_put(P, -4 + i + bx + L * .5, -30 + j + by, C.gry, i === 0 || j === 0 ? 3 : 2);
-  mo_put(P, -4 + bx + L * .5, -31 + by, C.lin, 3); mo_put(P, -2 + bx + L * .5, -31 + by, C.lin, 3); mo_put(P, -5 + bx + L * .5, -28 + by, C.lin, 3);
+  if (!C.cross) for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) mo_put(P, -4 + i + bx + L * .5, -30 + j + by, C.gry, i === 0 || j === 0 ? 3 : 2);
+  if (!C.cross){ mo_put(P, -4 + bx + L * .5, -31 + by, C.lin, 3); mo_put(P, -2 + bx + L * .5, -31 + by, C.lin, 3); mo_put(P, -5 + bx + L * .5, -28 + by, C.lin, 3); }
   mo_put(P, 3 + bx, -24 + by - 4, mo_DARK, 1); mo_put(P, 4 + bx, -24 + by - 4, C.lin, 1);
+  if (C.cross){ const cx = -3 + bx + Math.round(L * .5), cy = -30 + by; for (let k = -2; k <= 2; k++){ mo_put(P, cx, cy + k, C.cross, 3 - (k > 0 ? 1 : 0)); mo_put(P, cx + k, cy, C.cross, 3 - (k > 0 ? 1 : 0)); } }   // weißes Kreuz der Eidgenossen
   // Gürtel mit Schnalle, Beutel
   for (let x = -5; x <= 5; x++) mo_put(P, x + bx + L * .2, -25 + by + (x > 3 ? 0 : 0), C.lea, x === 4 ? 4 : x & 1 ? 2 : 1);
   mo_put(P, 4 + bx + L * .2, -24 + by, C.stl, 3);
@@ -458,6 +476,8 @@ function mo_pluend(P, p){
     "..HHjjH..",
     "...HHH..."], F, hx - 4, hy - 5);
   mo_end(P, 1);
+  if (C.otto){ mo_ottoHat(P, hx, hy - 5, C.otto); mo_end(P, 1); }
+  else {
   // Barett: flache Scheibe, schräg, Krempe geschlitzt
   mo_ell(P, hx - 1, hy - 7.5, 4.6, 2.4, C.ber, { b: .05 });
   mo_ell(P, hx - .5, hy - 5.6, 7.2, 1.7, C.ber, { k: 1.2, tex: (x, y, lv, u, v) => (v > .1 && (x & 1) ? [C.och, 2] : undefined) });
@@ -467,6 +487,7 @@ function mo_pluend(P, p){
   mo_line(P, hx - 5, hy - 12, hx - 8, hy - 11, C.fea, 2); mo_put(P, hx - 9, hy - 10, C.fea, 1); mo_put(P, hx - 9, hy - 9, C.fea, 0);
   mo_put(P, hx - 4, hy - 10, C.fea, 2); mo_put(P, hx - 6, hy - 10, C.fea, 1); mo_put(P, hx - 3, hy - 9, C.fea, 1); mo_put(P, hx - 7, hy - 12, C.fea, 3);
   mo_end(P, 1);
+  }
   // Spieß, hintere Hand darüber, dann vorderer Arm
   mo_spear(P, p.R, ux, uy, p.glint);
   mo_end(P, 1);
@@ -634,11 +655,14 @@ function mo_armbrust(P, p){
     ".hsbbs..",
     "..hss..."], F, hx - 4, hy - 3);
   mo_end(P, 1);
+  if (C.otto) mo_ottoHat(P, hx, hy - 3, C.otto);
+  else {
   mo_ell(P, hx - .5, hy - 4.5, 4.2, 3.4, C.hat, { k: 1.1, b: -.08, tex: (x, y, lv) => (mo_hash(x, y, 5) < .1 ? [C.rst, 1] : undefined) });
   mo_poly(P, [[hx - 8, hy - 1.5], [hx - 4, hy - 3.6], [hx + 4, hy - 3.6], [hx + 7.5, hy - 1.2], [hx + 7, hy - .2], [hx + 3.5, hy - 2], [hx - 4, hy - 2], [hx - 7.5, hy - .4]], C.hat, { cyl: .6, ny: -.4, b: .05,
     tex: (x, y, lv) => (mo_hash(x, y, 9) < .14 ? [C.rst, 2] : undefined) });
   mo_line(P, hx - 3, hy - 7.6, hx + 2, hy - 7.6, C.hat, 4);                   // Grat
   for (const q of [-3, 0, 3]) mo_put(P, hx + q, hy - 3, C.hat, 4);           // Nieten des Futterbands
+  }
   mo_end(P, 1);
   // Armbrust, hintere Hand am Abzug, vordere Hand stützt
   const muz = mo_xbow(P, p.B, p.ang, p.fired);
@@ -2883,7 +2907,7 @@ function mo_rider(P, H, R, p){
   const bx = p.bx || 0, by = p.by || 0, ln = (p.lean || 0) * z;
   const sx = (H.hip[0] + H.sho[0]) / 2 + bx, sy = Math.min(H.hip[1], H.sho[1]) - H.rH * .9 + by;
   // Satteldecke mit Fransen
-  mo_poly(P, [[sx - 8 * z, sy], [sx + 7 * z, sy - .5 * z], [sx + 6 * z, sy + 8 * z], [sx - 9 * z, sy + 8 * z]], C.clo, { cyl: .6, d: .3, tex: (x, y, lv, u, v) => (v > .85 && (x & 1) ? false : v > .78 ? [C.tri, lv] : undefined) });
+  mo_poly(P, [[sx - 8 * z, sy], [sx + 7 * z, sy - .5 * z], [sx + 6 * z, sy + 8 * z], [sx - 9 * z, sy + 8 * z]], C.clo, { cyl: .6, d: .3, tex: (x, y, lv, u, v) => (v > .85 && (x & 1) ? false : v > .78 ? [C.tri, lv] : R.lily && (x * 3 + y * 5) % 11 === 0 && v < .7 ? [C.gld, 3] : undefined) });
   mo_end(P, 1);
   // Rumpf
   const hip = [sx, sy - 1 * z], shd = [sx + ln, sy - 13 * z];
@@ -2918,7 +2942,8 @@ function mo_rider(P, H, R, p){
   } else if (R.hat === 'helm'){
     mo_poly(P, [[hx - 4 * z, hy + .6 * z], [hx + 3.6 * z, hy - .2 * z], [hx + 3 * z, hy - 4.4 * z], [hx - 1 * z, hy - 5.6 * z], [hx - 5.6 * z, hy - 2 * z]], C.stl, { cyl: .9, b: .05 });
     mo_line(P, hx - .4 * z, hy - .8 * z, hx + 3 * z, hy - 1.2 * z, mo_DARK, 0);   // Sehschlitz
-    if (R.plume) mo_cap(P, hx - 2 * z, hy - 5 * z, hx - 7 * z, hy - 9 * z, 1.2 * z, .5 * z, C.tri, { b: .1 });
+    if (R.plume) mo_cap(P, hx - 2 * z, hy - 5 * z, hx - 7 * z, hy - 9 * z, 1.2 * z, .5 * z, R.plumeC || C.tri, { b: .1 });
+    if (R.crown){ for (let k = 0; k < 5; k++){ const x = hx - 3.6 * z + k * 1.5 * z, y = hy - 4.6 * z - (k < 3 ? k : 4 - k) * .45 * z; mo_put(P, x, y, C.gld, 3); mo_put(P, x, y - 1, C.gld, k & 1 ? 2 : 4); if (!(k & 1)) mo_put(P, x, y - 2, C.gld, 4); } mo_glow(P, hx - .6 * z, hy - 6.6 * z, '#ffe8a0', .8); }
   }
   mo_end(P, 1);
   // naher Arm mit Waffe
@@ -3076,3 +3101,52 @@ const mo_WEIBP = {
 };
 BOSS_ART.donauweibchen = Object.assign(mo_set(100, 104, 50, 98, mo_weibchen, mo_WEIBP), { reach: 52 });
 
+
+/* ============ Kriegszüge (Version 26): Pavia 1525 und Wien 1529 ============ */
+/* ---------- Pavia: Schweizer Reisläufer, französische Arkebusiere, Gendarmen und König Franz I. ---------- */
+const mo_SW = {    // Schweizer: Rot und Weiß geteilt, weißes Kreuz auf der Brust, weiße Feder
+  red: mo_mat('#3a0a0a', '#5e1212', '#841c18', '#a82a22', '#c43c2e'), och: mo_mat('#6a6a64', '#9a9a92', '#c4c4bc', '#e6e6de', '#f8f8f2'),
+  gry: mo_mat('#6a6a64', '#8e8e86', '#b4b4ac', '#d4d4cc'), ber: mo_mat('#1a1214', '#2c1e20', '#40302e', '#544240'), fea: mo_mat('#8a8a84', '#b4b4ac', '#dcdcd4', '#fafaf4'),
+  cross: mo_mat('#8a8a84', '#c4c4bc', '#eeeee6', '#ffffff')
+};
+MON_ART.schweizer = mo_with(mo_LK, mo_SW, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+MON_ART.arkebusier = mo_with(mo_AB, {   // Arkebusier im Dienst des Königs: blau-weißes Wams, Sturmhaube, Arkebuse
+  gun: true, hat: mo_mat('#16181c', '#2c3036', '#4a5058', '#6e767e', '#98a0a6'), brg: mo_mat('#0e1430', '#182248', '#243466', '#344a86', '#4a62a4'),
+  wam: mo_mat('#5a5a56', '#84847e', '#acaca4', '#cacac2'), hos: mo_mat('#101830', '#1a2646', '#283860', '#3a4e7c')
+}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true }));
+const mo_BRAUNER = { fur: mo_mat('#140a06', '#22120a', '#341c10', '#482818', '#5c3622', '#70462e', '#86583c'), bel: mo_mat('#2a160c', '#3e2214', '#54301e', '#6a4028'),
+  sad: mo_mat('#0e0806', '#1a100a'), skn: mo_mat('#1a1210', '#2c1e1a', '#3e2c26'), mou: mo_mat('#26090b', '#4c1416', '#74241f'), eye: mo_mat('#1a1008', '#3a2410', '#5a3a1a') };
+const mo_SCHIMMEL = { fur: mo_mat('#4a4a4c', '#6a6a6e', '#8a8a8e', '#a8a8aa', '#c4c4c4', '#dcdcda', '#f0f0ec'), bel: mo_mat('#7a7a7c', '#9a9a9a', '#b8b8b6', '#d4d4d0'),
+  sad: mo_mat('#1a1410', '#2a201a'), skn: mo_mat('#3a3434', '#544c4c', '#6e6464'), mou: mo_mat('#26090b', '#4c1416', '#74241f'), eye: mo_mat('#1a1008', '#3a2410', '#5a3a1a') };
+const mo_GDC = {   // Gendarm: blanker Harnisch, blaue Satteldecke mit goldenen Lilien
+  skn: mo_LK.skn, gar: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e', '#98a0a6', '#c4cad0'), tri: mo_mat('#5a3e10', '#8a6420', '#c49a3a', '#e8c45a'),
+  lea: mo_LK.lea, boo: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e'), hat: mo_LK.stl, hai: mo_LK.hai, stl: mo_LK.stl, wod: mo_LK.wod,
+  clo: mo_mat('#0c1230', '#16204a', '#223266', '#304684', '#4460a2'), glv: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e'), str: mo_LK.lin,
+  gld: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468', '#fff0a0')
+};
+MON_ART.gendarm = Object.assign(mo_riderSet(mo_horseSpec(mo_BRAUNER, 1.1), { C: mo_GDC, hat: 'helm', plume: true, plumeC: mo_mat('#4a0e0e', '#7a1616', '#a8241e', '#c83a2a'), lily: true, weapon: 'spiess', z: 1.1 }, 88, 80, 42, 76), { reach: 40 });
+MON_ART.franz = Object.assign(mo_riderSet(mo_horseSpec(mo_SCHIMMEL, 1.3), { C: Object.assign({}, mo_GDC, {
+  tri: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468', '#fff0a0'), clo: mo_mat('#0a1036', '#141e56', '#203078', '#2e449a', '#4060be') }),
+  hat: 'helm', plume: true, plumeC: mo_mat('#8a8a84', '#b4b4ac', '#dcdcd4', '#fafaf4'), crown: true, lily: true, weapon: 'schwert', z: 1.3 }, 104, 92, 50, 88), { reach: 46 });
+/* ---------- Wien: Janitscharen mit Börk, Büchsenschützen, Mineure mit Turban, der Aga ---------- */
+const mo_BORK = mo_mat('#8a8a82', '#b2b2a8', '#d4d4ca', '#ecece2', '#fafaf2'), mo_MESS = mo_mat('#5a4012', '#8c6a22', '#c09a3a', '#e8c862');
+const mo_JN = {    // Janitschar: blauer Dolama mit gelbem Futter, rote Hosen
+  red: mo_mat('#0e1a34', '#18284c', '#243a66', '#344e82', '#46629c'), och: mo_mat('#5a4612', '#8a6c20', '#b89432', '#dcb84c'),
+  gry: mo_mat('#3a0c0c', '#5a1414', '#7a2020', '#9a3028'), otto: { bork: mo_BORK, brs: mo_MESS }
+};
+MON_ART.janitschar = mo_with(mo_LK, mo_JN, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+const mo_MN = {    // Mineur: erdbraunes Gewand, Turban
+  red: mo_mat('#1e160e', '#30241a', '#463626', '#5c4834', '#725a42'), och: mo_mat('#3a3020', '#564830', '#726244', '#8e7c58'),
+  gry: mo_mat('#26201a', '#3a3026', '#4e4434', '#645842'), otto: { tur: mo_mat('#6a645a', '#948c7e', '#bab2a2', '#d8d0c0'), cap: mo_mat('#4a0e0e', '#7a1616', '#a8241e') }
+};
+MON_ART.mineur = mo_with(mo_LK, mo_MN, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+const mo_AGA = {   // Aga: roter Kaftan mit Gold, Börk mit Reiherbusch
+  red: mo_mat('#3a0808', '#5e0e0e', '#861814', '#ac261e', '#cc3a2c'), och: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468', '#fff0a0'),
+  gry: mo_mat('#0e1a34', '#18284c', '#243a66', '#344e82'), lin: mo_mat('#6a665a', '#949080', '#bab6a4', '#dcd8c6'),
+  otto: { bork: mo_BORK, brs: mo_mat('#6a4a10', '#a07820', '#d4aa3a', '#f4d468'), plume: mo_mat('#4a4a46', '#6e6e68', '#94948c', '#b8b8b0'), tip: mo_mat('#141414', '#2a2a2a', '#3e3e3e') }
+};
+MON_ART.aga = mo_with(mo_LK, mo_AGA, () => Object.assign(mo_set(78, 70, 39, 67, mo_pluend, mo_PLUEND), { reach: 37 }));   // höher: Platz für den Reiherbusch
+MON_ART.tuefekci = mo_with(mo_AB, {   // Büchsenschütze der Janitscharen: Börk, roter Dolama, Luntenflinte
+  gun: true, otto: { bork: mo_BORK, brs: mo_MESS }, brg: mo_mat('#3a0a0a', '#5a1010', '#7a1a18', '#9a2a22', '#b83a2e'),
+  wam: mo_mat('#5a4612', '#8a6c20', '#b89432', '#dcb84c'), hos: mo_mat('#0e1a34', '#18284c', '#243a66', '#344e82')
+}, () => Object.assign(mo_set(50, 54, 25, 51, mo_armbrust, mo_ARMBRUST), { muzzle: mo_muzzle(mo_ARMBRUST.act[0]), gun: true }));

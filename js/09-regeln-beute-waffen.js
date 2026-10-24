@@ -156,7 +156,16 @@ const MON = {
   hackelberg:     { name:'Hackelberg, der Wilde Jäger', hp:52, dmg:2.5, xp:17, spd:70, r:16, hr:18, boss:true },
   eppelein:       { name:'Eppelein von Gailingen', hp:60, dmg:2.8, xp:21, spd:62, r:16, hr:18, boss:true },
   donauweibchen:  { name:'Das Donauweibchen', hp:64, dmg:2.8, xp:23, spd:0, r:16, hr:24, boss:true, wade:true },
-  bulcsu:         { name:'Bulcsú, der Geisterfürst', hp:86, dmg:3.3, xp:29, spd:70, r:18, hr:22, boss:true }
+  bulcsu:         { name:'Bulcsú, der Geisterfürst', hp:86, dmg:3.3, xp:29, spd:70, r:18, hr:22, boss:true },
+  // Kriegszüge: Pavia 1525 und Wien 1529 (nur dort, Anführer als Wächter des Gewölbes mit fünffachem Leben)
+  schweizer:      { name:'Schweizer Reisläufer', hp:4.2, dmg:1.7, xp:1.5, spd:46, r:9, hr:11 },
+  arkebusier:     { name:'Arkebusier des Königs', hp:2.6, dmg:1.65, xp:1.4, spd:40, r:9, hr:11 },
+  gendarm:        { name:'Französischer Gendarm', hp:5, dmg:1.8, xp:1.7, spd:70, r:14, hr:16 },
+  franz:          { name:'König Franz I. von Frankreich', hp:6, dmg:2, xp:2.4, spd:64, r:16, hr:20 },
+  janitschar:     { name:'Janitschar', hp:4, dmg:1.7, xp:1.5, spd:48, r:9, hr:11 },
+  tuefekci:       { name:'Büchsenschütze der Janitscharen', hp:2.6, dmg:1.65, xp:1.4, spd:40, r:9, hr:11 },
+  mineur:         { name:'Osmanischer Mineur', hp:3.4, dmg:1.5, xp:1.3, spd:50, r:9, hr:11 },
+  aga:            { name:'Der Aga der Janitscharen', hp:6, dmg:2.1, xp:2.4, spd:50, r:10, hr:12 }
 };
 const artOf = k => MON_ART[k] || BOSS_ART[k];
 const monHp = (k, L) => Math.round((1.5 + MON[k].hp * .9) * (6 + 2.7 * L));
@@ -166,7 +175,8 @@ const AI_KIND = { pirat: 'pluend', rotbart: 'pluend', pschuetze: 'armbrust', nix
   wolf: 'werwolf', schrat: 'moor', wegelagerer: 'pluend', kobold: 'ratte', grubengeist: 'moor', doppelsoeldner: 'pluend', hakenschuetze: 'armbrust', baer: 'werwolf', geier: 'rabe', eislicht: 'irrlicht',
   tatzelwurm: 'werwolf', bergmoench: 'tod', feldhauptmann: 'pluend', ruebezahl: 'raubritter',
   kreuzotter: 'ratte', strauchdieb: 'pluend', irrwisch: 'irrlicht', keiler: 'werwolf', moosweib: 'werwolf', reisiger: 'pluend', riesenkrebs: 'moor', geisterreiter: 'werwolf', geisterbogner: 'armbrust',
-  hackelberg: 'raubritter', eppelein: 'raubritter', donauweibchen: 'tod', bulcsu: 'raubritter' };
+  hackelberg: 'raubritter', eppelein: 'raubritter', donauweibchen: 'tod', bulcsu: 'raubritter',
+  schweizer: 'pluend', arkebusier: 'armbrust', gendarm: 'werwolf', franz: 'werwolf', janitschar: 'pluend', tuefekci: 'armbrust', mineur: 'pluend', aga: 'pluend' };
 const aiK = k => AI_KIND[k] || k;
 const monDmg = (k, L) => Math.max(1, Math.round((2.5 + 1.5 * L) * MON[k].dmg * (NIGHT_BEAST[k] && isNight() ? 1.25 : 1)));
 const monXp = (k, L) => Math.round((10 + 5 * L) * MON[k].xp);
@@ -253,7 +263,8 @@ const MEISTER_BY = {}; for (const t of MEISTER) for (const o of t.opts) MEISTER_
 const hasTal = id => !!(HERO && HERO.tal && Object.values(HERO.tal).includes(id));
 const cdT = (v, id, d) => hasTal(id) ? v - d : v;   // Abklingzeit mit Meisterschaft
 const TIERE = { werwolf: 1, wolf: 1, baer: 1, ratte: 1, rabe: 1, geier: 1, lindwurm: 1, tatzelwurm: 1, wels: 1, kobold: 1, schrat: 1, nix: 1, noeck: 1, ruebezahl: 1, kreuzotter: 1, keiler: 1, riesenkrebs: 1 };
-const MENSCHEN = { pluend: 1, armbrust: 1, pirat: 1, pschuetze: 1, wegelagerer: 1, doppelsoeldner: 1, hakenschuetze: 1, raubritter: 1, rotbart: 1, feldhauptmann: 1, strauchdieb: 1, reisiger: 1, eppelein: 1 };
+const MENSCHEN = { pluend: 1, armbrust: 1, pirat: 1, pschuetze: 1, wegelagerer: 1, doppelsoeldner: 1, hakenschuetze: 1, raubritter: 1, rotbart: 1, feldhauptmann: 1, strauchdieb: 1, reisiger: 1, eppelein: 1,
+  schweizer: 1, arkebusier: 1, gendarm: 1, franz: 1, janitschar: 1, tuefekci: 1, mineur: 1, aga: 1 };
 /* Zuschlag gegen diesen Gegner: Bibel und Segen gegen Untote, Meisterschaften je Gegnerart */
 function foeMul(m){
   let u = UNDEAD[m.k] ? (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0) + (hasTal('geissel') ? 20 : 0) + (ST && ST.holy || 0) : 0;

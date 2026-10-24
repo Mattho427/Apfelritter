@@ -67,6 +67,8 @@ const TROPHIES = [
   { id: 'donauweibchen', n: 'Perlen der Donau', d: 'das Donauweibchen im Ried bezwungen', ok: h => h.bosses.donauweibchen > 0 },
   { id: 'thesen', n: 'Fünfundneunzig Thesen', d: 'die Thesen an der Tür der Schlosskirche zu Wittenberg gelesen', ok: h => !!h.thesen },
   { id: 'bulcsu', n: 'Sieger vom Lechfeld', d: 'Bulcsú und seine Geisterreiter zur Ruhe gebracht', ok: h => h.bosses.bulcsu > 0 },
+  { id: 'pavia', n: 'Sieger von Pavia', d: 'König Franz I. in der Schlacht bei Pavia gefangen genommen', ok: h => !!(h.kz && h.kz.pavia) },
+  { id: 'wien', n: 'Verteidiger von Wien', d: 'die Gegenminen vor Wien gehalten und den Aga der Janitscharen besiegt', ok: h => !!(h.kz && h.kz.wien) },
   { id: 'bergwerk', n: 'Glück auf!', d: 'die Truhe im verlassenen Bergwerk geöffnet', ok: h => !!(h.dg && h.dg.bergwerk), wa: 'bergwerk' },
   { id: 'zollburg', n: 'Krone des Nöck', d: 'den Nöck in der versunkenen Zollburg bezwungen', ok: h => !!(h.dg && h.dg.zollburg), wa: 'noeck' },
   { id: 'turnier', n: 'Turniersieger', d: 'ein Großes Turnier gewonnen', ok: h => (h.tw | 0) >= 1, wa: 'turnier' },
@@ -329,6 +331,7 @@ function zbFloodOn(M, n){
 }
 const dgLvN = (near, held) => {
   const M = DG_ON, L = M && near && near.startsWith('lever:') ? M.levers[+near.slice(6)] : null;
+  if (L && M.kz) return M.kz.done[+near.slice(6)] ? M.D.lvDone : M.D.lvN;
   if (!L || !M.D.zb) return held ? 'Hebel loslassen' : 'Hebel ziehen';
   return M.gates[L.gate].flood ? (held ? 'Schieber loslassen' : 'Schieber öffnen') : (held ? 'Rad loslassen' : 'Rad drehen');
 };

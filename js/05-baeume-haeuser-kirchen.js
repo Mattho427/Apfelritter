@@ -2217,7 +2217,8 @@ const wp_K = {
   schneefichte: [(s, v) => wp_tFichte(s, v), 6], schneefels: [(s, v) => wp_kFels(s, v), 5], schneeklippe: [(s, v) => wp_kKlippe(s, v), 4], schneestein: [(s, v) => wp_kStein(s), 6],
   // Ostlande
   kiefer: [(s, v) => wp_tKiefer(s), 6], wacholder: [(s, v) => wp_tWacholder(s), 4], schlosskirche: [(s, v) => wp_bSchlosskirche(s, v), 1], schoenerbrunnen: [(s, v) => wp_kSchoenerBrunnen(s), 1],
-  fuggerhaus: [(s, v) => wp_bFuggerhaus(s, v), 3], perlach: [(s, v) => wp_bPerlach(s), 1], bienenstand: [(s, v) => wp_kBienenstand(s), 2], frauenkirche: [(s, v) => wp_bFrauenkirche(s), 1]
+  fuggerhaus: [(s, v) => wp_bFuggerhaus(s, v), 3], perlach: [(s, v) => wp_bPerlach(s), 1], bienenstand: [(s, v) => wp_kBienenstand(s), 2], frauenkirche: [(s, v) => wp_bFrauenkirche(s), 1],
+  lilienbanner: [(s, v) => wp_kLilien(s), 1]
 };
 const WP_KINDS = Object.keys(wp_K);
 /* Bilder je Jahreszeit: Bäume in allen vier, alles andere im Sommer- und im Winterbild */

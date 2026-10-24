@@ -184,7 +184,15 @@ const BEASTS = [
   ['hackelberg', 'Hackelberg, der Wilde Jäger', 'Hünengrab in der Dübener Heide, Stufe 15, jagt mit der Saufeder und ruft seine Hunde'],
   ['eppelein', 'Eppelein von Gailingen', 'Burg Gailingen, Stufe 23, Raubritter zu Pferd, ruft seine Reisigen'],
   ['donauweibchen', 'Das Donauweibchen', 'Ufer der Donau im Ried, Stufe 27, singt und schickt das Wasser gegen Euch'],
-  ['bulcsu', 'Bulcsú, der Geisterfürst', 'Ungarnstein auf dem Lechfeld, Stufe 31, führt die Geisterreiter an']
+  ['bulcsu', 'Bulcsú, der Geisterfürst', 'Ungarnstein auf dem Lechfeld, Stufe 31, führt die Geisterreiter an'],
+  ['schweizer', 'Schweizer Reisläufer', 'Kriegszug nach Pavia, Eidgenosse im Sold des Königs mit dem Spieß'],
+  ['arkebusier', 'Arkebusier des Königs', 'Kriegszug nach Pavia, schießt aus der Deckung der Hecken'],
+  ['gendarm', 'Französischer Gendarm', 'Kriegszug nach Pavia, schwerer Reiter in blankem Harnisch'],
+  ['franz', 'König Franz I. von Frankreich', 'Kriegszug nach Pavia, im Lager hinter dem Tiergarten, ergibt sich erst, wenn er geschlagen ist'],
+  ['janitschar', 'Janitschar', 'Kriegszug nach Wien, Kerntruppe des Sultans mit dem weißen Börk'],
+  ['tuefekci', 'Büchsenschütze der Janitscharen', 'Kriegszug nach Wien, schießt mit der Luntenflinte'],
+  ['mineur', 'Osmanischer Mineur', 'Kriegszug nach Wien, gräbt Stollen unter die Mauern'],
+  ['aga', 'Der Aga der Janitscharen', 'Kriegszug nach Wien, führt den Sturm in den Gegenminen']
 ];
 for (const [kind, name, desc] of BEASTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name), v = el('span', 'val' + (MON[kind].boss ? ' bad' : ''), MON[kind].boss ? 'Anführer' : '');
@@ -452,7 +460,7 @@ function renderTracker(){
   box.textContent = '';
   if (!HERO) return;
   if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
-  stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); partyRows(box);
+  stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); kzRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');

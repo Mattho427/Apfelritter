@@ -239,7 +239,7 @@ function netPres(){
   o.bk = G.bucket ? 1 : null;
   const M = DG_ON && DG_ON.D.group ? DG_ON : null;
   o.hl = M && G.lever != null ? G.lever : null;
-  o.go = M && M.openG.length ? M.openG : null;
+  o.go = M && M.openG.length ? M.openG : DG_ON && DG_ON.kz ? kzGo(DG_ON) : null;   // Kriegszüge: Tore und Hebel
   o.dd = M ? { k: M.id + ':' + dgDay(), d: Math.round(M.bossDmg || 0) } : null;
   o.bz = G.joust ? 'j' : G.fgame ? 'f' : NET.tr ? 'h' : NET.dc ? 'w' : '';
   o.jo = NET.jo ? duelPres() : null;

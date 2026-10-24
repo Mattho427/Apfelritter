@@ -297,7 +297,12 @@ function dgBuild(id){
     if (role === 'ossuary' || role === 'chapel') tryAll('sarg', 1, side, 1, 2);
     if (role === 'chapel'){ place('becken', 0, cx - 2, r[1] + 1, 1, { fire: true }); place('becken', 0, cx + 2, r[1] + 1, 1, { fire: true }); }
     if (role === 'crypt'){ for (let j = r[1] + 1; j < r[1] + r[3] - 1; j += 2) for (const i of [r[0] + 2, r[0] + r[2] - 4]) place('sarg', (i + j) & 1, i, j, 2); }
-    if (role === 'vault' && D.style === 3){   // Thronsaal des Nöck: Thron an der Südwand, Säulen, Zollschatz daneben
+    if (role === 'vault' && D.style === 4){   // Lager des Königs: großes Zelt, Fahnen, Kriegskasse
+      place('zelt', 1, cx - 1, r[1] + 2, 3);
+      for (const dx of [4, -4, 5, -5]){ chest = place('truhe', 0, cx + dx, r[1] + 2, 1, { chest: true }); if (chest) break; }
+      for (const dx of [-3, 3]) place('lilienbanner', 0, cx + dx, r[1] + 1, 1);
+      tryAll('fass', 0, side, 3); tryAll('kanone', 1, side, 2); place('lagerfeuer', 0, cx - 5, cy + 2, 1, { fire: true }); place('lagerfeuer', 0, cx + 5, cy + 2, 1, { fire: true });
+    } else if (role === 'vault' && D.style === 3){   // Thronsaal des Nöck: Thron an der Südwand, Säulen, Zollschatz daneben
       place('thron', 0, cx - 1, r[1] + r[3] - 3, 3);
       for (const dx of [5, -5, 6, -6, 7, -7]){ chest = place('truhe', 0, cx + dx, r[1] + r[3] - 3, 1, { chest: true }); if (chest) break; }
       for (const i of [r[0] + 2, r[0] + r[2] - 3]) for (let j = r[1] + 3; j < r[1] + r[3] - 1; j += 4) place('saeule', 1, i, j, 1);
@@ -313,6 +318,12 @@ function dgBuild(id){
     if (role === 'schleuse'){ tryAll('fass', 0, side, 2); tryAll('kisten', 0, side, 1); place('becken', 0, cx, cy + 1, 1, { fire: true }); }
     if (role === 'zoll'){ place('becken', 0, cx - 3, cy, 1, { fire: true }); place('becken', 0, cx + 3, cy, 1, { fire: true }); tryAll('kisten', 0, side, 4); tryAll('weinfass', 0, side, 2, 2); tryAll('fass', 0, side, 3); tryAll('anker', 0, side, 1, 2); }
     if (role === 'stollen'){ tryAll('erz', (cx + cy) & 1, side, 3); tryAll('lore', 1, side, 1); tryAll('fass', 0, side, 1); place('becken', 0, cx, cy + 1, 1, { fire: true }); }
+    // Kriegszüge: Lager und Bresche, Tiergarten, Gegenminen und Pulverkammern
+    if (role === 'lager'){ tryAll('zelt', 0, side, 2, 2); tryAll('fass', 0, side, 3); tryAll('banner', 0, side, 2); place('lagerfeuer', 0, cx, cy + 1, 1, { fire: true }); }
+    if (role === 'bresche'){ tryAll('schanzkorb', 0, side, 4); tryAll('fass', 0, side, 2); tryAll('spiesse', 0, side, 2); place('lagerfeuer', 0, cx - 3, cy, 1, { fire: true }); }
+    if (role === 'park'){ const inner = inRoom(r, (i, j) => i > r[0] + 1 && i < r[0] + r[2] - 2 && j > r[1] && j < r[1] + r[3] - 1); tryAll('eiche', 0, inner, 3); tryAll('buche', 0, inner, 2); tryAll('busch', 0, side, 4); tryAll('spiesse', 0, side, 1); }
+    if (role === 'mine'){ place('becken', 0, cx, cy, 1, { fire: true }); tryAll('lore', 0, side, 2); tryAll('kisten', 0, side, 2); tryAll('fass', 0, side, 1); }
+    if (role === 'pulver'){ tryAll('fass', 0, side, 3); tryAll('kisten', 0, side, 2); place('becken', 0, cx, cy + 2, 1, { fire: true }); }
     // Hebel an der Nordwand des Raums
     for (const [li, L] of (D.levers || []).entries()) if (D.rooms[L.room] === r)
       for (const dx of [0, 1, -1, 2, -2, 3, -3]){ const o = place(D.lever || 'hebel', 0, cx + (L.dx || 0) + dx, r[1], 1, { lever: li, gate: L.gate }); if (o){ levers[li] = { o, gate: L.gate }; break; } }
@@ -327,9 +338,9 @@ function dgBuild(id){
   // Fallgitter mitten im Gang zwischen zwei Räumen (zwei Felder breit, zu Beginn geschlossen)
   const gates = (D.gates || []).map((gd, gi) => {
     if (gd.flood) return { tiles: [], o: null, flood: gd.flood, levers: levers.map((L, li) => L && L.gate === gi ? li : -1).filter(li => li >= 0), open: false };   // Schieber gegen die Flut
-    const ra = D.rooms[gd.a], gx = ra[0] + (ra[2] >> 1), j = gd.row, P0 = wp_paintV('gitter', 0, 1), tiles = [j * C + gx, j * C + gx + 1];
+    const ra = D.rooms[gd.a], gx = ra[0] + (ra[2] >> 1), j = gd.row, gk = gd.kind || 'gitter', P0 = wp_paintV(gk, 0, 1), tiles = [j * C + gx, j * C + gx + 1];
     for (const t of tiles) blk[t] = 1;
-    const o = { kind: 'gitter', v: 0, gate: gi, tx: gx, ty: j, w: 2, x: X(gx) + T, y: Y(j + 1) - 4, img: P0.img, ax: P0.ax * WS, ay: P0.ay * WS };
+    const o = { kind: gk, v: 0, gate: gi, tx: gx, ty: j, w: 2, x: X(gx) + T, y: Y(j + 1) - 4, img: P0.img, ax: P0.ax * WS, ay: P0.ay * WS };
     objs.push(o);
     return { tiles, o, levers: levers.map((L, li) => L && L.gate === gi ? li : -1).filter(li => li >= 0), open: false };
   });
@@ -345,18 +356,22 @@ function dgPaint(M){
   const { C, Rn, g, D } = M, T = DG_T, FH = DG_FH, P = DG_PAD, W = C * T + 2 * P, Hh = Rn * T + 2 * P, st = D.style;
   const wall = (i, j) => i < 0 || j < 0 || i >= C || j >= Rn ? true : !!g[j * C + i];
   const tall = (i, j) => wall(i, j) && !wall(i, j + 1);
-  const pk = (h) => wo_c(h), FL = [['#2a2622', '#322d28', '#3a342e', '#433c35', '#4c443c', '#554c43'], ['#34343a', '#3c3c42', '#45454b', '#4e4e54', '#58585e', '#626268'], ['#26221d', '#2d2822', '#352f28', '#3d362e', '#463e35', '#50473c'], ['#1c2422', '#232c29', '#2a3431', '#323d39', '#3b4742', '#45524c']][st].map(pk);
-  const MS = [['#332e28', '#3e3730', '#4a4239', '#554c42', '#61574b'], ['#3a3c42', '#44464c', '#4e5056', '#5a5c62', '#66686e'], ['#29251f', '#322d27', '#3c362f', '#463f37', '#514940'], ['#232c2a', '#2b3633', '#34403c', '#3e4b46', '#495752']][st].map(pk);
+  const pk = (h) => wo_c(h), FL = [['#2a2622', '#322d28', '#3a342e', '#433c35', '#4c443c', '#554c43'], ['#34343a', '#3c3c42', '#45454b', '#4e4e54', '#58585e', '#626268'], ['#26221d', '#2d2822', '#352f28', '#3d362e', '#463e35', '#50473c'], ['#1c2422', '#232c29', '#2a3431', '#323d39', '#3b4742', '#45524c'], ['#1b2214', '#28311b', '#343f20', '#414e26', '#4e5b2d', '#5b6834']][st].map(pk);
+  const MS = [['#332e28', '#3e3730', '#4a4239', '#554c42', '#61574b'], ['#3a3c42', '#44464c', '#4e5056', '#5a5c62', '#66686e'], ['#29251f', '#322d27', '#3c362f', '#463f37', '#514940'], ['#232c2a', '#2b3633', '#34403c', '#3e4b46', '#495752'], ['#3a1a14', '#4e241a', '#622e20', '#763a28', '#8a4a32']][st].map(pk);
   const WTR = pk('#1a3e4e');
   const OAK = ['#1c1612', '#3d3024', '#4f3e2e', '#624e3a'].map(pk), ORE = pk('#93a6b4');
-  const SEAM = pk(st ? '#222228' : '#1a1714'), CAP = pk('#131116'), RIM = pk('#29262d'), MOSS = pk('#34402c'), PUD = pk('#1a2026');
+  const SEAM = pk(st === 4 ? '#2a2620' : st ? '#222228' : '#1a1714'), CAP = pk(st === 4 ? '#121a0e' : '#131116'), RIM = pk(st === 4 ? '#24321a' : '#29262d'), MOSS = pk('#34402c'), PUD = pk('#1a2026');
   // Boden
   const fc = canvasOf(W, Hh), fg = fc.getContext('2d'), id = fg.createImageData(W, Hh), d32 = new Uint32Array(id.data.buffer);
   d32.fill(CAP);
   for (let y = 0; y < Rn * T; y++) for (let x = 0; x < C * T; x++){
     const i = x >> 5, j = y >> 5; if (g[j * C + i]) continue;
     let c;
-    if (st === 2){ // Bergwerk: gewachsener Fels mit Kies und Erzadern
+    if (st === 4){ // Tiergarten: Wiese aus der Weltbodentextur, zertretene Stellen
+      const e = wo_TEX[0][((y & 255) << 8) | (x & 255)], P0 = wo_PAL[0];
+      c = P0[e >> 4][clamp((e & 15) + Math.floor((wo_mid(x * .5, y * .5) - .5) * 3), 0, 11)];
+      if (wo_lo(x * 2, y * 2) > .68 && wo_h(x >> 1, y >> 1, 86) < .5) c = wo_DIRT[clamp(4 + Math.floor(wo_h(x, y, 87) * 3), 0, 11)];
+    } else if (st === 2){ // Bergwerk: gewachsener Fels mit Kies und Erzadern
       const v = wo_h(x >> 2, y >> 2, 81) * 1.5 + wo_h(x >> 3, y >> 3, 82) * 2.1 + wo_h(x >> 4, y >> 4, 83) * 1.6 - 1.1;
       c = FL[clamp(Math.floor(v), 0, 5)];
       if (wo_h(x >> 1, y >> 1, 84) < .02) c = FL[5];
@@ -411,7 +426,7 @@ function dgPaint(M){
       for (let y = 0; y < T + FH; y++) for (let x = 0; x < w; x++){
         const gx = i * T + x, gy = j * T - FH + y;   // Weltlage im Gewölbe
         let col;
-        if (y < T){ col = y >= T - 2 ? RIM : CAP; }
+        if (y < T){ col = y >= T - 2 ? RIM : CAP; if (st === 4 && y < T - 2) col = pk(['#121a0e', '#1a2614', '#22321a', '#2c3e20'][clamp(Math.floor(wo_h(gx >> 1, gy >> 1, 99) * 2.4 + (y > T - 8 ? 1 : 0)), 0, 3)]); }   // Hecke auf der Mauer
         else {
           const fy = y - T, crs = fy >> 3, bo = (crs * 11) % 3 === 0 ? 0 : (crs & 1) * 9, bx = (gx + bo) % 20, brick = Math.floor((gx + bo) / 20) * 31 + crs * 17;
           const mortar = (fy & 7) === 0 || bx === 0, v = wo_h(brick, 9, 91) * 2.4 + wo_h(gx >> 1, gy >> 1, 92) * .8 - (fy > FH - 6 ? 1.6 : 0) + (fy < 3 ? .8 : 0);
@@ -473,8 +488,8 @@ function enterDungeon(door){
   DG_ON = M; G.dg = M;
   k.x = M.start.x; k.y = M.start.y; k.dir = 'down'; k.kbx = k.kby = 0; k.lance = 0;
   M.seen.fill(0); M.chestOpen = HERO.dg && HERO.dg[M.id] === dgDay();
-  const D = M.D, base = D.group ? clamp(Math.max(HERO.lvl, ...partyList().map(q => q.lv)), ...(D.base || [8, MAX_LVL - 2])) : 0;   // Gruppen-Gewölbe: nach dem stärksten Gefährten
-  M.lvl = D.group ? [base, base + 2] : D.lvl;
+  const D = M.D, sc = D.group || D.kz, base = sc ? clamp(Math.max(HERO.lvl, ...partyList().map(q => q.lv)), ...(D.base || [8, MAX_LVL - 2])) : 0;   // Gruppen-Gewölbe und Kriegszüge: nach dem stärksten Gefährten
+  M.lvl = sc ? [base, base + 2] : D.lvl;
   const slain = D.group && HERO.dgBoss && HERO.dgBoss[M.id] === dgDay();
   for (const [kind, x, y, lvl, elite] of M.spawns){
     if (elite && slain) continue;
@@ -488,9 +503,10 @@ function enterDungeon(door){
   G.zone = 'gewoelbe'; G.near = null; G.nearDoor = null; G.dgNear = null; $('btnTalk').hidden = true;
   const z = $('zone'); z.textContent = M.D.name; z.append(el('small', null, 'Stufe ' + M.lvl[0] + '–' + M.lvl[1]));
   showBanner(M.D.name, 'Stufe ' + M.lvl[0] + '–' + M.lvl[1] + ', ' + (slain ? (D.slain || 'der Drache ist heute schon erschlagen') : M.D.elite.name + ' bewacht ' + M.D.chest));
-  logLine('Ihr steigt hinab: ' + M.D.name + '. Am Ende wartet ' + M.D.chestN + '. Über die Treppe kommt Ihr wieder hinauf.', '#c8b8ff');
+  logLine(D.kz ? 'Ihr zieht in den Krieg: ' + D.name + '. Am Ende wartet ' + D.chestN + '. Über die Treppe am Anfang tretet Ihr den Rückzug an.' : 'Ihr steigt hinab: ' + M.D.name + '. Am Ende wartet ' + M.D.chestN + '. Über die Treppe kommt Ihr wieder hinauf.', '#c8b8ff');
   if (D.group) logLine(D.intro || 'Hier unten braucht Ihr Gefährten: Ein Fallgitter geht nur auf, wenn die beiden Hebel in den Seitenstollen zugleich gezogen werden.', '#ffd98a');
   if (D.zb) zbEnter(M);
+  if (D.kz) kzEnter(M);
   Sound.tone(98, .8, 'sine', .05); Sound.tone(73, 1.2, 'sine', .04, 0, .2);
   sendPresence(true); markDirty(true);
 }
@@ -501,7 +517,8 @@ function leaveDungeon(silent){
   G.mons = M.world.mons; G.loot = M.world.loot; G.shots = M.world.shots; G.rising = M.world.rising;
   k.x = door.x; k.y = door.y + 30; k.dir = 'down'; k.kbx = k.kby = 0;
   G.zone = gZone(k.x, k.y).id; updateZone(false); G.near = null; G.dgNear = null; $('btnTalk').hidden = true;
-  if (!silent){ logLine('Ihr steigt wieder hinauf ans Tageslicht.', '#ffd98a'); Sound.tone(147, .5, 'sine', .04); }
+  if (!silent){ logLine(M.D.kz ? 'Ihr kehrt vom Kriegszug zurück.' : 'Ihr steigt wieder hinauf ans Tageslicht.', '#ffd98a'); Sound.tone(147, .5, 'sine', .04); }
+  if (M.kz) renderTracker();
   sendPresence(true); markDirty(true);
 }
 const dgDay = () => Math.floor(skyNow() / DAY_LEN);
@@ -532,14 +549,14 @@ function dgNear(){
   if (near !== G.dgNear){
     G.dgNear = near;
     const b = $('btnTalk'); b.hidden = !near;
-    b.textContent = near === 'stair' ? 'Hinaufsteigen' : near === 'chest' ? 'Truhe öffnen' : dgLvN(near, near && G.lever === +near.slice(6));
+    b.textContent = near === 'stair' ? (M.D.kz ? 'Rückzug antreten' : 'Hinaufsteigen') : near === 'chest' ? 'Truhe öffnen' : dgLvN(near, near && G.lever === +near.slice(6));
   }
 }
 function dgInteract(){
   if (G.mode !== 'play') return;
   if (G.dgNear === 'stair') leaveDungeon();
   else if (G.dgNear === 'chest'){ dgOpenChest(); G.dgNear = 'neu'; dgNear(); }
-  else if (G.dgNear && G.dgNear.startsWith('lever:')) dgPull(+G.dgNear.slice(6));
+  else if (G.dgNear && G.dgNear.startsWith('lever:')) (DG_ON.D.kz ? kzPull : dgPull)(+G.dgNear.slice(6));
 }
 function updateDungeon(dt){
   const M = DG_ON, k = G.knight;
@@ -551,6 +568,7 @@ function updateDungeon(dt){
   updateFx(dt); updateBossBar(); dgNear();
   if (M.D.group) dgGroupTick(M);
   if (M.D.zb) zbTick(M, dt);
+  if (M.D.kz) kzTick(M, dt);
   // erkundete Felder (für die kleine Karte)
   const ti = Math.floor((k.x - M.ox) / DG_T), tj = Math.floor((k.y - M.oy) / DG_T);
   for (let j = tj - 6; j <= tj + 6; j++) for (let i = ti - 8; i <= ti + 8; i++) if (i >= 0 && j >= 0 && i < M.C && j < M.Rn) M.seen[j * M.C + i] = 1;
@@ -657,8 +675,8 @@ function dgSeg(s, k){
 }
 function dgObjImg(o){
   if (o.chest && DG_ON.chestOpen) return o.openImg || (o.openImg = wp_paintV('truhe', 1, 1).img);
-  if (o.lever != null) return dgLeverDown(o.lever) || DG_ON.gates[o.gate].open ? o.downImg || (o.downImg = wp_paintV(o.kind, 1, 1).img) : o.img;
-  if (o.gate != null && DG_ON.gates[o.gate].open) return o.openImg || (o.openImg = wp_paintV('gitter', 1, 1).img);
+  if (o.lever != null) return (DG_ON.kz ? DG_ON.kz.done[o.lever] && o.kind !== 'kanone' && o.kind !== 'fass' : dgLeverDown(o.lever) || DG_ON.gates[o.gate].open) ? o.downImg || (o.downImg = wp_paintV(o.kind, 1, 1).img) : o.img;
+  if (o.gate != null && DG_ON.gates[o.gate].open) return o.openImg || (o.openImg = o.kind === 'gitter' ? wp_paintV('gitter', 1, 1).img : canvasOf(1, 1));
   return o.img;
 }
 function dgLights(cam){

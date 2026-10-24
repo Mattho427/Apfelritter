@@ -67,7 +67,16 @@ const OST_NPC = [
   { id: 'fuhrmann_sp', name: 'Fuhrmann Claus', role: 'Reisen', hub: 'speyer', at: gNear(5160, 1110), art: 'fuhrmann', fuhr: 'speyer',
     greet: ['Von Speyer aus fahre ich die Hohe Straße nach Osten. Setzt Euch auf die Säcke, es wird holprig.'] },
   { id: 'fuhrmann_an', name: 'Fuhrmann Gottfried', role: 'Reisen', hub: 'annaberg', at: gNear(2860, 3420), art: 'fuhrmann', fuhr: 'annaberg',
-    greet: ['Ich fahre Silber nach Augsburg zu den Fuggern. Ein Ritter auf dem Wagen ist mir nur recht.'] }
+    greet: ['Ich fahre Silber nach Augsburg zu den Fuggern. Ein Ritter auf dem Wagen ist mir nur recht.'] },
+  // Kriegszüge: der Werber vor dem Nordtor von Augsburg, der Schiffmeister an der Donaulände
+  { id: 'werber', name: 'Hauptmann Kaspar Winzerer', role: 'Kriegszug nach Pavia', at: gNear(7530, 3470), kz: 'pavia',
+    greet: ['Herr Georg von Frundsberg zieht über die Alpen, der Kaiser braucht jeden Spieß in Italien! Vor Pavia liegt der König von Frankreich mit seinem ganzen Heer.',
+      'Viel Feind, viel Ehr, sagt der Frundsberg. Wer mit Gefährten kommt, hat bessere Aussichten, heil heimzukehren.',
+      'Doppelten Sold für Doppelsöldner, Herr Ritter. Für Euch aber gibt es mehr: Die Kriegskasse des Königs steht in seinem Lager.'] },
+  { id: 'schiffmeister', name: 'Schiffmeister Ulrich', role: 'Kriegszug nach Wien', at: gNear(7690, 3046), kz: 'wien',
+    greet: ['Meine Ulmer Schachtel fährt die Donau hinab bis nach Wien. Graf Salm braucht dort jeden Mann, die Türken stehen vor der Stadt.',
+      'Der Sultan Süleyman hat hundertzwanzigtausend Mann. Seine Mineure graben Stollen unter die Mauern und füllen sie mit Pulver.',
+      'Nehmt Gefährten mit. In den Gegenminen ist es eng, dunkel, und die Zeit läuft gegen Euch.'] }
 ];
 for (const n of OST_NPC){ n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.art || n.id]; n.key = n.id; NPCS.push(n); }
 for (const [hub, id] of [['wittenberg', 'cranach'], ['nuernberg', 'pirckheimer'], ['augsburg', 'mschwarz']]){ const n = NPCS.find(q => q.id === id); if (n) BIND[hub] = { x: n.x, y: n.y + 30 }; }
@@ -155,6 +164,7 @@ function ostTalkOpts(n, opts){
   if (n.id === 'stiftsherr'){
     opts.append(btn('Die Thesen an der Tür lesen' + (HERO.thesen ? '' : ' (neu)'), () => renderTalk('ostThesen'), 'opt'));
   }
+  kzTalkOpts(n, opts);
   if (n.id === 'fugger'){
     opts.append(btn('Erzählt von der Fuggerei', () => { G.greet = 'Hundertsechs Wohnungen, jede mit eigener Tür, eigener Küche und einem kleinen Garten. Wer dort wohnt, zahlt einen rheinischen Gulden im Jahr. Das ist mein Werk für die Ewigkeit, Herr Ritter.'; renderTalk('main'); }, 'opt'));
   }
@@ -186,4 +196,175 @@ function ostView(view, body, opts){
     opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn'));
     body.append(opts);
   }
+}
+
+/* ============ Kriegszüge: Pavia 1525 und Wien 1529 ============
+   Zwei Abenteuer für Gruppen, die man beim Werber vor Augsburg und beim Schiffmeister an der Donaulände beginnt. Sie laufen im Gewölbe
+   (eigene Karte, eigene Gegner), haben aber Ziele, die nacheinander erfüllt werden (M.kz.step). Gefährten teilen offene Tore und
+   gelöschte Lunten über die Anwesenheit (go: Tore als Zahl, Hebel als 10 + Nummer). Die Stufe richtet sich nach dem stärksten Gefährten.
+   Pavia: Die Kanone sprengt die Mauer des Tiergartens, dann vierzehn Feinde im Park, dann fällt die Palisade vor dem Lager des Königs.
+   Wien: Sieben Minuten, um die Lunten in drei Pulverkammern zu löschen, sonst fliegt die Mine in die Luft; dann der Aga. */
+DG_DEF.pavia = { name: 'Die Schlacht bei Pavia', kz: true, base: [24, 28], lvl: [0, 2], cols: 48, rows: 50, style: 4, dark: .45, seed: 1525, lever: 'kanone',
+  rooms: [[19, 2, 10, 6, 'lager'], [17, 12, 14, 7, 'bresche'], [3, 22, 12, 10, 'park'], [18, 22, 12, 10, 'park'], [33, 22, 12, 10, 'park'], [16, 36, 16, 12, 'vault']],
+  links: [[0, 1], [1, 3], [3, 2], [3, 4], [3, 5]],
+  gates: [{ a: 0, row: 9, kind: 'ruine_mauer' }, { a: 3, row: 33, kind: 'palisade' }],
+  levers: [{ room: 0, gate: 0 }],
+  mobs: { bresche: [['schweizer', 3], ['arkebusier', 2]], park: [['schweizer', 2], ['gendarm', 1], ['arkebusier', 1]], vault: [['gendarm', 2], ['schweizer', 1]] },
+  elite: { k: 'franz', name: 'König Franz I. von Frankreich' }, chest: 'die Kriegskasse des Königs', chestN: 'die Kriegskasse des Königs', need: 14,
+  short: 'Pavia 1525', lvN: 'Kanone abfeuern', lvDone: 'Die Kanone hat gefeuert',
+  goals: ['Feuert die Kanone auf die Mauer des Tiergartens', 'Schlagt das Heer im Tiergarten: {n} / {need}', 'Stellt König Franz in seinem Lager'],
+  gateT: [['Bresche geschossen', 'Hinein in den Tiergarten von Mirabello', 'Die Kanone donnert, die Mauer des Tiergartens bricht in einer Wolke aus Staub! Durch die Bresche stürmen die Landsknechte in den nebligen Park.'],
+    ['Die Palisade fällt', 'Dahinter liegt das Lager des Königs', 'Der Tiergarten ist genommen. Die Landsknechte reißen die Palisade nieder. Dahinter steht das Zelt des Königs von Frankreich.']],
+  intro: 'Pavia, am Morgen des 24. Februar 1525. Nebel liegt über dem Tiergarten von Mirabello, in dem das französische Heer lagert. Feuert die Kanone am Nordrand des Lagers auf die Mauer, dann hinein mit den Landsknechten! Mit Gefährten geht es leichter.',
+  win: ['König Franz ergibt sich', 'Der Sieg von Pavia gehört dem Kaiser'],
+  winL: 'König Franz I. ist vom Pferd gestürzt und ergibt sich. An seine Mutter schreibt er am Abend: „Von allem ist mir nichts geblieben als die Ehre und das Leben.“ Die Kriegskasse im Zelt gehört Euch.' };
+DG_DEF.wien = { name: 'Die Gegenminen vor Wien', kz: true, base: [26, 28], lvl: [0, 2], cols: 46, rows: 48, style: 2, dark: .9, seed: 1529, lever: 'fass', time: 420,
+  rooms: [[19, 2, 8, 6, 'entry'], [15, 11, 16, 8, 'mine'], [2, 12, 9, 7, 'pulver'], [35, 12, 9, 7, 'pulver'], [16, 24, 14, 8, 'mine'], [3, 26, 9, 7, 'pulver'], [13, 37, 20, 9, 'vault']],
+  links: [[0, 1], [1, 2], [1, 3], [1, 4], [4, 5], [4, 6]],
+  gates: [{ a: 4, row: 34 }],
+  levers: [{ room: 2, gate: 0 }, { room: 3, gate: 0 }, { room: 5, gate: 0 }],
+  mobs: { mine: [['mineur', 2], ['janitschar', 2]], pulver: [['mineur', 1], ['tuefekci', 1]], vault: [['janitschar', 2], ['tuefekci', 1]] },
+  names: { mineur: 'Osmanischer Mineur' },
+  elite: { k: 'aga', name: 'Der Aga der Janitscharen' }, chest: 'die Kriegskasse des Aga', chestN: 'die Kriegskasse des Aga',
+  short: 'Wien 1529', lvN: 'Lunte herausreißen', lvDone: 'Die Lunte ist gelöscht',
+  goals: ['Löscht die Lunten in den Pulverkammern: {n} / 3, noch {t}', 'Besiegt den Aga der Janitscharen'],
+  gateT: [['Die Mine ist entschärft', 'Hinter dem Gitter wartet der Aga', 'Alle drei Lunten sind gelöscht! Das Fallgitter zum letzten Stollen fährt hoch, und von unten hört man den Aga seine Janitscharen zum Sturm rufen.']],
+  intro: 'Wien, im Oktober 1529. Unter dem Kärntnertor haben die Mineure des Sultans drei Pulverkammern gegraben, die Lunten brennen schon. Ihr habt sieben Minuten, um sie alle zu löschen. Mit Gefährten geht es leichter.',
+  win: ['Wien hält stand', 'Sultan Süleyman bricht die Belagerung ab'],
+  winL: 'Der Aga fällt, die Janitscharen fliehen durch ihre Stollen. Drei Tage später lässt Sultan Süleyman die Zelte abbrechen und zieht ab. Wien ist gerettet, und Ihr wart dabei.' };
+UNIQUES.franz = { s: 'helm', n: 'Der Federhelm des Königs Franz', aff: ['crit', 'str', 'hp'] };
+UNIQUES.aga = { s: 'kleinod', n: 'Der Reiherbusch des Aga', aff: ['spd', 'crit', 'arm'] };
+const kzFoes = () => G.mons.filter(m => !m.elite).length;
+function kzEnter(M){
+  M.kz = { step: 0, done: {}, kills: 0, n0: kzFoes(), t: M.D.time || 0, tShown: -1, won: false };
+  logLine(M.D.intro, '#ffd98a');
+  renderTracker();
+}
+/* was die Gefährten wissen sollen: offene Tore und erledigte Hebel */
+function kzGo(M){
+  const a = M.openG.slice();
+  for (const li of Object.keys(M.kz.done)) a.push(10 + +li);
+  return a.length ? a : null;
+}
+function kzGate(M, gi, mine){
+  const gt = M.gates[gi], K = M.kz, T = M.D.gateT[gi]; if (!gt || gt.open || !K) return;
+  gt.open = true;
+  for (const t of gt.tiles) M.blk[t] = 0;
+  M.openG = M.gates.map((g, i) => g.open ? i : -1).filter(i => i >= 0);
+  K.step = Math.max(K.step, gi + 1);
+  burst(gt.o.x, gt.o.y - 20, M.D.style === 4 ? ['#6e5a42', '#9a948a', '#5c4e3c', '#c9c2ad'] : ['#6e5a42', '#9a948a', '#c9c2ad'], 32, 120); G.shake = .45;
+  Sound.thunder(); Sound.tone(70, .9, 'sawtooth', .05, 30);
+  showBanner(T[0], T[1]); logLine((mine ? '' : 'Eure Gefährten waren schneller. ') + T[2], '#ffd98a');
+  renderTracker(); sendPresence(true);
+}
+/* Hebel der Kriegszüge: die Kanone in Pavia, die Pulverfässer in Wien */
+function kzDone(M, li, mine){
+  const K = M.kz, L = M.levers[li]; if (!K || !L || K.done[li]) return;
+  K.done[li] = 1;
+  if (M.id === 'pavia'){
+    G.flash = .35; G.shake = .5; Sound.thunder(); Sound.tone(55, 1.2, 'sawtooth', .06, -10);
+    burst(L.o.x + 20, L.o.y - 30, ['#fff4c0', '#ffd060', '#ff9030', '#4a4440'], 26, 130, true);
+    floatText(L.o.x, L.o.y - 46, 'Feuer!', '#ffd98a', 1, 1.4);
+    kzGate(M, L.gate, mine);
+  } else {
+    const n = Object.keys(K.done).length, all = n >= M.levers.filter(Boolean).length;
+    Sound.tone(900, .5, 'sine', .03, -700); burst(L.o.x, L.o.y - 30, ['#ffd36a', '#9a948a', '#3a3028'], 10, 60);
+    floatText(L.o.x, L.o.y - 46, 'Gelöscht ' + n + ' / 3', '#9fe08a', 1, 1.6);
+    logLine((mine ? 'Ihr reißt die brennende Lunte aus dem Pulverfass' : 'Ein Gefährte hat eine Lunte gelöscht') + ' (' + n + ' von 3).', '#9fe08a');
+    if (mine && !all){   // die Mineure merken es und stürzen herbei
+      for (let j = 0; j < 2; j++){ const p = dgRandWalk(L.o.x, L.o.y + 40, 50, 110); if (p) G.rising.push({ kind: j ? 'janitschar' : 'mineur', x: p.x, y: p.y, t: .8 + j * .3, lvl: M.lvl[1], engage: true }); }
+      logLine('Aus einem Seitenstollen stürzen Türken herbei!', '#ff9a8a');
+    }
+    if (all) kzGate(M, L.gate, mine);
+  }
+  G.dgNear = 'neu'; dgNear(); renderTracker(); sendPresence(true);
+}
+function kzPull(li){ const M = DG_ON; if (M && M.kz && !M.kz.won) kzDone(M, li, true); }
+function kzTick(M, dt){
+  const K = M.kz, D = M.D; if (!K) return;
+  const here = 'dg:' + M.id;
+  for (const q of PEERS.values()) if (q.in === here && q.go) for (const v of q.go){
+    if (v >= 10){ if (M.levers[v - 10] && !K.done[v - 10]) kzDone(M, v - 10, false); }
+    else if (M.gates[v] && !M.gates[v].open) kzGate(M, v, false);
+  }
+  // brennende Lunten an den Pulverfässern, Rauch über der abgefeuerten Kanone
+  for (const [li, L] of M.levers.entries()) if (L && G.parts.length < 400 && Math.random() < dt * (M.id === 'wien' ? (K.done[li] ? 0 : 16) : K.done[li] ? 5 : 0)){
+    const w = M.id === 'wien', o = L.o;
+    G.parts.push(w ? { x: o.x + rand(-2, 2), y: o.y - 26, vx: rand(-18, 18), vy: rand(-50, -20), life: rand(.25, .5), c: Math.random() < .5 ? '#ffd36a' : '#ff8a2a', g: 60, glow: true }
+      : { x: o.x + 22 + rand(-3, 3), y: o.y - 24, vx: rand(-6, 6), vy: rand(-24, -10), life: rand(1, 2), c: '#8a8680', g: -4, s: 2 });
+  }
+  if (K.won) return;
+  if (D.need && K.step === 1){
+    const n = clamp(K.n0 - kzFoes(), 0, D.need);
+    if (n !== K.kills){ K.kills = n; renderTracker(); }
+    if (n >= D.need) kzGate(M, 1, true);
+  }
+  if (D.time && K.step === 0){
+    K.t -= dt;
+    const s = Math.max(0, Math.ceil(K.t));
+    if (s !== K.tShown){
+      K.tShown = s; renderTracker();
+      if (s === 120 || s === 60 || s === 30 || s === 10){ logLine('Noch ' + (s >= 60 ? s / 60 + (s === 60 ? ' Minute' : ' Minuten') : s + ' Sekunden') + ', dann fliegt die Mine in die Luft!', '#ff9a8a'); Sound.tone(440, .15, 'square', .03); }
+    }
+    if (K.t <= 0) return kzBlast(M);
+  }
+  if (K.step >= D.gates.length && !G.mons.some(m => m.elite)) kzWin(M);
+}
+function kzBlast(M){
+  const k = G.knight;
+  M.kz.t = 0; M.kz.won = true;
+  Sound.thunder(); Sound.tone(50, 1.4, 'sawtooth', .07, -20); G.flash = .9; G.shake = .8;
+  for (const L of M.levers) if (L) burst(L.o.x, L.o.y - 20, ['#ffd36a', '#ff7020', '#3a3028', '#9a948a'], 40, 160, true);
+  showBanner('Die Mine fliegt in die Luft', 'verschüttet, aber am Leben');
+  logLine('Zu spät! Die Pulverkammern gehen hoch, der Stollen stürzt ein. Halb taub und voller Staub zieht man Euch aus dem Schutt. Versucht es noch einmal, schneller und mit Gefährten.', '#ff9a8a');
+  leaveDungeon(true);
+  k.hp = Math.max(1, Math.round(k.hp * .35)); updateHud(); renderTracker();
+}
+function kzWin(M){
+  const K = M.kz, D = M.D, k = G.knight;
+  K.won = true; K.step = 99;
+  HERO.kz = HERO.kz || {};
+  const first = !HERO.kz[M.id];
+  HERO.kz[M.id] = (HERO.kz[M.id] | 0) + 1;
+  Sound.horn(); G.flash = .4;
+  showBanner(D.win[0], D.win[1]); logLine(D.winL, '#ecd27a');
+  const xp = Math.round(xpNeed(Math.min(HERO.lvl, MAX_LVL - 1)) * (first ? .25 : .06));
+  if (xp > 0){ gainXp(xp); floatText(k.x, k.y - KS.ay - 22, '+' + xp + ' EP', '#c9a6ff', 1, 1.6); }
+  const u = UNIQUES[D.elite.k], L = M.lvl[1] + 1;
+  if (first || Math.random() < .15) dropLoot({ x: k.x, y: k.y + 10 }, 'item', 0, makeItem(u.s, L, 4, { name: u.n, aff: u.aff, u: D.elite.k }));
+  for (const mm of G.mons.slice()){ burst(mm.x, mm.y - 20, DEATH_COLORS[mm.k] || ['#9a948a'], 8, 60); G.mons.splice(G.mons.indexOf(mm), 1); }   // der Rest des Heeres flieht
+  pushFame(); renderTracker(); updateHud(); markDirty(true);
+}
+/* Zeile im Auftragskasten */
+function kzRows(box){
+  const M = DG_ON; if (!M || !M.kz) return;
+  const K = M.kz, D = M.D, p = el('p', K.won ? 'done' : 'ev');
+  const t = Math.max(0, Math.ceil(K.t)), mm = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+  const g = K.won ? (K.step === 99 ? D.win[0] : 'gescheitert') : D.goals[Math.min(K.step, D.goals.length - 1)].replace('{n}', D.need ? K.kills : Object.keys(K.done).length).replace('{need}', D.need || 3).replace('{t}', mm);
+  p.append(el('b', null, D.short + ': '), g);
+  box.append(p);
+}
+/* der Werber und der Schiffmeister */
+const KZ_MIN = { pavia: 24, wien: 26 };
+function kzStart(n){
+  const id = n.kz, D = DG_DEF[id];
+  if (HERO.lvl < KZ_MIN[id]){ G.greet = 'Kommt wieder, wenn Ihr Stufe ' + KZ_MIN[id] + ' erreicht habt. Dort draußen sterben selbst erfahrene Ritter.'; renderTalk('main'); return; }
+  closePanel();
+  enterDungeon({ dg: id, x: n.x, y: n.y + 6, name: D.name });
+}
+function kzTalkOpts(n, opts){
+  if (!n.kz) return;
+  const id = n.kz, b = btn((id === 'pavia' ? 'Mit Frundsberg nach Pavia ziehen' : 'Mit der Ulmer Schachtel nach Wien fahren') + ' (ab Stufe ' + KZ_MIN[id] + (HERO.kz && HERO.kz[id] ? ', schon ' + HERO.kz[id] + '-mal gesiegt' : '') + ')', () => kzStart(n), 'opt');
+  opts.append(b);
+  opts.append(btn(id === 'pavia' ? 'Erzählt von Pavia' : 'Erzählt von Wien', () => {
+    G.greet = id === 'pavia' ? 'König Franz belagert Pavia seit Oktober. Antonio de Leyva hält die Stadt mit Landsknechten und Spaniern, aber das Geld geht ihm aus. Wir greifen nachts an, durch die Mauer des Tiergartens, wo der König sein Lager hat. Am Ende werden wir ihn stellen. Ein König, gefangen von Landsknechten, das hat die Welt noch nicht gesehen!'
+      : 'Die Türken haben Ungarn genommen, nun stehen sie vor Wien. Ihre Mineure graben unter dem Kärntnertor. Wir graben ihnen entgegen, in Gegenminen, und wer zuerst das Pulver findet, gewinnt. Unten wartet der Aga der Janitscharen mit seinen besten Männern.';
+    renderTalk('main'); }, 'opt'));
+}
+for (const id of ['pavia', 'wien']){
+  const D = DG_DEF[id], li = el('li'), im = el('img'), wh = el('span', 'what', D.name);
+  lazySrc(im, () => urlOf(wp_paintV(id === 'pavia' ? 'kanone' : 'fass', 0, 1).img, 1)); im.alt = ''; im.className = 'horseimg';
+  wh.append(el('small', null, id === 'pavia' ? 'Kriegszug beim Werber vor dem Nordtor von Augsburg, ab Stufe 24, für Gruppen: Kanone auf die Mauer des Tiergartens, vierzehn Feinde im Park, dann König Franz in seinem Lager. Er bewacht ' + D.chest + '.'
+    : 'Kriegszug beim Schiffmeister an der Donaulände, ab Stufe 26, für Gruppen: In sieben Minuten die Lunten in drei Pulverkammern löschen, dann den Aga der Janitscharen besiegen. Er bewacht ' + D.chest + '.'));
+  li.append(im, wh); $('dgList').append(li);
 }

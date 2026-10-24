@@ -767,7 +767,9 @@ const DEATH_COLORS = {
   kreuzotter:['#5e5440', '#16130f', '#c43020'], strauchdieb:['#544838', '#36363c', '#c79a7a'], irrwisch:['#f0b050', '#fff6d8'], keiler:['#362c22', '#5c4e3c', '#cbc4a6'],
   moosweib:['#3e5226', '#727e62', '#a8301e'], reisiger:['#6e767e', '#7a2420', '#c79a7a'], riesenkrebs:['#423822', '#923a1c', '#6e5c3a'], geisterreiter:['#7eaebc', '#d0eef4', '#56406e'],
   geisterbogner:['#7eaebc', '#d0eef4', '#56406e'], hackelberg:['#243426', '#36363e', '#ff6a3a', '#a8987a'], eppelein:['#6e767e', '#a8241e', '#7a401c'],
-  donauweibchen:['#64948a', '#86963a', '#e0e0d8', '#9ff4ff'], bulcsu:['#6e3e86', '#cabc5a', '#d0eef4']
+  donauweibchen:['#64948a', '#86963a', '#e0e0d8', '#9ff4ff'], bulcsu:['#6e3e86', '#cabc5a', '#d0eef4'],
+  schweizer:['#a82a22', '#e6e6de', '#c79a7a'], arkebusier:['#243466', '#acaca4', '#6e767e'], gendarm:['#6e767e', '#223266', '#d4aa3a'], franz:['#203078', '#d4aa3a', '#f0f0ec', '#6e767e'],
+  janitschar:['#243a66', '#d4d4ca', '#7a2020'], tuefekci:['#7a1a18', '#d4d4ca', '#b89432'], mineur:['#463626', '#bab2a2', '#a8241e'], aga:['#861814', '#d4aa3a', '#ecece2']
 };
 function kill(m){
   const i = G.mons.indexOf(m); if (i >= 0) G.mons.splice(i, 1);
