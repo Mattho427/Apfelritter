@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 6 von 26: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
+/* Der Apfelritter, Teil 6 von 27: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltgrafiken, Teil 2: Burg, Stadtmauer, Ruine, Kleinteile ============ */
 /* Licht von links: lx = -1 (Kante links) .. 1 (rechts) */

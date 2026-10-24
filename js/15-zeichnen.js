@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 15 von 26: Zeichnen des Spielbilds.
+/* Der Apfelritter, Teil 15 von 27: Zeichnen des Spielbilds.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Zeichnen ============ */
 function shadow(x, y, w, a){
@@ -244,6 +244,7 @@ const inView = (x, y, cam, m) => { m = m || 60; return x > cam.x - m && x < cam.
 function npcMark(n){
   if (HERO && stWants(n.id)) return '!';
   if (HERO && asMark(n)) return '!';
+  const rm = HERO ? rrMark(n) : ''; if (rm) return rm;
   if (n.fest && !n.festShop && HERO) return HERO.festDone && HERO.festDone[festKey()] ? '' : '!';
   if (!n.quest || !HERO) return '';
   if (HERO.quests.some(q => { const d = qInfo(q); return d && d.giver === n.id && q.n >= d.need; })) return '?';
@@ -344,13 +345,13 @@ function render(){
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
   for (const e of lifeL) list.push({ y: (e.sy || e.y) + .05, d: () => drawLife(e) });
   for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => { drawKnightAt(p, knightSet(p.f, p.lk), p.dead, 1); if (p.bk) drawBucket(p.x - 14, p.y - 14); } });
-  evList(cam, list); stList(cam, list); asList(cam, list); fishList(cam, list);
+  evList(cam, list); stList(cam, list); asList(cam, list); fishList(cam, list); rrList(cam, list);
   if (G.bucket && !title) list.push({ y: k.y + .21, d: () => drawBucket(k.x - 14, k.y - 14) });
   if (!title) list.push({ y: k.y + .2, d: drawKnight });
   festList(cam, list);
   list.sort((p, q) => p.y - q.y);
   for (const it of list) it.d();
-  festOverlay(cam); drawFgameWorld(cam);
+  festOverlay(cam); drawFgameWorld(cam); rrOverlay();
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
   drawSky(cam);
   for (const s of G.shots) if (s.k === 'bolt' || s.k === 'ball') drawShot(s);
@@ -402,7 +403,7 @@ function render(){
       const pal = inParty(p);
       drawText(p.nm + ' ' + p.lv, p.x, p.y - KS.ay - 15 - up, pal ? '#9fe08a' : '#9cc8ff');
       if (p.or){ const tw = textImg(p.nm + ' ' + p.lv, '#ffffff').width; ctx.drawImage(orBanner(p.or.wp), Math.round(p.x - tw / 2 - 16), Math.round(p.y - KS.ay - 21 - up)); }
-      ehPlate(p, up);
+      ehPlate(p, up); rrPlate(p, up);
       if (pal){ const x0 = Math.round(p.x - 12), y0 = Math.round(p.y - KS.ay - 3 - up); ctx.fillStyle = OUT; ctx.fillRect(x0, y0, 24, 4); ctx.fillStyle = '#3a1416'; ctx.fillRect(x0 + 1, y0 + 1, 22, 2); ctx.fillStyle = '#7fd65f'; ctx.fillRect(x0 + 1, y0 + 1, Math.round(22 * p.hp / 100), 2); }
       if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11 - up, p.say);
     }
@@ -427,9 +428,10 @@ function render(){
     ctx.fillStyle = o.boss ? '#ecd27a' : '#d0343c'; ctx.fillRect(x - 4, y - 4, 9, 9);
     if (o.boss){ ctx.fillStyle = '#d0343c'; ctx.fillRect(x - 2, y - 2, 5, 5); }
   }
-  if (!title && !G.scene){ drawQuestArrow(k); drawMiniMap(k, cam); drawSkyHud(); duelWatch(); }
+  if (!title && !G.scene){ drawQuestArrow(k); drawQuestArrow(k, rrTarget(), true); drawMiniMap(k, cam); drawSkyHud(); duelWatch(); }
   stOverlay(cam);
   if (G.fgame) drawFgameUI();
+  rrUi();
   if (G.flash > 0 && !RM){
     ctx.fillStyle = 'rgba(220,226,255,' + Math.min(.45, G.flash * .9).toFixed(2) + ')';
     ctx.fillRect(0, 0, W, H);

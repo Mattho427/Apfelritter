@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 14 von 26: Tjost, Gewölbe, Feste im Jahreslauf.
+/* Der Apfelritter, Teil 14 von 27: Tjost, Gewölbe, Feste im Jahreslauf.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Turnier: Tjost auf der Wiese vor der Reichsstadt ============
    Drei Durchgänge an der Schranke. Kurz vor dem Zusammenprall wandert das Ziel über den Gegner:
@@ -982,7 +982,7 @@ function festReward(f, ok, extra){
   const key = festKey(), first = ok && !HERO.festDone[key];
   if (!ok){ logLine(extra || 'Diesmal nicht. Versucht es noch einmal!', '#d8c69c'); return; }
   const gold = first ? 20 + HERO.lvl * 3 : 4 + HERO.lvl;
-  HERO.gold += gold; Sound.levelUp(); lwAdd(5);
+  HERO.gold += gold; Sound.levelUp(); lwAdd(5); rrFest(f);
   let txt = gold + ' Gulden';
   if (first){
     HERO.festDone[key] = true;

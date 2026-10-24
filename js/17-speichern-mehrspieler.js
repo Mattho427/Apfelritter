@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 17 von 26: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
+/* Der Apfelritter, Teil 17 von 27: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Speichern: im Browser und, wo möglich, im Konto ============ */
 const cloud = { db:null, uid:null, user:null, room:null, saving:false, last:'', nextT:0, noWrite:false, fameLast:'', fameBusy:false, fameNoWrite:false, fameT:0, loaded:false };
@@ -220,7 +220,7 @@ function netRead(q, p, s){
   q.cb = Array.isArray(s.cb) ? [num(s.cb[0], 1, 800, 5), num(s.cb[1], 0, 60, 5)] : [Math.round(4 + q.lv * 2.5), 5];
   q.rq = obj(s.q); q.an = obj(s.a); q.jo = obj(s.jo); q.tr = obj(s.tr); q.dc = obj(s.dc); q.ev = obj(s.ev); q.fr = obj(s.fr);
   const pt = obj(s.pt); q.pt = pt && typeof pt.id === 'string' && /^[a-z0-9]{3,12}$/.test(pt.id) ? { id: pt.id, t: +pt.t || 0 } : null;
-  q.bz = typeof s.bz === 'string' ? s.bz.slice(0, 2) : '';
+  q.bz = typeof s.bz === 'string' ? s.bz.slice(0, 2) : ''; q.rr = typeof s.rr === 'string' ? s.rr.slice(0, 1) : '';
   q.or = orClean(s.or);
   q.gt = obj(s.gt); q.bk = !!s.bk;
   q.wa = ehHas(WAPPEN, s.wa) ? s.wa : null; q.ht = ehHas(HT, s.ht) ? s.ht : null;
@@ -241,7 +241,8 @@ function netPres(){
   o.hl = M && G.lever != null ? G.lever : null;
   o.go = M && M.openG.length ? M.openG : DG_ON && DG_ON.kz ? kzGo(DG_ON) : null;   // Kriegszüge: Tore und Hebel
   o.dd = M ? { k: M.id + ':' + dgDay(), d: Math.round(M.bossDmg || 0) } : null;
-  o.bz = G.joust ? 'j' : G.fgame ? 'f' : NET.tr ? 'h' : NET.dc ? 'w' : '';
+  o.rr = rrPres() || null;
+  o.bz = G.joust ? 'j' : G.fgame ? 'f' : rrBusy() ? 'p' : NET.tr ? 'h' : NET.dc ? 'w' : '';
   o.jo = NET.jo ? duelPres() : null;
   o.tr = NET.tr ? tradePres() : null;
   o.dc = NET.dc ? dicePres() : null;
@@ -263,7 +264,7 @@ function netAsk(q, kind, x){
 function netBusy(kind, q, mine){
   const who = mine ? q.nm : 'Ihr';
   if (G.mode !== 'play' && G.mode !== 'menu') return 'Gerade nicht.';
-  if (kind !== 'party' && (G.joust || G.fgame || NET.tr || NET.dc || NET.jo)) return 'Ihr seid gerade beschäftigt.';
+  if (kind !== 'party' && (G.joust || G.fgame || NET.tr || NET.dc || NET.jo || rrBusy())) return 'Ihr seid gerade beschäftigt.';
   if (mine && kind !== 'party' && q.bz) return q.nm + ' ist gerade beschäftigt.';
   if (kind === 'party' && mine && q.pt && NET.pt && q.pt.id === NET.pt.id) return q.nm + ' ist schon in Eurer Gruppe.';
   if (kind === 'party' && mine && NET.pt && partyList().length >= PARTY_MAX - 1) return 'Eure Gruppe ist voll.';

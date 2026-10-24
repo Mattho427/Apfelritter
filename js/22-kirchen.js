@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 22 von 26: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
+/* Der Apfelritter, Teil 22 von 27: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Kirchen, Priester und Glaube ============
@@ -306,8 +306,8 @@ function chUpdate(dt){   // aus updateInn, solange man in einer Kirche ist
   const pr = rm.clergyN.find(n => n.segen || n.messe) || rm.clergyN[0];
   if (CH.sermT <= 0){ CH.sermT = 7; CH.say = { n: pr, text: SERMON[CH.sermI++ % SERMON.length] }; CH.sayT = nowS() + 6; }
   if (M.t >= CH_MESSE_NEED && HERO.messe !== d){
-    HERO.messe = d;
-    chBless(CH_SEGEN, 'Die Messe ist gelesen. ' + pr.name.replace(/^\S+ /, '') + ' spendet Euch den Segen.');
+    HERO.messe = d; rrChurch('messe');
+    if (!rrNoBless()) chBless(CH_SEGEN, 'Die Messe ist gelesen. ' + pr.name.replace(/^\S+ /, '') + ' spendet Euch den Segen.');
     const xp = Math.round(15 + HERO.lvl * 6); if (HERO.lvl < MAX_LVL){ gainXp(xp); floatText(G.knight.x, G.knight.y - KS.ay - 10, '+' + xp + ' EP', '#c9a6ff', 1, 1.2); }
   }
 }
@@ -320,9 +320,9 @@ function chHour(hr){   // Glocken: eine Stunde vor der Messe in Städten, Burg u
 }
 /* Segen: mehr Leben, schnellere Erholung, mehr Schaden gegen Untote */
 function chBless(t, msg){
-  HERO.bless = { t };
+  HERO.bless = { t: rrBlessT(t) };   // beim alten Glauben länger
   refreshStats(); updateHud(); renderBuffs(); markDirty(true);
-  logLine(msg || 'Ihr seid gesegnet: 20 Minuten lang mehr Leben, schnellere Erholung und +15 % Schaden gegen Untote.', '#ffe9a0');
+  logLine(msg || 'Ihr seid gesegnet: ' + Math.round(HERO.bless.t / 60) + ' Minuten lang mehr Leben, schnellere Erholung und +15 % Schaden gegen Untote.', '#ffe9a0');
   burst(G.knight.x, G.knight.y - KBODY, ['#fff3c0', '#ecd27a', '#ffffff'], 18, 60, true); Sound.potion();
 }
 const CH_CROSS = makeSprite(['..a..', '..a..', 'aaaaa', '..a..', '..a..', '..a..', '..a..'], { a: '#ecd27a' }, OUT);
@@ -347,12 +347,13 @@ function chRoomTop(rm){
 }
 
 /* ---------- Gespräch mit den Geistlichen ---------- */
-const chSegenPreis = () => 4 + HERO.lvl * 2;
-const chAblassPreis = () => 25 + HERO.lvl * 8;
+const chSegenPreis = () => rufPrice(4 + HERO.lvl * 2, 'kirche');   // das Ansehen bei der Kirche macht es billiger oder teurer (Teil 26)
+const chAblassPreis = () => rufPrice(25 + HERO.lvl * 8, 'kirche');
 function chTalkOpts(n, opts){
   if (!n.clergy) return;
   const has = HERO.gold;
-  if (n.segen){ const p = chSegenPreis(), b = btn('Um den Segen bitten (' + p + ' Gulden Spende)', () => renderTalk('chSegen'), 'opt'); b.disabled = has < p; opts.append(b); }
+  if (n.segen && rrNoBless()) opts.append(el('p', 'hint', 'Der Priester sieht Euch nicht an. Wer bei der Kirche verachtet ist, wird nicht gesegnet.'));
+  else if (n.segen){ const p = chSegenPreis(), b = btn('Um den Segen bitten (' + p + ' Gulden Spende)', () => renderTalk('chSegen'), 'opt'); b.disabled = has < p; opts.append(b); }
   if (n.beichte) opts.append(btn('Beichten', () => renderTalk('chBeichte'), 'opt'));
   if (n.kerze){ const b = btn('Eine Kerze stiften (2 Gulden)', () => renderTalk('chKerze'), 'opt'); b.disabled = has < 2; opts.append(b); }
   if (n.wallfahrt){
@@ -363,16 +364,17 @@ function chTalkOpts(n, opts){
   }
   if (n.messe || n.segen) opts.append(btn('Wann ist Messe?', () => renderTalk('chMesse'), 'opt'));
   if (n.ablassRede) opts.append(btn('Was haltet Ihr vom Ablass?', () => renderTalk('chLore'), 'opt'));
-  if (n.ablass){ const p = chAblassPreis(), b = btn(HERO.ablass ? 'Ihr tragt schon einen Ablassbrief' : 'Einen Ablassbrief kaufen (' + p + ' Gulden)', () => renderTalk('chAblass'), 'opt'); b.disabled = !!HERO.ablass || has < p; opts.append(b); }
+  if (n.ablass){ const p = chAblassPreis(), neu = HERO.glaube === 'neu', b = btn(neu ? 'Wer zum Bekenntnis steht, kauft keinen Ablass' : HERO.ablass ? 'Ihr tragt schon einen Ablassbrief' : 'Einen Ablassbrief kaufen (' + p + ' Gulden)', () => renderTalk('chAblass'), 'opt'); b.disabled = neu || !!HERO.ablass || has < p; opts.append(b); }
 }
 function chView(view, body, opts){
   const n = G.talk, say = t => { $('talkText').textContent = t; }, back = () => { opts.append(btn('Zurück', () => renderTalk('main'), 'tbtn')); body.append(opts); };
   if (view === 'chSegen'){
     const p = chSegenPreis();
     if (HERO.gold < p){ say('Gott segnet auch die Armen, Herr Ritter. Kommt zur Messe um zehn Uhr, da kostet der Segen nichts.'); return back(); }
+    if (rrNoBless()){ say('Für Euch habe ich keinen Segen. Geht.'); return back(); }
     HERO.gold -= p; updateHud();
     say('Der Herr segne dich und behüte dich. Der Herr lasse sein Angesicht leuchten über dir. Gehe hin in Frieden.');
-    chBless(CH_SEGEN); return back();
+    chBless(CH_SEGEN); rrChurch('segen'); return back();
   }
   if (view === 'chBeichte'){
     if (HERO.beicht === chDay()){ say('Ihr wart heute schon bei mir, mein Sohn. Kommt morgen wieder.'); return back(); }
@@ -381,7 +383,7 @@ function chView(view, body, opts){
       ['Ich habe beim Würfeln geflucht.', 'Fluchen beleidigt den Herrn. Betet drei Ave Maria, und lasst die Würfel öfter liegen.'],
       ['Ich habe mehr Bier getrunken, als gut war.', 'Maß halten ist eine Tugend. Betet ein Vaterunser und trinkt morgen Wasser.']]){
       opts.append(btn(s, () => {
-        HERO.beicht = chDay(); HERO.mood = { t: Math.max(HERO.mood ? HERO.mood.t : 0, 600) };
+        HERO.beicht = chDay(); HERO.mood = { t: Math.max(HERO.mood ? HERO.mood.t : 0, 600) }; rrChurch('beichte');
         renderBuffs(); markDirty(true); say(a + ' Ego te absolvo. Geht in Frieden.');
         logLine('Nach der Beichte ist Euch leicht ums Herz: 10 Minuten gute Laune (+10 % Erfahrung).', '#ffe9a0');
         body.textContent = ''; opts.textContent = ''; back();
@@ -391,7 +393,7 @@ function chView(view, body, opts){
   }
   if (view === 'chKerze'){
     if (HERO.gold < 2){ say('Für eine Kerze braucht es zwei Gulden.'); return back(); }
-    HERO.gold -= 2; updateHud(); markDirty();
+    HERO.gold -= 2; updateHud(); markDirty(); rrChurch('kerze');
     const L = CH.cand[G.inside.id] = (CH.cand[G.inside.id] || []).filter(t => t > nowS()); L.push(nowS() + 600);
     say(pick(['Ihr entzündet eine Kerze für die Seelen der Verstorbenen.', 'Ihr entzündet eine Kerze für eine glückliche Heimkehr.', 'Ihr entzündet eine Kerze für alle, die im Feld stehen.']) + ' Sie brennt im Ständer beim Eingang.');
     Sound.click(); return back();
@@ -406,7 +408,7 @@ function chView(view, body, opts){
   if (view === 'chPilgerEnde'){
     const P = HERO.pilg, j = HERO.inv.indexOf(null);
     if (j < 0){ say('Euer Rucksack ist voll. Macht Platz für das Pilgerzeichen.'); return back(); }
-    P.done = 1;
+    P.done = 1; rrChurch('pilger');
     const it = makeItem('kleinod', Math.min(MAX_LVL, HERO.lvl + 1), 3, { name: 'Jakobsmuschel des Pilgers', aff: ['hp', 'crit'] });
     HERO.inv[j] = it; logItem('Pilgerzeichen: ', it);
     const xp = Math.round(120 + HERO.lvl * 40); if (HERO.lvl < MAX_LVL) gainXp(xp);
@@ -418,8 +420,9 @@ function chView(view, body, opts){
   if (view === 'chLore'){ say('Manche sagen, die Gnade Gottes lasse sich nicht kaufen. Ein Mönch aus Wittenberg, Martin Luther, schrieb fünfundneunzig Thesen gegen den Ablasshandel. Andere halten den Ablass für ein frommes Werk. Entscheidet selbst, Herr Ritter.'); return back(); }
   if (view === 'chAblass'){
     const p = chAblassPreis();
+    if (HERO.glaube === 'neu'){ say('Ein Lutherischer will einen Ablassbrief? Geht mir aus den Augen!'); return back(); }
     if (HERO.ablass || HERO.gold < p){ say(HERO.ablass ? 'Ihr tragt doch schon einen Ablassbrief, Herr Ritter!' : 'Ohne Geld kein Ablass. So ist es nun einmal.'); return back(); }
-    HERO.gold -= p; HERO.ablass = true; updateHud(); renderBuffs(); markDirty(true);
+    HERO.gold -= p; HERO.ablass = true; updateHud(); renderBuffs(); markDirty(true); rrChurch('ablass');
     say('Hier ist Euer Ablassbrief, gesiegelt und gültig. Fallt Ihr im Kampf, so bewahrt er Euer Gold. Und nun: Wer ist der Nächste?');
     logLine('Ablassbrief gekauft: Beim nächsten Fall verliert Ihr kein Gold.', '#ffd98a'); Sound.coin(); return back();
   }

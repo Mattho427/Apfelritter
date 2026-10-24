@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 18 von 26: Weltereignisse, Ritterorden, Großes Turnier, Start.
+/* Der Apfelritter, Teil 18 von 27: Weltereignisse, Ritterorden, Großes Turnier, Start.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltereignisse: für alle Ritter zur selben Stunde ============
    Die Uhr der Welt bestimmt, wann etwas geschieht: um 9 Uhr überfallen Raubritter das Dorf Lindach, um 22 Uhr zieht
@@ -340,7 +340,7 @@ function evEnd(won){
   evClear(E);
   if (!won){ if (E.part) logLine(d.lost, '#d8c69c'); renderTracker(); return; }
   if (E.contrib){
-    orCount('boss'); lwAdd(15); ehCount('ev');
+    orCount('boss'); lwAdd(15); ehCount('ev'); rrEvent(d.id);
     const gold = 25 + HERO.lvl * 5, xp = Math.round(xpNeed(HERO.lvl) * .2) + 20;
     HERO.gold += gold; HERO.potions = Math.min(20, HERO.potions + 2);
     HERO.evFirst = HERO.evFirst || {};

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 21 von 26: Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg.
+/* Der Apfelritter, Teil 21 von 27: Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spätes Spiel: Ehrenstufen, Wochenprüfungen des Reiches, Ehrenzeichen, Trophäen, Wappen und Titel ============ */
 const EH_CAP = 30;                                         // höchstens 30 Ehrenstufen zählen für Leben und Schaden (je 0,5 %)

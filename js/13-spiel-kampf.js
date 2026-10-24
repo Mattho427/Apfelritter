@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 13 von 26: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
+/* Der Apfelritter, Teil 13 von 27: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;
@@ -605,7 +605,7 @@ function huntHit(e, h){
 }
 function huntKill(e){
   const H = HUNT[e.k], b = huntBody(e);
-  orCount('wild'); stHunt(e.k); lwAdd(1);
+  orCount('wild'); stHunt(e.k); lwAdd(1); rrHunt(e);
   e.gone = true; e.spot.cool = 150;
   Sound.kill(); burst(b.x, b.y, ['#8a2a2a', '#6a4a30', '#c8a070', '#3a2a1e'], 14, 80);
   for (const [w, p] of H.drops) if (Math.random() < p) dropLoot({ x: e.x, y: e.y }, 'item', 0, makeWare(w));
@@ -776,6 +776,7 @@ function kill(m){
   const d = MON[m.k], c = centerOf(m), k = G.knight;
   if (m.ev) evMark(m);
   if (m.story) stKill(m);
+  rrKill(m);   // Steckbriefe und Fehde
   if (m.ev && m.ev.boss){ burst(c.x, c.y, m.ghost ? ['#9fdcff', '#e8f6ff', '#ffffff'] : DEATH_COLORS[m.k], 50, 140, true); Sound.kill(); G.flash = .4; return; }   // Lohn kommt mit dem Ende des Ereignisses
   if (!killCredit(m)){ burst(c.x, c.y, DEATH_COLORS[m.k], 12, 70); Sound.kill(); if (m.slot){ m.slot.mon = null; m.slot.t = d.boss ? 240 : rand(40, 70); } return; }
   if (m.grp) return m.k === 'noeck' ? zbKill(m) : dgDrakeKill(m);
@@ -1092,7 +1093,7 @@ function update(dt){
   const z = gZone(G.knight.x, G.knight.y).id;
   if (z !== G.zone){ G.zone = z; updateZone(true); }
   updateSpawns(dt);
-  stTick(dt); fishTick(dt);
+  stTick(dt); fishTick(dt); rrTick(dt);
   updateLoot(dt);
   if (G.mode === 'play') updateMons(dt);
   if (G.mode === 'play') updateShots(dt);

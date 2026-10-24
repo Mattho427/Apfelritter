@@ -439,6 +439,17 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 .panel .qcard .qrew{color:#c9a6ff;}
 .qcard.done{box-shadow:inset 0 0 0 2px #5a8a3a;}
 .qcard.story{box-shadow:inset 0 0 0 2px var(--gold-lo); background:color-mix(in srgb, var(--stone-lo) 85%, #4a3a10);}
+.qcard.rufcard{justify-items:stretch;}
+.rufrow{display:grid; grid-template-columns:5.2em 1fr 10.5em; gap:8px; align-items:center; font-size:17px;}
+.rufbar{position:relative; height:10px; background:#2a2420; box-shadow:0 0 0 2px #16120f;}
+.rufbar::after{content:''; position:absolute; left:50%; top:-2px; bottom:-2px; width:2px; background:#8a7a5a;}
+.ruffill{position:absolute; top:0; bottom:0;}
+.rufrang{color:var(--parchment-lo); white-space:nowrap; text-align:right;}
+.panel .qcard .rufeff{color:var(--parchment-lo); font-size:15px; margin:-2px 0 4px;}
+.panel .qcard .qgoal.bad{color:#ff8a7a;}
+.rrbar{position:relative; height:22px; margin:6px 0 10px; background:#2a2420; box-shadow:0 0 0 3px #16120f;}
+.rrzone{position:absolute; top:0; bottom:0; background:#5a9a4a;}
+.rrmark{position:absolute; top:-5px; bottom:-5px; width:4px; margin-left:-2px; background:#ffffff;}
 .panel .qcard .qyear{color:var(--parchment-lo); font-style:italic;}
 .qcard .chron{width:100%; font-size:16px; color:var(--parchment);}
 .qcard .chron summary{cursor:pointer; color:var(--gold-hi);}
@@ -950,6 +961,14 @@ body{margin:0; padding:0;}
               <p class="tip">Kriegszüge sind für Gruppen gedacht, man schafft sie aber auch allein, wenn man stark genug ist. Die Stufe richtet sich nach dem stärksten Gefährten. Gefährten im selben Kriegszug teilen offene Tore und gelöschte Lunten. Der erste Sieg bringt viel Erfahrung, ein Einzelstück und einen Eintrag im Trophäenbuch; die Kriegskasse füllt sich jeden Tag neu.</p>
             </div>
             <div class="note">
+              <h3>Recht und Ruf</h3>
+              <ul class="list" id="rufList"></ul>
+              <p class="tip">Fürsten, Städte, Bauern und Kirche merken sich, was Ihr tut: Aufträge, Feste, Weltereignisse, Kriegszüge, Kerzen und Wallfahrten bringen Ansehen, Verbrechen und Flucht kosten es. Im Auftragsbuch (L) seht Ihr, wie Ihr bei jedem Stand dasteht und was es Euch bringt.</p>
+              <h3>Recht und Gericht</h3>
+              <ul class="list" id="rechtList"></ul>
+              <p class="tip">Oben links steht, ob auf Euch ein Kopfgeld ausgesetzt ist. Die Wachen stehen an den Toren und gehen über die Märkte; wer gesucht wird, macht besser einen Bogen um sie oder geht gleich zum Büttel. Der goldene Pfeil zeigt das Versteck eines Gesuchten, auf der Karte steht ein rotes Zeichen.</p>
+            </div>
+            <div class="note">
               <h3>Ehre und Trophäen</h3>
               <ul class="list" id="ehNote"></ul>
               <p class="tip">Nach Stufe 30 geht die Erfahrung in Ehrenstufen: Jede bringt ein Ehrenzeichen, Gulden und ein halbes Hundertstel mehr Leben und Schaden (bis Ehrenstufe 30). Ab Stufe 18 stellt der Reichsherold in Speyer jede Woche drei Prüfungen, für alle Ritter dieselben; jede bestandene bringt drei Ehrenzeichen. Dafür gibt es beim Herold legendäre Rüstung, Prunkwappen und Ehrentitel. Große Taten kommen ins Trophäenbuch, viele bringen ein Wappen. Wappen und Titel sehen alle Ritter neben Eurem Namen.</p>
@@ -1043,4 +1062,5 @@ body{margin:0; padding:0;}
 <script src="js/23-bergland.js"></script>
 <script src="js/24-ostlande.js"></script>
 <script src="js/25-feste-spiele.js"></script>
-<script src="js/26-waffen-bibel-start.js"></script>
+<script src="js/26-recht-ruf.js"></script>
+<script src="js/27-waffen-bibel-start.js"></script>

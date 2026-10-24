@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 11 von 26: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
+/* Der Apfelritter, Teil 11 von 27: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */
@@ -64,7 +64,7 @@ function qInfo(q){
     d:'Der Rat zahlt für jedes erschlagene Untier. Erschlagt ' + q.need + ' Monster im Gebiet ' + ZONE_BY_ID[q.zone].name + '.' };
   return QDEF[q.id];
 }
-const qReward = d => ({ xp: Math.round(xpNeed(d.lvl) * (d.boss ? .8 : d.id === 'kg' ? .3 : .4)), gold: (d.boss ? 40 : 6) + d.lvl * (d.boss ? 10 : 5), rar: d.boss ? 3 : d.id === 'kg' ? 0 : 1 });
+const qReward = d => ({ xp: Math.round(xpNeed(d.lvl) * (d.boss ? .8 : d.id === 'kg' ? .3 : .4)), gold: Math.round(((d.boss ? 40 : 6) + d.lvl * (d.boss ? 10 : 5)) * rufLohn(d.giver)), rar: d.boss ? 3 : d.id === 'kg' ? 0 : 1 });
 
 /* ============ Der Held (wird gespeichert) ============ */
 const SAVE_KEY = 'apfelritter-held-v5';
@@ -93,7 +93,7 @@ function cleanHero(h){
   if (!HORSES[h.horse]) h.horse = null;
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
-  h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1200, +h.bless.t || 0) } : null; h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
+  h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1800, +h.bless.t || 0) } : null; h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
   h.kz = h.kz && typeof h.kz === 'object' ? { pavia: Math.max(0, h.kz.pavia | 0), wien: Math.max(0, h.kz.wien | 0) } : {};
   h.fsw = h.fsw && typeof h.fsw === 'object' ? Object.fromEntries(['muehle', 'karten', 'kegeln', 'ringen'].map(k => [k, Math.max(0, h.fsw[k] | 0)])) : {};
   h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};
@@ -107,7 +107,7 @@ function cleanHero(h){
   if (h.frec){ const o = {}; for (const r of FREC.map(q => q.id)) if (+h.frec[r] > 0) o[r] = Math.round(+h.frec[r]); h.frec = o; }
   for (const key of ['evDone', 'evFirst', 'evCur']) if (h[key] && typeof h[key] !== 'object') h[key] = null;
   if (h.story) h.story = stCleanStory(h.story);
-  asHero(h); strHero(h); ehHero(h);
+  asHero(h); strHero(h); ehHero(h); rrHero(h);
   return h;
 }
 let HERO = null;
@@ -128,7 +128,7 @@ function heroStats(h){
   s.regen = 1;
   const fx = [(KN_FACTIONS[h.f] || KN_FACTIONS.reich).bonus].concat([h.food, h.drink].map(b => b && b.t > 0 && FARE_BY[b.id] ? FARE_BY[b.id].fx : null));
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }
-  if (!two && isBib(h.eq.schild)) s.regen *= 1.5;   // die Bibel: schneller wieder bei Kräften
+  if (!two && isBib(h.eq.schild)) s.regen *= h.glaube === 'neu' ? 1.8 : 1.5;   // die Bibel: schneller wieder bei Kräften, mit dem Bekenntnis noch mehr
   if (h.bless && h.bless.t > 0){ s.hp *= 1.08; s.regen = Math.max(s.regen, 1.5); }   // Segen aus der Kirche
   for (const id in SETS){ const n = SLOTS.filter(sl => h.eq[sl] && h.eq[sl].set === id && !(two && sl === 'schild')).length;   // Rüstungssätze
     for (const [need, k, v] of SETS[id].bon) if (n >= need){ if (k === 'hp' || k === 'dmg' || k === 'arm') s[k] *= 1 + v / 100; else s[k] += v; } }
@@ -247,7 +247,7 @@ const FARE = [
 ];
 const FARE_BY = Object.fromEntries(FARE.map(f => [f.id, f]));
 const FARE_MIN = 15;                                  // Minuten Spielzeit, die eine Mahlzeit vorhält
-const farePrice = f => Math.round(f.base * (1 + HERO.lvl * .45));
+const farePrice = f => rufPrice(f.base * (1 + HERO.lvl * .45), 'bauern');
 const fxText = fx => [fx.hpPct && '+' + fx.hpPct + ' % Leben', fx.dmgPct && '+' + fx.dmgPct + ' % Schaden', fx.crit && '+' + fx.crit + ' % Volltreffer', fx.spd && '+' + fx.spd + ' % Hiebtempo', fx.regen && (fx.regen > 2 ? 'dreifache' : 'doppelte') + ' Erholung'].filter(Boolean).join(', ');
 Object.assign(Sound, {
   eat(){ for (let i = 0; i < 3; i++) this.noise(.05, .06, 1200, i * .12); },

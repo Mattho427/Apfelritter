@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 24 von 26: Die Ostlande: Wittenberg, Nürnberg und Augsburg, ihre Leute, Aufträge, der Fuhrmann, die Thesen.
+/* Der Apfelritter, Teil 24 von 27: Die Ostlande: Wittenberg, Nürnberg und Augsburg, ihre Leute, Aufträge, der Fuhrmann, die Thesen.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Die Ostlande (Version 26) ============
@@ -128,7 +128,7 @@ const fuhrNpc = id => NPCS.find(q => q.id === FUHR[id].npc);
 function fuhrCost(from, to){
   const a = fuhrNpc(from), b = fuhrNpc(to);
   if (!a || !b) return 0;
-  return Math.round((6 + Math.hypot(a.x - b.x, a.y - b.y) / WS / 180) * (1 + HERO.lvl * .12));
+  return rufPrice((6 + Math.hypot(a.x - b.x, a.y - b.y) / WS / 180) * (1 + HERO.lvl * .12), 'bauern');
 }
 function fuhrTo(from, to){
   const n = fuhrNpc(to), cost = fuhrCost(from, to);
@@ -325,7 +325,7 @@ function kzWin(M){
   K.won = true; K.step = 99;
   HERO.kz = HERO.kz || {};
   const first = !HERO.kz[M.id];
-  HERO.kz[M.id] = (HERO.kz[M.id] | 0) + 1;
+  HERO.kz[M.id] = (HERO.kz[M.id] | 0) + 1; rrKz(first);
   Sound.horn(); G.flash = .4;
   showBanner(D.win[0], D.win[1]); logLine(D.winL, '#ecd27a');
   const xp = Math.round(xpNeed(Math.min(HERO.lvl, MAX_LVL - 1)) * (first ? .25 : .06));

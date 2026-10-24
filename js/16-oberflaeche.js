@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 26: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 27: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -50,19 +50,19 @@ function questTarget(){
     const d = qInfo(q); if (!d) continue;
     if (q.n >= d.need){ const n = NPCS.find(x => x.id === d.giver); if (n) return { x: n.x, y: n.y, label: 'Abgabe' }; }
     else if (d.boss) return { x: LAIRS[d.boss].x, y: LAIRS[d.boss].y, label: MON[d.boss].name };
-    else { const z = ZONE_BY_ID[d.zone]; if (z && G.zone !== d.zone) return { x: z.label.x, y: z.label.y, label: z.name }; }
+    else { const z = ZONE_BY_ID[d.zone]; if (z && G.zone !== d.zone) return { x: z.label.x * WS, y: z.label.y * WS, label: z.name }; }   // Namen der Gebiete stehen in Weltpixeln
   }
   return null;
 }
 const QARROW = [];
-function drawQuestArrow(k){
-  const t = questTarget(); if (!t) return;
+function drawQuestArrow(k, t0, red){   // red: der rote Pfeil zu Gesuchten und zur Fehde (Teil 26)
+  const t = t0 === undefined ? questTarget() : t0; if (!t) return;
   const dx = t.x - k.x, dy = t.y - k.y;
   if (Math.hypot(dx, dy) < 220) return;
   const a = Math.atan2(dy, dx), c = Math.cos(a), s = Math.sin(a);
   const sc = Math.min((W / 2 - 30) / Math.abs(c || 1e-6), (H / 2 - 30) / Math.abs(s || 1e-6));
   const cx = Math.round(W / 2 + c * sc), cy = Math.round(H / 2 + s * sc);
-  const pulse = (G.t * 3 | 0) % 2, ai = ((Math.round(a / (Math.PI * 2) * 64) % 64) + 64) % 64, key = ai + pulse * 64;
+  const pulse = (G.t * 3 | 0) % 2, ai = ((Math.round(a / (Math.PI * 2) * 64) % 64) + 64) % 64, key = ai + pulse * 64 + (red ? 128 : 0);
   let img = QARROW[key];
   if (!img){
     const aq = ai / 64 * Math.PI * 2, qc = Math.cos(aq), qs = Math.sin(aq), cg = (img = QARROW[key] = canvasOf(33, 33)).getContext('2d');
@@ -70,12 +70,12 @@ function drawQuestArrow(k){
       const u = (x * qc + y * qs) / 1.4, v = (-x * qs + y * qc) / 1.4;     // u entlang, v quer
       const inside = u <= 9 && u >= -5 && Math.abs(v) <= (9 - u) * .5;
       const edge = u <= 9.8 && u >= -5.8 && Math.abs(v) <= (9.8 - u) * .55 + .45;
-      if (inside){ cg.fillStyle = u > 3 ? (pulse ? '#ffffff' : '#fff0a0') : '#ffd541'; cg.fillRect(x + 16, y + 16, 1, 1); }
+      if (inside){ cg.fillStyle = u > 3 ? (pulse ? '#ffffff' : red ? '#ffc8b8' : '#fff0a0') : red ? '#e0483c' : '#ffd541'; cg.fillRect(x + 16, y + 16, 1, 1); }
       else if (edge){ cg.fillStyle = OUT; cg.fillRect(x + 16, y + 16, 1, 1); }
     }
   }
   ctx.drawImage(img, cx - 16, cy - 16);
-  drawText(t.label, clamp(cx - c * 30, 60, W - 60), clamp(cy - s * 24 - 6, 6, H - 18), '#ffd541');
+  drawText(t.label, clamp(cx - c * 30, 60, W - 60), clamp(cy - s * 24 - 6, 6, H - 18), red ? '#ff9a8a' : '#ffd541');
 }
 
 /* ============ Oberfläche ============ */
@@ -461,7 +461,7 @@ function renderTracker(){
   box.textContent = '';
   if (!HERO) return;
   if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
-  stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); kzRows(box); partyRows(box);
+  rrRows(box); stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); kzRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');
@@ -566,13 +566,14 @@ function drawFullMap(){
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d || q.n >= d.need) continue;
     const z = ZONE_BY_ID[d.zone]; if (!z) continue;
-    g.strokeStyle = '#c9a227'; g.lineWidth = 2; g.setLineDash([4, 3]); g.beginPath(); g.arc(P(z.label.x), P(z.label.y) + 14, 22, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = '#c9a227'; g.lineWidth = 2; g.setLineDash([4, 3]); g.beginPath(); g.arc(P(z.label.x * WS), P(z.label.y * WS) + 14, 22, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
   }
   for (const m of G.mons){ g.fillStyle = MON[m.k].boss ? '#8e1b1b' : '#3a1014'; g.fillRect(P(m.x) - 1, P(m.y) - 1, 3, 3); }
   for (const inn of INNS){ g.fillStyle = '#16120f'; g.fillRect(P(inn.dx) - 3, P(inn.y) - 3, 7, 7); g.fillStyle = '#e0823a'; g.fillRect(P(inn.dx) - 2, P(inn.y) - 2, 5, 5); }
   for (const p of PEERS.values()){ const at = peerAt(p), px = P(at ? at.x : p.x) + (at ? 5 : 0), py = P(at ? at.y : p.y); g.fillStyle = '#16120f'; g.fillRect(px - 3, py - 3, 7, 7); g.fillStyle = inParty(p) ? '#7fe08a' : '#6a9ae0'; g.fillRect(px - 2, py - 2, 5, 5); if (inParty(p)){ g.font = '12px monospace'; g.fillStyle = '#16120f'; g.fillText(p.nm, px + 6, py + 5); g.fillStyle = '#cfeec2'; g.fillText(p.nm, px + 5, py + 4); } }
   const stm = stTarget(); if (stm){ const sx = P(stm.x), sy = P(stm.y); g.fillStyle = '#16120f'; g.beginPath(); g.moveTo(sx, sy - 8); g.lineTo(sx + 7, sy); g.lineTo(sx, sy + 8); g.lineTo(sx - 7, sy); g.fill(); g.fillStyle = '#ffd541'; g.beginPath(); g.moveTo(sx, sy - 6); g.lineTo(sx + 5, sy); g.lineTo(sx, sy + 6); g.lineTo(sx - 5, sy); g.fill(); }
   const es = evMark2(); if (es){ const ex = P(es.x), ey = P(es.y); g.fillStyle = '#16120f'; g.fillRect(ex - 1, ey - 14, 3, 16); g.fillRect(ex + 1, ey - 15, 10, 8); g.fillStyle = '#d0343c'; g.fillRect(ex + 2, ey - 14, 8, 6); g.fillStyle = '#e8dcbc'; g.fillRect(ex, ey - 13, 1, 14); }
+  rrMap(g, P);
   const kx = P(k.x), ky = P(k.y);
   g.fillStyle = '#16120f'; g.fillRect(kx - 4, ky - 4, 9, 9); g.fillStyle = '#ecd27a'; g.fillRect(kx - 3, ky - 3, 7, 7); g.fillStyle = '#b0242a'; g.fillRect(kx - 1, ky - 1, 3, 3);
 }
@@ -689,7 +690,7 @@ function openBag(){ if (!openPanel('ovBag')) return; G.sel = null; G.dropAsk = f
 /* ---------- Auftragsbuch ---------- */
 function renderQuests(){
   const box = $('questList'); box.textContent = '';
-  stQuestCard(box);
+  stQuestCard(box); rrQuestCard(box);
   if (!HERO.quests.length){ box.append(el('p', 'hint', 'Kein Auftrag. Der Vogt in der Reichsburg und der Bürgermeister der Reichsstadt haben Arbeit für Euch.')); return; }
   for (const q of HERO.quests){
     const d = qInfo(q), r = qReward(d), done = q.n >= d.need, card = el('div', 'qcard' + (done ? ' done' : ''));
@@ -730,7 +731,7 @@ function updateNear(force){
   }
 }
 function talk(){
-  if (G.mode !== 'play') return;
+  if (G.mode !== 'play' || rrBusy()) return;
   if (DG_ON) return dgInteract();
   if (G.fish){ if (Math.hypot(G.knight.x - G.fish.kx, G.knight.y - G.fish.ky) > 8) stopFish(); else return fishAct(); }
   if (G.evAct) return evDo(G.evAct);
@@ -759,7 +760,7 @@ function completeQuest(q){
   const d = qInfo(q), r = qReward(d);
   HERO.quests = HERO.quests.filter(x => x !== q);
   if (q.id !== 'kg') HERO.done.push(q.id);
-  HERO.gold += r.gold;
+  HERO.gold += r.gold; rrQuest(d);
   let it = null;
   if (r.rar){
     const empty = SLOTS.filter(s => !HERO.eq[s]), slot = empty.length ? pick(empty) : pick(SLOTS);
@@ -808,7 +809,7 @@ function renderTalk0(view){
     if (n.id === 'spielmann' && G.inside) for (const [id, name] of SONGS){ const b = btn(name + ' spielen lassen (1 Gulden)', () => { requestSong(id, name); renderTalk('main'); }, 'opt'); b.disabled = HERO.gold < 1; opts.append(b); }
     if (n.dice) opts.append(btn('Würfeln', () => { G.dice = null; renderTalk('dice'); }, 'opt'));
     if (n.fest) festTalk(n, opts);
-    if (n.shop){ opts.append(btn('Handeln: kaufen', () => renderTalk('buy'), 'opt'), btn('Handeln: verkaufen', () => renderTalk('sell'), 'opt')); }
+    if (n.shop && !rrAngry(n)){ opts.append(btn('Handeln: kaufen', () => renderTalk('buy'), 'opt'), btn('Handeln: verkaufen', () => renderTalk('sell'), 'opt')); }
     if (n.stable) opts.append(btn('Pferde ansehen', () => renderTalk('stable'), 'opt'));
     if (n.smith) opts.append(btn('Ausrüstung verbessern', () => renderTalk('smith'), 'opt'));
     if (n.joust) opts.append(btn('Zum Tjost antreten', () => renderTalk('joust'), 'opt'), btn('Großes Turnier' + (tnView() ? ' (' + (tnView().T.st === 'an' ? 'Anmeldung' : 'läuft') + ')' : ''), () => renderTalk('turnier'), 'opt'), btn('Wappenrolle: Ritterorden' + (HERO.or ? ' (' + HERO.or.kz + ')' : ''), () => renderTalk('orden'), 'opt'));
@@ -819,7 +820,8 @@ function renderTalk0(view){
     asTalkOpts(n, opts);
     ostTalkOpts(n, opts);
     fsTalkOpts(n, opts);
-    opts.append(btn('Lebt wohl', closePanel, 'opt'));
+    rrTalkOpts(n, opts);
+    opts.append(btn(n.rrWache ? 'Weggehen' : 'Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
     const q = view.q, d = qInfo(q), r = qReward(d);
@@ -892,6 +894,8 @@ function renderTalk0(view){
     ostView(view, body, opts);
   } else if (typeof view === 'string' && /^fs[A-Z]/.test(view)){
     fsView(view, body, opts);
+  } else if (typeof view === 'string' && /^rr[A-Z]/.test(view)){
+    rrView(view, body, opts);
   } else if (view === 'joust'){
     $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
       + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';
@@ -929,7 +933,7 @@ function renderTalk0(view){
     body.append(opts);
   } else if (view === 'buy'){
     $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden.';
-    const price = 4 + 2 * HERO.lvl, row = el('div', 'shoprow');
+    const price = rufPrice(4 + 2 * HERO.lvl, 'staedte'), row = el('div', 'shoprow');
     const im = el('img'); im.src = ICON_URL.potion; im.alt = '';
     const tx = el('div', 'stx'); tx.append(el('b', null, 'Heiltrank'), el('small', null, 'heilt 45 % des Lebens · ' + HERO.potions + ' / 20 im Gepäck'));
     const buy = m => { const n = Math.min(m, 20 - HERO.potions, Math.floor(HERO.gold / price)); if (n <= 0) return; HERO.gold -= n * price; HERO.potions += n; Sound.coin(); updateHud(); markDirty(true); renderTalk('buy'); };
@@ -944,7 +948,7 @@ function renderTalk0(view){
       const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
       const diff = statDiff(it).map(([nn, d]) => (d > 0 ? '+' : '−') + Math.abs(d) + ' ' + nn).join(', ');
       t.append(nm, el('small', null, itemLines(it).join(' · ')), el('small', 'cmp', diff ? 'Statt jetzt: ' + diff : ''));
-      const cost = it.v * 4, b = btn(cost + ' Gulden', () => {
+      const cost = rufPrice(it.v * 4, 'staedte'), b = btn(cost + ' Gulden', () => {
         const j = HERO.inv.indexOf(null);
         if (HERO.gold < cost || j < 0) return;
         HERO.gold -= cost; HERO.inv[j] = it; n.stock.splice(i, 1); Sound.coin(); logItem('Gekauft: ', it); updateHud(); markDirty(true); renderTalk('buy');
@@ -962,11 +966,11 @@ function renderTalk0(view){
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;
       const t = el('div', 'stx'), nm = el('b', null, itemName(it)); nm.style.color = RARITY[it.r].c;
       t.append(nm, el('small', null, it.s === 'ware' ? 'Handelsware aus der Jagd' : 'Stufe ' + it.il + ' · ' + itemLines(it).join(' · ')));
-      r.append(ic, t, btn('für ' + itemValue(it), () => { HERO.inv[i] = null; HERO.gold += itemValue(it); Sound.coin(); updateHud(); markDirty(true); renderTalk('sell'); }, 'tbtn'));
+      r.append(ic, t, btn('für ' + rufSell(itemValue(it)), () => { HERO.inv[i] = null; HERO.gold += rufSell(itemValue(it)); Sound.coin(); updateHud(); markDirty(true); renderTalk('sell'); }, 'tbtn'));
       body.append(r);
     }
     const commons = items.filter(([it]) => it.r === 0);
-    if (commons.length) opts.append(btn('Alles Gewöhnliche verkaufen (' + commons.reduce((a, [it]) => a + itemValue(it), 0) + ' Gulden)', () => { for (const [it, i] of commons){ HERO.inv[i] = null; HERO.gold += itemValue(it); } Sound.coin(); updateHud(); markDirty(true); renderTalk('sell'); }, 'tbtn'));
+    if (commons.length) opts.append(btn('Alles Gewöhnliche verkaufen (' + commons.reduce((a, [it]) => a + rufSell(itemValue(it)), 0) + ' Gulden)', () => { for (const [it, i] of commons){ HERO.inv[i] = null; HERO.gold += rufSell(itemValue(it)); } Sound.coin(); updateHud(); markDirty(true); renderTalk('sell'); }, 'tbtn'));
     opts.append(btn('Kaufen', () => renderTalk('buy'), 'tbtn'), btn('Zurück', () => renderTalk('main'), 'tbtn'));
     body.append(opts);
   }

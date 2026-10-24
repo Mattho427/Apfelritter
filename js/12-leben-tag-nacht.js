@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 12 von 26: Leben im Reichsland, Tag und Nacht, Wetter.
+/* Der Apfelritter, Teil 12 von 27: Leben im Reichsland, Tag und Nacht, Wetter.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leben im Reichsland: Tiere, Leute, Vögel ============
    Lebensorte aus der Welt; nahe beim Ritter entstehen ihre Bewohner, weit weg verschwinden sie wieder.
@@ -285,6 +285,7 @@ function lifeAnimal(e, dt){
 const VK_DIR = (vx, vy) => Math.abs(vx) > Math.abs(vy) ? (vx > 0 ? 'right' : 'left') : (vy > 0 ? 'down' : 'up');
 function lifePerson(e, dt){
   if ((e.mode === 'dance' || e.mode === 'parade') && festPerson(e, dt)) return;
+  if (e.rrChase && rrChase(e, dt)) return;   // eine Wache verfolgt den Ritter (Teil 26)
   const k = G.knight, dk = Math.hypot(k.x - e.x, k.y - e.y);
   if (e.mode === 'stand'){
     e.torch = e.type === 'wache' && SKY.night > .45;

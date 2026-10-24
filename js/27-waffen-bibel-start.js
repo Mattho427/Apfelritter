@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 26 von 26: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
+/* Der Apfelritter, Teil 27 von 27: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Waffenarten im Kampf: Bolzen, Fähigkeiten je Waffe, Zeugmeister ============
    Die Armbrust schießt statt zu hauen; jeder Schuss zählt wie ein Hieb (sw), Mitspieler erzeugen den Bolzen daraus selbst und
@@ -157,7 +157,7 @@ for (const w of ['schwert', 'hellebarde', 'zweihaender', 'armbrust']){
 /* ============ Kleine Bibel: Gebet, Fund beim ersten Wiedergänger, Tafel ============ */
 function bibPray(){
   const k = G.knight; if (k.bashT > 0) return;
-  const heal = Math.round(ST.hp * BIB_HEAL / 100);
+  const heal = Math.round(ST.hp * BIB_HEAL / 100 * (HERO.glaube === 'neu' ? 1.25 : 1));   // mit dem Augsburger Bekenntnis heilt das Gebet mehr
   k.hp = Math.min(ST.hp, k.hp + heal); k.slowT = 0;
   G.cd.stoss = cdT(BIB_CD, 'sturm', 3);
   floatText(k.x, k.y - KS.ay - 2, '+' + heal, '#ffe9a0', 1);
