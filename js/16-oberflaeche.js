@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 24: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 25: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -171,7 +171,28 @@ const BEASTS = [
   ['tatzelwurm', 'Der Tatzelwurm', 'Teufelsschlucht im Schwarzwald, Stufe 23, schnellt mit giftigem Biss vor'],
   ['bergmoench', 'Der Bergmönch', 'Altenberg-Stollen im Silberrevier, Stufe 25, verschwindet und taucht mit dem Fäustel wieder auf'],
   ['feldhauptmann', 'Feldhauptmann Balthasar Wüst', 'Söldnerschanze, Stufe 27, schnell und ruft seine Doppelsöldner'],
-  ['ruebezahl', 'Rübezahl', 'Felsenthron im Hochgebirge, Stufe 31, stürmt mit dem Baumstamm heran']
+  ['ruebezahl', 'Rübezahl', 'Felsenthron im Hochgebirge, Stufe 31, stürmt mit dem Baumstamm heran'],
+  ['kreuzotter', 'Kreuzotter', 'Dübener Heide, liegt im Heidekraut und beißt blitzschnell zu'],
+  ['strauchdieb', 'Strauchdieb', 'Heide, Reichswald und Gailingen, lauert an den Wegen'],
+  ['irrwisch', 'Irrwisch', 'Heide und Donauried, rötliches Licht über Weihern und Sumpf'],
+  ['keiler', 'Keiler', 'Reichswald, bricht mit gesenkten Hauern durchs Unterholz'],
+  ['moosweib', 'Moosweiblein', 'Reichswald, flinker Waldgeist im Mantel aus Moos'],
+  ['reisiger', 'Reisiger', 'Burg Gailingen, gerüsteter Knecht des Raubritters'],
+  ['riesenkrebs', 'Riesenkrebs', 'Donauried, kriecht aus dem Schlamm und kneift mit den Scheren'],
+  ['geisterreiter', 'Geisterreiter', 'Lechfeld, ungarischer Reiter aus der Schlacht von 955, reitet nachts'],
+  ['geisterbogner', 'Geisterbogner', 'Lechfeld, schießt vom Pferd aus großer Entfernung'],
+  ['hackelberg', 'Hackelberg, der Wilde Jäger', 'Hünengrab in der Dübener Heide, Stufe 15, jagt mit der Saufeder und ruft seine Hunde'],
+  ['eppelein', 'Eppelein von Gailingen', 'Burg Gailingen, Stufe 23, Raubritter zu Pferd, ruft seine Reisigen'],
+  ['donauweibchen', 'Das Donauweibchen', 'Ufer der Donau im Ried, Stufe 27, singt und schickt das Wasser gegen Euch'],
+  ['bulcsu', 'Bulcsú, der Geisterfürst', 'Ungarnstein auf dem Lechfeld, Stufe 31, führt die Geisterreiter an'],
+  ['schweizer', 'Schweizer Reisläufer', 'Kriegszug nach Pavia, Eidgenosse im Sold des Königs mit dem Spieß'],
+  ['arkebusier', 'Arkebusier des Königs', 'Kriegszug nach Pavia, schießt aus der Deckung der Hecken'],
+  ['gendarm', 'Französischer Gendarm', 'Kriegszug nach Pavia, schwerer Reiter in blankem Harnisch'],
+  ['franz', 'König Franz I. von Frankreich', 'Kriegszug nach Pavia, im Lager hinter dem Tiergarten, ergibt sich erst, wenn er geschlagen ist'],
+  ['janitschar', 'Janitschar', 'Kriegszug nach Wien, Kerntruppe des Sultans mit dem weißen Börk'],
+  ['tuefekci', 'Büchsenschütze der Janitscharen', 'Kriegszug nach Wien, schießt mit der Luntenflinte'],
+  ['mineur', 'Osmanischer Mineur', 'Kriegszug nach Wien, gräbt Stollen unter die Mauern'],
+  ['aga', 'Der Aga der Janitscharen', 'Kriegszug nach Wien, führt den Sturm in den Gegenminen']
 ];
 for (const [kind, name, desc] of BEASTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name), v = el('span', 'val' + (MON[kind].boss ? ' bad' : ''), MON[kind].boss ? 'Anführer' : '');
@@ -399,8 +420,8 @@ function updateZone(entered){
   }
   if (entered && !RM){ el2.style.animation = 'none'; void el2.offsetWidth; el2.style.animation = 'zonein 1.2s steps(6)'; }
   if (entered && !G.inside && G.zone === 'weiler' && EVT.raid) logLine('Ihr betretet Lindach. Raubritter plündern das Dorf!', '#ff9a8a');
-  else if (entered && !G.inside && SAFE[G.zone] && !isSafe(G.zone)) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das Dorf Lindach' : 'die ' + HUB_NAME[G.zone]) + '. Hier wird gekämpft!', '#ff9a8a');
-  else if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + (G.zone === 'weiler' || G.zone === 'fischerdorf' ? 'das ' : 'die ') + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
+  else if (entered && !G.inside && SAFE[G.zone] && !isSafe(G.zone)) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das Dorf Lindach' : hubArt(G.zone) + HUB_NAME[G.zone]) + '. Hier wird gekämpft!', '#ff9a8a');
+  else if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + hubArt(G.zone) + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
   if (entered && G.inside) logLine(G.inside.church ? 'Ihr tretet ein: ' + G.inside.name + '. Hier ist es still und kühl.' : 'Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
 }
 let bannerTimer = 0;
@@ -439,7 +460,7 @@ function renderTracker(){
   box.textContent = '';
   if (!HERO) return;
   if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
-  stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); partyRows(box);
+  stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); kzRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');
@@ -795,6 +816,7 @@ function renderTalk0(view){
     chTalkOpts(n, opts);
     ehTalkOpts(n, opts);
     asTalkOpts(n, opts);
+    ostTalkOpts(n, opts);
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -864,6 +886,8 @@ function renderTalk0(view){
     strView(view, body, opts);
   } else if (typeof view === 'string' && /^(post|markt|lw$|ordh)/.test(view)){
     asView(view, body, opts);
+  } else if (typeof view === 'string' && /^ost[A-Z]/.test(view)){
+    ostView(view, body, opts);
   } else if (view === 'joust'){
     $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
       + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';
@@ -909,7 +933,7 @@ function renderTalk0(view){
     b1.disabled = HERO.gold < price || HERO.potions >= 20; b5.disabled = HERO.gold < price * 5 || HERO.potions > 15;
     row.append(im, tx, el('span', 'sbtns')); row.lastChild.append(b1, b5);
     body.append(row);
-    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ const rich = n.hub === 'annaberg';   // die Bergstadt ist reich: bessere Ware
+    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ const rich = n.hub === 'annaberg' || n.rich;   // die Bergstadt und die großen Handelsstädte: bessere Ware
       n.stock = [makeItem(pick(SLOTS), HERO.lvl, rich ? 1 : 0), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl, rich ? 2 : 1), makeItem(pick(SLOTS), HERO.lvl + 1, rich ? 2 : 1)]; n.stockLvl = HERO.lvl; n.stockT = nowS() + 300; }
     n.stock.forEach((it, i) => {
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;

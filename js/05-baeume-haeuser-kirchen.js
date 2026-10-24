@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 5 von 24: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
+/* Der Apfelritter, Teil 5 von 25: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Bäume ============ */
 wp_P.sbark = wp_rmp(['#1d1613', '#2e241e', '#40322a', '#544237', '#685446']);                  // Fichtenrinde
@@ -76,7 +76,7 @@ function wp_lobes(R, cx, cy, rx, ry, n, k){
    o: cx, cy, rx, ry (Gesamtform für Licht), lobes [[x,y,rx,ry]], L Rampe, s, n Büschel gesamt,
    r0, r1 Büschelradius, sq Abflachung, mask(x,y), base Grundhelligkeit, dz Raster */
 function wp_crown(B, o){
-  if (wp_SEA === 3 && o.L !== wp_LEAF.fichte) return wp_bareCrown(B, o);
+  if (wp_SEA === 3 && o.L !== wp_LEAF.fichte && !o.ever) return wp_bareCrown(B, o);
   const R = rng(o.s), L = o.L, lobes = (o.lobes || [[o.cx, o.cy, o.rx, o.ry]]).slice();
   lobes.sort((p, q) => (p[1] + p[3] * .6) - (q[1] + q[3] * .6));
   const area = lobes.reduce((a, l) => a + l[2] * l[3], 0), sq = o.sq || .8, base = o.base === undefined ? .44 : o.base, dz = o.dz === undefined ? .55 : o.dz;
@@ -126,7 +126,7 @@ function wp_crown(B, o){
 }
 /* dunkles Kroneninneres mit Blattstruktur (sichtbar in Lücken) */
 function wp_crownCore(B, cx, cy, rx, ry, L, s, lobes){
-  if (wp_SEA === 3 && L !== wp_LEAF.fichte) return;
+  if (wp_SEA === 3 && L !== wp_LEAF.fichte && L !== wp_LEAF.kiefer) return;
   const f = (x, y) => wp_tq(L, .06 + (wp_h(x >> 1, y, s) > .7 ? .14 : 0) + wp_fbm(x * .2, y * .2, s, 2) * .16, x, y, .5);
   if (lobes) for (const l of lobes) wp_ell(B, l[0], l[1] + l[3] * .1, l[2] * .82, l[3] * .78, f);
   else wp_ell(B, cx, cy, rx, ry, f);
@@ -463,16 +463,19 @@ function wp_innSign(B, hx, hy, dir, emblem){
   for (let i = 0; i < 3; i++){ wp_set(B, hx + dir * (11 - i), hy - 1 - (i === 1 ? 1 : 0), I[3]); }
   const bx = dir > 0 ? hx + 2 : hx - 12, by = hy + 3;
   wp_set(B, bx + 1, hy + 1, I[2]); wp_set(B, bx + 1, hy + 2, I[1]); wp_set(B, bx + 9, hy + 1, I[2]); wp_set(B, bx + 9, hy + 2, I[1]);
-  const field = { adler: '#2a2420', krone: '#7a1e1c', ochse: '#d8ccae', anker: '#1c3450', kanne: '#2a3a2a' }[emblem] || '#2a2420';
+  const field = { adler: '#2a2420', krone: '#7a1e1c', ochse: '#d8ccae', anker: '#1c3450', kanne: '#2a3a2a', schwan: '#1e3a5a', gloecklein: '#5a1a14', lamm: '#2a4a2a' }[emblem] || '#2a2420';
   wp_rect(B, bx, by, bx + 11, by + 10, (x, y) => (x === bx || y === by || x === bx + 10 || y === by + 9) ? wp_tone(wp_P.oak, x === bx || y === by ? .7 : .3, x, y) : wp_mix(wp_c(field), wp_c('#000000'), (x - bx) * .025));
   const art = {
     adler: ['.g...g.', '.gg.gg.', 'g.ggg.g', 'ggggggg', '.g.g.g.', '..ggg..', '...g...'],
     krone: ['g..g..g', 'g.ggg.g', 'ggggggg', 'g.g.g.g', 'ggggggg', '.......', '.......'],
     ochse: ['r.....r', 'rr...rr', '.rrrrr.', '.rwrwr.', '..rrr..', '..rrr..', '...r...'],
     anker: ['..ggg..', '...g...', '.ggggg.', '...g...', 'g..g..g', 'gg.g.gg', '.ggggg.'],
-    kanne: ['.sss...', '..s..s.', '.sSs.s.', '.sSss..', '.sSs...', '.sSs...', 'sssss..']
+    kanne: ['.sss...', '..s..s.', '.sSs.s.', '.sSss..', '.sSs...', '.sSs...', 'sssss..'],
+    schwan: ['..vv...', '.v.v...', '...v...', '..vvv.v', '.vvvvvv', 'vvvvvv.', '.vvvv..'],
+    gloecklein: ['...g...', '..ggg..', '.ggggg.', '.ggggg.', '.ggggg.', 'ggggggg', '...g...'],
+    lamm: ['.....g.', '.....gr', '.vv..g.', 'vvvvvg.', '.vvvvv.', '.v.v.v.', '.......']
   }[emblem] || [];
-  const col = { g: j => G[j < 3 ? 5 : 3], r: () => wp_c('#8e1c1c'), w: () => wp_c('#16120f'), s: () => wp_c('#d8dee6'), S: () => wp_c('#9aa4b0') };
+  const col = { g: j => G[j < 3 ? 5 : 3], r: () => wp_c('#8e1c1c'), w: () => wp_c('#16120f'), s: () => wp_c('#d8dee6'), S: () => wp_c('#9aa4b0'), v: () => wp_c('#eeeae0') };
   art.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (col[row[i]]) wp_set(B, bx + 2 + i, by + 1 + j, col[row[i]](j)); });
 }
 
@@ -1932,6 +1935,259 @@ function wp_kKlippe(s, v){
   for (let i = 0; i < 5; i++) wp_grass(B, cx - 36 + i * 18, ay - 1, 4, s + i);
   return wp_xRes(B, [[-36, -16, 36, 2]], [-42, -110, 42, -14]);
 }
+/* ============ Ostlande (Version 26): Kiefer, Wacholder, Schlosskirche, Schöner Brunnen, Fuggereihaus, Perlachturm, Bienenstand, Frauenkirche ============ */
+/* ---------- Waldkiefer: hoher Stamm, oben fuchsrote Spiegelrinde, flache Nadelballen ---------- */
+function wp_tKiefer(s){
+  const B = wp_img(60, 118, 115), R = rng(s), ax = B.ax, ay = B.ay, L = wp_LEAF.kiefer;
+  const lean = (R() - .5) * 8, top = 10 + R() * 6, tx = ax + lean;
+  wp_groundShadow(B, ax + 6, ay, 22, 4.5);
+  const fox = wp_rmp(['#2a140c', '#46200f', '#663014', '#86421a', '#a45624', '#bc6c32', '#cc8444']);
+  const bark = (x, y, t, q, nx) => {
+    const up = clamp((ay - 30 - y) / 26, 0, 1), side = q * (nx >= 0 ? 1 : -1);
+    if (wp_h(x >> 1, y >> 1, s) < up * .9) return wp_tone(fox, .62 - side * .3 + (wp_h(x, y, s + 3) - .5) * .2, x, y);   // Spiegelrinde
+    const f = wp_vn(x * .7, y * .22, s); let v = .46 - side * .3; if (Math.abs(f - .5) < .09) v -= .3; else if (f > .7) v += .12;
+    return wp_tone(wp_P.bark, v, x, y);
+  };
+  wp_limb(B, ax, ay + 1, ax + lean * .4, ay - 40, tx, top + 22, 4.6, 2.2, bark);
+  wp_limb(B, ax - 1, ay - 2, ax - 4, ay, ax - 6, ay + 1, 2.4, 1, bark); wp_limb(B, ax + 1, ay - 2, ax + 4, ay, ax + 6, ay + 1, 2.4, 1, bark);
+  // Äste zu den Nadelballen, dann die Ballen (flach, unregelmäßig), unten ein toter Aststummel
+  const clumps = [];
+  const n = 4 + (R() * 3 | 0);
+  for (let i = 0; i < n; i++){
+    const f = i / (n - 1), side = i === 0 ? 0 : (i & 1 ? -1 : 1), y = top + 6 + f * 38 + (R() - .5) * 4;
+    const x = tx + side * (5 + f * 10 + R() * 5), rx = 9 + (1 - Math.abs(f - .45)) * 6 + R() * 3, ry = 4.2 + R() * 1.6;
+    clumps.push([x, y, rx, ry]);
+    if (side) wp_limb(B, tx - lean * f * .2, y + 10, tx + side * 3, y + 6, x - side * 2, y + 2, 1.8, 1, bark);
+  }
+  wp_limb(B, tx - lean * .3, ay - 36, tx - 8, ay - 40, tx - 12, ay - 41, 1.4, .7, bark);
+  for (const c of clumps) wp_crownCore(B, c[0], c[1], c[2], c[3], L, s, null);
+  wp_crown(B, { cx: tx, cy: top + 26, rx: 24, ry: 26, lobes: clumps, L, s, n: 70, r0: 2.2, r1: 3.8, sq: .55, base: .44, ever: true });
+  // Zapfen
+  for (let i = 0; i < 5; i++){ const c = clumps[R() * clumps.length | 0], X = Math.round(c[0] + (R() - .5) * c[2]), Y = Math.round(c[1] + c[3] - 1); if (!wp_op(B, X, Y)) continue; wp_set(B, X, Y, wp_P.sbark[4]); wp_set(B, X, Y + 1, wp_P.sbark[2]); }
+  wp_treeOut(B);
+  return wp_treeRes(B, [[-5, -7, 5, 2]], [tx - 24, top, tx + 24, top + 50]);
+}
+/* ---------- Wacholder: schlanke Säule, blaugrün, mit Beeren ---------- */
+function wp_tWacholder(s){
+  const B = wp_img(22, 42, 40), R = rng(s), ax = B.ax, ay = B.ay, L = wp_LEAF.wacholder;
+  const h = 26 + R() * 10, w = 6 + R() * 2, top = ay - h;
+  wp_groundShadow(B, ax + 3, ay, 9, 2.5);
+  for (let y = Math.floor(top); y <= ay; y++){
+    const f = (y - top) / h, half = w * Math.sin(Math.min(1, f * 1.15) * Math.PI * .5) * (f > .9 ? 1 - (f - .9) * 3 : 1) + (wp_h(0, y >> 1, s) - .5) * 1.8;
+    for (let x = Math.floor(ax - half - 1); x <= Math.ceil(ax + half + 1); x++){
+      const dx = (x + .5 - ax) / Math.max(1, half); if (Math.abs(dx) > 1) continue;
+      let t = .5 - dx * .3 + (wp_vn(x * .9, y * .6, s) - .5) * .4;
+      if (wp_h(x, y, s + 2) > .9) t += .2;
+      if (f > .95) t -= .2;
+      wp_set(B, x, y, wp_tq(L, t, x, y, .5));
+    }
+  }
+  for (let i = 0; i < 6; i++){ const x = Math.round(ax + (R() - .5) * w * 1.4), y = Math.round(top + 6 + R() * (h - 10)); if (wp_op(B, x, y)) wp_set(B, x, y, wp_c(i & 1 ? '#3a4a78' : '#5a6aa0')); }
+  wp_treeOut(B);
+  return { img: wp_canvas(B), ax, ay, foot: [[-4, -4, 4, 1]], occl: null, extra: {} };
+}
+
+/* ---------- Schlosskirche zu Wittenberg: verputztes Langhaus, runder Schlossturm mit Kegeldach, an der Tür die Thesen ---------- */
+function wp_bSchlosskirche(s, v){
+  const W = 184, B = wp_img(W, 250, 246), R = rng(s), ax = B.ax, ay = B.ay;
+  const PL = wp_P.plaster, ST = wp_P.stone;
+  const wallFn = wp_plaster({ R: PL, s: s + 1, flake: .4, base: ay, under: wp_rubble({ R: wp_P.grey, s: s + 2, cw: 5, chh: 3 }) });
+  wp_shadowPoly(B, [[4, ay - 1], [W - 2, ay - 1], [W - 2, ay + 3], [6, ay + 3]]);
+  /* ---- runder Turm links ---- */
+  const tr = 22, tcx = ax - 64, tyB = ay - 10, Ht = 140, tyT = tyB - Ht;
+  for (let y = tyT; y < tyB + 6; y++) for (let x = tcx - tr; x <= tcx + tr; x++){
+    const nx = (x + .5 - tcx) / tr; if (Math.abs(nx) > 1) continue;
+    const bulge = Math.sqrt(1 - nx * nx) * 5, yy = y - bulge;   // Steinlagen folgen der Rundung
+    if (yy > tyB + 4) continue;
+    const row = Math.floor((yy - tyT) / 5), u = Math.asin(nx) * tr * 1.5, joint = ((yy - tyT) % 5) < 1 || (((u + row * 4) % 11) + 11) % 11 < 1;
+    let t = .62 - nx * .38 + (wp_h(row, Math.floor((u + row * 4) / 11), s) - .5) * .16 - (Math.abs(nx) > .9 ? .12 : 0);
+    if (joint) t -= .22;
+    wp_set(B, x, y, wp_tone(ST, t, x, y));
+  }
+  for (const yy of [tyB - 46, tyB - 96]) for (let x = tcx - tr - 1; x <= tcx + tr + 1; x++){ const nx = (x + .5 - tcx) / (tr + 1); if (Math.abs(nx) > 1) continue; const y = Math.round(yy - Math.sqrt(1 - nx * nx) * 5); wp_set(B, x, y, wp_tone(ST, .85 - nx * .3, x, y)); wp_set(B, x, y + 1, wp_tone(ST, .3, x, y)); }
+  wp_gwin(B, tcx - 3, tyB - 40, 6, 14, { frame: ST, lights: 1, s, dark: true });
+  wp_gwin(B, tcx - 4, tyB - 88, 8, 18, { frame: ST, lights: 1, s: s + 1, streak: 6 });
+  wp_clock(B, tcx, tyB - 114, 7, s);
+  for (const dx of [-12, 6]) wp_louvre(B, tcx + dx, tyB - 134, 6, 14, ST);
+  // Kegeldach mit Schiefer, Laterne, Knauf
+  const sp = wp_pyramid(B, -64, 10, Ht + 10, tr + 3, 58, 16, (u, vv, x, y, e) => wp_slateAt(wp_P.slate, u, vv, x, y, s + 9, e + .05));
+  wp_finial(B, Math.round(sp.ax), Math.round(sp.ay), false);
+  /* ---- Langhaus (Hallenkirche) ---- */
+  const nX0 = -42, nX1 = 86, Hn = 60, nx0 = ax + nX0, nx1 = ax + nX1, nyT = ay - Hn;
+  wp_wall(B, nx0, nx1, nyT, ay, wallFn);
+  for (let x = nx0; x < nx1; x++){ wp_set(B, x, ay - 7, wp_tone(ST, .8, x, 0)); wp_set(B, x, ay - 6, wp_tone(ST, .45, x, 0)); }
+  wp_cornice(B, nx0, nx1, nyT, ST, 3);
+  const bays = [[nx0 + 4, nx0 + 34], [nx0 + 38, nx0 + 70], [nx0 + 74, nx0 + 100], [nx0 + 104, nx1 - 4]];
+  bays.forEach(([a, b], i) => {
+    const wcx = Math.round((a + b) / 2);
+    if (i === 1){
+      // die Tür mit den Thesen: Spitzbogenportal, Holztür, darauf ein angeschlagenes Blatt
+      const pw = 14, ph = 24, px = wcx - pw / 2, py = ay - 6 - ph;
+      for (let k = 3; k >= 1; k--) wp_door(B, px - k, py - k, pw + 2 * k, ph + k, { arch: 'spitz', open: true });
+      for (let k = 3; k >= 1; k--) for (let j = 0; j < ph + k; j++) for (let ii = 0; ii < 2 * k + pw; ii++){
+        const x = px - k + ii, y = py - k + j; if (!wp_op(B, x, y)) continue;
+        const c = wp_get(B, x, y); if (c === wp_P.dark[0] || c === wp_P.dark[1]) wp_set(B, x, y, wp_tone(ST, .3 + k * .15 + (ii < k + pw / 2 ? .1 : -.05), x, y));
+      }
+      wp_door(B, px, py, pw, ph, { R: wp_P.oak, s: s + 7, arch: 'spitz' });
+      for (let j = 4; j < ph; j++) wp_set(B, px + (pw >> 1), py + j, wp_P.oak[0]);
+      const qx = px + 2, qy = py + 8;
+      wp_rect(B, qx, qy, qx + 5, qy + 8, (x, y) => wp_tone(wp_P.cloth, .9 - (y - qy) * .02 + ((y - qy) % 2 === 1 && x > qx && x < qx + 4 ? -.25 : 0), x, y));
+      wp_set(B, qx + 2, qy, wp_P.iron[1]); wp_set(B, qx + 5, qy + 8, wp_tone(wp_P.cloth, .6, 0, 0));
+      wp_gwin(B, wcx - 5, nyT + 8, 10, 14, { frame: ST, lights: 2, s: s + 11, streak: 5 });
+    } else wp_gwin(B, wcx - 5, nyT + 8, 11, 36, { frame: ST, lights: 2, s: s + 13 + i, streak: 9 });
+  });
+  for (const bx of [nx0 + 34, nx0 + 70, nx0 + 100]) wp_buttress(B, bx, ay + 2, nyT + 10, 5, { fn: wallFn, R: ST, steps: 2, fiale: 0 });
+  for (let i = 0; i < 4; i++) wp_crack(B, nx0 + 8 + R() * 110, nyT + 6 + R() * 20, 8 + R() * 10, s + i);
+  const rf = wp_roofEaves(B, { X0: nX0, X1: nX1, D: 50, Hw: Hn, Hr: 50, ov: 2, ovs: 1, endL: 'gable', endR: 'hip', mat: 'slate', s: s + 41 });
+  wp_shade(B, nx0, rf.yE, nx1, rf.yE + 4, .4, 4);
+  for (const gx of [nx0 + 30, nx0 + 70, nx0 + 104]) wp_vent(B, gx, Math.round(rf.yE - 30), wp_P.slate);
+  for (let i = 0; i < 10; i++) wp_grass(B, 6 + R() * 170, ay + 1, 3, s + i, wp_LEAF.busch);
+  return wp_res(B, [[-86, -84, 88, 2]], [-90, -236, 90, -8], { smoke: [], door: { x: nX0 + 51 } });
+}
+
+/* ---------- Schöner Brunnen in Nürnberg: achteckiges Becken mit Gitter, darüber eine bunte gotische Turmspitze ---------- */
+function wp_kSchoenerBrunnen(s){
+  const B = wp_img(64, 136, 132), cx = B.ax, ay = B.ay, R = rng(s), ST = wp_P.stone;
+  wp_groundShadow(B, cx + 8, ay + 1, 30, 5);
+  // Becken
+  const bw = 26, bt = ay - 12;
+  wp_ell(B, cx, bt + 2, bw, 7, (x, y) => wp_tone(wp_P.glass, .35 + (wp_h(x, y >> 1, s) > .8 ? .3 : 0) - (y - bt) * .05, x, y));
+  wp_rect(B, cx - bw, bt + 2, cx + bw, ay, (x, y) => wp_tone(ST, .62 - (x - cx) / bw * .3 + ((x - cx + 64) % 8 === 0 ? -.2 : 0) - (y > ay - 3 ? .15 : 0), x, y));
+  wp_ell(B, cx, bt + 2, bw, 7, (x, y) => { const d = ((x + .5 - cx) / bw) ** 2 + ((y + .5 - bt - 2) / 7) ** 2; return d > .78 ? wp_tone(ST, .8 - (x - cx) / bw * .3, x, y) : 0; });
+  // Gitter vor dem Becken
+  for (let x = cx - bw - 2; x <= cx + bw + 2; x += 3) wp_line(B, x, ay - 14, x, ay + 1, wp_P.iron[x % 6 ? 2 : 3]);
+  for (const yy of [ay - 14, ay - 8, ay]) wp_line(B, cx - bw - 2, yy, cx + bw + 2, yy, wp_P.iron[2]);
+  for (let x = cx - bw - 2; x <= cx + bw + 2; x += 6) wp_set(B, x, ay - 16, wp_P.gold[4]);
+  // Turm in drei Geschossen mit Figuren, Fialen und Maßwerk, nach oben spitz
+  const cols = [wp_P.gold, wp_P.red2, wp_P.blue2, wp_P.gold];
+  const tiers = [[bt - 2, 15, 22], [bt - 24, 11, 22], [bt - 46, 7, 22], [bt - 68, 4, 20]];
+  tiers.forEach(([yb, hw, hh], k) => {
+    for (let y = yb - hh; y < yb; y++) for (let x = cx - hw; x <= cx + hw; x++){
+      const nx = (x + .5 - cx) / hw, f = (yb - y) / hh;
+      let t = .62 - nx * .32;
+      const ph = ((x - cx + 40) % 5);
+      const arch = y < yb - 3 && y > yb - hh + 5 && (ph === 2) ;
+      if (arch) { wp_set(B, x, y, wp_P.dark[1]); continue; }
+      const C = (y - (yb - hh)) % 7 < 2 ? cols[k] : ST;
+      wp_set(B, x, y, wp_tone(C, t + (f > .9 ? .1 : 0), x, y));
+    }
+    // Figuren in den Nischen
+    for (let i = -1; i <= 1; i++){ const fx = Math.round(cx + i * hw * .55), fy = yb - 6; if (hw < 6 && i) continue; wp_rect(B, fx - 1, fy - 7, fx + 1, fy, (x, y) => wp_tone(wp_P.flesh, .6 - (x - fx) * .2, x, y)); wp_set(B, fx, fy - 8, wp_tone(wp_P.flesh, .8, 0, 0)); wp_set(B, fx - 1, fy - 4, cols[(k + i + 3) % 4][3]); wp_set(B, fx + 1, fy - 3, cols[(k + i + 3) % 4][2]); }
+    // Fialen an den Ecken
+    for (const sx of [-1, 1]){ const fx = cx + sx * (hw + 1); for (let j = 0; j < hh + 6; j++){ const y = yb - j; wp_set(B, fx, y, wp_tone(ST, sx < 0 ? .75 : .4, fx, y)); if (j > hh) wp_set(B, fx, y, wp_P.gold[sx < 0 ? 5 : 3]); } }
+  });
+  // Spitze mit Knauf
+  for (let j = 0; j < 22; j++){ const y = bt - 88 - j, hw2 = Math.max(0, 3 - j * .15); for (let x = Math.round(cx - hw2); x <= Math.round(cx + hw2); x++) wp_set(B, x, y, wp_tone(j % 5 < 2 ? wp_P.gold : ST, .7 - (x - cx) * .2, x, y)); }
+  wp_ell(B, cx, bt - 112, 1.6, 1.6, () => wp_P.gold[5]);
+  return wp_res(B, [[-24, -14, 24, 2]], [-20, -128, 20, -16]);
+}
+
+/* ---------- Fuggereihaus: zwei Wohnungen übereinander, jede mit eigener Tür, ockergelb mit grünen Läden ---------- */
+function wp_bFuggerhaus(s, v){
+  const B = wp_img(72, 86, 82), R = rng(s), ax = B.ax, ay = B.ay;
+  const X0 = -32, X1 = 32, D = 22, Hw = 32, x0 = ax + X0, x1 = ax + X1, yT = ay - Hw;
+  wp_shadowPoly(B, [[x0 + 3, ay - 1], [x1 + 8, ay - 1], [x1 + 8, ay + 2], [x0 + 3, ay + 2]]);
+  const wallFn = wp_plaster({ R: wp_P.ochre, s: s + 1, flake: .2, base: ay, under: wp_rubble({ R: wp_P.grey, s: s + 2, cw: 5, chh: 3 }) });
+  wp_wall(B, x0, x1, yT, ay, wallFn);
+  wp_cornice(B, x0, x1, yT, wp_P.plaster, 1);
+  for (let x = x0; x < x1; x++) wp_set(B, x, ay - Hw / 2, wp_tone(wp_P.plaster, .75, x, 0));   // Gurtgesims zwischen den Geschossen
+  const GR = wp_rmp(['#14241a', '#1e3426', '#2a4632', '#38583e', '#466a4a']);
+  // zwei Haustüren (Erdgeschoss links, Treppe zum Obergeschoss rechts), Fenster mit grünen Läden
+  for (const [dx, k] of [[-22, 0], [12, 1]]){
+    wp_door(B, ax + dx, ay - 13, 8, 13, { R: wp_P.oak, s: s + 3 + k, arch: 'flat' });
+    wp_rect(B, ax + dx - 1, ay - 15, ax + dx + 9, ay - 13, wp_tone(wp_P.plaster, .8, 0, 0));
+    wp_set(B, ax + dx + 3, ay - 17, wp_P.iron[3]); wp_set(B, ax + dx + 4, ay - 17, wp_P.iron[2]);   // Klingelzug
+  }
+  for (const wx of [-8, 0]) { wp_window(B, ax + wx - 4, ay - 12, 6, 7, { frame: wp_P.plaster, s: s + wx, kreuz: true }); }
+  for (const wx of [-25, -11, 5, 19]){
+    wp_window(B, ax + wx, yT + 4, 7, 8, { frame: wp_P.plaster, s: s + wx + 9, kreuz: true });
+    for (const sd of [-3, 8]) wp_rect(B, ax + wx + sd, yT + 4, ax + wx + sd + 2, yT + 12, (x, y) => wp_tone(GR, .55 - (y - yT) * .02 + ((y - yT) % 3 === 0 ? -.2 : 0), x, y));
+  }
+  const rf = wp_roofEaves(B, { X0, X1, D, Hw, Hr: 20, ov: 2, ovs: 2, endL: 'gable', endR: 'gable', mat: 'tile', s: s + 21, moss: .06 });
+  wp_shade(B, x0, rf.yE, x1, rf.yE + 3, .4, 3);
+  wp_vent(B, ax - 10, Math.round(rf.yE - 11), wp_P.tile);
+  const ch = wp_chimney(B, ax + 14, Math.round(rf.yE - 13), 5, 9, s + 30);
+  for (let i = 0; i < 4; i++) wp_grass(B, x0 + 2 + R() * 60, ay + 1, 2, s + i, wp_LEAF.busch);
+  return wp_res(B, [[-33, -26, 33, 2]], [-34, -80, 34, -8], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }] });
+}
+
+/* ---------- Perlachturm in Augsburg: schlanker Stadtturm mit Uhr, Glockenstube und Spitzhelm ---------- */
+function wp_bPerlach(s){
+  const B = wp_img(60, 200, 196), R = rng(s), ax = B.ax, ay = B.ay, ST = wp_P.stone;
+  const x0 = ax - 17, x1 = ax + 17, top = ay - 140;
+  wp_groundShadow(B, ax + 10, ay + 1, 26, 5);
+  const wallFn = wp_plaster({ R: wp_P.plaster, s: s + 1, flake: .3, base: ay, lit: x => -(x - x0) / 34 * .2 });
+  wp_wall(B, x0, x1, top, ay, wallFn);
+  for (const ex of [x0, x1 - 4]) for (let y = top; y < ay; y += 4){ const w2 = ((y - top) / 4) & 1 ? 3 : 4; wp_rect(B, ex === x0 ? ex : x1 - w2, y, (ex === x0 ? ex : x1 - w2) + w2, y + 4, (x, yy) => wp_tone(ST, (ex === x0 ? .75 : .4) - (yy === y + 3 ? .2 : 0), x, yy)); }
+  for (const yy of [ay - 44, ay - 88, top + 18]) wp_cornice(B, x0 - 1, x1 + 1, yy, ST, 2);
+  wp_door(B, ax - 6, ay - 18, 12, 18, { R: wp_P.oak, s: s + 3, arch: 'round', frame: ST });
+  wp_gwin(B, ax - 3, ay - 74, 6, 16, { frame: ST, lights: 1, s, streak: 6 });
+  wp_clock(B, ax, top + 34, 9, s);
+  for (const dx of [-9, 3]) wp_louvre(B, ax + dx, top + 4, 6, 12, ST);
+  const sp = wp_pyramid(B, 0, 12, 140, 20, 50, 4, (u, vv, x, y, e) => wp_tileAt(wp_P.tile, u, vv, x, y, s + 9, e), { rot: Math.PI / 4 });
+  wp_finial(B, Math.round(sp.ax), Math.round(sp.ay), true);
+  for (let i = 0; i < 3; i++) wp_crack(B, x0 + 6 + R() * 22, ay - 60 - R() * 40, 8, s + i);
+  return wp_res(B, [[-18, -24, 18, 2]], [-20, -190, 20, -20]);
+}
+
+/* ---------- Bienenstand der Zeidler: Bank unter einem Schindeldach mit Strohkörben ---------- */
+function wp_kBienenstand(s){
+  const B = wp_img(56, 44, 40), cx = B.ax, ay = B.ay, R = rng(s);
+  wp_groundShadow(B, cx + 3, ay + 1, 26, 3);
+  for (const px of [cx - 24, cx + 22]) wp_beam(B, px, ay + 1, px, ay - 26, 2, wp_P.gwood, s + px);
+  wp_rect(B, cx - 25, ay - 10, cx + 25, ay - 8, wp_planks(wp_P.wood, s, 3, { ox: cx - 25 }));
+  for (let i = 0; i < 4; i++){
+    const kx = cx - 18 + i * 12, ky = ay - 10;
+    wp_ell(B, kx, ky - 6, 5.2, 6.4, (x, y) => y > ky ? 0 : wp_tone(wp_P.straw, .62 - (x + .5 - kx) / 5 * .3 + ((y - ky) % 2 === 0 ? -.16 : 0), x, y));
+    wp_rect(B, kx - 1, ky - 2, kx + 1, ky, wp_P.dark[0]);
+  }
+  for (let j = 0; j < 6; j++) for (let x = cx - 28 + j; x <= cx + 28 - j; x++){ const y = ay - 32 + j; wp_set(B, x, y, wp_tone(wp_P.shingle, .6 - j * .06 + ((x + j) % 4 === 0 ? -.15 : 0), x, y)); }
+  for (let k = 0; k < 8; k++){ const bx = Math.round(cx + (R() - .5) * 44), by = Math.round(ay - 14 - R() * 16); wp_set(B, bx, by, wp_c('#d8b030')); wp_set(B, bx + 1, by, wp_c('#2a2010')); }   // Bienen
+  return wp_res(B, [[-26, -10, 26, 2]], null);
+}
+
+/* ---------- Frauenkirche am Nürnberger Hauptmarkt: Staffelgiebel, Vorhalle, darüber das Chörlein mit der Uhr (Männleinlaufen) ---------- */
+function wp_bFrauenkirche(s){
+  const W = 120, B = wp_img(W, 200, 196), R = rng(s), ax = B.ax, ay = B.ay;
+  const RS = wp_P.red;
+  const mason = wp_ashlar({ R: RS, s, ch: 4, bmin: 6, bmax: 13, per: 512, stain: .6 });
+  wp_shadowPoly(B, [[6, ay - 1], [W - 2, ay - 1], [W - 2, ay + 3], [8, ay + 3]]);
+  // Schiff hinter der Fassade: Satteldach nach hinten
+  const fx0 = ax - 46, fx1 = ax + 46, Hf = 70, fyT = ay - Hf;
+  wp_roofGable(B, { X0: -46, X1: 46, D: 60, Hw: Hf, Hr: 50, ovf: 0, ovb: 2, ovs: 1, mat: 'tile', s: s + 50, moss: .05 });
+  wp_wall(B, fx0, fx1, fyT, ay, mason);
+  // Staffelgiebel mit Fialen und Blendmaßwerk
+  const gH = 64, steps = 5;
+  for (let k = 0; k < steps; k++){
+    const sw = 46 - k * 9, y0 = fyT - (k + 1) * gH / steps, y1 = fyT - k * gH / steps;
+    for (let y = Math.floor(y0); y < y1; y++) for (let x = ax - sw; x <= ax + sw; x++){
+      const ph = ((x - ax + 64) % 6);
+      let t = .58 - (x - ax) / 46 * .25 + (y < y0 + 2 ? .2 : 0);
+      if (ph === 3 && y > y0 + 4 && y < y1 - 2) t -= .35;
+      wp_set(B, x, y, wp_tone(RS, t, x, y));
+    }
+    for (const sx of [-1, 1]){ const px = ax + sx * sw; for (let j = 0; j < 8; j++) wp_set(B, px, Math.round(y0) - j, wp_tone(RS, sx < 0 ? .8 : .45, px, 0)); wp_set(B, px, Math.round(y0) - 9, wp_P.gold[4]); }
+  }
+  // Vorhalle mit Portal und Figuren
+  const vx0 = ax - 26, vx1 = ax + 26, vyT = ay - 34;
+  wp_rect(B, vx0, vyT, vx1, ay, (x, y) => wp_tone(RS, .62 - (x - ax) / 26 * .2 - (y > ay - 3 ? .15 : 0), x, y));
+  for (let k = 3; k >= 1; k--) wp_door(B, ax - 9 - k, ay - 26 - k, 18 + 2 * k, 26 + k, { arch: 'spitz', open: true });
+  wp_door(B, ax - 9, ay - 26, 18, 26, { R: wp_P.oak, s: s + 7, arch: 'spitz' });
+  for (const sx of [-20, 16]){ wp_rect(B, ax + sx, ay - 22, ax + sx + 4, ay - 8, (x, y) => wp_tone(wp_P.stone, .7 - (x - ax - sx) * .1, x, y)); wp_set(B, ax + sx + 2, ay - 24, wp_tone(wp_P.flesh, .7, 0, 0)); }
+  for (let x = vx0 - 1; x <= vx1 + 1; x++) for (let j = 0; j < 4; j++) wp_set(B, x, vyT - j, wp_tone(RS, .7 - j * .1 - (x - ax) / 26 * .2 + ((x + j) % 6 === 0 ? -.2 : 0), x, 0));
+  // Chörlein mit Uhr über der Vorhalle, darüber das Männleinlaufen
+  const cx = ax, cy = vyT - 26;
+  wp_rect(B, cx - 12, cy - 10, cx + 12, vyT - 4, (x, y) => wp_tone(RS, .66 - (x - cx) / 12 * .28, x, y));
+  for (let k = 0; k < 6; k++) for (let x = cx - 12 + k; x <= cx + 12 - k; x++) wp_set(B, x, cy - 10 - k, wp_tone(wp_P.slate, .55 - (x - cx) * .02, x, 0));
+  wp_clock(B, cx, cy + 2, 7, s);
+  for (let i = -2; i <= 2; i++){ const px = cx + i * 4, py = cy - 7; wp_set(B, px, py, wp_P.gold[4]); wp_set(B, px, py + 1, [wp_P.red2, wp_P.blue2, wp_P.gold][(i + 3) % 3][3]); }
+  // Fenster seitlich, Rosette
+  for (const sx of [-38, 30]) wp_gwin(B, ax + sx, fyT + 10, 8, 26, { frame: RS, lights: 2, s: s + sx, streak: 6 });
+  wp_ell(B, ax, fyT - 18, 8, 8, (x, y) => { const d = Math.hypot(x + .5 - ax, y + .5 - fyT + 18); return d > 7 ? wp_tone(RS, .8, x, y) : wp_tone(wp_P.glass, .3 + (Math.abs(Math.sin(Math.atan2(y - fyT + 18, x - ax) * 4)) < .3 ? .3 : 0), x, y); });
+  for (let i = 0; i < 6; i++) wp_grass(B, 8 + R() * 104, ay + 1, 3, s + i, wp_LEAF.busch);
+  return wp_res(B, [[-48, -50, 48, 2]], [-50, -180, 50, -8], {});
+}
+
 const wp_K = {
   apfelbaum: [(s, v) => wp_tApfel(s, v), 6], eiche: [(s, v) => wp_tEiche(s, v), 5], buche: [(s, v) => wp_tBuche(s, v), 5], fichte: [(s, v) => wp_tFichte(s, v), 6],
   birke: [(s, v) => wp_tBirke(s, v), 5], weide: [(s, v) => wp_tWeide(s, v), 4], toter_baum: [(s, v) => wp_tTot(s, v), 5], busch: [(s, v) => wp_tBusch(s, v), 6],
@@ -1957,7 +2213,12 @@ const wp_K = {
   // Bergland: Göpel, Kanone, Schanzkorb, Klippe, Gasthaus in Annaberg; im Hochgebirge liegt immer Schnee
   goepel: [(s, v) => wp_kGoepel(s), 1], kanone: [(s, v) => wp_kKanone(s, v), 2], schanzkorb: [(s, v) => wp_kSchanzkorb(s), 3], klippe: [(s, v) => wp_kKlippe(s, v), 4],
   gasthaus_kanne: [(s, v) => wp_bStadthaus(s + 53, 0, 'kanne'), 1],
-  schneefichte: [(s, v) => wp_tFichte(s, v), 6], schneefels: [(s, v) => wp_kFels(s, v), 5], schneeklippe: [(s, v) => wp_kKlippe(s, v), 4], schneestein: [(s, v) => wp_kStein(s), 6]
+  gasthaus_schwan: [(s, v) => wp_bStadthaus(s + 61, 0, 'schwan'), 1], gasthaus_gloecklein: [(s, v) => wp_bStadthaus(s + 67, 0, 'gloecklein'), 1], gasthaus_lamm: [(s, v) => wp_bStadthaus(s + 73, 0, 'lamm'), 1],
+  schneefichte: [(s, v) => wp_tFichte(s, v), 6], schneefels: [(s, v) => wp_kFels(s, v), 5], schneeklippe: [(s, v) => wp_kKlippe(s, v), 4], schneestein: [(s, v) => wp_kStein(s), 6],
+  // Ostlande
+  kiefer: [(s, v) => wp_tKiefer(s), 6], wacholder: [(s, v) => wp_tWacholder(s), 4], schlosskirche: [(s, v) => wp_bSchlosskirche(s, v), 1], schoenerbrunnen: [(s, v) => wp_kSchoenerBrunnen(s), 1],
+  fuggerhaus: [(s, v) => wp_bFuggerhaus(s, v), 3], perlach: [(s, v) => wp_bPerlach(s), 1], bienenstand: [(s, v) => wp_kBienenstand(s), 2], frauenkirche: [(s, v) => wp_bFrauenkirche(s), 1],
+  lilienbanner: [(s, v) => wp_kLilien(s), 1]
 };
 const WP_KINDS = Object.keys(wp_K);
 /* Bilder je Jahreszeit: Bäume in allen vier, alles andere im Sommer- und im Winterbild */

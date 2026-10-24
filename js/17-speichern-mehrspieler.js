@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 17 von 24: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
+/* Der Apfelritter, Teil 17 von 25: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Speichern: im Browser und, wo möglich, im Konto ============ */
 const cloud = { db:null, uid:null, user:null, room:null, saving:false, last:'', nextT:0, noWrite:false, fameLast:'', fameBusy:false, fameNoWrite:false, fameT:0, loaded:false };
@@ -239,7 +239,7 @@ function netPres(){
   o.bk = G.bucket ? 1 : null;
   const M = DG_ON && DG_ON.D.group ? DG_ON : null;
   o.hl = M && G.lever != null ? G.lever : null;
-  o.go = M && M.openG.length ? M.openG : null;
+  o.go = M && M.openG.length ? M.openG : DG_ON && DG_ON.kz ? kzGo(DG_ON) : null;   // Kriegszüge: Tore und Hebel
   o.dd = M ? { k: M.id + ':' + dgDay(), d: Math.round(M.bossDmg || 0) } : null;
   o.bz = G.joust ? 'j' : G.fgame ? 'f' : NET.tr ? 'h' : NET.dc ? 'w' : '';
   o.jo = NET.jo ? duelPres() : null;
@@ -428,7 +428,7 @@ function partyTick(t){
     now[q.peer] = { nm: q.nm, dead: q.dead, in: q.in || 0, hp: q.hp, lv: q.lv };
     if (!was){ if (t - NET.ptT > 3) logLine(q.nm + ' ist in der Gruppe.', '#9fe08a'); continue; }
     if (q.dead && !was.dead) logLine(q.nm + ' ist gefallen!', '#ff9a8a');
-    if (q.in !== was.in && typeof q.in === 'string' && q.in.startsWith('dg:') && DG_DEF[q.in.slice(3)]) logLine(q.nm + ' steigt hinab: ' + DG_DEF[q.in.slice(3)].name + '.', '#c8b8ff');
+    if (q.in !== was.in && typeof q.in === 'string' && q.in.startsWith('dg:') && DG_DEF[q.in.slice(3)]) logLine(q.nm + (DG_DEF[q.in.slice(3)].kz ? ' zieht in den Krieg: ' : ' steigt hinab: ') + DG_DEF[q.in.slice(3)].name + '.', '#c8b8ff');
     if (q.lv > was.lv) logLine(q.nm + ' erreicht Stufe ' + q.lv + '.', '#ecd27a');
   }
   for (const id in NET.mem) if (!now[id]) logLine(NET.mem[id].nm + ' ist nicht mehr in der Gruppe.', '#d8c69c');

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 21 von 24: Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg.
+/* Der Apfelritter, Teil 21 von 25: Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spätes Spiel: Ehrenstufen, Wochenprüfungen des Reiches, Ehrenzeichen, Trophäen, Wappen und Titel ============ */
 const EH_CAP = 30;                                         // höchstens 30 Ehrenstufen zählen für Leben und Schaden (je 0,5 %)
@@ -62,6 +62,13 @@ const TROPHIES = [
   { id: 'bergmoench', n: 'Das Grubenlicht', d: 'den Bergmönch im Altenberg-Stollen gebannt', ok: h => h.bosses.bergmoench > 0 },
   { id: 'feldhauptmann', n: 'Wüsts Bidenhänder', d: 'Feldhauptmann Balthasar Wüst in seiner Schanze besiegt', ok: h => h.bosses.feldhauptmann > 0 },
   { id: 'ruebezahl', n: 'Herr der Berge', d: 'Rübezahl auf seinem Felsenthron bezwungen', ok: h => h.bosses.ruebezahl > 0 },
+  { id: 'hackelberg', n: 'Das Jagdhorn', d: 'Hackelberg, den Wilden Jäger, in der Heide gestellt', ok: h => h.bosses.hackelberg > 0 },
+  { id: 'eppelein', n: 'Die Nürnberger hängen keinen …', d: 'Eppelein von Gailingen auf seiner Burg besiegt', ok: h => h.bosses.eppelein > 0 },
+  { id: 'donauweibchen', n: 'Perlen der Donau', d: 'das Donauweibchen im Ried bezwungen', ok: h => h.bosses.donauweibchen > 0 },
+  { id: 'thesen', n: 'Fünfundneunzig Thesen', d: 'die Thesen an der Tür der Schlosskirche zu Wittenberg gelesen', ok: h => !!h.thesen },
+  { id: 'bulcsu', n: 'Sieger vom Lechfeld', d: 'Bulcsú und seine Geisterreiter zur Ruhe gebracht', ok: h => h.bosses.bulcsu > 0 },
+  { id: 'pavia', n: 'Sieger von Pavia', d: 'König Franz I. in der Schlacht bei Pavia gefangen genommen', ok: h => !!(h.kz && h.kz.pavia) },
+  { id: 'wien', n: 'Verteidiger von Wien', d: 'die Gegenminen vor Wien gehalten und den Aga der Janitscharen besiegt', ok: h => !!(h.kz && h.kz.wien) },
   { id: 'bergwerk', n: 'Glück auf!', d: 'die Truhe im verlassenen Bergwerk geöffnet', ok: h => !!(h.dg && h.dg.bergwerk), wa: 'bergwerk' },
   { id: 'zollburg', n: 'Krone des Nöck', d: 'den Nöck in der versunkenen Zollburg bezwungen', ok: h => !!(h.dg && h.dg.zollburg), wa: 'noeck' },
   { id: 'turnier', n: 'Turniersieger', d: 'ein Großes Turnier gewonnen', ok: h => (h.tw | 0) >= 1, wa: 'turnier' },
@@ -324,6 +331,7 @@ function zbFloodOn(M, n){
 }
 const dgLvN = (near, held) => {
   const M = DG_ON, L = M && near && near.startsWith('lever:') ? M.levers[+near.slice(6)] : null;
+  if (L && M.kz) return M.kz.done[+near.slice(6)] ? M.D.lvDone : M.D.lvN;
   if (!L || !M.D.zb) return held ? 'Hebel loslassen' : 'Hebel ziehen';
   return M.gates[L.gate].flood ? (held ? 'Schieber loslassen' : 'Schieber öffnen') : (held ? 'Rad loslassen' : 'Rad drehen');
 };

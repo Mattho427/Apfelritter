@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 12 von 24: Leben im Reichsland, Tag und Nacht, Wetter.
+/* Der Apfelritter, Teil 12 von 25: Leben im Reichsland, Tag und Nacht, Wetter.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leben im Reichsland: Tiere, Leute, Vögel ============
    Lebensorte aus der Welt; nahe beim Ritter entstehen ihre Bewohner, weit weg verschwinden sie wieder.
@@ -123,7 +123,7 @@ const LIFE_SPOTS = (() => {
   // Wild: Rehe, Hirsche, Hasen, Füchse, Wildschweine
   const wildAt = (zones, k, n, cnt, r) => {
     for (let t = 0; t < cnt * 40 && cnt > 0; t++){
-      const x = 60 + R() * (WW - 120), y = 60 + R() * (WH - 120);
+      const x = 60 + R() * (WW0 - 120), y = 60 + R() * (WH - 120);
       if (!zones.includes(ZONES[wo_zid(x, y)].id) || !wo_ok(x | 0, y | 0)) continue;
       add({ k, ...P(x, y), r: r || 160, n }); cnt--;
     }
@@ -139,6 +139,28 @@ const LIFE_SPOTS = (() => {
         dir: 'down', n: [0, R() < .3 ? 1 : 0], crowd: true, sy: TB.y + 1 - row * .1 });
     for (const dx of [-206, 206]) add({ p: 'stand', t: ['knecht'], ...gNear((TB.x + dx) / WS, (TB.y + 34) / WS), dir: dx < 0 ? 'right' : 'left', n: [1, 1] });
   }
+  // Ostlande (Version 26): Bürger, Studenten und Mönche in Wittenberg, Handwerker in Nürnberg, Kaufleute in Augsburg, Wachen an den Toren
+  for (const [C, types, spots] of [
+    [wo_WIT, ['buerger', 'buergerin', 'moench', 'buerger', 'magd', 'knecht'], [[7950, 560, 200, 3], [7700, 520, 160, 2], [8200, 520, 160, 2], [7950, 380, 120, 1]]],
+    [wo_NUE, ['buerger', 'buergerin', 'knecht', 'magd', 'buerger', 'moench', 'bettler'], [[7800, 2290, 220, 4], [7740, 2500, 140, 2], [7500, 2600, 160, 2], [8000, 2600, 160, 2], [7980, 2180, 140, 1], [7500, 2230, 140, 1]]],
+    [wo_AUG, ['buerger', 'buergerin', 'buerger', 'magd', 'knecht', 'bettler'], [[7430, 3790, 200, 3], [7600, 3898, 100, 2], [7250, 3740, 140, 1], [7430, 3620, 120, 1]]]]){
+    for (const [x, y, r, n] of spots) add({ p: 'walk', t: types, ...P(x, y), r: r * WS, n: [n, n + 1] });
+    for (const [x, y] of [[C.gx - 36, C.y0 + 30], [C.gx + 36, C.y0 + 30], [C.gx - 36, C.y1 + 30], [C.gx + 36, C.y1 + 30]]) add({ p: 'stand', t: ['wache'], ...near(x, y), dir: 'down', n: [1, 1] });
+    add({ k: 'taube', ...P(C.gx + 40, C.gy + 50), r: 100, n: [4, 6] }); add({ k: 'hund', ...P(C.gx - 80, C.gy + 40), r: 200, n: [1, 1] }); add({ k: 'katze', ...P(C.gx + 120, C.gy - 50), r: 90, n: [1, 1] });
+  }
+  add({ k: 'schwein', ...P(7600, 2650), r: 120, n: [2, 3] }); add({ k: 'huhn', ...P(7560, 3920), r: 60, n: [3, 4], mix: 'hahn' });
+  // Schafe in der Heide, Hirsche im Reichswald, Wildschweine (Jagd) und Hasen auf dem Land
+  if (wo_OST.schaeferei){ const h = wo_OST.schaeferei; add({ p: 'walk', t: ['hirte'], ...P(h.x + 60, h.y + 120), r: 160, n: [1, 1] }); add({ k: 'schaf', ...P(h.x + 60, h.y + 140), r: 200, n: [8, 11] }); }
+  for (const [cx, cy] of wo_RWCLEAR) add({ k: R() < .35 ? 'hirsch' : 'reh', ...P(cx, cy), r: 200, n: [1, 3] });
+  const wildE = (zones, k, n, cnt, r) => {
+    for (let t = 0; t < cnt * 40 && cnt > 0; t++){
+      const x = WW0 + 60 + R() * (WW - WW0 - 120), y = 60 + R() * (WH - 120);
+      if (!zones.includes(ZONES[wo_zid(x, y)].id) || !wo_ok(x | 0, y | 0)) continue;
+      add({ k, ...P(x, y), r: r || 160, n }); cnt--;
+    }
+  };
+  wildE(['heide', 'reichswald'], 'hase', [1, 2], 14, 140); wildE(['reichswald'], 'wildschwein', [1, 3], 6); wildE(['heide', 'reichswald'], 'fuchs', [1, 1], 6); wildE(['heide', 'lechfeld'], 'reh', [1, 2], 6);
+  for (const [x, y] of [[7400, 760], [8300, 860], [7750, 3070], [8400, 3080]]) add({ k: 'ente', ...P(x, y), r: 90, n: [2, 3] });
   return S;
 })();
 function lifeReset(){ for (const s of LIFE_SPOTS){ s.ents = []; s.act = false; s.cool = 0; } }

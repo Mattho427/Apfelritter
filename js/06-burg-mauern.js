@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 6 von 24: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
+/* Der Apfelritter, Teil 6 von 25: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltgrafiken, Teil 2: Burg, Stadtmauer, Ruine, Kleinteile ============ */
 /* Licht von links: lx = -1 (Kante links) .. 1 (rechts) */
@@ -458,6 +458,20 @@ function wp_kBanner(s){
   wp_rect(B, cx - 2, ay - 3, cx + 3, ay, wp_P.grey[3]);
   wp_seg(B, cx, ay - 2, cx, ay - 52, 1.6, wp_P.oak[3]); wp_set(B, cx, ay - 53, wp_P.gold[5]); wp_set(B, cx, ay - 52, wp_P.gold[3]);
   wp_xFlagCloth(B, cx + 1, ay - 50, 17, 16, s % 5);
+  return wp_xRes(B, [[-2, -3, 2, 1]], null);
+}
+/* Lilienbanner des Königs von Frankreich: blaues Tuch mit drei goldenen Lilien (Kriegszug nach Pavia) */
+function wp_kLilien(s){
+  const B = wp_img(24, 56, 52), cx = B.ax - 8, ay = B.ay, x = cx + 1, y = ay - 50, w = 17, h = 16, lily = new Set();
+  wp_rect(B, cx - 2, ay - 3, cx + 3, ay, wp_P.grey[3]);
+  wp_seg(B, cx, ay - 2, cx, ay - 52, 1.6, wp_P.oak[3]); wp_set(B, cx, ay - 53, wp_P.gold[5]); wp_set(B, cx, ay - 52, wp_P.gold[3]);
+  for (const [ox, oy] of [[2, 2], [10, 2], [6, 9]]) ['..g..', '.ggg.', 'g.g.g', 'ggggg', '..g..', '.g.g.'].forEach((r, j) => [...r].forEach((c, i) => { if (c === 'g') lily.add((ox + i) + ',' + (oy + j)); }));
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++){
+    const wave = Math.round(Math.sin(i * .35 + s) * 1.2), X = x + i, Y = y + j + wave;
+    const t = .62 + Math.sin(i * .35 + s + 1.2) * .2 - j / h * .1 + (i === w - 1 && j % 4 === 0 ? -.4 : 0);
+    if (i > w - 3 && (j % 5 === 2)) continue;
+    wp_set(B, X, Y, wp_tone(lily.has(i + ',' + j) ? wp_P.gold : wp_P.blue2, t, X, Y));
+  }
   return wp_xRes(B, [[-2, -3, 2, 1]], null);
 }
 

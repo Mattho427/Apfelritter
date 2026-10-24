@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 8 von 24: Boden, Karten, Ton und Musik.
+/* Der Apfelritter, Teil 8 von 25: Boden, Karten, Ton und Musik.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Boden ============ */
 /* Paletten je Bodenart: 4 Kanäle zu je 12 Tönen (dunkel..hell) */
@@ -14,10 +14,13 @@ const wo_PAL = [
   /* 7 Lagerplatz */ [['#1b1611', '#262018', '#322a1f', '#3e3427', '#4a3f2f', '#564a38', '#625542'], ['#24271a', '#303420', '#3d4227', '#4a502f', '#585e37', '#656b40'], ['#3a3020', '#4e4229', '#625434', '#76663f', '#88784b'], ['#121110', '#1c1a18', '#282521', '#35312c']],
   /* 8 Waldlichtung */ [['#192014', '#222a19', '#2b351e', '#354024', '#3f4b2a', '#4a5631', '#556139', '#616c42'], ['#1a2213', '#232e19', '#2e3b1f', '#384825', '#43552c'], ['#28180f', '#3a2313', '#4d2f17', '#5f3b1c', '#704722'], ['#15120d', '#1f1a13', '#292218', '#342b1d']],
   /* 9 Fels und Geröll */ [['#232220', '#2f2d2a', '#3c3a36', '#4a4742', '#58554f', '#67635c', '#76716a', '#86817a', '#96918a'], ['#26221d', '#332e27', '#413b32', '#4f483e', '#5e564a', '#6c6456'], ['#1c2415', '#26301b', '#313d21', '#3d4a28'], ['#5a5c48', '#72735c', '#8a8a72', '#a0a088']],
-  /* 10 Schnee */ [['#6a7590', '#7c87a0', '#8e99b0', '#a0aabf', '#b0bacc', '#bfc8d8', '#cdd5e2', '#d9e0ea', '#e3e9f0', '#ebf0f5', '#f2f5f9', '#f8fafc'], ['#56627e', '#66728e', '#78849e', '#8a96ae', '#9ca8be'], ['#2f2d2a', '#3c3a36', '#4a4742', '#58554f'], ['#e8eef6', '#f4f8fc', '#ffffff']]
+  /* 10 Schnee */ [['#6a7590', '#7c87a0', '#8e99b0', '#a0aabf', '#b0bacc', '#bfc8d8', '#cdd5e2', '#d9e0ea', '#e3e9f0', '#ebf0f5', '#f2f5f9', '#f8fafc'], ['#56627e', '#66728e', '#78849e', '#8a96ae', '#9ca8be'], ['#2f2d2a', '#3c3a36', '#4a4742', '#58554f'], ['#e8eef6', '#f4f8fc', '#ffffff']],
+  /* 11 Heidekraut */ [['#22200f', '#2f2c16', '#3d391d', '#4b4625', '#59532d', '#665f36', '#736b40', '#7f774b'], ['#3a3222', '#4c4330', '#5e543e', '#70654d', '#82765c', '#93876c'], ['#2a1726', '#3c2034', '#512a44', '#663553', '#7b4062', '#8f4d70', '#a25c7e'], ['#16200f', '#1f2c14', '#29381a', '#334420']],
+  /* 12 Kiefernwald */ [['#1a120c', '#261910', '#322114', '#3e2918', '#4a321d', '#563b22', '#614428', '#6c4d2f'], ['#1a2312', '#243018', '#2f3e1e', '#3a4c25', '#46592c'], ['#3a3020', '#4c4029', '#5e5034', '#706040', '#82704c'], ['#100d0a', '#18130e', '#211a13', '#2a2118']]
 ].map(chs => chs.map(k => wo_ramp(k, 12)));
 const wo_ZB = ZONES.map(z => ({ obstgarten: 0, burg: 0, stadt: 0, dorf: 6, wald: 1, moor: 2, friedhof: 5, galgen: 3, schlachtfeld: 4, lager: 0, ruine: 3, fluss: 0, weiler: 6, speyer: 0, fischerdorf: 6, weinberge: 6, auwald: 1, piratennest: 7,
-  schwarzwald: 1, annaberg: 0, silberrevier: 3, schanze: 7, hochgebirge: 9 })[z.id]);
+  schwarzwald: 1, annaberg: 0, silberrevier: 3, schanze: 7, hochgebirge: 9,
+  wittenberg: 6, heide: 11, nuernberg: 6, reichswald: 12, gailingen: 3, donauried: 2, augsburg: 6, lechfeld: 3 })[z.id]);
 
 /* Bodentexturen 256 × 256 Feinpixel (Periode 128 Weltpixel): Kanal << 4 | Ton */
 function wo_tex(kind, seed){
@@ -64,6 +67,8 @@ function wo_tex(kind, seed){
     if (kind === 'moor') t = 2 + (v * 3 + f | 0);
     if (kind === 'rock'){ ch = v > .62 ? 1 : 0; t = 3 + (v * 3.6 + f | 0); }
     if (kind === 'snow') t = 7 + (v * 2.6 + f * .6 | 0);
+    if (kind === 'heather'){ ch = v > .58 ? 1 : 0; t = 3 + (v * 3.2 + f | 0); }
+    if (kind === 'pine') t = 2 + (v * 3 + f | 0);
     P(x, y, ch, t);
   }
   if (kind === 'meadow'){ blades(7800, 4, .12, 0, 4, .35); blades(1500, 2, 0, 2, 3, .25); }
@@ -86,9 +91,26 @@ function wo_tex(kind, seed){
     blobs(5, 2, 3, [2], 3, false);                                           // Fels schaut heraus
     for (let k = 0; k < 500; k++) P(R() * N | 0, R() * N | 0, 3, 8 + (R() * 4 | 0));   // Glitzern
   }
+  if (kind === 'heather'){
+    blades(2600, 3, .45, 0, 4, .35);
+    // Heidekraut: Polster aus Zweigen mit lila Blütenrispen oben, Schattenfuß unten
+    for (let k = 0; k < 520; k++){
+      const cx = R() * N | 0, cy = R() * N | 0, w = 3 + (R() * 4 | 0);
+      for (let i = 0; i < w; i++){ const hgt = 2 + (R() * 3 | 0); P(cx + i, cy + 1, 3, 0); for (let j = 0; j < hgt; j++) P(cx + i, cy - j, j >= hgt - 2 ? 2 : 3, j >= hgt - 2 ? 3 + (R() * 4 | 0) : 2 + j); }
+    }
+    for (let k = 0; k < 900; k++) P(R() * N | 0, R() * N | 0, 1, 5 + (R() * 3 | 0));   // heller Sand
+  }
+  if (kind === 'pine'){
+    // Nadelstreu: kurze Striche kreuz und quer, Zapfen, Moosflecken, Wurzeln
+    for (let k = 0; k < 7000; k++){ const x = R() * N | 0, y = R() * N | 0, d = R() < .5 ? 1 : -1, t0 = 3 + (R() * 4 | 0); P(x, y, 0, t0); P(x + d, y + 1, 0, t0 - 1); if (R() < .4) P(x + 2 * d, y + 2, 0, t0 - 2); }
+    blobs(60, 3, 7, [1], 3, false);
+    for (let k = 0; k < 140; k++){ const x = R() * N | 0, y = R() * N | 0; P(x, y, 2, 4); P(x + 1, y, 2, 3); P(x, y + 1, 2, 2); P(x + 1, y + 1, 2, 1); P(x, y + 2, 3, 0); }
+    for (let k = 0; k < 60; k++){ let x = R() * N, y = R() * N; const a = R() * 6.28, l = 6 + R() * 12; for (let j = 0; j < l; j++){ P(Math.round(x), Math.round(y), 2, 1 + ((j >> 1) & 1)); P(Math.round(x), Math.round(y) + 1, 3, 0); x += Math.cos(a); y += Math.sin(a) * .6; } }
+  }
   return T;
 }
-const wo_TEX = [wo_tex('meadow', 1), wo_tex('forest', 2), wo_tex('moor', 3), wo_tex('heath', 4), wo_tex('battle', 5), wo_tex('church', 6), wo_tex('farm', 7), wo_tex('camp', 8), wo_tex('clear', 9), wo_tex('rock', 10), wo_tex('snow', 11)];
+const wo_TEX = [wo_tex('meadow', 1), wo_tex('forest', 2), wo_tex('moor', 3), wo_tex('heath', 4), wo_tex('battle', 5), wo_tex('church', 6), wo_tex('farm', 7), wo_tex('camp', 8), wo_tex('clear', 9), wo_tex('rock', 10), wo_tex('snow', 11),
+  wo_tex('heather', 12), wo_tex('pine', 13)];
 
 /* Pflastertextur 128 × 128 Feinpixel (Periode 64 Weltpixel): 0 Fuge, sonst Ton 1..7; Steine mit abgerundeten Ecken */
 function wo_paveTex(sizeX, sizeY, seed){
@@ -323,14 +345,14 @@ function wo_seaFilter(X0, Y0, sea){
       } else if (sea === 2){
         const b = cl - 16, leaf = wo_h(FX >> 1, FY >> 1, 811);
         if (cl >= 16){
-          if (b !== 1 && b !== 2 && b < 9) B[i] = wo_mix(c, at(wo_AUTG, L, -1, 18), .32);
-          if (b < 9 && leaf < (b === 1 ? .05 : b === 2 ? .006 : .012)) B[i] = wo_LEAFC[(wo_h(FX >> 1, FY >> 1, 812) * 6) | 0];
+          if (b !== 1 && b !== 2 && b !== 12 && (b < 9 || b > 10)) B[i] = wo_mix(c, at(wo_AUTG, L, -1, 18), .32);
+          if ((b < 9 || b === 11) && leaf < (b === 1 ? .05 : b === 2 ? .006 : .012)) B[i] = wo_LEAFC[(wo_h(FX >> 1, FY >> 1, 812) * 6) | 0];
         } else if (cl === 4) B[i] = wo_mix(c, at(wo_STUB, L, -1, 18), .55);
         else if ((cl === 3 || cl === 2) && leaf < .006) B[i] = wo_LEAFC[(wo_h(FX >> 1, FY >> 1, 812) * 6) | 0];
       } else if (sea === 0){
         const b = cl - 16;
         if (cl >= 16){
-          if (b !== 1 && b < 9) B[i] = wo_mix(c, at(wo_SPRG, L, -1, 20), .26);
+          if (b !== 1 && b !== 12 && (b < 9 || b > 10)) B[i] = wo_mix(c, at(wo_SPRG, L, -1, 20), .26);
           const f = wo_h(FX >> 1, FY >> 1, 813);
           if (b < 9 && f < (b === 1 ? .008 : b === 0 || b === 6 || b === 8 ? .007 : .002)) B[i] = b === 1 ? wo_FLOW[0] : wo_FLOW[(wo_h(FX >> 1, FY >> 1, 814) * 5) | 0];
         } else if (cl === 4) B[i] = wo_mix(c, at(wo_SPRF, L, -1, 18), .45);
@@ -900,14 +922,15 @@ function wo_mapClass(x, y){
   if (wo_rsd(x, y) < 2) return wo_RT[wo_gidx(x, y)] === 3 ? 'p' : 'r';
   return ZONES[wo_zid(x, y)].id;
 }
-const wo_TREEK = { eiche: 1, buche: 1, fichte: 1, schneefichte: 1, birke: 1, weide: 1, apfelbaum: 1, toter_baum: 1 };
-const wo_BUILDK = { dom: 1, kran: 1, gasthaus_anker: 1, fachwerkhaus: 1, fachwerkhaus_ruine: 1, stadthaus: 1, kirche: 1, kapelle: 1, kloster: 1, muehle: 1, burg_mauer: 1, burg_turm: 1, burg_tor: 1, bergfried: 1, stadt_mauer: 1, stadt_turm: 1, stadt_tor: 1, ruine_mauer: 1, ruine_turm: 1, mauer: 1, zelt: 1, tribuene: 1, gasthaus_kanne: 1, gasthaus_adler: 1, gasthaus_krone: 1, gasthaus_ochse: 1, goepel: 1 };
+const wo_TREEK = { eiche: 1, buche: 1, fichte: 1, schneefichte: 1, birke: 1, weide: 1, apfelbaum: 1, toter_baum: 1, kiefer: 1 };
+const wo_BUILDK = { dom: 1, kran: 1, gasthaus_anker: 1, fachwerkhaus: 1, fachwerkhaus_ruine: 1, stadthaus: 1, kirche: 1, kapelle: 1, kloster: 1, muehle: 1, burg_mauer: 1, burg_turm: 1, burg_tor: 1, bergfried: 1, stadt_mauer: 1, stadt_turm: 1, stadt_tor: 1, ruine_mauer: 1, ruine_turm: 1, mauer: 1, zelt: 1, tribuene: 1, gasthaus_kanne: 1, schlosskirche: 1, frauenkirche: 1, fuggerhaus: 1, perlach: 1, gasthaus_schwan: 1, gasthaus_gloecklein: 1, gasthaus_lamm: 1, gasthaus_adler: 1, gasthaus_krone: 1, gasthaus_ochse: 1, goepel: 1 };
 const MINIMAP = (() => {
   const MW = WW >> 5, MH = WH >> 5, c = canvasOf(MW, MH), g = c.getContext('2d'), id = g.createImageData(MW, MH), D = new Uint32Array(id.data.buffer);
   const col = { w: '#3c5560', b: '#8a7458', r: '#8a7450', p: '#7a7468', obstgarten: '#5c6a3c', burg: '#5f6840', stadt: '#6a6448', dorf: '#6e6a40', wald: '#2c3a22', moor: '#41452f',
     friedhof: '#46523a', galgen: '#6e6646', schlachtfeld: '#5a4c34', lager: '#66603e', ruine: '#605c4a', fluss: '#566a40', weiler: '#6e6a40',
     speyer: '#6a6448', fischerdorf: '#66684a', weinberge: '#5e6a36', auwald: '#33442a', piratennest: '#5e5440',
-    schwarzwald: '#1f2c1a', annaberg: '#6a6448', silberrevier: '#625c4a', schanze: '#5e5640', hochgebirge: '#76767a' };
+    schwarzwald: '#1f2c1a', annaberg: '#6a6448', silberrevier: '#625c4a', schanze: '#5e5640', hochgebirge: '#76767a',
+    wittenberg: '#6a6448', heide: '#6a5a4a', nuernberg: '#6a6448', reichswald: '#2e3420', gailingen: '#625c4a', donauried: '#45492f', augsburg: '#6a6448', lechfeld: '#6e6a48' };
   for (let j = 0; j < MH; j++) for (let i = 0; i < MW; i++){
     let k = wo_mapClass(i * 32 + 16, j * 32 + 16);
     let w = 0; for (const [dx, dy] of [[6, 6], [26, 6], [6, 26], [26, 26]]) if (wo_wsd(i * 32 + dx, j * 32 + dy) < 0) w++;
@@ -940,7 +963,8 @@ const FULLMAP = (() => {
     const edge = Math.min(i, j, MW - 1 - i, MH - 1 - j), stain = wo_lo(i * 23, j * 23), fib = wo_fin(i * 3, j * 3);
     let v = 7.2 + (stain - .5) * 3 + (fib - .5) * 1.2 - Math.max(0, (24 - edge) / 24) * 3.2;
     let cc = PARCH[clamp(Math.floor(v + dither(i, j)), 0, 9)];
-    if (k === 'wald' || k === 'schwarzwald') cc = wo_mix(cc, GRN[k === 'wald' ? 3 : 2], .3);
+    if (k === 'wald' || k === 'schwarzwald' || k === 'reichswald') cc = wo_mix(cc, GRN[k === 'wald' ? 3 : 2], .3);
+    else if (k === 'heide') cc = wo_mix(cc, wo_c('#9a7a8a'), .18); else if (k === 'donauried') cc = wo_mix(cc, wo_c('#7a7a58'), .3);
     else if (k === 'hochgebirge') cc = wo_mix(cc, wo_hgt(x, y) > 1.05 ? wo_c('#eef0f0') : wo_c('#8a8478'), wo_hgt(x, y) > 1.05 ? .55 : .35);
     else if (k === 'silberrevier') cc = wo_mix(cc, wo_c('#8a8070'), .22); else if (k === 'moor') cc = wo_mix(cc, wo_c('#7a7a58'), .35);
     else if (k === 'schlachtfeld') cc = wo_mix(cc, wo_c('#9a7a58'), .2); else if (k === 'dorf' || k === 'obstgarten' || k === 'fluss') cc = wo_mix(cc, GRN[3], .14);
@@ -975,7 +999,7 @@ const FULLMAP = (() => {
   for (const q of wo_PI){
     const p = q.p;
     if (!wo_TREEK[p.kind] || wo_h(p.x, p.y, 91) > .45) continue;
-    const mx = p.x / 8 | 0, my = p.y / 8 | 0, fir = p.kind === 'fichte' || p.kind === 'schneefichte';
+    const mx = p.x / 8 | 0, my = p.y / 8 | 0, fir = p.kind === 'fichte' || p.kind === 'schneefichte' || p.kind === 'kiefer';
     if (fir){ ink(mx, my - 3, INK); ink(mx - 1, my - 2, GRN[0]); ink(mx, my - 2, GRN[1]); ink(mx + 1, my - 2, GRN[0]); ink(mx - 1, my - 1, GRN[1]); ink(mx, my - 1, GRN[2]); ink(mx + 1, my - 1, GRN[0]); ink(mx, my, INK); }
     else if (p.kind === 'toter_baum'){ ink(mx, my, INK); ink(mx, my - 1, INK); ink(mx - 1, my - 2, INK); ink(mx + 1, my - 2, INK); }
     else { ink(mx - 1, my - 2, GRN[1]); ink(mx, my - 2, GRN[2]); ink(mx + 1, my - 2, GRN[1]); ink(mx - 1, my - 1, GRN[0]); ink(mx, my - 1, GRN[1]); ink(mx + 1, my - 1, GRN[0]); ink(mx, my - 3, GRN[1]); ink(mx, my, INK); if (p.apple) ink(mx + 1, my - 2, RED); }
@@ -1020,7 +1044,9 @@ const MAP_LABELS = ZONES.map(z => ({ x: z.label.x, y: z.label.y, name: z.name })
   { x: 2470, y: 1640, name: 'Mühle' }, { x: 620, y: 1160, name: 'Köhlerei' }, { x: 1360, y: 2640, name: 'Kloster' }, { x: 2966, y: 1810, name: 'Steinbrücke' },
   { x: 5300, y: 1000, name: 'Kaiserdom' }, { x: 5230, y: 1780, name: 'Hafen' }, { x: 5000, y: 1830, name: 'Schiffbrücke' }, { x: 5900, y: 1630, name: 'Zollturm' }, { x: 5300, y: 250, name: 'Wallfahrtskapelle' },
   { x: 1700, y: 4010, name: 'Silberbach' }, { x: 4960, y: 4100, name: 'Quellsee' }, { x: 520, y: 4300, name: 'Teufelsschlucht' }, { x: 940, y: 3520, name: 'Räuberlager' },
-  { x: 2300, y: 4470, name: 'Altenberg-Stollen' }, { x: 5720, y: 4200, name: 'Rübezahls Thron' }, { x: 5180, y: 3800, name: 'Almhütte' }
+  { x: 2300, y: 4470, name: 'Altenberg-Stollen' }, { x: 5720, y: 4200, name: 'Rübezahls Thron' }, { x: 5180, y: 3800, name: 'Almhütte' },
+  { x: 8620, y: 1170, name: 'Hünengrab' }, { x: 6560, y: 1590, name: 'Der Main' }, { x: 8740, y: 960, name: 'Die Elbe' }, { x: 8480, y: 2610, name: 'Zeidlerhof' }, { x: 6990, y: 2110, name: 'Knoblauchsland' },
+  { x: 7620, y: 3000, name: 'Donaulände' }, { x: 6380, y: 2980, name: 'Donauquelle' }, { x: 8700, y: 3220, name: 'Die Donau' }, { x: 7720, y: 4530, name: 'Ungarnstein' }
 ]);
 
 /* Startbereich vorbereiten, damit das erste Bild nicht stockt */
