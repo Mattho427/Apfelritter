@@ -11,9 +11,11 @@ const zu = (p, id, lvl) => p.evaluate(([id, lvl]) => { HERO.lvl = lvl; refreshSt
 // Gruppe bilden, damit die Stufe nach dem Stärkeren geht
 for (const [p, dx] of [[A, 0], [B, 30]]) await p.evaluate(dx => { const n = NPCS.find(q => q.id === 'werber'); G.knight.x = n.x + dx; G.knight.y = n.y + 40; updateZone(true); $('banner').hidden = true; }, dx);
 await wait(1200);
-await A.evaluate(() => netAsk([...PEERS.values()][0], 'party')); await wait(900);
+await A.evaluate(() => netAsk([...PEERS.values()][0], 'party', NET.pt ? NET.pt.id : rid())); await wait(900);
 await B.evaluate(() => { if (NET.inbox[0]) netAnswer(NET.inbox[0], true); }); await wait(1500);
 T('Gruppe', await A.evaluate(() => partyList().map(q => q.nm)), r => r.includes('Grete'));
+for (const [p, l] of [[A, 28], [B, 25]]) await p.evaluate(l => { HERO.lvl = l; refreshStats(); sendPresence(true); }, l);
+await wait(1500);
 T('Pavia', [await zu(A, 'pavia', 28), await zu(B, 'pavia', 25)], r => r[0] === 'pavia' && r[1] === 'pavia');
 await wait(1200);
 T('Stufe', await B.evaluate(() => DG_ON.lvl), r => r[0] >= 28);

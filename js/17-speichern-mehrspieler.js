@@ -428,7 +428,7 @@ function partyTick(t){
     now[q.peer] = { nm: q.nm, dead: q.dead, in: q.in || 0, hp: q.hp, lv: q.lv };
     if (!was){ if (t - NET.ptT > 3) logLine(q.nm + ' ist in der Gruppe.', '#9fe08a'); continue; }
     if (q.dead && !was.dead) logLine(q.nm + ' ist gefallen!', '#ff9a8a');
-    if (q.in !== was.in && typeof q.in === 'string' && q.in.startsWith('dg:') && DG_DEF[q.in.slice(3)]) logLine(q.nm + ' steigt hinab: ' + DG_DEF[q.in.slice(3)].name + '.', '#c8b8ff');
+    if (q.in !== was.in && typeof q.in === 'string' && q.in.startsWith('dg:') && DG_DEF[q.in.slice(3)]) logLine(q.nm + (DG_DEF[q.in.slice(3)].kz ? ' zieht in den Krieg: ' : ' steigt hinab: ') + DG_DEF[q.in.slice(3)].name + '.', '#c8b8ff');
     if (q.lv > was.lv) logLine(q.nm + ' erreicht Stufe ' + q.lv + '.', '#ecd27a');
   }
   for (const id in NET.mem) if (!now[id]) logLine(NET.mem[id].nm + ' ist nicht mehr in der Gruppe.', '#d8c69c');

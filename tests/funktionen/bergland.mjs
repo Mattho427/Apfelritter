@@ -14,7 +14,7 @@ await T('Anführer', () => ['tatzelwurm', 'bergmoench', 'feldhauptmann', 'ruebez
 await T('Erreichbar', () => { const out = {}; for (const [n, x, y] of [['anna', 2900, 3550], ['schwarz', 900, 3900], ['revier', 2600, 4100], ['schanze', 4450, 3500], ['gebirge', 5400, 4200], ['thron', 5720, 4300], ['schlucht', 520, 4440], ['stollen', 2300, 4490]]){ const q = wo_near(x, y); out[n] = wo_ok(q.x, q.y); } return out; }, r => Object.values(r).every(Boolean));
 await T('Gasthaus Kanne', () => { const i = INN_BY.kanne; return i && { name: i.name, host: i.host, bind: !!BIND.kanne }; }, r => r && r.name === 'Zur Silbernen Kanne' && r.bind);
 await T('Kirche St. Annen', () => { const c = CH_BY.annenkirche; return c && { name: c.name, zone: gZone(c.x, c.y).id, d: Math.round(Math.hypot(c.x - 3050 * WS, c.y - 3532 * WS)) }; }, r => r && r.zone === 'annaberg' && r.d < 40);
-await T('Leute', () => NPCS.filter(n => n.hub === 'annaberg').map(n => n.id + ':' + gZone(n.x, n.y).id), r => r.length === 4 && r.every(x => x.endsWith(':annaberg')));
+await T('Leute', () => NPCS.filter(n => n.hub === 'annaberg').map(n => n.id + ':' + gZone(n.x, n.y).id), r => r.length >= 5 && r.some(x => x.startsWith('fuhrmann_an:')) && r.every(x => x.endsWith(':annaberg')));
 // zum Bergmeister gehen, Aufträge ansehen, annehmen, rasten
 await T('Bergmeister', () => { const n = NPCS.find(q => q.id === 'bergmeister'), k = G.knight; k.x = n.x; k.y = n.y + 24; updateZone(true); openTalk(n); return [...$('talkBody').querySelectorAll('button')].map(x => x.textContent); },
   r => r.some(t => /Wölfe im Schwarzwald/.test(t)) && r.some(t => /Hier rasten/.test(t)) && r.some(t => /Kopfgeld: Der Schwarzwald/.test(t)));

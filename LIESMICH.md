@@ -27,7 +27,7 @@ in getrennten Browserfenstern, die über einen nachgebauten Raum verbunden sind 
 
 - `bash tests/alle.sh` – alle Tests nacheinander (etwa 45 Minuten), zeigt je Test die Ergebniszeilen.
 - `tests/einzel/` – Einzelspieler: Welt, Kampf, Gewölbe, Jagd, Feste, Tastatur, Jahreszeiten, Tjost.
-- `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen.
+- `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen, zwei Ritter im Kriegszug.
 - `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Annaberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Pavia und Wien.
 - `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden, `karte.mjs` speichert die Weltkarte, `orte.mjs name:x,y …` Bilder an Weltorten, `gegnerbilder.mjs art …` einen Bildbogen der Gegner, `bauten.mjs art …` einen Bogen der Bauten und Dinge.
 
