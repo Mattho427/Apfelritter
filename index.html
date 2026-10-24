@@ -440,7 +440,8 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 .qcard.done{box-shadow:inset 0 0 0 2px #5a8a3a;}
 .qcard.story{box-shadow:inset 0 0 0 2px var(--gold-lo); background:color-mix(in srgb, var(--stone-lo) 85%, #4a3a10);}
 .qcard.rufcard{justify-items:stretch;}
-.rufrow{display:grid; grid-template-columns:5.2em 1fr 10.5em; gap:8px; align-items:center; font-size:17px;}
+.rufrow{display:grid; grid-template-columns:1fr auto; gap:3px 8px; align-items:center; font-size:17px;}
+.rufrow .rufbar{grid-column:1 / -1; grid-row:2;}
 .rufbar{position:relative; height:10px; background:#2a2420; box-shadow:0 0 0 2px #16120f;}
 .rufbar::after{content:''; position:absolute; left:50%; top:-2px; bottom:-2px; width:2px; background:#8a7a5a;}
 .ruffill{position:absolute; top:0; bottom:0;}

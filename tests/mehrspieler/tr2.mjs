@@ -1,0 +1,23 @@
+// Recht zu zweit: Grete sieht, dass auf Hans ein Kopfgeld steht und dass er am Pranger steht; dort lässt er sich zu keinem Handel bitten.
+import { launch, wait, OUT } from './harness.mjs';
+const H = await launch(2);
+await H.start(['Hans', 'Grete'], ['reich', 'england']);
+const [A, B] = H.pages.map(P => P.p);
+let fehl = 0;
+const T = (name, r, ok) => { const gut = ok(r); if (!gut) fehl++; console.log((gut ? 'ok   ' : 'FEHL ') + name.padEnd(20), JSON.stringify(r)); };
+for (const [p, dx] of [[A, 0], [B, 90]]) await p.evaluate(dx => { window.__skyShift = (12 / 24 * DAY_LEN) - (Date.now() / 1000 % DAY_LEN); const q = gNear(2930, 2330), k = G.knight; k.x = q.x + dx; k.y = q.y + 40; updateZone(true); $('banner').hidden = true; }, dx);
+await wait(1500);
+await A.evaluate(() => { rrS().cool = nowS() + 999; rrCrime(50, 'Diebstahl in der Reichsstadt'); });
+await wait(1500);
+T('Gesucht', await B.evaluate(() => { const q = [...PEERS.values()][0]; return q && q.rr; }), r => r === 'g');
+await (await B.$('canvas')).screenshot({ path: OUT + 'tr2_gesucht.png' });
+await A.evaluate(() => rrPillory('stadt'));
+await wait(1800);
+T('Am Pranger', await B.evaluate(() => { const q = [...PEERS.values()][0], pr = gNear(2900, 2290); return { rr: q.rr, bz: q.bz, nah: Math.round(Math.hypot(q.x - pr.x, q.y - pr.y)) }; }), r => r.rr === 'p' && r.bz === 'p' && r.nah < 20);
+T('Kein Handel', await B.evaluate(() => { const q = [...PEERS.values()][0]; return netBusy('trade', q, true); }), r => /beschäftigt/.test(r));
+await (await B.$('canvas')).screenshot({ path: OUT + 'tr2_pranger.png' });
+await A.evaluate(() => { rrS().pr.t = .2; });
+await wait(1800);
+T('Wieder frei', await B.evaluate(() => { const q = [...PEERS.values()][0]; return { rr: q.rr, bz: q.bz }; }), r => !r.rr && !r.bz);
+console.log(H.errors().join('\n') || (fehl ? 'FEHL ' + fehl : 'keine Fehler'));
+await H.done();

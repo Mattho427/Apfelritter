@@ -716,7 +716,7 @@ function rrQuestCard(box){
     const bar = el('span', 'rufbar'), fill = el('span', 'ruffill');
     fill.style.left = (v < 0 ? 50 + v / 2 : 50) + '%'; fill.style.width = Math.abs(v) / 2 + '%'; fill.style.background = v < 0 ? '#c8443c' : r.c; bar.append(fill);
     const nm = el('b', null, r.n); nm.style.color = r.c;
-    row.append(nm, bar, el('span', 'rufrang', RUF_RANG[lv + 2] + ' (' + (v > 0 ? '+' : '') + v + ')'));
+    row.append(nm, bar, el('span', 'rufrang', RUF_RANG[lv + 2] + ' (' + (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + ')'));
     card.append(row, el('p', 'rufeff', rufEff(r.id, lv).join(', ')));
   }
   if (HERO.glaube) card.append(el('p', 'qgoal', 'Glaube: ' + (HERO.glaube === 'alt' ? 'beim alten Glauben' : 'Augsburger Bekenntnis')));
