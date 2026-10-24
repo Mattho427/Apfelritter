@@ -169,7 +169,7 @@ function rrPay(full){
 }
 function rrRelease(move){
   const R = rrS(); R.halt = null; R.cool = nowS() + 25;
-  if (move){ const c = RR_CITY[move] || RR_CITY.stadt, b = rrBuettelOf(move), p = b ? { x: b.x, y: b.y + 34 } : gNear(c.out[0], c.out[1]); G.knight.x = p.x; G.knight.y = p.y; G.knight.dir = 'down'; updateZone(true); }
+  if (move){ const c = RR_CITY[move] || RR_CITY.stadt, b = rrBuettelOf(move) || (move === 'burg' ? NPCS.find(n => n.id === 'vogt') : null), p = b ? { x: b.x, y: b.y + 34 } : gNear(c.out[0], c.out[1]); G.knight.x = p.x; G.knight.y = p.y; G.knight.dir = 'down'; updateZone(true); }
   if (G.mode === 'menu') closePanel();
 }
 /* Flucht: die Wache rennt hinterher; wer aus der Stadt kommt, ist fürs Erste frei */

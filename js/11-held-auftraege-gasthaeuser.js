@@ -93,7 +93,7 @@ function cleanHero(h){
   if (!HORSES[h.horse]) h.horse = null;
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
-  h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(1800, +h.bless.t || 0) } : null; h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
+  h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(h.glaube === 'alt' ? 1800 : 1200, +h.bless.t || 0) } : null;   // beim alten Glauben 30 Minuten (Teil 26) h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
   h.kz = h.kz && typeof h.kz === 'object' ? { pavia: Math.max(0, h.kz.pavia | 0), wien: Math.max(0, h.kz.wien | 0) } : {};
   h.fsw = h.fsw && typeof h.fsw === 'object' ? Object.fromEntries(['muehle', 'karten', 'kegeln', 'ringen'].map(k => [k, Math.max(0, h.fsw[k] | 0)])) : {};
   h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};
