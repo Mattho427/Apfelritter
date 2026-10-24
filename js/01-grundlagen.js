@@ -1,4 +1,4 @@
-/* Der Apfelritter, Teil 1 von 24: Grundlagen: Hilfen, Zeichenwerkzeuge, verzögertes Laden der Tafelbilder.
+/* Der Apfelritter, Teil 1 von 25: Grundlagen: Hilfen, Zeichenwerkzeuge, verzögertes Laden der Tafelbilder.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 "use strict";
 /* Fingerabdruck dieser Fassung: Zwischenspeicher gelten nur für genau diese. Wird von werkzeug/stempel.mjs vor dem Veröffentlichen gesetzt. */

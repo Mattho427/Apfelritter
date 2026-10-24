@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 13 von 24: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
+/* Der Apfelritter, Teil 13 von 25: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;
@@ -563,9 +563,15 @@ const WARES = {
   silbererz:  { n:'Silbererz', v: 22, r: 1, berg: true },
   wolfspelz:  { n:'Wolfspelz', v: 16, berg: true },
   baerenfell: { n:'Bärenfell', v: 42, r: 1, berg: true },
-  geierfeder: { n:'Bartgeierfeder', v: 14, berg: true }
+  geierfeder: { n:'Bartgeierfeder', v: 14, berg: true },
+  // Ostlande: Beute von Gegnern
+  otterhaut:  { n:'Natternhaut', v: 12, ost: true },
+  krebsschere: { n:'Krebsschere', v: 20, ost: true },
+  alraune:    { n:'Alraunwurzel', v: 34, r: 1, ost: true },
+  pfeilspitze: { n:'Ungarische Pfeilspitze', v: 26, r: 1, ost: true }
 };
-const MON_WARE = { kobold: ['silbererz', .3], grubengeist: ['silbererz', .2], wolf: ['wolfspelz', .4], baer: ['baerenfell', .5], geier: ['geierfeder', .35] };
+const MON_WARE = { kobold: ['silbererz', .3], grubengeist: ['silbererz', .2], wolf: ['wolfspelz', .4], baer: ['baerenfell', .5], geier: ['geierfeder', .35],
+  kreuzotter: ['otterhaut', .35], keiler: ['hauer', .3], moosweib: ['alraune', .2], riesenkrebs: ['krebsschere', .4], geisterbogner: ['pfeilspitze', .25], geisterreiter: ['pfeilspitze', .15] };
 const WARE_MAX = 10;   // Stück je Stapel
 /* hp: Vielfaches des eigenen Schadens; drops: [Ware, Wahrscheinlichkeit]; fight: wehrt sich */
 const HUNT = {
@@ -757,7 +763,11 @@ const DEATH_COLORS = {
   wolf:['#5a5650', '#3a3632', '#7a2a2a'], schrat:['#3a2c1e', '#4f5c2a', '#6a5438'], wegelagerer:['#3e4a2e', '#6a5030', '#c79a7a'], kobold:['#4a5a3a', '#c8a040', '#2a2420'],
   grubengeist:['#8aa0b0', '#3a3a40', '#cfe8ff'], doppelsoeldner:['#b8281e', '#e0c040', '#6a6e76'], hakenschuetze:['#2a3a5a', '#5e626a', '#d8d0c0'], baer:['#4a3220', '#2e1e12', '#7a2a2a'],
   geier:['#5a4a38', '#d8c8a0', '#2a2018'], eislicht:['#9fdcff', '#ffffff'], tatzelwurm:['#4a5a2a', '#c8a040', '#a3242a'], bergmoench:['#2a2830', '#ffd070', '#8aa0b0'],
-  feldhauptmann:['#b8281e', '#e0c040', '#1a1a20'], ruebezahl:['#5a4a38', '#8a8a80', '#d8d0c0', '#3a5a2a']
+  feldhauptmann:['#b8281e', '#e0c040', '#1a1a20'], ruebezahl:['#5a4a38', '#8a8a80', '#d8d0c0', '#3a5a2a'],
+  kreuzotter:['#5e5440', '#16130f', '#c43020'], strauchdieb:['#544838', '#36363c', '#c79a7a'], irrwisch:['#f0b050', '#fff6d8'], keiler:['#362c22', '#5c4e3c', '#cbc4a6'],
+  moosweib:['#3e5226', '#727e62', '#a8301e'], reisiger:['#6e767e', '#7a2420', '#c79a7a'], riesenkrebs:['#423822', '#923a1c', '#6e5c3a'], geisterreiter:['#7eaebc', '#d0eef4', '#56406e'],
+  geisterbogner:['#7eaebc', '#d0eef4', '#56406e'], hackelberg:['#243426', '#36363e', '#ff6a3a', '#a8987a'], eppelein:['#6e767e', '#a8241e', '#7a401c'],
+  donauweibchen:['#64948a', '#86963a', '#e0e0d8', '#9ff4ff'], bulcsu:['#6e3e86', '#cabc5a', '#d0eef4']
 };
 function kill(m){
   const i = G.mons.indexOf(m); if (i >= 0) G.mons.splice(i, 1);

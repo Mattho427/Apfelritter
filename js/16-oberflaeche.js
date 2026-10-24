@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 24: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 25: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -171,7 +171,20 @@ const BEASTS = [
   ['tatzelwurm', 'Der Tatzelwurm', 'Teufelsschlucht im Schwarzwald, Stufe 23, schnellt mit giftigem Biss vor'],
   ['bergmoench', 'Der Bergmönch', 'Altenberg-Stollen im Silberrevier, Stufe 25, verschwindet und taucht mit dem Fäustel wieder auf'],
   ['feldhauptmann', 'Feldhauptmann Balthasar Wüst', 'Söldnerschanze, Stufe 27, schnell und ruft seine Doppelsöldner'],
-  ['ruebezahl', 'Rübezahl', 'Felsenthron im Hochgebirge, Stufe 31, stürmt mit dem Baumstamm heran']
+  ['ruebezahl', 'Rübezahl', 'Felsenthron im Hochgebirge, Stufe 31, stürmt mit dem Baumstamm heran'],
+  ['kreuzotter', 'Kreuzotter', 'Dübener Heide, liegt im Heidekraut und beißt blitzschnell zu'],
+  ['strauchdieb', 'Strauchdieb', 'Heide, Reichswald und Gailingen, lauert an den Wegen'],
+  ['irrwisch', 'Irrwisch', 'Heide und Donauried, rötliches Licht über Weihern und Sumpf'],
+  ['keiler', 'Keiler', 'Reichswald, bricht mit gesenkten Hauern durchs Unterholz'],
+  ['moosweib', 'Moosweiblein', 'Reichswald, flinker Waldgeist im Mantel aus Moos'],
+  ['reisiger', 'Reisiger', 'Burg Gailingen, gerüsteter Knecht des Raubritters'],
+  ['riesenkrebs', 'Riesenkrebs', 'Donauried, kriecht aus dem Schlamm und kneift mit den Scheren'],
+  ['geisterreiter', 'Geisterreiter', 'Lechfeld, ungarischer Reiter aus der Schlacht von 955, reitet nachts'],
+  ['geisterbogner', 'Geisterbogner', 'Lechfeld, schießt vom Pferd aus großer Entfernung'],
+  ['hackelberg', 'Hackelberg, der Wilde Jäger', 'Hünengrab in der Dübener Heide, Stufe 15, jagt mit der Saufeder und ruft seine Hunde'],
+  ['eppelein', 'Eppelein von Gailingen', 'Burg Gailingen, Stufe 23, Raubritter zu Pferd, ruft seine Reisigen'],
+  ['donauweibchen', 'Das Donauweibchen', 'Ufer der Donau im Ried, Stufe 27, singt und schickt das Wasser gegen Euch'],
+  ['bulcsu', 'Bulcsú, der Geisterfürst', 'Ungarnstein auf dem Lechfeld, Stufe 31, führt die Geisterreiter an']
 ];
 for (const [kind, name, desc] of BEASTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name), v = el('span', 'val' + (MON[kind].boss ? ' bad' : ''), MON[kind].boss ? 'Anführer' : '');
@@ -795,6 +808,7 @@ function renderTalk0(view){
     chTalkOpts(n, opts);
     ehTalkOpts(n, opts);
     asTalkOpts(n, opts);
+    ostTalkOpts(n, opts);
     opts.append(btn('Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -864,6 +878,8 @@ function renderTalk0(view){
     strView(view, body, opts);
   } else if (typeof view === 'string' && /^(post|markt|lw$|ordh)/.test(view)){
     asView(view, body, opts);
+  } else if (typeof view === 'string' && /^ost[A-Z]/.test(view)){
+    ostView(view, body, opts);
   } else if (view === 'joust'){
     $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
       + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';
@@ -909,7 +925,7 @@ function renderTalk0(view){
     b1.disabled = HERO.gold < price || HERO.potions >= 20; b5.disabled = HERO.gold < price * 5 || HERO.potions > 15;
     row.append(im, tx, el('span', 'sbtns')); row.lastChild.append(b1, b5);
     body.append(row);
-    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ const rich = n.hub === 'annaberg';   // die Bergstadt ist reich: bessere Ware
+    if (!n.stock || n.stockLvl !== HERO.lvl || nowS() > n.stockT){ const rich = n.hub === 'annaberg' || n.rich;   // die Bergstadt und die großen Handelsstädte: bessere Ware
       n.stock = [makeItem(pick(SLOTS), HERO.lvl, rich ? 1 : 0), makeItem(pick(SLOTS), HERO.lvl, 1), makeItem(pick(SLOTS), HERO.lvl, rich ? 2 : 1), makeItem(pick(SLOTS), HERO.lvl + 1, rich ? 2 : 1)]; n.stockLvl = HERO.lvl; n.stockT = nowS() + 300; }
     n.stock.forEach((it, i) => {
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;

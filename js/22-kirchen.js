@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 22 von 24: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
+/* Der Apfelritter, Teil 22 von 25: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Kirchen, Priester und Glaube ============
@@ -103,7 +103,7 @@ for (const c of CHURCHES){
   HUB_NAME[c.id] = c.name; HUB_IN[c.id] = 'in der ' + c.name.replace(/^Kaiserdom/, 'Kaiserdom');
   if (c.id === 'kaiserdom') HUB_IN[c.id] = 'im Kaiserdom zu Speyer';
   else if ({ sebald: 1, lorenz: 1, augsdom: 1 }[c.id]) HUB_IN[c.id] = c.id === 'augsdom' ? 'im Dom zu Augsburg' : 'in ' + c.name;
-  if (c.id !== 'kaiserdom') MAP_LABELS.push({ x: c.dx / WS, y: c.y / WS - (c.kind === 'kirche' ? 250 : 120), name: c.name.replace(/ (St\.|Unserer).*$/, '') });
+  if (c.id !== 'kaiserdom' && !(c.x > WW0 * WS && c.id !== 'ulrichskapelle')) MAP_LABELS.push({ x: c.dx / WS, y: c.y / WS - (c.kind === 'kirche' ? 250 : 120), name: c.name.replace(/ (St\.|Unserer).*$/, '') });
 }
 
 /* ---------- Innenraum: Altar und Fenster vorn, Säulen, Bänke, Kanzel, Taufstein, Kerzenständer ---------- */

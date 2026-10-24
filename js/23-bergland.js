@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 23 von 24: Das Bergland: Bergstadt Annaberg, ihre Leute, die Aufträge des Bergmeisters.
+/* Der Apfelritter, Teil 23 von 25: Das Bergland: Bergstadt Annaberg, ihre Leute, die Aufträge des Bergmeisters.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Das Bergland (Version 25) ============

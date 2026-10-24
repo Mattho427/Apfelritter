@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 7 von 24: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
+/* Der Apfelritter, Teil 7 von 25: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Die Welt: das Reichsland 6144 × 4608, im Süden das Bergland (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
 const wo_T0 = performance.now();
@@ -105,11 +105,11 @@ const ZONES = [
   // Die Ostlande (Version 26): Sachsen im Norden, Franken in der Mitte, Schwaben im Süden
   { id: 'wittenberg', name: 'Wittenberg an der Elbe', monsters: [], label: { x: 7920, y: 270 } },
   { id: 'heide', name: 'Die Dübener Heide', monsters: ['kreuzotter', 'strauchdieb', 'irrwisch'], label: { x: 7300, y: 1230 } },
-  { id: 'nuernberg', name: 'Die Reichsstadt Nürnberg', monsters: [], label: { x: 7740, y: 1990 } },
-  { id: 'reichswald', name: 'Der Reichswald', monsters: ['keiler', 'moosweib', 'strauchdieb'], label: { x: 8560, y: 2620 } },
+  { id: 'nuernberg', name: 'Die Reichsstadt Nürnberg', monsters: [], label: { x: 7740, y: 1960 } },
+  { id: 'reichswald', name: 'Der Reichswald', monsters: ['keiler', 'moosweib', 'strauchdieb'], label: { x: 8300, y: 2920 } },
   { id: 'gailingen', name: 'Burg Gailingen', monsters: ['reisiger', 'armbrust', 'strauchdieb'], label: { x: 8650, y: 1760 } },
-  { id: 'donauried', name: 'Das Donauried', monsters: ['riesenkrebs', 'moor', 'irrwisch'], label: { x: 6800, y: 3260 } },
-  { id: 'augsburg', name: 'Die Reichsstadt Augsburg', monsters: [], label: { x: 7430, y: 3460 } },
+  { id: 'donauried', name: 'Das Donauried', monsters: ['riesenkrebs', 'moor', 'irrwisch'], label: { x: 6720, y: 3300 } },
+  { id: 'augsburg', name: 'Die Reichsstadt Augsburg', monsters: [], label: { x: 7430, y: 3440 } },
   { id: 'lechfeld', name: 'Das Lechfeld', monsters: ['geisterreiter', 'geisterbogner', 'wieder'], label: { x: 7400, y: 4300 } }
 ];
 const wo_ZI = {}; ZONES.forEach((z, i) => { wo_ZI[z.id] = i; });
@@ -1773,12 +1773,14 @@ function wo_near(x, y){   // nächster gültiger Punkt
   return { x, y };
 }
 const LAIRS = { raubritter: wo_near(3550, 452), lindwurm: wo_near(610, 2722), tod: wo_near(2080, 2812), rotbart: wo_near(5700, 1762), wels: wo_near(5330, 2578),
-  tatzelwurm: wo_near(520, 4450), bergmoench: wo_near(2300, 4490), feldhauptmann: wo_near(4450, 3440), ruebezahl: wo_near(5720, 4300) };
+  tatzelwurm: wo_near(520, 4450), bergmoench: wo_near(2300, 4490), feldhauptmann: wo_near(4450, 3440), ruebezahl: wo_near(5720, 4300),
+  hackelberg: wo_near(8620, 1280), eppelein: wo_near(8650, 1940), donauweibchen: wo_near(7040, 3070), bulcsu: wo_near(7560, 4510) };
 
 /* ============ Erscheinungspunkte ============ */
 const SPAWNS = (() => {
   const R = rng(666), S = { wieder: [], ratte: [], pluend: [], armbrust: [], werwolf: [], moor: [], irrlicht: [], rabe: [], pirat: [], pschuetze: [], nix: [],
-    wolf: [], schrat: [], wegelagerer: [], kobold: [], grubengeist: [], doppelsoeldner: [], hakenschuetze: [], baer: [], geier: [], eislicht: [] };
+    wolf: [], schrat: [], wegelagerer: [], kobold: [], grubengeist: [], doppelsoeldner: [], hakenschuetze: [], baer: [], geier: [], eislicht: [],
+    kreuzotter: [], strauchdieb: [], irrwisch: [], keiler: [], moosweib: [], reisiger: [], riesenkrebs: [], geisterreiter: [], geisterbogner: [] };
   const add = (k, x, y) => { const p = wo_ok(x, y) ? { x: Math.round(x), y: Math.round(y) } : null; if (p && !S[k].some(q => Math.abs(q.x - p.x) < 40 && Math.abs(q.y - p.y) < 40)) S[k].push(p); };
   const inZone = (zs, n, k, y0, y1) => { for (let t = 0; t < n * 30 && n > 0; t++){ const x = R() * WW0, y = y0 === undefined ? R() * WH0 : y0 + R() * (y1 - y0); if (zs.includes(ZONES[wo_zid(x, y)].id)){ const l = S[k].length; add(k, x, y); if (S[k].length > l) n--; } } };
   for (const g of wo_GRAVES) add('wieder', g.x + (R() - .5) * 8, g.y + 14);
@@ -1811,5 +1813,12 @@ const SPAWNS = (() => {
   inZone(['silberrevier'], 30, 'grubengeist', B0, B1);
   inZone(['schanze'], 50, 'doppelsoeldner', B0, B1); inZone(['schanze'], 40, 'hakenschuetze', B0, B1);
   inZone(['hochgebirge'], 40, 'baer', B0, B1); inZone(['hochgebirge'], 40, 'geier', B0, B1); inZone(['hochgebirge'], 30, 'eislicht', B0, B1);
+  // Ostlande: nur rechts der alten Welt suchen
+  const inEast = (zs, n, k) => { for (let t = 0; t < n * 40 && n > 0; t++){ const x = WW0 + R() * (WW - WW0), y = R() * WH; if (zs.includes(ZONES[wo_zid(x, y)].id)){ const l = S[k].length; add(k, x, y); if (S[k].length > l) n--; } } };
+  inEast(['heide'], 50, 'kreuzotter'); inEast(['heide', 'reichswald', 'gailingen'], 60, 'strauchdieb'); inEast(['heide', 'donauried'], 40, 'irrwisch');
+  inEast(['reichswald'], 50, 'keiler'); inEast(['reichswald'], 40, 'moosweib'); inEast(['gailingen'], 40, 'reisiger');
+  const gl = wo_OST.gailingen; if (gl) for (let i = 0; i < 8; i++) add('reisiger', gl.x + (R() - .5) * 300, gl.y + (R() - .5) * 180);
+  for (let t = 0; t < 8000 && S.riesenkrebs.length < 40; t++){ const x = WW0 + R() * (WW - WW0), y = 2800 + R() * 700, w = wo_wsd(x, y); if (w > 5 && w < 22 && ZONES[wo_zid(x, y)].id === 'donauried') add('riesenkrebs', x, y); }
+  inEast(['lechfeld'], 50, 'geisterreiter'); inEast(['lechfeld'], 40, 'geisterbogner');
   return S;
 })();

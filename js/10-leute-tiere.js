@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 10 von 24: Leute in Burg und Stadt, Tiere, Leute unterwegs.
+/* Der Apfelritter, Teil 10 von 25: Leute in Burg und Stadt, Tiere, Leute unterwegs.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Leute in Burg und Stadt (von vorn, Atmen in zwei Bildern) ============ */
 const NP_BASE = {

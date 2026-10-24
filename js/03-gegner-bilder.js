@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 3 von 24: Bilder der Gegner: Monster, Anführer, Raubritter, Tod, Lindwurm, Stromland.
+/* Der Apfelritter, Teil 3 von 25: Bilder der Gegner: Monster, Anführer, Raubritter, Tod, Lindwurm, Stromland.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Monster: acht gewöhnliche Gegner (monsters.js) ============ */
 /* Export: MON_ART[art] = { w, h, ax, ay, idle:{r,l}, move:{r,l}, act:{r,l} }, Frames { img, glow, white }.
@@ -2348,6 +2348,7 @@ function mo_quad(P, S, p){
     for (let k = 0; k < 2; k++){ mo_put(P, m1[0] - 1 - k * 2, m1[1] + 1, mo_BONE, 4); mo_put(P, m1[0] - 2 - k * 2, m1[1] + j, mo_BONE, 3); }
   } else mo_line(P, m0[0] + 1, m0[1] + 1.4, m1[0] - .5, m1[1] + 1, C.skn, 1);
   mo_ell(P, m1[0] + .6, m1[1] - .4, S.snout[3] * .75, S.snout[3] * .65, C.skn, { b: .1 });   // Nase
+  if (S.tusk) for (let k = 0; k < 3; k++) mo_put(P, m1[0] - 2.4 + k * .5, m1[1] + 1.4 - k, mo_BONE, k === 2 ? 4 : 3);   // Hauer
   mo_end(P, 1);
   // Auge mit Glanz
   const ex = hx + S.eye[0], ey = hy + S.eye[1];
@@ -2721,3 +2722,357 @@ const mo_RZP = {
     { by: 3, lean: .5, roar: 2, fl: [-12, 0], nl: [14, 0], fh: [14, -44], nh: [24, -40], ca: .25, wind: 3 }]
 };
 BOSS_ART.ruebezahl = Object.assign(mo_set(120, 116, 56, 112, mo_ruebezahl, mo_RZP), { reach: 54 });
+/* ============ Ostlande (Version 26): Gegner aus Heide, Reichswald, Gailingen, Donauried und Lechfeld ============ */
+/* ---------- Abwandlungen: Strauchdieb, Reisiger, Irrwisch ---------- */
+const mo_SD = {    // Strauchdieb: geflicktes Graubraun, speckige Gugel
+  red: mo_mat('#1e1812', '#2e261c', '#40362a', '#544838', '#685a46'), och: mo_mat('#2a2418', '#403624', '#584a32', '#6e5e42'),
+  gry: mo_mat('#18181a', '#26262a', '#36363c', '#48484e'), ber: mo_mat('#1a140e', '#2c2218', '#3e3022', '#52402e'), fea: mo_mat('#2a2a26', '#3e3e38', '#54544c', '#6a6a60')
+};
+const mo_RS = {    // Reisiger: eiserner Harnisch statt Wams, rotes Futter, Eisenhut, schwarze Feder
+  red: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e', '#98a0a6'), och: mo_mat('#3a0e0e', '#5a1616', '#7a2420', '#9a3428'),
+  gry: mo_mat('#1c1f23', '#2f3339', '#454a52', '#5d636b'), ber: mo_mat('#202226', '#3a3e44', '#5a6068', '#808890'), fea: mo_mat('#0e0e10', '#1a1a1e', '#2a2a30', '#3a3a42')
+};
+MON_ART.strauchdieb = mo_with(mo_LK, mo_SD, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+MON_ART.reisiger = mo_with(mo_LK, mo_RS, () => Object.assign(mo_set(78, 57, 39, 54, mo_pluend, mo_PLUEND), { reach: 37 }));
+MON_ART.irrwisch = mo_with(mo_IRC, {   // Irrwisch: rötlich-gelbe Flamme über Heide und Ried
+  m: mo_mat('#8a4a1ab0', '#c4782ad8', '#f0b050', '#ffe08a', '#fff6d8'), g: ['#d07a2a', '#f0a84a', '#ffd88a', '#fff2c8', '#ffffff'], spark: '#fff0c0', halo: '#ffb04a'
+}, () => mo_set(22, 28, 11, 17, mo_irrlicht, mo_IRR));
+
+/* ---------- Keiler: borstiger Wildschweinkeiler mit Hauern (Vierbeiner-Maler) ---------- */
+const mo_KEILER = {
+  C: { fur: mo_mat('#0e0b09', '#1a1510', '#282018', '#362c22', '#463a2c', '#584a38', '#6a5a46'), bel: mo_mat('#1a1410', '#2a221a', '#3a3024', '#4a3e30'),
+       sad: mo_mat('#0a0806', '#14100c', '#1e1812'), skn: mo_mat('#1a1212', '#2e2020', '#44302e'), mou: mo_mat('#26090b', '#4c1416', '#74241f', '#93392d'), eye: mo_mat('#3a0a06', '#7a1a0e', '#c43a1a') },
+  hip: [-11, -15], sho: [9, -16], rH: 6.4, rS: 8, legL: [[5.5, 5], [5.5, 5]], legR: [[2.6, 1.6], [2.4, 1.5]], hock: [-1.5, 3.5], paw: 1.6, hump: 5.4,
+  neck: [3, 2], head: [6, 2], skull: [5, 4.4], snout: [9.6, 2.8, 3.2, 2.4], ears: [[-1.4, -.25], [.4, 0]], eye: [1.2, -1.8], glow: '#ff6030', tusk: true,
+  tail: { a: Math.PI * .8, curl: .5, n: 3, seg: 1.8, r: 1, o: 2 }
+};
+const mo_KEILERP = {
+  idle: [{ hf: [-13, 0], ff: [8, 0], hn: [-10, 0], fn: [11, 0], mane: 1 }, { by: .5, hf: [-13, 0], ff: [8, 0], hn: [-10, 0], fn: [11, 0], hd: [0, 1], mane: 1 }],
+  move: [
+    { hf: [-17, 0], hn: [-14, -2], ff: [13, -2], fn: [15, 0], mane: 1 },
+    { by: -1, hf: [-11, -2], hn: [-9, 0], ff: [7, 0], fn: [9, -2], mane: 1 },
+    { hf: [-14, 0], hn: [-16, -2], ff: [15, 0], fn: [12, -2], mane: 1 },
+    { by: -1, hf: [-9, 0], hn: [-11, -2], ff: [9, -2], fn: [6, 0], mane: 1 }],
+  act: [
+    { by: 2, tilt: .25, jaw: 1, ears: 1, mane: 1, hd: [0, 3], hf: [-12, 0], hn: [-9, 0], ff: [9, 0], fn: [12, 0] },
+    { by: -2, tilt: .1, jaw: 2, mane: 1, hd: [4, 1], hf: [-20, -3], hn: [-18, -1], ff: [19, -6], fn: [22, -4] }]
+};
+MON_ART.keiler = mo_set(64, 40, 32, 37, (P, p) => mo_quad(P, mo_KEILER, p), mo_KEILERP);
+
+/* ---------- Kreuzotter: graubraune Giftschlange mit dunklem Zickzackband, rote Augen ---------- */
+const mo_KO = { sk: mo_mat('#1a1712', '#2e2a20', '#463f30', '#5e5440', '#766a52', '#8e8064'), zz: mo_mat('#0a0908', '#16130f', '#221d17'),
+  bel: mo_mat('#14120e', '#221e18', '#302a22'), tng: mo_mat('#4a0a0a', '#8a1a14', '#c43020') };
+function mo_otter(P, p){
+  const C = mo_KO, ph = p.ph || 0, rise = p.rise || 0, lun = p.lunge || 0, n = 14, pts = [];
+  for (let i = 0; i <= n; i++){
+    const t = i / n, head = Math.max(0, (t - .72) / .28);
+    const x = -21 + t * 31 + head * lun * 6, y = -3 + Math.sin(t * Math.PI * 2.4 + ph) * 3 * (1 - t * .5) - head * head * rise * 9;
+    pts.push([x, y, 1 + Math.sin(Math.min(1, t * 1.25) * Math.PI) * 2.3 + (t > .8 ? .5 : 0)]);
+  }
+  for (let i = 0; i < n; i++){
+    const [x0, y0, r0] = pts[i], [x1, y1, r1] = pts[i + 1], seg = i;
+    mo_cap(P, x0, y0, x1, y1, r0, r1, C.sk, { d: .3, tex: (x, y, lv, u, v) => {
+      if (v > .45) return [C.bel, clamp(lv - 1, 0, 2)];
+      const zz = Math.abs((((seg * 4 + u * 4) % 4) + 4) % 4 - 2) - 1;   // Zickzack quer
+      if (v < -.1 && Math.abs(v + .45 - zz * .25) < .26) return [C.zz, clamp(lv - 2, 0, 2)];
+      return mo_hash(x, y, 7) < .12 ? lv + 1 : undefined;
+    } });
+  }
+  mo_end(P, 1);
+  const [hx, hy] = pts[n];
+  mo_ell(P, hx + 1.4, hy - .2, 3.4, 2.4, C.sk, { b: .05, tex: (x, y, lv, u, v) => (v < -.5 && u < .2 ? [C.zz, 1] : undefined) });
+  mo_put(P, hx + 2, hy - 1, C.tng, 2); mo_glow(P, hx + 2, hy - 1, '#ff4a2a', .9);
+  if (p.tongue){ mo_line(P, hx + 4.6, hy + .4, hx + 7.4, hy + .6, C.tng, 2); mo_put(P, hx + 8, hy, C.tng, 2); mo_put(P, hx + 8, hy + 1.4, C.tng, 2); }
+  mo_end(P, 1);
+}
+const mo_OTTERP = {
+  idle: [{ ph: 0 }, { ph: .5, tongue: 1 }],
+  move: [{ ph: 0 }, { ph: 1.57 }, { ph: 3.14 }, { ph: 4.71, tongue: 1 }],
+  act: [{ ph: .8, rise: 1, tongue: 1 }, { ph: 1.4, rise: .5, lunge: 1.4, tongue: 1 }]
+};
+MON_ART.kreuzotter = mo_set(48, 24, 24, 21, mo_otter, mo_OTTERP);
+
+/* ---------- Moosweiblein: kleiner Waldgeist im Mantel aus Moos, Flechtenhaar, Rindengesicht, Zweighände, Pilze ---------- */
+const mo_MW = { mos: mo_mat('#121c0e', '#1e2c14', '#2c3e1c', '#3e5226', '#526832', '#6a7e40'), hai: mo_mat('#3a4232', '#566048', '#727e62', '#929e80', '#b0baa0'),
+  brk: mo_SR.brk, pil: mo_mat('#4a0e0a', '#7a1a12', '#a8301e', '#c84a2c'), wht: mo_mat('#8a8676', '#b4b0a0', '#d8d4c4') };
+function mo_moosweib(P, p){
+  const C = mo_MW, bx = p.bx || 0, by = p.by || 0, ln = p.lean || 0, sw = p.sw || 0;
+  const sh = [bx + ln * 4, -24 + by], hx = sh[0] + 1.5 + ln * 2, hy = sh[1] - 5;
+  // ferner Zweigarm
+  const twig = (s0, hand, near) => { mo_cap(P, s0[0], s0[1], hand[0], hand[1], 1.3, .8, C.brk, { b: near ? 0 : -.3, tex: mo_barkTex(5) }); for (const a of [-.6, 0, .6]){ const d = Math.atan2(hand[1] - s0[1], hand[0] - s0[0]) + a; mo_line(P, hand[0], hand[1], hand[0] + Math.cos(d) * 3.2, hand[1] + Math.sin(d) * 3.2, C.brk, near ? 3 : 1); } mo_end(P, 1); };
+  twig([sh[0] - 2, sh[1] + 2], p.fh, false);
+  // Mantel aus Moos mit ausgefranstem Saum
+  mo_poly(P, [[sh[0] - 5, sh[1] - 1], [sh[0] + 5, sh[1] - 1.5], [bx + 9 + sw, -1 + by * .3], [bx + 7, 0], [bx - 8, 0], [bx - 10 - sw, -1]], C.mos, { cyl: .85, d: .5, tex: (x, y, lv, u, v) => {
+    if (v > .86 && mo_hash(x, 3, 11) < .45) return false;
+    if (mo_hash(x >> 1, y, 13) < .18) return lv + 1;
+    return ((x + y * 2) % 5 === 0) ? lv - 1 : undefined;
+  } });
+  for (const [px, py] of [[-5, -6], [4, -11], [-2, -16]]){ mo_ell(P, bx + px, by + py - 1, 1.8, 1.1, C.pil, { b: .1 }); mo_put(P, bx + px, by + py - 1.4, C.wht, 2); mo_put(P, bx + px, by + py, C.wht, 0); }
+  mo_end(P);
+  // Flechtenhaar fällt über den Rücken
+  for (let k = 0; k < 6; k++){ let x = hx - 3 + k * .9, y = hy - 3; const len = 10 + (k * 5 % 7); for (let j = 0; j < len; j++){ mo_put(P, x, y + j, C.hai, clamp(3 - (j > len - 3 ? 2 : 0) - (k & 1), 0, 4)); if ((j + k) % 4 === 0) x -= .8; } }
+  mo_end(P, 1);
+  // Gesicht aus Rinde, lange Nase, grüne Augen
+  mo_ell(P, hx, hy, 3.4, 3.8, C.brk, { b: .12, tex: mo_barkTex(9) });
+  mo_cap(P, hx + 2.4, hy - .4, hx + 5.4, hy + 1.4, 1.1, .6, C.brk, { b: .2 });
+  for (const ox of [-.6, 1.6]){ mo_put(P, hx + ox, hy - 1, mo_DARK, 0); mo_glow(P, hx + ox, hy - 1, '#b0ff8a', 1); }
+  mo_halo(P, hx + .5, hy - 1, 3, '#8aff6a', .3);
+  if (p.hiss) mo_line(P, hx, hy + 2, hx + 2, hy + 2.4, mo_DARK, 0);
+  mo_ell(P, hx - .4, hy - 3.6, 3.6, 1.8, C.mos, { b: .05 });   // Moosmütze
+  mo_end(P, 1);
+  twig([sh[0] + 2, sh[1] + 2], p.nh, true);
+  for (const [sx, sy] of p.sp || []){ mo_glow(P, sx, sy, '#c8ff9a', .9); mo_glow(P, sx + 1, sy + 1, '#8aff6a', .5); }
+}
+const mo_MOOSP = {
+  idle: [{ fh: [-6, -16], nh: [6, -15] }, { by: .5, sw: .5, fh: [-6, -15], nh: [6, -14] }],
+  move: [{ lean: .2, sw: 1, fh: [-4, -16], nh: [7, -16] }, { by: -1, lean: .2, sw: -1, fh: [-6, -15], nh: [8, -15] }, { lean: .2, sw: 1, fh: [-3, -16], nh: [6, -17] }, { by: -1, lean: .2, sw: -1, fh: [-5, -15], nh: [8, -16] }],
+  act: [{ lean: -.2, hiss: 1, fh: [-2, -30], nh: [5, -32], sp: [[3, -34], [7, -31]] }, { by: 1, lean: .6, hiss: 1, sw: 1.5, fh: [8, -18], nh: [14, -17], sp: [[16, -18], [18, -15], [15, -21]] }]
+};
+MON_ART.moosweib = mo_set(40, 40, 20, 38, mo_moosweib, mo_MOOSP);
+
+/* ---------- Riesenkrebs: Flusskrebs, so groß wie ein Hund, olivbraun, rote Scheren ---------- */
+const mo_KR = { sh: mo_mat('#100e08', '#1e1a10', '#2e2818', '#423822', '#584a2e', '#6e5c3a'), cl: mo_mat('#2a0e08', '#4a180c', '#6e2612', '#923a1c', '#b4502a'),
+  leg: mo_mat('#1a1610', '#2a241a', '#3a3224') };
+function mo_krebs(P, p){
+  const C = mo_KR, bx = p.bx || 0, by = p.by || 0, op = p.open || 0, cx = p.cx || 0, ph = p.ph || 0;
+  // ferne Beine und ferne Schere
+  for (let k = 0; k < 4; k++){ const x0 = -2 + k * 3 + bx, a = Math.sin(ph + k * 1.4) * 1.5; mo_line(P, x0, -6 + by, x0 - 3 + a, -1, C.leg, 0); mo_line(P, x0 - 3 + a, -1, x0 - 4 + a, 0, C.leg, 1); }
+  const claw = (sx, sy, ex, ey, near) => {
+    const b = near ? 0 : -.3;
+    mo_cap(P, sx, sy, ex, ey, 1.4, 2, C.sh, { b, d: .3 });
+    const a = Math.atan2(ey - sy, ex - sx), ux = Math.cos(a), uy = Math.sin(a), o = .3 + op * .5;
+    mo_ell(P, ex + ux * 3, ey + uy * 3, 4.4, 3, C.cl, { b, tex: (x, y, lv) => (mo_hash(x, y, 3) < .15 ? lv + 1 : undefined) });
+    for (const sg of [-1, 1]){ const aa = a + sg * o, tx = ex + ux * 5 + Math.cos(aa) * 6, ty = ey + uy * 5 + Math.sin(aa) * 6; mo_cap(P, ex + ux * 5, ey + uy * 5, tx, ty, sg < 0 ? 2 : 1.6, .5, C.cl, { b: b + (sg < 0 ? .05 : -.05) }); }
+    mo_end(P, 1);
+  };
+  claw(5 + bx, -9 + by, 13 + bx + cx, -14 + by - op * 2, false);
+  // Schwanz (Hinterleib) in Segmenten, Schwanzfächer
+  let px = -5 + bx, py = -7 + by;
+  for (let k = 0; k < 5; k++){ const nx = px - 3.4, ny = py + .6 + k * .3, r = 4 - k * .45; mo_cap(P, px, py, nx, ny, r, r - .3, C.sh, { d: .3, tex: (x, y, lv, u) => (u < .12 ? lv - 2 : undefined) }); px = nx; py = ny; }
+  mo_poly(P, [[px, py - 3], [px - 6, py - 4 + Math.sin(ph) * .5], [px - 7, py + 1], [px - 1, py + 2]], C.sh, { cyl: .5, b: -.05 });
+  mo_end(P);
+  // Kopfbrustpanzer mit Dornen, Stielaugen, Fühler
+  mo_ell(P, 3 + bx, -8 + by, 9, 5.4, C.sh, { d: .3, tex: (x, y, lv, u, v) => (Math.abs(u - .1) < .06 ? lv - 2 : mo_hash(x, y, 9) < .1 ? lv + 1 : undefined) });
+  for (let k = 0; k < 4; k++) mo_put(P, -2 + k * 3 + bx, -13 + by + (k & 1), C.cl, 3);
+  mo_end(P);
+  const ex = 11 + bx, ey = -12 + by;
+  mo_line(P, ex, ey + 1, ex + 1, ey - 1, C.leg, 2); mo_put(P, ex + 1, ey - 2, mo_DARK, 0); mo_glow(P, ex + 1, ey - 2, '#ffcf6a', .7);
+  mo_line(P, ex + 1, ey - 1, ex + 14, ey - 9 + Math.sin(ph) * 1.5, C.leg, 2); mo_line(P, ex, ey, ex + 12, ey - 4 + Math.sin(ph + 1) * 1.5, C.leg, 1);
+  for (let k = 0; k < 4; k++){ const x0 = k * 3 + bx, a = Math.sin(ph + k * 1.4 + 2) * 1.5; mo_line(P, x0, -5 + by, x0 - 2 + a, -1, C.leg, 2); mo_line(P, x0 - 2 + a, -1, x0 - 3 + a, 0, C.leg, 3); }
+  mo_end(P, 1);
+  claw(8 + bx, -6 + by, 17 + bx + cx, -9 + by - op * 3, true);
+}
+const mo_KREBSP = {
+  idle: [{ ph: 0 }, { ph: 1, by: .5, open: .3 }],
+  move: [{ ph: 0 }, { ph: 1.6, by: -.5 }, { ph: 3.1 }, { ph: 4.7, by: -.5 }],
+  act: [{ ph: .5, open: 1.2, by: -1, cx: -2 }, { ph: 1, open: 0, cx: 5, bx: 2 }]
+};
+MON_ART.riesenkrebs = Object.assign(mo_set(60, 32, 26, 29, mo_krebs, mo_KREBSP), { reach: 30 });
+
+/* ---------- Reiter: Pferd (Vierbeiner-Maler, vergrößerbar) mit Reiter; Geisterreiter, Geisterbogner, Hackelberg, Eppelein, Bulcsú ----------
+   R = Bauplan des Reiters { C: Farben, hat, weapon, mustache, ghost, z }, Pose p wie beim Vierbeiner plus hand [dx, dy], wa (Waffenwinkel), lean, draw */
+function mo_horseSpec(C, z, glow){
+  return { C, hip: [-15 * z, -28 * z], sho: [13 * z, -29 * z], rH: 8.6 * z, rS: 9.8 * z, legL: [[11 * z, 10 * z], [11 * z, 10 * z]], legR: [[4 * z, 2.5 * z], [3.6 * z, 2.2 * z]],
+    hock: [-3 * z, 6.5 * z], paw: 2.4 * z, neck: [6 * z, -12 * z], head: [5 * z, -2 * z], skull: [4.8 * z, 3.9 * z], snout: [9.4 * z, 5.2 * z, 3.3 * z, 2.5 * z],
+    ears: [[-1.6 * z, -.25], [.4 * z, 0]], eye: [1.4 * z, -1.3 * z], glow: glow || '#1a1008', tail: { a: Math.PI * .6, curl: .05, n: 6, seg: 3.2 * z, r: 2.8 * z, o: 4 * z } };
+}
+const mo_zPose = (p, z) => { const q = Object.assign({}, p); for (const k of ['hf', 'ff', 'hn', 'fn', 'hd', 'hand']) if (q[k]) q[k] = q[k].map(v => v * z); for (const k of ['bx', 'by']) if (q[k]) q[k] *= z; return q; };
+function mo_rider(P, H, R, p){
+  const z = R.z || 1, C = R.C, gh = R.ghost;
+  mo_quad(P, H, p);
+  const bx = p.bx || 0, by = p.by || 0, ln = (p.lean || 0) * z;
+  const sx = (H.hip[0] + H.sho[0]) / 2 + bx, sy = Math.min(H.hip[1], H.sho[1]) - H.rH * .9 + by;
+  // Satteldecke mit Fransen
+  mo_poly(P, [[sx - 8 * z, sy], [sx + 7 * z, sy - .5 * z], [sx + 6 * z, sy + 8 * z], [sx - 9 * z, sy + 8 * z]], C.clo, { cyl: .6, d: .3, tex: (x, y, lv, u, v) => (v > .85 && (x & 1) ? false : v > .78 ? [C.tri, lv] : undefined) });
+  mo_end(P, 1);
+  // Rumpf
+  const hip = [sx, sy - 1 * z], shd = [sx + ln, sy - 13 * z];
+  mo_cap(P, hip[0], hip[1], shd[0], shd[1], 4.4 * z, 4 * z, C.gar, { d: .3, tex: (x, y, lv, u, v) => (u < .12 ? [C.lea, clamp(lv, 0, 3)] : Math.abs(v) < .14 && u > .2 ? [C.tri, lv] : undefined) });
+  mo_end(P);
+  // nahes Bein mit Stiefel im Steigbügel
+  const kn = [sx + 6 * z, sy + 5 * z], ft = [sx + 4 * z, sy + 12 * z];
+  mo_cap(P, sx + 1 * z, sy, kn[0], kn[1], 2.6 * z, 2.2 * z, C.gar, { d: .3 });
+  mo_cap(P, kn[0], kn[1], ft[0], ft[1], 2 * z, 1.7 * z, C.boo, {});
+  mo_ell(P, ft[0] + 1.2 * z, ft[1] + .6 * z, 2.4 * z, 1.4 * z, C.boo, { b: .05 });
+  mo_line(P, ft[0] - 1.5 * z, ft[1] + 1.4 * z, ft[0] + 3 * z, ft[1] + 1.4 * z, C.stl, 2);
+  mo_end(P, 1);
+  // Kopf und Gesicht
+  const hx = shd[0] + 1.6 * z, hy = shd[1] - 4.6 * z;
+  mo_ell(P, hx, hy, 2.8 * z, 3.2 * z, C.skn, { b: .05 });
+  mo_ell(P, hx + 2.6 * z, hy + .4 * z, .9 * z, 1.1 * z, C.skn, { b: .15 });
+  const ex = hx + 1.4 * z, ey = hy - .6 * z;
+  mo_put(P, ex, ey, gh ? C.skn : mo_DARK, gh ? 4 : 0);
+  if (gh || R.eyeGlow){ mo_glow(P, ex, ey, R.eyeGlow || '#c8f4ff', 1); mo_halo(P, ex, ey, 2.2 * z, R.eyeGlow || '#9ae8ff', .35); }
+  if (R.mustache){ mo_line(P, hx + 1.6 * z, hy + 1.6 * z, hx - .6 * z, hy + 4 * z, C.hai, 2); mo_line(P, hx + 2.4 * z, hy + 1.6 * z, hx + 4 * z, hy + 4.4 * z, C.hai, 1); }
+  if (R.beard) mo_poly(P, [[hx - 1 * z, hy + 1.6 * z], [hx + 3.4 * z, hy + 1.4 * z], [hx + 2.4 * z, hy + 5.4 * z], [hx, hy + 5 * z]], C.hai, { cyl: .5 });
+  mo_end(P, 1);
+  // Kopfbedeckung
+  if (R.hat === 'muetze' || R.hat === 'krone'){
+    mo_poly(P, [[hx - 3.4 * z, hy - 1.6 * z], [hx + 3 * z, hy - 2 * z], [hx + 2.2 * z, hy - 6.4 * z], [hx - 2.4 * z, hy - 7.2 * z]], C.hat, { cyl: .8, d: .4, tex: mo_furPoly(51, .2) });
+    if (R.hat === 'krone'){ for (let k = 0; k < 4; k++){ const x = hx - 3 * z + k * 2 * z; mo_put(P, x, hy - 3 * z, C.gld, 4); mo_put(P, x, hy - 4.2 * z, C.gld, 3); } mo_glow(P, hx, hy - 3.4 * z, '#ffe8a0', .8); }
+    if (R.plume) mo_cap(P, hx - 1.4 * z, hy - 6.6 * z, hx - 5 * z, hy - 11 * z, .9 * z, .5 * z, C.tri, { b: .1 });
+  } else if (R.hat === 'jaeger'){
+    mo_ell(P, hx, hy - 3 * z, 5.6 * z, 1.5 * z, C.hat, { b: .02 });
+    mo_ell(P, hx - .3 * z, hy - 4.6 * z, 3 * z, 2.4 * z, C.hat, { b: .08 });
+    if (R.antler) for (const sg of [-1, 1]){ const bxa = hx + sg * 1.6 * z, bya = hy - 6.4 * z; mo_line(P, bxa, bya, bxa + sg * 3 * z, bya - 6 * z, C.ant, 3); mo_line(P, bxa + sg * 1.6 * z, bya - 3 * z, bxa + sg * 4.6 * z, bya - 4 * z, C.ant, 2); mo_line(P, bxa + sg * 2.4 * z, bya - 5 * z, bxa + sg * 1 * z, bya - 8.4 * z, C.ant, 2); }
+  } else if (R.hat === 'helm'){
+    mo_poly(P, [[hx - 4 * z, hy + .6 * z], [hx + 3.6 * z, hy - .2 * z], [hx + 3 * z, hy - 4.4 * z], [hx - 1 * z, hy - 5.6 * z], [hx - 5.6 * z, hy - 2 * z]], C.stl, { cyl: .9, b: .05 });
+    mo_line(P, hx - .4 * z, hy - .8 * z, hx + 3 * z, hy - 1.2 * z, mo_DARK, 0);   // Sehschlitz
+    if (R.plume) mo_cap(P, hx - 2 * z, hy - 5 * z, hx - 7 * z, hy - 9 * z, 1.2 * z, .5 * z, C.tri, { b: .1 });
+  }
+  mo_end(P, 1);
+  // naher Arm mit Waffe
+  const s0 = [shd[0] + 1 * z, shd[1] + 1.4 * z], hd = [s0[0] + p.hand[0], s0[1] + p.hand[1]], el = mo_ik(s0[0], s0[1], hd[0], hd[1], 5.6 * z, 5.2 * z, 1);
+  const wa = p.wa || 0, ux = Math.cos(wa), uy = Math.sin(wa);
+  const weapon = () => {
+    if (R.weapon === 'sabel'){
+      const L = 16 * z; let px = hd[0], py = hd[1];
+      mo_line(P, hd[0] - ux * 2 * z, hd[1] - uy * 2 * z, hd[0] + ux * 1.4 * z, hd[1] + uy * 1.4 * z, C.lea, 2);
+      for (let k = 1; k <= 8; k++){ const t = k / 8, a = wa + t * .45, nx = hd[0] + ux * 1.4 * z + Math.cos(a) * L * t, ny = hd[1] + uy * 1.4 * z + Math.sin(a) * L * t; mo_line(P, px, py, nx, ny, C.stl, k > 6 ? 4 : 3); px = nx; py = ny; }
+      if (p.glint) mo_glow(P, px, py, '#ffffff', 1);
+    } else if (R.weapon === 'schwert'){
+      const L = 15 * z, t1 = [hd[0] + ux * L, hd[1] + uy * L];
+      mo_line(P, hd[0] - ux * 2.4 * z, hd[1] - uy * 2.4 * z, hd[0], hd[1], C.lea, 2);
+      mo_line(P, hd[0] - uy * 2.6 * z, hd[1] + ux * 2.6 * z, hd[0] + uy * 2.6 * z, hd[1] - ux * 2.6 * z, C.stl, 3);   // Parierstange
+      mo_line(P, hd[0], hd[1], t1[0], t1[1], C.stl, 4); mo_line(P, hd[0] + uy * .9, hd[1] - ux * .9, t1[0] + uy * .9, t1[1] - ux * .9, C.stl, 2);
+      if (p.glint) mo_glow(P, t1[0], t1[1], '#ffffff', 1);
+    } else if (R.weapon === 'spiess'){
+      const L = 30 * z, t0 = [hd[0] - ux * 10 * z, hd[1] - uy * 10 * z], t1 = [hd[0] + ux * L, hd[1] + uy * L];
+      mo_line(P, t0[0], t0[1], t1[0], t1[1], C.wod, (k, n) => k % 7 === 0 ? 1 : 2);
+      mo_poly(P, [[t1[0] - uy * 1.6 * z, t1[1] + ux * 1.6 * z], [t1[0] + ux * 6 * z, t1[1] + uy * 6 * z], [t1[0] + uy * 1.6 * z, t1[1] - ux * 1.6 * z]], C.stl, { cyl: .4, b: .1 });
+      mo_line(P, t1[0] - uy * 3 * z, t1[1] + ux * 3 * z, t1[0] + uy * 3 * z, t1[1] - ux * 3 * z, C.stl, 2);   // Knebel der Saufeder
+    } else if (R.weapon === 'bogen'){
+      const bx0 = hd[0] + 1 * z, top = [bx0 - 2 * z, hd[1] - 9 * z], bot = [bx0 - 2 * z, hd[1] + 9 * z], sx2 = p.draw ? s0[0] - 2 * z : bx0 - 3 * z;
+      let lx = top[0], ly = top[1];
+      for (let k = 1; k <= 10; k++){ const t = k / 10, a = (t - .5) * Math.PI, x = bx0 + Math.cos(a) * 3 * z - (t < .15 || t > .85 ? 2 * z : 0), y = hd[1] + Math.sin(a) * 9 * z; mo_line(P, lx, ly, x, y, C.wod, 3); lx = x; ly = y; }
+      mo_line(P, top[0], top[1], sx2, hd[1], C.str, 2); mo_line(P, sx2, hd[1], bot[0], bot[1], C.str, 2);
+      if (p.draw){ mo_line(P, sx2, hd[1], bx0 + 6 * z, hd[1], C.wod, 4); mo_put(P, bx0 + 7 * z, hd[1], C.stl, 4); mo_glow(P, bx0 + 7 * z, hd[1], R.eyeGlow || '#c8f4ff', .7); }
+    }
+  };
+  if (R.weapon === 'bogen'){ weapon(); mo_end(P, 1); }
+  mo_cap(P, s0[0], s0[1], el[0], el[1], 2 * z, 1.7 * z, C.gar, {});
+  mo_cap(P, el[0], el[1], hd[0], hd[1], 1.7 * z, 1.4 * z, C.gar, { tex: (x, y, lv, u) => (u > .8 ? [C.tri, lv] : undefined) });
+  mo_ell(P, hd[0], hd[1], 1.6 * z, 1.5 * z, C.glv || C.skn, { b: .08 });
+  mo_end(P, 1);
+  if (R.weapon !== 'bogen'){ weapon(); mo_end(P, 1); }
+  if (gh) for (let k = 0; k < 6; k++){ const a = k * 1.1 + (p.ph || 0); mo_glow(P, sx - 18 * z + Math.cos(a) * 4 * z, -3 * z + Math.sin(a) * 2 * z, '#bfefff', .45); }   // Nebelschwaden an den Hufen
+}
+/* Gangarten des Pferdes, dazu Armhaltung je Waffe */
+const mo_HORSEP = {
+  idle: [{ hf: [-16, 0], ff: [11, 0], hn: [-13, 0], fn: [14, 0], tail: 0 }, { by: .5, hf: [-16, 0], ff: [11, 0], hn: [-13, 0], fn: [14, 0], hd: [0, 1], tail: .06 }],
+  move: [
+    { by: -1, hf: [-24, 0], hn: [-20, -3], ff: [18, -5], fn: [22, -2], tail: -.2, mane: 1 },
+    { by: -3, tilt: .03, hf: [-14, -4], hn: [-11, -1], ff: [8, -1], fn: [12, -4], tail: 0, mane: 1 },
+    { by: -1, hf: [-18, 0], hn: [-22, -3], ff: [22, 0], fn: [16, -5], tail: -.2, mane: 1 },
+    { by: -3, tilt: .03, hf: [-9, -1], hn: [-12, -4], ff: [12, -4], fn: [7, -1], tail: 0, mane: 1 }],
+  act: [
+    { by: -2, tilt: -.15, hf: [-16, 0], hn: [-13, 0], ff: [14, -10], fn: [18, -8], hd: [0, -2], tail: .2, mane: 1 },
+    { tilt: .08, hf: [-22, -2], hn: [-19, 0], ff: [20, -4], fn: [24, -2], hd: [2, 1], tail: -.2, mane: 1 }]
+};
+const mo_ARMS = {
+  sabel: { idle: [{ hand: [4, 3], wa: -1.2 }, { hand: [4, 3.4], wa: -1.2 }], move: [{ hand: [5, 2], wa: -1 }, { hand: [5, 1.6], wa: -1 }, { hand: [5, 2], wa: -1 }, { hand: [5, 1.6], wa: -1 }],
+    act: [{ hand: [-2, -9], wa: -2.4, lean: -.4 }, { hand: [9, 2], wa: .35, lean: 1, glint: 1 }] },
+  schwert: { idle: [{ hand: [4, 3], wa: -1.3 }, { hand: [4, 3.4], wa: -1.3 }], move: [{ hand: [5, 2], wa: -1.1 }, { hand: [5, 1.6], wa: -1.1 }, { hand: [5, 2], wa: -1.1 }, { hand: [5, 1.6], wa: -1.1 }],
+    act: [{ hand: [-2, -9], wa: -2.2, lean: -.4 }, { hand: [9, 2], wa: .3, lean: 1, glint: 1 }] },
+  spiess: { idle: [{ hand: [5, 2], wa: -1.25 }, { hand: [5, 2.4], wa: -1.25 }], move: [{ hand: [6, 1], wa: -.5 }, { hand: [6, .6], wa: -.5 }, { hand: [6, 1], wa: -.5 }, { hand: [6, .6], wa: -.5 }],
+    act: [{ hand: [1, -2], wa: -.35, lean: -.5 }, { hand: [11, 0], wa: .05, lean: 1.2 }] },
+  bogen: { idle: [{ hand: [6, 2] }, { hand: [6, 2.4] }], move: [{ hand: [6, 1] }, { hand: [6, .6] }, { hand: [6, 1] }, { hand: [6, .6] }],
+    act: [{ hand: [9, -1], draw: 1, lean: -.2 }, { hand: [9, -1], lean: .2 }] }
+};
+function mo_riderSet(H, R, w, h, ax, ay){
+  const z = R.z || 1, A = mo_ARMS[R.weapon], spec = {};
+  for (const k of ['idle', 'move', 'act']) spec[k] = mo_HORSEP[k].map((q, i) => mo_zPose(Object.assign({ ph: i * 1.3 }, q, A[k][i]), z));
+  const set = mo_set(w, h, ax, ay, (P, p) => mo_rider(P, H, R, p), spec);
+  if (R.weapon === 'bogen'){ const q = spec.act[0], H2 = H, sx = (H2.hip[0] + H2.sho[0]) / 2 + (q.bx || 0), sy = Math.min(H2.hip[1], H2.sho[1]) - H2.rH * .9 + (q.by || 0); set.muzzle = { x: Math.round(sx + (q.lean || 0) * z + 1 * z + q.hand[0] + 8 * z), y: Math.round(sy - 13 * z + 1.4 * z + q.hand[1]) }; }
+  return set;
+}
+const mo_GH = {   // Geisterpferd und Geisterreiter: bläulich, durchscheinend
+  fur: mo_mat('#1a2a3a90', '#2a4a5aa0', '#3e6a7cb0', '#5a8c9cc0', '#7eaebcd0', '#a8d0dae0', '#d0eef4e8'), bel: mo_mat('#2a4a5aa0', '#4a7a8ab8', '#7aa8b4d0', '#a8d0dae0'),
+  sad: mo_mat('#10202aa0', '#1a3040b0'), skn: mo_mat('#4a6a7ac0', '#6a8e9ed0', '#8eb4c2e0', '#b4d6e0f0', '#d8f0f6'), mou: mo_mat('#10202a', '#1a3040', '#2a4a5a'), eye: mo_mat('#6ac8f0', '#a8e8ff', '#f0ffff')
+};
+const mo_GHR = {
+  skn: mo_GH.skn, gar: mo_mat('#1e3040a0', '#2e4a5cb8', '#46687cc8', '#6a8ea0d8', '#90b4c4e8'), tri: mo_mat('#4a6a5ab0', '#6a9478c8', '#94c0a0e0'), lea: mo_mat('#1a2a34b0', '#2a3e4cc0', '#3e5664d0'),
+  boo: mo_mat('#14222cb0', '#22343ec0', '#34505ed0'), hat: mo_mat('#1a2830b0', '#2a3e4ac0', '#40586ad0', '#5a7688e0'), hai: mo_mat('#4a6a7a', '#7a9aaa', '#a8c8d4'),
+  stl: mo_mat('#4a5a64', '#7a8a94', '#a8b8c0', '#d4e4ea', '#f4ffff'), wod: mo_mat('#2a3a44', '#3e5260', '#566c7a', '#70889a'), str: mo_mat('#8aa8b8', '#b4d0dc', '#dcf0f6'),
+  clo: mo_mat('#2a1a3ab0', '#3e2a54c0', '#56406ed0', '#70588ae0'), gld: mo_mat('#6a6a4a', '#9a9a6a', '#cacaa0', '#f0f0d0')
+};
+MON_ART.geisterreiter = Object.assign(mo_riderSet(mo_horseSpec(mo_GH, 1, '#a8f0ff'), { C: mo_GHR, hat: 'muetze', weapon: 'sabel', mustache: true, ghost: true, z: 1 }, 80, 72, 38, 68), { reach: 34 });
+MON_ART.geisterbogner = mo_riderSet(mo_horseSpec(mo_GH, 1, '#a8f0ff'), { C: mo_GHR, hat: 'muetze', weapon: 'bogen', mustache: true, ghost: true, z: 1 }, 80, 72, 38, 68);
+// Bulcsú, der Geisterfürst: größer, Purpur und fahles Gold, Krone über der Fellmütze, Federbusch
+BOSS_ART.bulcsu = Object.assign(mo_riderSet(mo_horseSpec(mo_GH, 1.3, '#ffe0a0'), { C: Object.assign({}, mo_GHR, {
+  gar: mo_mat('#3a1a4ab0', '#542a68c0', '#6e3e86d0', '#8a56a2e0', '#a876bef0'), tri: mo_mat('#6a5a2ac0', '#9a8a3ad0', '#cabc5ae0', '#ece0a0'),
+  hat: mo_mat('#2a2014c0', '#3e3020d0', '#58462ee0', '#72603ef0') }), hat: 'krone', plume: true, weapon: 'sabel', mustache: true, ghost: true, eyeGlow: '#ffe8a0', z: 1.3 }, 104, 92, 50, 88), { reach: 46 });
+// Hackelberg, der Wilde Jäger: dunkles Jägergrün, Hirschgeweih am Hut, Saufeder, auf einem Rappen mit glühenden Augen
+const mo_RAPPE = { fur: mo_mat('#08080a', '#121214', '#1c1c20', '#28282e', '#36363e', '#46464e', '#585862'), bel: mo_mat('#121214', '#1c1c20', '#28282e', '#36363e'),
+  sad: mo_mat('#060608', '#0e0e10'), skn: mo_mat('#16161a', '#24242a', '#34343c'), mou: mo_mat('#26090b', '#4c1416', '#74241f'), eye: mo_mat('#6a1a0a', '#c43a1a', '#ff7a3a') };
+BOSS_ART.hackelberg = Object.assign(mo_riderSet(mo_horseSpec(mo_RAPPE, 1.25, '#ff5a2a'), { C: {
+  skn: mo_mat('#4a5a4a', '#6a7a68', '#8a9a86', '#aab8a4', '#c8d4c0'), gar: mo_mat('#0e160e', '#18241a', '#243426', '#324634', '#425a44'), tri: mo_mat('#3a2a14', '#5a4220', '#7a5c30', '#9a7840'),
+  lea: mo_mat('#1a120c', '#2a1e14', '#3c2c1e'), boo: mo_mat('#140e0a', '#221812', '#32241a'), hat: mo_mat('#121a10', '#1e2a1a', '#2c3c26', '#3c5034'),
+  hai: mo_mat('#3a3a32', '#5a5a4e', '#7a7a6a'), stl: mo_mat('#24272b', '#474c52', '#737a81', '#a1a8ae', '#d0d4d4'), wod: mo_mat('#2a1e15', '#463321', '#644b31', '#7f6445'),
+  ant: mo_mat('#4a3e2e', '#7a6a50', '#a8987a', '#cec0a2'), clo: mo_mat('#2a0e0e', '#421616', '#5e2020', '#7a2c28'), str: mo_LK.lin, gld: mo_LK.och },
+  hat: 'jaeger', antler: true, weapon: 'spiess', beard: true, eyeGlow: '#ff6a3a', z: 1.25 }, 100, 92, 48, 88), { reach: 48 });
+// Eppelein von Gailingen: Raubritter in blankem Harnisch auf einem Fuchs, Helm mit roter Feder, Schwert
+const mo_FUCHS = { fur: mo_mat('#1a0c06', '#2e160a', '#46220e', '#603014', '#7a401c', '#945426', '#aa6834'), bel: mo_mat('#3a1c0c', '#562a12', '#723a1a', '#8e4e26'),
+  sad: mo_mat('#140806', '#22100a'), skn: mo_mat('#1a1210', '#2c1e1a', '#3e2c26'), mou: mo_mat('#26090b', '#4c1416', '#74241f'), eye: mo_mat('#1a1008', '#3a2410', '#5a3a1a') };
+BOSS_ART.eppelein = Object.assign(mo_riderSet(mo_horseSpec(mo_FUCHS, 1.25, '#2a1a0a'), { C: {
+  skn: mo_LK.skn, gar: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e', '#98a0a6', '#c4cad0'), tri: mo_mat('#4a0e0e', '#7a1616', '#a8241e', '#c83a2a'),
+  lea: mo_LK.lea, boo: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e'), hat: mo_LK.stl, hai: mo_LK.hai, stl: mo_LK.stl, wod: mo_LK.wod,
+  clo: mo_mat('#3a0a0a', '#5a1212', '#7a1c18', '#9a2a22'), glv: mo_mat('#1a1c20', '#30343a', '#4c525a', '#6e767e'), str: mo_LK.lin, gld: mo_LK.och },
+  hat: 'helm', plume: true, weapon: 'schwert', z: 1.25 }, 100, 92, 48, 88), { reach: 46 });
+
+/* ---------- Das Donauweibchen: Wasserfrau, die aus einem Strudel der Donau steigt, langes grüngoldenes Haar, Kranz aus Seerosen ---------- */
+const mo_DW = {
+  skn: mo_mat('#1e3a3a', '#2e5654', '#46746e', '#64948a', '#86b4a8', '#acd4c6'), sca: mo_mat('#143a3a', '#1e5250', '#2c6e68', '#408c82', '#5aaa9c'),
+  hai: mo_mat('#2a3a14', '#44561e', '#62762a', '#86963a', '#aab452', '#ccd070'), lil: mo_mat('#8a8a84', '#b8b8b0', '#e0e0d8', '#fafaf4'),
+  ylw: mo_mat('#8a6a10', '#c49a20', '#f0c840'), wat: mo_NK.wat
+};
+function mo_weibchen(P, p){
+  const C = mo_DW, bx = p.bx || 0, by = p.by || 0, ph = p.ph || 0, rs = p.raise || 0, th = p.thr || 0;
+  mo_ell(P, 0, -4, 28, 7, C.wat, { lv: 2, tex: (x, y, lv) => { const r = Math.hypot(x / 28, (y + 4) / 7), a = Math.atan2((y + 4) * 4, x), ring = Math.sin(r * 15 - ph * 2 + a * 1.5); return r > .9 ? 1 : ring > .75 ? 5 : ring > .35 ? 4 : r < .45 ? 1 : 2; } });
+  mo_end(P, 0);
+  const hx = 3 + bx + th * 2, hy = -72 + by;
+  // Haar fällt in Wellen bis ins Wasser
+  for (let k = 0; k < 22; k++){
+    const side = k < 11 ? -1 : 1, kk = k % 11;
+    let x = hx + side * (2 + kk * .7), y = hy - 6 + (k & 1);
+    const len = 40 + (k * 7 % 13) - kk;
+    for (let j = 0; j < len; j++){
+      mo_put(P, x, y + j, C.hai, clamp(3 - (j > len - 4 ? 2 : 0) + ((j + k) % 6 === 0 ? 1 : 0) - (side < 0 ? 1 : 0), 0, 5));
+      mo_put(P, x + side, y + j, C.hai, clamp(2 - (side < 0 ? 1 : 0), 0, 5));
+      if (j > 6 && ((j * 3 + k * 5) % 6) === 0) x += side * (j < 20 ? 1 : .5);
+      if (Math.sin(ph + j * .3 + k) > .92) x -= side;
+    }
+  }
+  mo_end(P, 1);
+  const arm = (A, near) => {
+    const [sx0, sy0, ex0, ey0, hx0, hy0] = A.map((v, i) => v + (i % 2 ? by : bx)), b = near ? .05 : -.25;
+    mo_cap(P, sx0, sy0, ex0, ey0, 3.2, 2.6, C.skn, { b }); mo_cap(P, ex0, ey0, hx0, hy0, 2.6, 2, C.skn, { b }); mo_ell(P, hx0, hy0, 2.4, 2.2, C.skn, { b: b + .05 });
+    mo_end(P, 1);
+    if (near && (rs || th)) for (let k = 0; k < 5; k++){ mo_glow(P, hx0 + (k - 2) * 2.4, hy0 - 3 - (k & 1) * 2, '#b8f4ff', .9); }
+    return [hx0, hy0];
+  };
+  arm(rs ? [-9, -54, -17, -66, -14, -80] : th ? [-9, -54, -16, -46, -22, -40] : [-9, -54, -15, -44, -14, -32 + Math.sin(ph)], false);
+  // Leib steigt aus dem Wasser, Schuppenkleid
+  mo_cap(P, bx * .4, -34 + by, 0, -6, 6, 10, C.sca, { d: .3, tex: (x, y, lv) => (((x + (y >> 1) * 2) % 4) === 0 && (y & 1) ? lv - 1 : mo_hash(x, y, 4) < .06 ? lv + 2 : undefined) });
+  mo_end(P);
+  mo_poly(P, [[-10 + bx, -59 + by], [10 + bx, -59 + by], [8 + bx, -50 + by], [5 + bx, -40 + by], [6.5 + bx, -32 + by], [-6.5 + bx, -32 + by], [-5 + bx, -40 + by], [-8 + bx, -50 + by]], C.skn, { cyl: .95, d: .2, tex: (x, y, lv, u, v) => (y - by > -46 ? [C.sca, clamp(lv - ((x + y) & 1), 0, 4)] : undefined) });
+  mo_end(P);
+  // Kopf: schmales Gesicht, leuchtende Augen, singender Mund, Kranz aus Seerosen
+  mo_ell(P, hx, hy, 5.2, 6.8, C.skn, { b: .1 });
+  mo_cap(P, hx - 1, hy + 6, hx + bx * .2, -58 + by, 2.4, 2.8, C.skn, {});   // Hals
+  for (const ex of [1, 4.6]){ mo_put(P, hx + ex, hy - 1, mo_DARK, 0); mo_glow(P, hx + ex, hy - 1, '#9ff4ff', 1); }
+  mo_halo(P, hx + 2.8, hy - 1, 4, '#7fe8ff', .3);
+  if (rs || th) mo_ell(P, hx + 2.6, hy + 3.4, 1.2, 1.6 + (rs ? .6 : 0), mo_DARK, { lv: 0 }); else mo_line(P, hx + 1.4, hy + 3.4, hx + 4, hy + 3.2, mo_DARK, 1);
+  mo_end(P, 1);
+  for (let k = 0; k < 5; k++){ const a = Math.PI + .3 + k / 4 * (Math.PI - .6), x = hx + Math.cos(a) * 6.4, y = hy - 3 + Math.sin(a) * 4.4; mo_ell(P, x, y, 2, 1.5, C.lil, { b: .1 }); mo_put(P, x, y, C.ylw, 2); }
+  mo_end(P, 1);
+  arm(rs ? [9, -54, 16, -66, 12, -82] : th ? [9, -54, 21, -52, 33, -50] : [9, -54, 15, -44, 14, -33 + Math.sin(ph + 1)], true);
+  if (p.drip !== undefined){ mo_glow(P, 14 + bx, -28 + by + p.drip, '#b4e0e8', .85); }
+}
+const mo_WEIBP = {
+  idle: [{ ph: 0, drip: 0 }, { ph: .9, by: 1, drip: 2 }],
+  move: [{ ph: 0, drip: 0 }, { ph: 1.6, by: 1, drip: 1 }, { ph: 3.1, drip: 2 }, { ph: 4.7, by: 1, drip: 0 }],
+  act: [{ ph: .5, raise: 1, bx: -1 }, { ph: 2, thr: 1, bx: 3, by: 1 }]
+};
+BOSS_ART.donauweibchen = Object.assign(mo_set(100, 104, 50, 98, mo_weibchen, mo_WEIBP), { reach: 52 });
+

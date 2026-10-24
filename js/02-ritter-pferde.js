@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 2 von 24: Der Ritter (Herkunft, Harnisch, Schwert, Aussehen) und die Pferde.
+/* Der Apfelritter, Teil 2 von 25: Der Ritter (Herkunft, Harnisch, Schwert, Aussehen) und die Pferde.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Der Ritter: Reichsritter in Schaller und gelbem Wappenrock mit Reichsadler ============ */
 const kn_PAL = {

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 17 von 24: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
+/* Der Apfelritter, Teil 17 von 25: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Speichern: im Browser und, wo möglich, im Konto ============ */
 const cloud = { db:null, uid:null, user:null, room:null, saving:false, last:'', nextT:0, noWrite:false, fameLast:'', fameBusy:false, fameNoWrite:false, fameT:0, loaded:false };

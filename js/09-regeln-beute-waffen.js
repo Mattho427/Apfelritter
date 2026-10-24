@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 9 von 24: Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole.
+/* Der Apfelritter, Teil 9 von 25: Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielwelt in Feinpixeln: Spielkoordinaten = Weltpixel × WS ============ */
 const GW = WW * WS, GH = WH * WS;
@@ -72,7 +72,7 @@ const ZONE_MOBS = {
   schlachtfeld:['wieder', 'pluend', 'rabe'], moor:['moor', 'irrlicht'], ruine:['pluend', 'armbrust'],
   weinberge:['pluend', 'armbrust', 'rabe'], auwald:['nix', 'werwolf', 'moor'], piratennest:['pirat', 'pschuetze'],
   schwarzwald:['wolf', 'schrat', 'wegelagerer'], silberrevier:['kobold', 'grubengeist', 'wegelagerer'], schanze:['doppelsoeldner', 'hakenschuetze'], hochgebirge:['baer', 'geier', 'eislicht'],
-  heide:['wolf', 'wegelagerer', 'irrlicht'], reichswald:['werwolf', 'schrat', 'pluend'], gailingen:['pluend', 'armbrust'], donauried:['moor', 'nix', 'irrlicht'], lechfeld:['wieder', 'eislicht']
+  heide:['kreuzotter', 'strauchdieb', 'irrwisch'], reichswald:['keiler', 'moosweib', 'strauchdieb'], gailingen:['reisiger', 'armbrust', 'strauchdieb'], donauried:['riesenkrebs', 'moor', 'irrwisch'], lechfeld:['geisterreiter', 'geisterbogner', 'wieder']
 };
 const ZONE_INFO = {
   obstgarten:'Unter der Burg. Wiedergänger und Plünderer, gut für den Anfang.',
@@ -142,15 +142,31 @@ const MON = {
   tatzelwurm:     { name:'Der Tatzelwurm', hp:62, dmg:2.7, xp:22, spd:50, r:14, hr:18, boss:true },
   bergmoench:     { name:'Der Bergmönch', hp:66, dmg:2.9, xp:23, spd:0, r:14, hr:22, boss:true, fly:true },
   feldhauptmann:  { name:'Feldhauptmann Balthasar Wüst', hp:64, dmg:3, xp:24, spd:50, r:12, hr:15, boss:true },
-  ruebezahl:      { name:'Rübezahl', hp:84, dmg:3.3, xp:28, spd:42, r:18, hr:26, boss:true }
+  ruebezahl:      { name:'Rübezahl', hp:84, dmg:3.3, xp:28, spd:42, r:18, hr:26, boss:true },
+  // Ostlande (Version 26)
+  kreuzotter:     { name:'Kreuzotter', hp:1.6, dmg:1.25, xp:1, spd:52, r:7, hr:9 },
+  strauchdieb:    { name:'Strauchdieb', hp:2.8, dmg:1.3, xp:1.15, spd:48, r:9, hr:11 },
+  irrwisch:       { name:'Irrwisch', hp:1.2, dmg:1, xp:.95, spd:50, r:7, hr:9, fly:true },
+  keiler:         { name:'Keiler', hp:3.6, dmg:1.5, xp:1.4, spd:62, r:11, hr:13 },
+  moosweib:       { name:'Moosweiblein', hp:2.2, dmg:1.2, xp:1.15, spd:58, r:8, hr:10 },
+  reisiger:       { name:'Reisiger', hp:4.2, dmg:1.55, xp:1.45, spd:44, r:9, hr:11 },
+  riesenkrebs:    { name:'Riesenkrebs', hp:4.6, dmg:1.5, xp:1.5, spd:30, r:12, hr:13, wade:true },
+  geisterreiter:  { name:'Geisterreiter', hp:4.4, dmg:1.7, xp:1.6, spd:74, r:14, hr:16 },
+  geisterbogner:  { name:'Geisterbogner', hp:3.2, dmg:1.6, xp:1.5, spd:60, r:14, hr:16 },
+  hackelberg:     { name:'Hackelberg, der Wilde Jäger', hp:52, dmg:2.5, xp:17, spd:70, r:16, hr:18, boss:true },
+  eppelein:       { name:'Eppelein von Gailingen', hp:60, dmg:2.8, xp:21, spd:62, r:16, hr:18, boss:true },
+  donauweibchen:  { name:'Das Donauweibchen', hp:64, dmg:2.8, xp:23, spd:0, r:16, hr:24, boss:true, wade:true },
+  bulcsu:         { name:'Bulcsú, der Geisterfürst', hp:86, dmg:3.3, xp:29, spd:70, r:18, hr:22, boss:true }
 };
 const artOf = k => MON_ART[k] || BOSS_ART[k];
 const monHp = (k, L) => Math.round((1.5 + MON[k].hp * .9) * (6 + 2.7 * L));
-const NIGHT_BEAST = { werwolf: 1, irrlicht: 1, wieder: 1, nix: 1, wolf: 1, grubengeist: 1, eislicht: 1 };
+const NIGHT_BEAST = { werwolf: 1, irrlicht: 1, wieder: 1, nix: 1, wolf: 1, grubengeist: 1, eislicht: 1, irrwisch: 1, geisterreiter: 1, geisterbogner: 1 };
 /* Kampfweise: Spielarten kämpfen wie ihr Vorbild */
 const AI_KIND = { pirat: 'pluend', rotbart: 'pluend', pschuetze: 'armbrust', nix: 'moor', wels: 'werwolf',
   wolf: 'werwolf', schrat: 'moor', wegelagerer: 'pluend', kobold: 'ratte', grubengeist: 'moor', doppelsoeldner: 'pluend', hakenschuetze: 'armbrust', baer: 'werwolf', geier: 'rabe', eislicht: 'irrlicht',
-  tatzelwurm: 'werwolf', bergmoench: 'tod', feldhauptmann: 'pluend', ruebezahl: 'raubritter' };
+  tatzelwurm: 'werwolf', bergmoench: 'tod', feldhauptmann: 'pluend', ruebezahl: 'raubritter',
+  kreuzotter: 'ratte', strauchdieb: 'pluend', irrwisch: 'irrlicht', keiler: 'werwolf', moosweib: 'werwolf', reisiger: 'pluend', riesenkrebs: 'moor', geisterreiter: 'werwolf', geisterbogner: 'armbrust',
+  hackelberg: 'raubritter', eppelein: 'raubritter', donauweibchen: 'tod', bulcsu: 'raubritter' };
 const aiK = k => AI_KIND[k] || k;
 const monDmg = (k, L) => Math.max(1, Math.round((2.5 + 1.5 * L) * MON[k].dmg * (NIGHT_BEAST[k] && isNight() ? 1.25 : 1)));
 const monXp = (k, L) => Math.round((10 + 5 * L) * MON[k].xp);
@@ -170,9 +186,14 @@ const BOSSES = {
   tatzelwurm: { lvl:23, zone:'schwarzwald' },
   bergmoench: { lvl:25, zone:'silberrevier' },
   feldhauptmann: { lvl:27, zone:'schanze' },
-  ruebezahl:  { lvl:31, zone:'hochgebirge' }
+  ruebezahl:  { lvl:31, zone:'hochgebirge' },
+  hackelberg: { lvl:15, zone:'heide' },
+  eppelein:   { lvl:23, zone:'gailingen' },
+  donauweibchen: { lvl:27, zone:'donauried' },
+  bulcsu:     { lvl:31, zone:'lechfeld' }
 };
-const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder', rotbart:'pirat', wels:'nix', tatzelwurm:'wolf', bergmoench:'grubengeist', feldhauptmann:'doppelsoeldner', ruebezahl:'eislicht' };
+const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder', rotbart:'pirat', wels:'nix', tatzelwurm:'wolf', bergmoench:'grubengeist', feldhauptmann:'doppelsoeldner', ruebezahl:'eislicht',
+  hackelberg:'wolf', eppelein:'reisiger', donauweibchen:'riesenkrebs', bulcsu:'geisterreiter' };
 const BIND = { burg: gNear(1900, 456), stadt: gNear(2972, 2380), speyer: gNear(5060, 1420) };
 const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt', weiler:'Dorf Lindach', speyer:'Reichsstadt Speyer', fischerdorf:'Fischerdorf Altrip', annaberg:'Bergstadt Annaberg',
   wittenberg:'Wittenberg', nuernberg:'Reichsstadt Nürnberg', augsburg:'Reichsstadt Augsburg' };
@@ -216,7 +237,7 @@ const EPIC_PRE = ['Barbarossas', 'Rolands', 'Siegfrieds', 'Dietrichs', 'Hildebra
    und mehr Schaden gegen Untote und Geister, und F wird zum Gebet, das heilt. */
 const BIB_BASES = ['Abgegriffene kleine Bibel', 'Kleine Bibel', 'Kleine Bibel mit Messingschließe', 'Kleine Bibel mit Goldschnitt', 'Kleine Prachtbibel', 'Kleine Bibel mit Silberbeschlag', 'Kleine Bibel mit Edelsteinen', 'Kaiserliche Prachtbibel'];
 const BIB_UNDEAD = 25, BIB_HEAL = 30, BIB_CD = 15;
-const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1, grubengeist: 1, eislicht: 1, bergmoench: 1 };   // Untote und Geister
+const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1, grubengeist: 1, eislicht: 1, bergmoench: 1, irrwisch: 1, moosweib: 1, geisterreiter: 1, geisterbogner: 1, hackelberg: 1, donauweibchen: 1, bulcsu: 1 };   // Untote und Geister
 const isBib = it => !!(it && it.s === 'schild' && it.nh === 'bibel');
 const heroBib = () => !!(HERO && HERO.eq && isBib(HERO.eq.schild));
 /* ---------- Meisterschaften: ab Stufe 20 alle zwei Stufen eine von drei Wahlen ---------- */
@@ -231,8 +252,8 @@ const MEISTER = [
 const MEISTER_BY = {}; for (const t of MEISTER) for (const o of t.opts) MEISTER_BY[o.id] = Object.assign({ lvl: t.lvl }, o);
 const hasTal = id => !!(HERO && HERO.tal && Object.values(HERO.tal).includes(id));
 const cdT = (v, id, d) => hasTal(id) ? v - d : v;   // Abklingzeit mit Meisterschaft
-const TIERE = { werwolf: 1, wolf: 1, baer: 1, ratte: 1, rabe: 1, geier: 1, lindwurm: 1, tatzelwurm: 1, wels: 1, kobold: 1, schrat: 1, nix: 1, noeck: 1, ruebezahl: 1 };
-const MENSCHEN = { pluend: 1, armbrust: 1, pirat: 1, pschuetze: 1, wegelagerer: 1, doppelsoeldner: 1, hakenschuetze: 1, raubritter: 1, rotbart: 1, feldhauptmann: 1 };
+const TIERE = { werwolf: 1, wolf: 1, baer: 1, ratte: 1, rabe: 1, geier: 1, lindwurm: 1, tatzelwurm: 1, wels: 1, kobold: 1, schrat: 1, nix: 1, noeck: 1, ruebezahl: 1, kreuzotter: 1, keiler: 1, riesenkrebs: 1 };
+const MENSCHEN = { pluend: 1, armbrust: 1, pirat: 1, pschuetze: 1, wegelagerer: 1, doppelsoeldner: 1, hakenschuetze: 1, raubritter: 1, rotbart: 1, feldhauptmann: 1, strauchdieb: 1, reisiger: 1, eppelein: 1 };
 /* Zuschlag gegen diesen Gegner: Bibel und Segen gegen Untote, Meisterschaften je Gegnerart */
 function foeMul(m){
   let u = UNDEAD[m.k] ? (heroBib() ? BIB_UNDEAD : 0) + (chBlessed() ? 15 : 0) + (hasTal('geissel') ? 20 : 0) + (ST && ST.holy || 0) : 0;
@@ -303,6 +324,10 @@ const UNIQUES = {
   bergmoench: { s:'kleinod', n:'Das Grubenlicht des Bergmönchs', aff:['hp', 'crit', 'str'] },
   feldhauptmann: { s:'waffe', n:'Wüsts Bidenhänder', wt:'zweihaender', aff:['str', 'crit', 'spd'] },
   ruebezahl:  { s:'ruestung', n:'Rübezahls Bergharnisch', aff:['hp', 'arm', 'str'] },
+  hackelberg: { s:'kleinod', n:'Hackelbergs Jagdhorn', aff:['spd', 'crit', 'xp'] },
+  eppelein:   { s:'waffe', n:'Eppeleins Reiterschwert', aff:['str', 'crit', 'spd'] },
+  donauweibchen: { s:'kleinod', n:'Die Perlenkette des Donauweibchens', aff:['hp', 'block', 'holy'] },
+  bulcsu:     { s:'helm', n:'Die Fürstenkrone Bulcsús', aff:['hp', 'arm', 'str'] },
   // Fundstücke: sehr selten, bei jedem Gegner ab Stufe 20 (fd: true)
   eisenhand:  { s:'kleinod', n:'Die eiserne Hand', aff:['str', 'crit', 'leech'], fd: true },
   kurhut:     { s:'helm', n:'Der Kurfürstenhut', aff:['hp', 'arm', 'xp'], fd: true },
@@ -465,7 +490,16 @@ const WARE_ICON = (() => {
     geweih: bi_icon(['................', '.w...........w..', '.q.w.......w.q..', '..qq.q...q.qq...', '...qqq...qqq....', '....qq...qq.....', '..w.qq...qq.w...', '...qqq...qqq....',
       '.....qq.qq......', '......qqq.......', '.....nnnnn......', '.....nppnn......', '......nnn.......', '................', '................', '................']),
     hauer: bi_icon(['................', '................', '....w......w....', '...wx......xw...', '...wx......xw...', '..wx........xw..', '..wx........xw..', '..wx........xw..',
-      '...wx......xw...', '....wxx..xxw....', '.....xx..xx.....', '......mmmm......', '.....mnnnnm.....', '......mmmm......', '................', '................'])
+      '...wx......xw...', '....wxx..xxw....', '.....xx..xx.....', '......mmmm......', '.....mnnnnm.....', '......mmmm......', '................', '................']),
+    // Ostlande
+    otterhaut: bi_icon(['................', '................', '.........mmm....', '.......mmlllm...', '......mlnlnlm...', '.....mlnlnlm....', '....mlnlnlm.....', '...mlnlnlm......',
+      '..mlnlnlm.......', '..mlnlm.........', '..mllm..........', '...mm...........', '................', '................', '................', '................']),
+    krebsschere: bi_icon(['................', '.....RR.........', '....RSSR........', '...RSSSR........', '...RSSR...RR....', '...RSR...RSSR...', '...RSRR.RSSR....', '....RSSRSSR.....',
+      '.....RSSSSR.....', '......RSSR......', '.......RR.......', '.......rr.......', '......rr........', '................', '................', '................']),
+    alraune: bi_icon(['................', '......4..4......', '.....434434.....', '......4334......', '.......33.......', '......mnnm......', '.....mnppnm.....', '.....mnppnm.....',
+      '....mnnppnnm....', '...m.mnnnm.m....', '......mnnm......', '.....m.mm.m.....', '....m..mm..m....', '.......m........', '................', '................']),
+    pfeilspitze: bi_icon(['................', '................', '..........ww....', '.........wxxw...', '........wxxw....', '.......wxxw.....', '......nwxw......', '.....nmw........',
+      '....nmn.........', '...nmn..........', '..nmn...........', '.nmn............', '.nn.............', '................', '................', '................'])
   };
 })();
 const SLOT_ICON = { waffe:'sword', helm:'helm', ruestung:'heart', schild:'shield', beine:'boot', kleinod:'ring' };
