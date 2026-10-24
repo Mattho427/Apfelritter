@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 18 von 25: Weltereignisse, Ritterorden, Großes Turnier, Start.
+/* Der Apfelritter, Teil 18 von 26: Weltereignisse, Ritterorden, Großes Turnier, Start.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltereignisse: für alle Ritter zur selben Stunde ============
    Die Uhr der Welt bestimmt, wann etwas geschieht: um 9 Uhr überfallen Raubritter das Dorf Lindach, um 22 Uhr zieht
@@ -425,7 +425,8 @@ function festRecord(id, v){
   if (old && (r.hi ? v <= old : v >= old)) return;
   HERO.frec[id] = v;
   const top = !all || all.nm === HERO.name || (r.hi ? v > all.v : v < all.v);
-  logLine((top ? 'Rekord aller Ritter im ' : 'Neuer eigener Rekord im ') + r.name + ': ' + r.fmt(v) + '!', top ? '#ffd541' : '#ffd98a');
+  const im = /(suche|schlacht)$/.test(r.name) ? ' in der ' : ' im ';
+  logLine((top ? 'Rekord aller Ritter' : 'Neuer eigener Rekord') + im + r.name + ': ' + r.fmt(v) + '!', top ? '#ffd541' : '#ffd98a');
   if (top) Sound.cheer(1);
   pushFame(); markDirty(true);
 }
@@ -458,7 +459,7 @@ function renderFameTab(){
     L.forEach((r, i) => li.append(el('span', 'fk' + (r.id === (cloud.uid || 'local') ? ' me' : ''), (i + 1) + '. ' + r.nm + ', ' + f.fmt(r.v))));
     box.append(li);
   }
-  if (!any) box.append(el('li', 'empty', 'Noch keine Festspiele verzeichnet. Gefeiert wird am zweiten und dritten Tag jeder Jahreszeit.'));
+  if (!any) box.append(el('li', 'empty', 'Noch keine Festspiele verzeichnet. Gefeiert wird an drei von vier Tagen jeder Jahreszeit.'));
 }
 for (const b of document.querySelectorAll('[data-ft]')) b.addEventListener('click', () => { fameTab = b.dataset.ft; renderFameTab(); });
 
@@ -468,6 +469,7 @@ function festRecordOf(g, ok){
   if (g.kind === 'klettern' && ok && g.clock) festRecord('klettern', g.clock * 10);
   if (g.kind === 'springen' && g.pts && ok) festRecord('springen', g.pts);
   if (g.kind === 'schnee' && ok) festRecord('schnee', 60 - g.time);
+  if (FG[g.kind] && FG[g.kind].rec) FG[g.kind].rec(g, ok);
 }
 
 /* ============ Ritterorden: die Wappenrolle beim Herold ============

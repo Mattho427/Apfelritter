@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 9 von 25: Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole.
+/* Der Apfelritter, Teil 9 von 26: Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielwelt in Feinpixeln: Spielkoordinaten = Weltpixel × WS ============ */
 const GW = WW * WS, GH = WH * WS;

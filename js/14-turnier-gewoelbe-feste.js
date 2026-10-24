@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 14 von 25: Tjost, Gewölbe, Feste im Jahreslauf.
+/* Der Apfelritter, Teil 14 von 26: Tjost, Gewölbe, Feste im Jahreslauf.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Turnier: Tjost auf der Wiese vor der Reichsstadt ============
    Drei Durchgänge an der Schranke. Kurz vor dem Zusammenprall wandert das Ziel über den Gegner:
@@ -788,21 +788,23 @@ function dgMiniMap(){
 /* ============ Feste im Jahreslauf ============
    Am zweiten und dritten Spieltag jeder Jahreszeit wird gefeiert, für alle Ritter zugleich: Maifest am Maibaum in Lindach,
    Johannisfeuer im Obstgarten, Erntedank und Weihnachtsmarkt auf dem Markt der Reichsstadt. Jedes Fest hat Musik, tanzende
-   Leute, einen Gastgeber mit Speis und Trank und ein Spiel mit Preis (einmal je Fest). Koordinaten in Weltpixeln. */
+   Leute, einen Gastgeber mit Speis und Trank und ein Spiel mit Preis (einmal je Fest). Koordinaten in Weltpixeln.
+   sea und days legen fest, wann gefeiert wird; die Feste der Version 27 (Ostern, Schützenfest, Martini, Fastnacht) liegen
+   an den übrigen Tagen und stehen in Teil 25 (extra: true). */
 const FESTS = [
-  { id:'mai', name:'Maifest', where:'in Dorf Lindach am Maibaum', tune:'mai', game:'klettern', gameName:'Maibaumklettern', prize:'Maienkranz', c:[2470, 590],
+  { id:'mai', sea:0, days:[1, 2], name:'Maifest', where:'in Dorf Lindach am Maibaum', tune:'mai', game:'klettern', gameName:'Maibaumklettern', prize:'Maienkranz', c:[2470, 590],
     host:{ name:'Maikönigin Gretl', at:[2436, 640], o:{ robe:'long', hat:'haube', belt:true }, pal:{ 1:'#c8c0a8', 2:'#e0d8c0', 3:'#f0ead8', 4:'#fbf8ee', 5:'#2e5a24', 6:'#3e7230', 7:'#548a40', 8:'#6ea654' },
       greet:['Grüß Gott, Herr Ritter! Tanzt mit uns um den Maibaum!', 'Wer den Kranz von der Spitze holt, ist der Held des Tages.', 'Der Maiwein ist frisch, mit Waldmeister aus dem Finsterwald.'] },
     gameText:'Klettert den Maibaum hinauf: Drückt den Hieb, wenn die Marke im grünen Feld steht. Dreimal daneben, und Ihr rutscht hinunter. Oben hängt der Kranz.' },
-  { id:'johannis', name:'Johannisfeuer', where:'auf der Wiese vor der Reichsburg', tune:'johannis', game:'springen', gameName:'Feuerspringen', prize:'Johanniskraut-Amulett', c:[2200, 694],
+  { id:'johannis', sea:1, days:[1, 2], name:'Johannisfeuer', where:'auf der Wiese vor der Reichsburg', tune:'johannis', game:'springen', gameName:'Feuerspringen', prize:'Johanniskraut-Amulett', c:[2200, 694],
     host:{ name:'Feuermeister Wendel', at:[2146, 734], o:{ robe:'short', apron:'leather', beard:true, belt:true, hair:['h', 'j'] }, pal:{ 1:'#5a1e10', 2:'#7a2e18', 3:'#9a4222', 4:'#b85a30', 5:'#3a2c1e', 6:'#4a3a28', 7:'#5a4a34', 8:'#6e5c44' },
       greet:['Am Johannistag brennt das Feuer die ganze Nacht.', 'Wer übers Feuer springt, bleibt ein Jahr lang gesund. So sagt man.', 'Nehmt ein Stockbrot, es ist gleich gar.'] },
     gameText:'Lauft an und springt übers Feuer: Drückt den Hieb, wenn Ihr im hellen Feld vor den Flammen seid. Drei Sprünge, jeder schwerer.' },
-  { id:'ernte', name:'Erntedank', where:'auf dem Markt der Reichsstadt', tune:'ernte', game:'stein', gameName:'Steinstoßen', prize:'Erntekrone', c:[2966, 2318],
+  { id:'ernte', sea:2, days:[1, 2], name:'Erntedank', where:'auf dem Markt der Reichsstadt', tune:'ernte', game:'stein', gameName:'Steinstoßen', prize:'Erntekrone', c:[2966, 2318],
     host:{ name:'Erntevogt Sebald', at:[2878, 2326], o:{ robe:'short', hat:'filz', beard:true, belt:true, hair:['w', 'x'] }, pal:{ 1:'#3a4a1c', 2:'#4e6226', 3:'#667a32', 4:'#80923e', 5:'#4a3a28', 6:'#5e4a34', 7:'#725c42', 8:'#8a7254' },
       greet:['Gott sei Dank für die Ernte! Feiert mit, Herr Ritter.', 'Der bärenstarke Hans stößt den Stein zwölfeinhalb Ellen weit. Schafft Ihr mehr?', 'Probiert den Federweißer, er ist von diesem Herbst.'] },
     gameText:'Haltet den Hieb gedrückt und lasst los, wenn die Kraft am größten ist. Drei Würfe; der bärenstarke Hans hält den Rekord mit 12,5 Ellen.' },
-  { id:'advent', name:'Weihnachtsmarkt', where:'auf dem Markt der Reichsstadt', tune:'advent', game:'schnee', gameName:'Schneeballschlacht', prize:'Lebkuchenherz', c:[2966, 2318],
+  { id:'advent', sea:3, days:[1, 2], name:'Weihnachtsmarkt', where:'auf dem Markt der Reichsstadt', tune:'advent', game:'schnee', gameName:'Schneeballschlacht', prize:'Lebkuchenherz', c:[2966, 2318],
     host:{ name:'Marktfrau Agnes', at:[2878, 2326], o:{ robe:'long', hat:'haube', apron:'linen' }, pal:{ 1:'#4a1414', 2:'#6e2020', 3:'#8e3028', 4:'#ae4a3a', 5:'#1e3a24', 6:'#2a5030', 7:'#386640', 8:'#4a7c50' },
       greet:['Heißer Würzwein und Lebkuchen aus Nürnberg!', 'Die Lehrbuben wollen eine Schneeballschlacht. Traut Ihr Euch?', 'Seht den Baum mit Äpfeln und Kerzen, so macht man es jetzt im Elsass.'] },
     gameText:'Drei Lehrbuben fordern Euch heraus. Mit dem Hieb werft Ihr Schneebälle in Blickrichtung. Trefft jeden dreimal, bevor sie Euch zehnmal treffen oder die Minute um ist.' }
@@ -810,10 +812,13 @@ const FESTS = [
 const FEST_ART = {}, FEST_HOST = {}, FEST_OBJ = {};
 const festDay = () => Math.floor(((Date.now() / 1000 + (window.__skyShift || 0)) % SEA_LEN) / DAY_LEN);
 function festNow(){
-  if (window.__fest === false) return null;
-  return window.__fest || festDay() === 1 || festDay() === 2 ? FESTS[SEA.cur] : null;
+  const fo = window.__fest;   // Tests: false = kein Fest, true = das große Fest der Jahreszeit, 'id' = dieses Fest
+  if (fo === false) return null;
+  if (typeof fo === 'string') return FESTS.find(f => f.id === fo) || null;
+  const d = festDay();
+  return FESTS.find(f => f.sea === SEA.cur && (fo ? !f.extra : f.days.includes(d))) || null;
 }
-const festKey = () => FESTS[SEA.cur].id + ':' + Math.floor((Date.now() / 1000 + (window.__skyShift || 0)) / SEA_LEN);
+const festKey = () => { const f = (G && G.fest) || festNow(); return (f ? f.id : 'kein') + ':' + Math.floor((Date.now() / 1000 + (window.__skyShift || 0)) / SEA_LEN); };
 function festNear(){ const f = G && G.fest; if (!f || G.inside || DG_ON) return null; const k = G.knight; return Math.hypot(k.x - f.cx, k.y - f.cy) < 520 ? f : null; }
 const nearFest = (x, y) => !!(G && G.fest && Math.hypot(x - G.fest.cx, y - G.fest.cy) < 420);
 /* Schmuck und Gastgeber eines Festes (beim ersten Mal gebaut) */
@@ -845,6 +850,7 @@ function festBuild(f){
     for (const [dx, dy] of [[-86, -44], [86, -44], [-86, 36], [86, 36]]){ const l = obj('laterne', 0, cx + dx, cy + dy); lines.push([tt, { x: l.x + 10, y: l.y - 70 }, 'lamp']); lights.push([l.x + 10, l.y - 60, 130, .9]); }
     obj('festtisch', 0, cx - 8, cy + 48);
   }
+  if (f.build) f.build({ obj, top, P, lines, lights, fires, cx, cy });   // die Feste aus Teil 25 schmücken sich selbst
   objs.sort((a, b) => a.y - b.y);
   return { objs, lines, lights, fires };
 }
@@ -928,6 +934,7 @@ function festList(cam, list){
   if (F && !G.inside) for (const o of F.objs) if (inView(o.x, o.y, cam, 120)) list.push({ y: o.y, d: () => ctx.drawImage(o.img, Math.round(o.x - o.ax), Math.round(o.y - o.ay)) });
   const g = G.fgame;
   if (g && g.kids) for (const c of g.kids) if (!c.gone) list.push({ y: c.y + .05, d: () => fgDrawKid(c) });
+  if (g && FG[g.kind] && FG[g.kind].list) FG[g.kind].list(g, cam, list);
 }
 /* Wimpelketten und Laternenschnüre über den Köpfen; Noten über den Spielleuten */
 function festOverlay(cam){
@@ -969,6 +976,7 @@ function festParts(dt, cam){
 }
 /* ---------- Spiele ---------- */
 const EL = 20;                       // eine Elle in Feinpixeln (Steinstoßen)
+const FG = {};                       // weitere Festspiele (Teil 25): { start, tick, info, world, ui, list, rec }
 function festReward(f, ok, extra){
   HERO.festDone = HERO.festDone || {};
   const key = festKey(), first = ok && !HERO.festDone[key];
@@ -1001,6 +1009,7 @@ function startFgame(kind){
     const p = gNear(2858, 2312);
     Object.assign(g, { x0: p.x, y0: p.y, tries: 3, best: 0, st: 'ready', ph: 0, pw: 0, stone: null, marks: [] });
     k.x = p.x; k.y = p.y; k.dir = 'right';
+  } else if (FG[kind]){ FG[kind].start(g, F, k);
   } else if (kind === 'schnee'){
     Object.assign(g, { time: 60, got: 0, balls: [], kids: [] });
     for (let i = 0; i < 3; i++){ const q = gRandWalk(F.cx, F.cy + 40, 60, 160) || { x: F.cx + (i - 1) * 60, y: F.cy + 60 }; g.kids.push({ x: q.x, y: q.y, hp: 3, cd: rand(1.5, 2.5), art: vkPerson('knecht', i), dir: 'down', anim: 0, tx: q.x, ty: q.y, hitT: 0, gone: false }); }
@@ -1024,6 +1033,7 @@ function updateFgame(dt){
   const g = G.fgame, k = G.knight, press = atkHeld || atkBtn, edge = press && !g.held;
   g.held = press; g.t += 0; if (g.msgT > 0) g.msgT -= dt;
   const say = (m, c) => { g.msg = m; g.msgC = c || '#ffffff'; g.msgT = 1.4; };
+  if (FG[g.kind]) return FG[g.kind].tick(g, dt, press, edge, say);
   if (g.kind === 'klettern'){
     g.ph += dt * (2.2 + g.stage * .5); if (g.st === 'climb') g.clock = (g.clock || 0) + dt;
     const u = Math.sin(g.ph), w = .5 - g.stage * .06, target = g.H * g.stage / g.max;
@@ -1100,6 +1110,7 @@ function fgDrawKid(c){
 /* Spiele in der Welt (Stein, Schneebälle, Kranz an der Spitze) und Anzeige oben */
 function drawFgameWorld(cam){
   const g = G.fgame; if (!g) return;
+  if (FG[g.kind] && FG[g.kind].world) FG[g.kind].world(g, cam);
   if (g.kind === 'stein'){
     for (let e = 6; e <= 16; e += 2){ const x = g.x0 + 8 + e * EL; ctx.fillStyle = 'rgba(240,232,200,.6)'; ctx.fillRect(Math.round(x), Math.round(g.y0) - 6, 1, 10); drawText(e + '', x, g.y0 + 6, '#f0e8c8'); }
     const rx = g.x0 + 8 + 12.5 * EL; ctx.fillStyle = '#b8281e'; ctx.fillRect(Math.round(rx), Math.round(g.y0) - 22, 1, 22); ctx.fillRect(Math.round(rx) + 1, Math.round(g.y0) - 22, 7, 5); drawText('Hans', rx, g.y0 - 36, '#ffb0a0');
@@ -1111,7 +1122,7 @@ function drawFgameWorld(cam){
 }
 function drawFgameUI(){
   const g = G.fgame; if (!g) return;
-  const head = g.f.gameName, info = g.kind === 'klettern' ? 'Höhe ' + g.stage + ' von ' + g.max + ',  daneben ' + g.miss + ' von 3' : g.kind === 'springen' ? 'Sprung ' + g.round + ' von 3,  gelungen ' + g.ok
+  const head = g.f.gameName, info = FG[g.kind] ? FG[g.kind].info(g) : g.kind === 'klettern' ? 'Höhe ' + g.stage + ' von ' + g.max + ',  daneben ' + g.miss + ' von 3' : g.kind === 'springen' ? 'Sprung ' + g.round + ' von 3,  gelungen ' + g.ok
     : g.kind === 'stein' ? 'Würfe übrig ' + g.tries + ',  bester ' + (g.best ? g.best.toFixed(1).replace('.', ',') : '–') + ' Ellen,  Rekord 12,5' : 'Zeit ' + Math.ceil(g.time) + ',  Lehrbuben ' + g.kids.filter(c => !c.gone).length + ',  getroffen ' + g.got + ' von 10';
   ctx.fillStyle = 'rgba(16,14,20,.62)'; ctx.fillRect(W / 2 - 170, 6, 340, 34);
   drawText(head, W / 2, 9, '#ffd98a'); drawText(info, W / 2, 24, '#ffffff');
@@ -1139,6 +1150,7 @@ function drawFgameUI(){
     drawText(g.st === 'ready' ? btnTxt + ' gedrückt halten …' : '… und loslassen, wenn der Balken voll ist!', W / 2, by - 22, '#ffffff', 'c', 1.5);
   }
   if (g.kind === 'schnee' && g.time > 56) drawText(btnTxt + ': Schneeball werfen', W / 2, H * .7, '#ffffff', 'c', 1.5);
+  if (FG[g.kind] && FG[g.kind].ui) FG[g.kind].ui(g, btnTxt);
   if (g.msgT > 0) drawText(g.msg, W / 2, H * .3, g.msgC, 'c', 1.5);
 }
 /* Gastgeber: Spiel, Speis und Trank; Händler beim Erntedank */

@@ -385,6 +385,21 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 .slot{position:relative; width:48px; height:48px; padding:0; border:0; cursor:pointer; background:var(--ink); box-shadow:inset 0 0 0 2px var(--rc, var(--stone)); display:grid; place-items:center;}
 .slot img{width:36px; height:36px; image-rendering:pixelated;}
 .dicerow{display:flex; gap:12px; margin:2px 0 10px;}
+/* Wirtshausspiele: Mühlebrett, Karten, Kegelbahn und Ringen */
+.fsboard{position:relative; width:min(72vw, 300px); aspect-ratio:1; margin:6px auto 10px; background:#c8a870; border:3px solid #3a2416; box-shadow:inset 0 0 0 3px #a8884e;}
+.fsboard svg{position:absolute; inset:0; width:100%; height:100%;}
+.fsboard line{stroke:#3a2416; stroke-width:1.2;}
+.fsboard .pt{position:absolute; width:11%; height:11%; transform:translate(-50%, -50%); border-radius:50%; border:2px solid #3a2416; background:#d8bc84; padding:0; min-height:0; cursor:pointer;}
+.fsboard .pt.w{background:radial-gradient(circle at 35% 35%, #ffffff, #e0d6bc 60%, #a89c80);}
+.fsboard .pt.b{background:radial-gradient(circle at 35% 35%, #6a5a4a, #2a1e16 60%, #120c08);}
+.fsboard .pt.can{box-shadow:0 0 0 3px #5a9a4a;}
+.fsboard .pt.sel{box-shadow:0 0 0 3px #ffd541;}
+.fsboard .pt.last{box-shadow:0 0 0 3px #c84a3a;}
+.fsboard .pt:focus-visible{outline:3px solid #ffffff; outline-offset:2px;}
+.fscards{display:flex; gap:6px; flex-wrap:wrap; margin:2px 0 8px;}
+.fscards img{width:45px; height:63px; image-rendering:pixelated;}
+.fscanvas{display:block; margin:4px auto 10px; width:min(60vw, 220px); height:auto; image-rendering:pixelated; border:3px solid #3a2416;}
+.fscanvas.wide{width:min(80vw, 400px);}
 .die{padding:0; border:0; background:none; cursor:pointer; box-shadow:0 0 0 2px var(--gold-lo);}
 .die img{width:48px; height:48px; image-rendering:pixelated; display:block;}
 .die.re{box-shadow:0 0 0 3px var(--blood-hi); opacity:.65;}
@@ -884,7 +899,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Feste im Jahreslauf</h3>
               <ul class="list" id="festList"></ul>
-              <p class="tip">Gefeiert wird am zweiten und dritten Spieltag jeder Jahreszeit, für alle Ritter zugleich. Oben rechts steht dann der Name des Festes, auf der kleinen Karte zeigt ein Ausrufezeichen den Gastgeber. Den Preis gibt es einmal je Fest, Gulden bei jedem Sieg.</p>
+              <p class="tip">Die großen Feste sind am zweiten und dritten Spieltag jeder Jahreszeit, Ostern am ersten Frühlingstag, Schützenfest, Martini und Fastnacht am letzten Tag von Sommer, Herbst und Winter, für alle Ritter zugleich. Oben rechts steht dann der Name des Festes, auf der kleinen Karte zeigt ein Ausrufezeichen den Gastgeber. Den Preis gibt es einmal je Fest, Gulden bei jedem Sieg.</p>
             </div>
             <div class="note">
               <h3>Im Gasthaus</h3>
@@ -1027,4 +1042,5 @@ body{margin:0; padding:0;}
 <script src="js/22-kirchen.js"></script>
 <script src="js/23-bergland.js"></script>
 <script src="js/24-ostlande.js"></script>
-<script src="js/25-waffen-bibel-start.js"></script>
+<script src="js/25-feste-spiele.js"></script>
+<script src="js/26-waffen-bibel-start.js"></script>

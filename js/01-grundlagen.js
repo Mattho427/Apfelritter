@@ -1,8 +1,8 @@
-/* Der Apfelritter, Teil 1 von 25: Grundlagen: Hilfen, Zeichenwerkzeuge, verzögertes Laden der Tafelbilder.
+/* Der Apfelritter, Teil 1 von 26: Grundlagen: Hilfen, Zeichenwerkzeuge, verzögertes Laden der Tafelbilder.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 "use strict";
 /* Fingerabdruck dieser Fassung: Zwischenspeicher gelten nur für genau diese. Wird von werkzeug/stempel.mjs vor dem Veröffentlichen gesetzt. */
-const SRC_HASH = '1699384:1kbopes';
+const SRC_HASH = '1758585:5yclr8';
 /* Bilder der Tafeln unter dem Spiel: erst nach dem Start malen, sichtbare zuerst, der Rest nach und nach */
 const LAZY = { q: [], go: false, io: null };
 try { LAZY.io = new IntersectionObserver(es => { if (LAZY.go) for (const e of es) if (e.isIntersecting) lazyNow(e.target); }, { rootMargin: '300px' }); } catch(e){}
