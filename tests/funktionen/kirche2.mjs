@@ -87,7 +87,7 @@ await T('Speichern', () => {
   const bad = cleanHero(Object.assign(JSON.parse(JSON.stringify(HERO)), { bless: { t: 99999 }, pilg: { on: 'x', v: { 'a b': 1, kaiserdom: 1, ['<x>']: 1 } } })) ;
   return { ablass: h.ablass, bless: h.bless, pilg: h.pilg, badBless: bad && bad.bless, badPilg: bad && bad.pilg };
 }, r => r.ablass === true && r.bless.t === 500 && r.pilg.done === 1 && (!r.badBless || r.badBless.t <= 1200));
-await T('Tafel', () => [...document.querySelectorAll('#chList li')].map(li => li.textContent.slice(0, 40)), r => r.length === 7);
+await T('Tafel', () => [...document.querySelectorAll('#chList li')].map(li => li.textContent.slice(0, 40)), r => r.length === 14);
 
 console.log(errs.length ? 'FEHLER ' + errs.join(' | ') : (fehl ? 'FEHL ' + fehl : 'keine Fehler'));
 await b.close();

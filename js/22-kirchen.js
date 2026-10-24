@@ -58,7 +58,36 @@ const CH_DEF = [
   { id: 'annenkirche', name: 'St. Annenkirche', kind: 'kirche', at: [3050, 3532], door: 7, style: 'kirche', where: 'in Annaberg', pilg: false,
     clergy: [{ id: 'pfarrer2', art: 'pfarrer', name: 'Pfarrer Wolfgang Silbermann', role: 'Stadtpfarrer', segen: true, beichte: true, kerze: true, messe: true,
       greet: ['Die Knappen bauen an dieser Kirche, sooft das Silber es erlaubt. Eines Tages wird sie die schönste im Gebirge sein.', 'Die heilige Anna ist die Schutzpatronin der Bergleute. Betet zu ihr, ehe Ihr in die Gruben steigt.', 'Im Altenberg-Stollen geht der Bergmönch um. Die Knappen meiden ihn wie der Teufel das Weihwasser.'] }],
-    pray: ['bauer', 'baeuerin', 'buerger', 'magd'] }
+    pray: ['bauer', 'baeuerin', 'buerger', 'magd'] },
+  // Ostlande (Version 26)
+  { id: 'schlosskirche', name: 'Schlosskirche Allerheiligen', kind: 'schlosskirche', at: [7630, 488], door: 12, style: 'kirche', where: 'in Wittenberg', pilg: false,
+    clergy: [{ id: 'stiftsherr', art: 'domherr', name: 'Stiftsherr Georg', role: 'Stiftsherr zu Allerheiligen', segen: true, beichte: true, kerze: true,
+      greet: ['Hier bewahrt unser Kurfürst Friedrich seinen Heiltumsschatz: neunzehntausend Reliquien, sagt man.', 'An dieser Tür schlug Doktor Luther vor drei Jahren seine fünfundneunzig Thesen an. Seither redet das ganze Reich davon.', 'Die Universität hat aus Wittenberg eine Stadt der Gelehrten gemacht. Früher war hier nur Sand und Heide.'] }],
+    pray: ['buerger', 'buergerin', 'magd'] },
+  { id: 'wbkirche', name: 'Stadtkirche St. Marien zu Wittenberg', kind: 'kirche', at: [8080, 488], door: 7, style: 'kirche', where: 'in Wittenberg', pilg: false,
+    clergy: [{ id: 'luther', art: 'prior', name: 'Doktor Martin Luther', role: 'Prediger an der Stadtkirche', segen: true, beichte: true, messe: true,
+      greet: ['Ein Christenmensch ist ein freier Herr über alle Dinge und niemand untertan, und doch ein dienstbarer Knecht aller Dinge.', 'Der Gerechte wird aus Glauben leben. Kein Ablassbrief kauft Euch die Gnade Gottes.', 'Ich schreibe die Schrift ins Deutsche, damit jeder Bauer und jeder Ritter sie selbst lesen kann.'] }],
+    pray: ['buerger', 'buergerin', 'bauer', 'baeuerin'] },
+  { id: 'sebald', name: 'St. Sebald', kind: 'kirche', at: [7860, 2208], door: 7, style: 'kirche', where: 'in Nürnberg', pilg: false,
+    clergy: [{ id: 'propst', art: 'pfarrer', name: 'Propst Melchior', role: 'Propst von St. Sebald', segen: true, beichte: true, kerze: true, messe: true,
+      greet: ['Hier ruht der heilige Sebald in seinem Grab aus Messing. Meister Vischer gießt daran schon seit Jahren.', 'Nürnberg ist des Reiches Schatzkästlein. Die Reichskleinodien liegen im Heilig-Geist-Spital.', 'Die Kaiserburg wacht über uns, und die Mauern sind die stärksten im ganzen Reich.'] }],
+    pray: ['buerger', 'buergerin', 'magd', 'buerger'] },
+  { id: 'lorenz', name: 'St. Lorenz', kind: 'kirche', at: [7880, 2558], door: 7, style: 'kirche', where: 'in Nürnberg', pilg: false,
+    clergy: [{ id: 'prediger', art: 'pfarrer', name: 'Prediger Andreas', role: 'Prediger von St. Lorenz', segen: true, beichte: true, kerze: true,
+      greet: ['Seht Ihr das Sakramentshaus? Meister Adam Kraft hat es aus Stein gehauen, so fein wie Spitze.', 'Der Englische Gruß von Meister Veit Stoß hängt seit drei Jahren hier im Chor.', 'Die Lorenzer Seite der Stadt ist die der Handwerker: Plattner, Rotschmiede, Zirkelschmiede.'] }],
+    pray: ['bauer', 'baeuerin', 'buerger'] },
+  { id: 'frauenkirche', name: 'Frauenkirche', kind: 'frauenkirche', at: [8160, 2342], door: 0, style: 'kapelle', where: 'am Nürnberger Hauptmarkt', pilg: false,
+    clergy: [{ id: 'kaplan2', art: 'kaplan', name: 'Kaplan Sebastian', role: 'Kaplan der Frauenkirche', segen: true, kerze: true,
+      greet: ['Jeden Mittag ziehen über dem Portal die Kurfürsten um den Kaiser. Das Männleinlaufen, so nennen es die Kinder.', 'Kaiser Karl der Vierte ließ diese Kirche bauen, wo früher die Synagoge stand. Darüber spricht man nicht gern.', 'Der Markt vor der Tür ist der größte in Franken.'] }],
+    pray: ['magd', 'buergerin'] },
+  { id: 'augsdom', name: 'Dom St. Maria zu Augsburg', kind: 'kirche', at: [7230, 3718], door: 7, style: 'kirche', where: 'in Augsburg', pilg: false,
+    clergy: [{ id: 'domprediger', art: 'domherr', name: 'Domprediger Urban', role: 'Domprediger', segen: true, beichte: true, kerze: true, messe: true,
+      greet: ['Augsburg ist reich, Herr Ritter. Aber Reichtum macht nicht fromm.', 'Die Fugger stiften Altäre und Kapellen. Ob sie damit den Himmel kaufen, weiß Gott allein.', 'Vor sechshundert Jahren rettete der heilige Ulrich diese Stadt vor den Ungarn auf dem Lechfeld.'] }],
+    pray: ['buerger', 'buergerin', 'magd', 'baeuerin'] },
+  { id: 'ulrichskapelle', name: 'Ulrichskapelle auf dem Lechfeld', kind: 'kapelle', at: [7200, 4380], door: -18, style: 'kapelle', where: 'auf dem Lechfeld', pilg: false,
+    clergy: [{ id: 'eremit', art: 'einsiedler', name: 'Bruder Notker', role: 'Einsiedler', segen: true, kerze: true,
+      greet: ['Hier betete der heilige Ulrich vor der Schlacht. Nachts reiten die Geister der Ungarn um diese Kapelle.', 'Eine Kerze, Herr Ritter. Gegen die Geister hilft nur Licht und Gebet.', 'Bulcsú hieß ihr Fürst. Man hängte ihn in Regensburg. Seine Seele fand keine Ruhe.'] }],
+    pray: ['bauer'] }
 ];
 const CHURCHES = CH_DEF.map((d, i) => {
   const wx = d.at[0] * WS, wy = d.at[1] * WS;
@@ -72,7 +101,8 @@ const CH_BY = Object.fromEntries(CHURCHES.map(c => [c.id, c]));
 const PILG = CHURCHES.filter(c => c.pilg).map(c => c.id);
 for (const c of CHURCHES){
   HUB_NAME[c.id] = c.name; HUB_IN[c.id] = 'in der ' + c.name.replace(/^Kaiserdom/, 'Kaiserdom');
-  if (c.style === 'dom') HUB_IN[c.id] = 'im Kaiserdom zu Speyer';
+  if (c.id === 'kaiserdom') HUB_IN[c.id] = 'im Kaiserdom zu Speyer';
+  else if ({ sebald: 1, lorenz: 1, augsdom: 1 }[c.id]) HUB_IN[c.id] = c.id === 'augsdom' ? 'im Dom zu Augsburg' : 'in ' + c.name;
   if (c.id !== 'kaiserdom') MAP_LABELS.push({ x: c.dx / WS, y: c.y / WS - (c.kind === 'kirche' ? 250 : 120), name: c.name.replace(/ (St\.|Unserer).*$/, '') });
 }
 

@@ -180,7 +180,7 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
   .masthead .seal{width:48px; height:48px;}
 }
 .num{font-family:var(--f-body); font-size:.8em;}
-.panel.map{max-width:min(96%, 860px); width:min(96%, 860px);}
+.panel.map{max-width:min(96%, 1060px); width:min(96%, 1060px);}
 .panel.map .hint{max-width:64ch;}
 .iset{margin:6px 0; padding:6px 8px; border:1px solid rgba(127,214,95,.35); background:rgba(40,60,30,.25);}
 .iset b{display:block; color:#9fe08a; font-weight:normal;}
@@ -192,7 +192,7 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
 .talo{display:flex; flex-direction:column; flex:1 1 140px; gap:2px;}
 .talo small{color:#cfc4a8; font-size:12px; line-height:1.25;}
 .talopt.sel{outline:2px solid var(--gold); background:#3a2e14;}
-.mapbox{position:relative; width:100%; max-width:800px; max-width:min(800px, max(300px, calc((100dvh - 150px) * 4 / 3))); container-type:inline-size; line-height:0; box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--gold-lo);}
+.mapbox{position:relative; width:100%; max-width:1000px; max-width:min(1000px, max(320px, calc((100dvh - 150px) * 2))); container-type:inline-size; line-height:0; box-shadow:0 0 0 3px var(--ink), 0 0 0 5px var(--gold-lo);}
 .mapbox canvas{width:100%; height:auto; image-rendering:pixelated; image-rendering:crisp-edges;}
 .maplabels{position:absolute; inset:0; pointer-events:none; line-height:1;}
 .maplabels span{position:absolute; transform:translate(-50%, -50%); white-space:nowrap; font-family:var(--f-display); font-size:clamp(11px, 2.4vw, 17px); font-size:clamp(10px, 2.3cqw, 17px); color:#2a1c12; text-shadow:0 0 2px #e8d8b0, 0 0 3px #e8d8b0;}
@@ -762,7 +762,7 @@ body{margin:0; padding:0;}
     <div class="overlay" id="ovMap" hidden>
       <div class="panel map">
         <h2>Karte des Reichslandes</h2>
-        <div class="mapbox"><canvas id="mapCv" width="768" height="576" aria-label="Übersichtskarte"></canvas><div class="maplabels" id="mapLabels"></div></div>
+        <div class="mapbox"><canvas id="mapCv" width="1152" height="576" aria-label="Übersichtskarte"></canvas><div class="maplabels" id="mapLabels"></div></div>
         <p class="hint">Gelb: Ihr · Grün: Leute · Rot: Anführer · Blau: andere Ritter · Hellgrün: Eure Gruppe · Kreis: Ziel eines Auftrags · Goldene Raute: Hauptgeschichte · Rote Fahne: Weltereignis</p>
         <button class="btn" id="btnMapClose" type="button">Zurück</button>
       </div>

@@ -123,7 +123,7 @@ const LIFE_SPOTS = (() => {
   // Wild: Rehe, Hirsche, Hasen, Füchse, Wildschweine
   const wildAt = (zones, k, n, cnt, r) => {
     for (let t = 0; t < cnt * 40 && cnt > 0; t++){
-      const x = 60 + R() * (WW - 120), y = 60 + R() * (WH - 120);
+      const x = 60 + R() * (WW0 - 120), y = 60 + R() * (WH - 120);
       if (!zones.includes(ZONES[wo_zid(x, y)].id) || !wo_ok(x | 0, y | 0)) continue;
       add({ k, ...P(x, y), r: r || 160, n }); cnt--;
     }

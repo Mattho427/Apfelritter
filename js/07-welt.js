@@ -101,7 +101,16 @@ const ZONES = [
   { id: 'annaberg', name: 'Die Bergstadt Annaberg', monsters: [], label: { x: 2900, y: 3300 } },
   { id: 'silberrevier', name: 'Das Silberrevier', monsters: ['kobold', 'grubengeist', 'wegelagerer'], label: { x: 2420, y: 4200 } },
   { id: 'schanze', name: 'Die Söldnerschanze', monsters: ['doppelsoeldner', 'hakenschuetze'], label: { x: 4400, y: 3330 } },
-  { id: 'hochgebirge', name: 'Das Hochgebirge', monsters: ['baer', 'geier', 'eislicht'], label: { x: 4700, y: 4400 } }
+  { id: 'hochgebirge', name: 'Das Hochgebirge', monsters: ['baer', 'geier', 'eislicht'], label: { x: 4700, y: 4400 } },
+  // Die Ostlande (Version 26): Sachsen im Norden, Franken in der Mitte, Schwaben im Süden
+  { id: 'wittenberg', name: 'Wittenberg an der Elbe', monsters: [], label: { x: 7920, y: 270 } },
+  { id: 'heide', name: 'Die Dübener Heide', monsters: ['kreuzotter', 'strauchdieb', 'irrwisch'], label: { x: 7300, y: 1230 } },
+  { id: 'nuernberg', name: 'Die Reichsstadt Nürnberg', monsters: [], label: { x: 7740, y: 1990 } },
+  { id: 'reichswald', name: 'Der Reichswald', monsters: ['keiler', 'moosweib', 'strauchdieb'], label: { x: 8560, y: 2620 } },
+  { id: 'gailingen', name: 'Burg Gailingen', monsters: ['reisiger', 'armbrust', 'strauchdieb'], label: { x: 8650, y: 1760 } },
+  { id: 'donauried', name: 'Das Donauried', monsters: ['riesenkrebs', 'moor', 'irrwisch'], label: { x: 6800, y: 3260 } },
+  { id: 'augsburg', name: 'Die Reichsstadt Augsburg', monsters: [], label: { x: 7430, y: 3460 } },
+  { id: 'lechfeld', name: 'Das Lechfeld', monsters: ['geisterreiter', 'geisterbogner', 'wieder'], label: { x: 7400, y: 4300 } }
 ];
 const wo_ZI = {}; ZONES.forEach((z, i) => { wo_ZI[z.id] = i; });
 /* Gebietskerne: Ellipsen [cx, cy, rx, ry] */
@@ -116,7 +125,15 @@ const wo_ZELL = {
   schwarzwald: [[880, 3840, 980, 720], [300, 3320, 420, 300]], annaberg: [[2900, 3550, 330, 260]],
   silberrevier: [[2350, 4170, 760, 420], [3500, 4320, 520, 300], [3330, 3900, 300, 200]],
   schanze: [[4450, 3500, 640, 420], [3960, 3260, 280, 220]],
-  hochgebirge: [[5350, 4160, 900, 600], [4300, 4440, 480, 220], [5950, 3520, 300, 420]]
+  hochgebirge: [[5350, 4160, 900, 600], [4300, 4440, 480, 220], [5950, 3520, 300, 420], [6560, 4440, 420, 200], [8820, 4300, 520, 360], [9060, 3760, 260, 300]],
+  wittenberg: [[7920, 490, 560, 250]],
+  heide: [[6980, 1180, 700, 300], [8300, 1250, 760, 300], [6480, 640, 300, 320], [8850, 430, 520, 330], [7000, 260, 420, 220], [6600, 1180, 300, 260]],
+  nuernberg: [[7740, 2390, 580, 400], [7040, 2120, 300, 240]],
+  reichswald: [[8560, 2560, 700, 380], [7650, 2960, 720, 200], [6560, 2240, 340, 480], [8980, 2160, 300, 300], [6560, 2780, 280, 200]],
+  gailingen: [[8650, 1910, 470, 240]],
+  donauried: [[6800, 3150, 520, 300], [8520, 3170, 700, 190]],
+  augsburg: [[7430, 3740, 420, 300]],
+  lechfeld: [[7420, 4290, 520, 320], [8300, 3720, 380, 420], [6620, 3760, 380, 360]]
 };
 /* Bergstadt Annaberg: Mauerring mit Nord- und Südtor, Durchlässe im Westen und Osten */
 const wo_ANNA = { x0: 2630, x1: 3170, y0: 3340, y1: 3760, gx: 2900, gy: 3550 };
@@ -126,10 +143,15 @@ const wo_SPY = { x0: 4714, x1: 5486, y0: 1170, y1: 1580, gx: 5100, quay: 1640 };
 const wo_CITY = { x0: 2580, x1: 3352, y0: 2000, y1: 2620, gx: 2966 };
 const wo_TJ = { x: 3540, y: 2214 };   // Turnierwiese östlich der Stadt: Mitte der Schranke
 const wo_CAST = { x0: 1626, x1: 2174, y0: 300, y1: 640, gx: 1900 };
+/* Städte der Ostlande (x1 ergibt sich aus der Mauerreihe beim Bauen; hier der Plan) */
+const wo_WIT = { x0: 7500, x1: 8400, y0: 300, y1: 720, gx: 7950, gy: 510 };
+const wo_NUE = { x0: 7238, x1: 8242, y0: 2050, y1: 2730, gx: 7740, gy: 2230, gy2: 2580 };
+const wo_AUG = { x0: 7108, x1: 7752, y0: 3520, y1: 4000, gx: 7430, gy: 3740 };
 
 /* ============ Gewässer ============ */
 /* Fluss von Ost nach West: x, y, halbe Breite */
 const wo_RIVER = wo_spline([
+  [9300, 1700, 36], [9000, 1690, 36], [8700, 1676, 37], [8400, 1660, 38], [8100, 1646, 38], [7800, 1630, 39], [7500, 1612, 40], [7200, 1590, 41], [6900, 1566, 42], [6600, 1540, 43],
   [6300, 1520, 44], [6160, 1540, 44], [6040, 1566, 44], [5920, 1600, 43], [5800, 1630, 42], [5680, 1650, 42], [5560, 1672, 41], [5440, 1700, 40],
   [5320, 1722, 40], [5200, 1734, 40], [5080, 1738, 39], [4960, 1736, 38], [4840, 1730, 37], [4720, 1724, 36], [4600, 1720, 35], [4460, 1716, 35], [4320, 1716, 34],
   [4180, 1716, 34], [4000, 1724, 34], [3860, 1732, 33], [3780, 1736, 33], [3700, 1748, 33], [3600, 1778, 33], [3480, 1826, 32],
@@ -160,6 +182,15 @@ const wo_SBACH = wo_spline([[4880, 4034, 9], [4760, 4060, 10], [4600, 4120, 11],
   [3700, 4080, 14], [3540, 4036, 15], [3400, 4000, 15], [3260, 3972, 16], [3140, 3962, 16], [3020, 3972, 16], [2900, 3990, 17], [2780, 4024, 17], [2650, 4060, 17],
   [2520, 4096, 18], [2400, 4118, 18], [2260, 4116, 18], [2100, 4098, 19], [1950, 4066, 19], [1800, 4042, 19], [1650, 4048, 20], [1500, 4064, 20], [1350, 4100, 20],
   [1200, 4140, 21], [1050, 4176, 21], [900, 4200, 21], [750, 4214, 22], [600, 4224, 22], [450, 4240, 22], [300, 4258, 22], [150, 4270, 22], [-80, 4284, 22]], 8);
+/* Ostlande: die Elbe bei Wittenberg (kommt von Osten, biegt nach Norden ab), die Pegnitz durch Nürnberg in den Main,
+   die Donau (Quelle unter dem Hochgebirge) und der Lech, der von den Alpen an Augsburg vorbei in die Donau fließt */
+const wo_ELBE = wo_spline([[9300, 1040, 38], [9000, 1000, 38], [8700, 950, 38], [8400, 890, 38], [8150, 852, 37], [7950, 842, 37], [7700, 846, 36], [7450, 830, 36],
+  [7200, 770, 35], [7000, 680, 34], [6860, 560, 34], [6760, 400, 33], [6710, 200, 33], [6690, -80, 33]], 8);
+const wo_PEG = wo_spline([[9300, 2230, 14], [9000, 2262, 15], [8700, 2300, 15], [8450, 2350, 16], [8240, 2392, 16], [8000, 2402, 16], [7740, 2402, 16], [7480, 2398, 17],
+  [7240, 2392, 17], [7060, 2350, 18], [6930, 2250, 18], [6870, 2090, 19], [6840, 1910, 19], [6820, 1730, 20], [6810, 1590, 21]], 8);
+const wo_DON = wo_spline([[6390, 3034, 10], [6550, 3052, 15], [6750, 3080, 20], [7000, 3100, 24], [7300, 3112, 28], [7600, 3118, 32], [7900, 3120, 36], [8200, 3112, 38],
+  [8500, 3122, 40], [8800, 3140, 40], [9100, 3160, 40], [9300, 3170, 40]], 8);
+const wo_LECH = wo_spline([[8020, 4700, 24], [7990, 4450, 24], [7930, 4200, 25], [7880, 3950, 25], [7862, 3700, 26], [7842, 3450, 26], [7804, 3250, 27], [7784, 3110, 28]], 8);
 /* Mühlbach vom Mühlteich zum Fluss */
 const wo_BACH = wo_spline([[2556, 1190, 7], [2550, 1260, 8], [2542, 1340, 9], [2536, 1420, 9], [2531, 1500, 10], [2529, 1580, 10],
   [2531, 1660, 10], [2536, 1740, 11], [2542, 1820, 12], [2546, 1866, 14]], 8);
@@ -173,7 +204,11 @@ const wo_PONDS = [
   // Altwasser im Auwald
   [4700, 2300, 74, 30, 2], [5320, 2520, 96, 36, 2], [5660, 2330, 62, 26, 2], [4900, 2720, 84, 30, 2], [5940, 2720, 72, 34, 3], [4380, 2180, 50, 22, 2], [5600, 2860, 60, 24, 3],
   // Bergland: Quellsee des Silberbachs, Bergseen, ein Weiher im Schwarzwald
-  [4960, 4022, 92, 44, 2], [5640, 4470, 76, 34, 2], [6020, 3820, 58, 30, 2], [1480, 4420, 64, 30, 2], [640, 3480, 48, 24, 2], [3560, 4420, 44, 22, 2]
+  [4960, 4022, 92, 44, 2], [5640, 4470, 76, 34, 2], [6020, 3820, 58, 30, 2], [1480, 4420, 64, 30, 2], [640, 3480, 48, 24, 2], [3560, 4420, 44, 22, 2],
+  // Ostlande: Donauquelle, Heideweiher, Tümpel im Donauried, Weiher im Reichswald, Bergsee in den Alpen
+  [6372, 3026, 44, 24, 2], [7560, 1300, 52, 24, 2], [8620, 1130, 46, 22, 2], [6950, 980, 40, 20, 3],
+  [6600, 3240, 60, 26, 3], [6920, 3290, 44, 20, 3], [7120, 3230, 50, 22, 3], [6460, 3180, 36, 18, 3], [8400, 3240, 56, 22, 3], [8760, 3250, 44, 20, 3], [6760, 3360, 34, 16, 3],
+  [8760, 2700, 58, 26, 2], [7260, 2940, 40, 20, 2], [8860, 4260, 70, 32, 2]
 ];
 /* Torfstiche: Rechtecke voll Moorwasser */
 const wo_PEAT = [[800, 2858, 848, 2874], [812, 2884, 852, 2898], [250, 2470, 304, 2484], [700, 3010, 762, 3026], [960, 2830, 1000, 2846], [380, 2878, 430, 2892]];
@@ -225,6 +260,8 @@ wo_stamp(wo_WSD, null, wo_WT, 1, wo_RIVER, 120, wo_bankWob);
 wo_stamp(wo_WSD, null, wo_WT, 1, wo_ARM, 90, wo_bankWob);
 wo_stamp(wo_WSD, null, wo_WT, 4, wo_BACH, 60, (x, y) => (wo_fin(x * .5, y * .5) - .5) * 3);
 wo_stamp(wo_WSD, null, wo_WT, 1, wo_SBACH, 60, (x, y) => (wo_mid(x, y) - .5) * 5 + (wo_fin(x * .5, y * .5) - .5) * 3);
+for (const L of [wo_ELBE, wo_DON, wo_LECH]) wo_stamp(wo_WSD, null, wo_WT, 1, L, 100, wo_bankWob);
+wo_stamp(wo_WSD, null, wo_WT, 1, wo_PEG, 60, (x, y) => (wo_mid(x, y) - .5) * 4 + (wo_fin(x * .5, y * .5) - .5) * 3);
 for (const [x, y, rx, ry, t] of wo_PONDS) wo_stampEll(wo_WSD, wo_WT, t, x, y, rx, ry, 40, (px, py) => (wo_mid(px * 3, py * 3) - .5) * Math.min(rx, ry) * .55);
 for (const [x0, y0, x1, y1] of wo_PEAT) wo_stampRect(wo_WSD, wo_WT, 3, x0, y0, x1, y1, 16);
 const wo_wsd = (x, y) => (x < 0 || y < 0 || x >= WW || y >= WH) ? 99 : wo_bil(wo_WSD, x, y);
@@ -283,7 +320,27 @@ const wo_ROADS = [
   { t: 0, hw: 10, p: [[2900, 3790], [2890, 3860], [2878, 3940], [2870, 4040], [2840, 4140], [2760, 4240], [2620, 4320], [2460, 4370], [2300, 4384]] }, // Revierweg
   { t: 1, hw: 7, p: [[2870, 4040], [3000, 4100], [3200, 4180], [3400, 4250], [3600, 4300]] },                 // Pfad zu den Osthalden
   { t: 1, hw: 8, p: [[4440, 3480], [4560, 3600], [4680, 3740], [4800, 3860], [4960, 3906], [5140, 3950], [5320, 4040], [5500, 4130], [5680, 4220]] }, // Passweg ins Hochgebirge
-  { t: 1, hw: 7, p: [[600, 3820], [580, 3960], [560, 4100], [548, 4240], [530, 4370]] }                        // Pfad zur Teufelsschlucht
+  { t: 1, hw: 7, p: [[600, 3820], [580, 3960], [560, 4100], [548, 4240], [530, 4370]] },                       // Pfad zur Teufelsschlucht
+  // Ostlande
+  { t: 0, hw: 12, p: [[5860, 880], [6050, 940], [6300, 1000], [6600, 1040], [6900, 1060], [7200, 1050], [7500, 1010], [7750, 960], [7900, 940], [7950, 900], [7950, 840], [7950, 780], [7950, 730]] }, // Hohe Straße nach Wittenberg
+  { t: 3, hw: 18, p: [[7950, 290], [7950, 400], [7950, 510], [7950, 620], [7950, 740]] },                     // Hauptgasse Wittenberg
+  { t: 3, hw: 15, p: [[7490, 510], [7720, 510], [7950, 510], [8180, 510], [8410, 510]] },                     // Collegienstraße
+  { t: 0, hw: 11, p: [[5470, 1634], [5600, 1566], [5800, 1500], [6100, 1452], [6500, 1460], [6800, 1480], [7050, 1490], [7230, 1500], [7300, 1540], [7300, 1600], [7300, 1660], [7310, 1720], [7380, 1800], [7520, 1900], [7660, 1980], [7740, 2030]] }, // Mainstraße nach Nürnberg
+  { t: 3, hw: 18, p: [[7740, 2030], [7740, 2230], [7740, 2400], [7740, 2580], [7740, 2750]] },                // Hauptgasse Nürnberg
+  { t: 3, hw: 14, p: [[7230, 2230], [7480, 2230], [7740, 2230], [8000, 2230], [8250, 2230]] },                // Sebalder Gasse
+  { t: 3, hw: 14, p: [[7300, 2580], [7520, 2580], [7740, 2580], [7960, 2580], [8180, 2580]] },                // Lorenzer Gasse
+  { t: 0, hw: 11, p: [[5600, 2090], [5900, 2150], [6200, 2200], [6500, 2244], [6750, 2262], [6900, 2262], [7050, 2262], [7150, 2246], [7230, 2230]] }, // Auweg nach Nürnberg
+  { t: 0, hw: 12, p: [[7740, 2740], [7726, 2860], [7700, 2980], [7690, 3050], [7690, 3120], [7690, 3190], [7670, 3280], [7600, 3380], [7480, 3460], [7430, 3510]] }, // Reichsstraße nach Augsburg
+  { t: 1, hw: 8, p: [[7750, 3740], [7800, 3712], [7840, 3700], [7880, 3700], [7930, 3700], [8000, 3704], [8200, 3730], [8400, 3770]] },   // über den Lechsteg
+  { t: 3, hw: 18, p: [[7430, 3510], [7430, 3620], [7430, 3740], [7430, 3880], [7430, 4010]] },                // Hauptgasse Augsburg
+  { t: 3, hw: 14, p: [[7110, 3740], [7270, 3740], [7430, 3740], [7590, 3740], [7750, 3740]] },                // Quergasse Augsburg
+  { t: 0, hw: 11, p: [[4450, 3290], [4700, 3240], [5000, 3200], [5300, 3170], [5600, 3170], [5900, 3200], [6200, 3260], [6450, 3380], [6700, 3520], [6900, 3640], [7110, 3740]] }, // Salzstraße von der Schanze nach Augsburg
+  { t: 1, hw: 8, p: [[7430, 4010], [7420, 4120], [7404, 4260], [7390, 4420], [7380, 4560]] },                 // Pfad ins Lechfeld
+  { t: 1, hw: 8, p: [[7200, 1030], [7150, 1180], [7100, 1330], [7060, 1490]] },                                // Heideweg
+  { t: 1, hw: 7, p: [[7420, 1840], [7700, 1820], [8000, 1800], [8300, 1830], [8520, 1880]] },                 // Pfad nach Gailingen
+  { t: 1, hw: 7, p: [[7740, 2740], [8000, 2810], [8300, 2850], [8600, 2840], [8900, 2780]] },                 // Pfad in den Reichswald
+  { t: 1, hw: 7, p: [[6700, 3520], [6680, 3400], [6640, 3300], [6560, 3200], [6440, 3100]] },                 // Pfad ins Donauried
+  { t: 1, hw: 7, p: [[7900, 860], [8200, 900], [8500, 950], [8800, 1000]] }                                    // Elbpfad in die Heide
 ].map(r => ({ t: r.t, hw: r.hw, p: wo_spline(r.p.map(q => [q[0], q[1], r.hw]), 6) }));
 const wo_RSD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RT = new Uint8Array(wo_GW * wo_GH);
 for (const r of wo_ROADS) wo_stamp(wo_RSD, wo_RD, wo_RT, r.t, r.p, 26, r.t === 3 ? null : (x, y) => (wo_fin(x, y) - .5) * (r.t === 1 ? 2.6 : 1.6));
@@ -297,13 +354,18 @@ const wo_HILLS = [ // cx, cy, rx, ry, Höhe, Plateau
   // Bergland: Hochgebirge, Erzberge um Annaberg, Schwarzwaldhöhen
   [5400, 4330, 700, 380, 1.6, .2], [5920, 3900, 360, 440, 1.3, .15], [4700, 4470, 400, 200, 1.1, .1], [6020, 4460, 300, 260, 1.5, .2], [5050, 4560, 300, 140, 1.2, .1],
   [2300, 4300, 540, 280, .7, .1], [3500, 4360, 420, 240, .6, .1], [2900, 3550, 440, 360, .3, .55],
-  [820, 4050, 700, 480, .55, 0], [300, 3320, 300, 260, .4, 0], [1500, 3500, 360, 260, .35, 0]
+  [820, 4050, 700, 480, .55, 0], [300, 3320, 300, 260, .4, 0], [1500, 3500, 360, 260, .35, 0],
+  // Ostlande: Felsen von Gailingen, Fläming, Reichswaldhöhen, Alpen im Südosten
+  [8650, 1890, 250, 160, .9, .5], [8600, 80, 520, 160, .3, 0], [8600, 2700, 520, 300, .25, 0], [7600, 1240, 380, 140, .12, 0],
+  [8820, 4420, 620, 300, 1.45, .2], [6640, 4530, 480, 170, 1.15, .1], [9060, 3880, 300, 420, 1.15, .2], [8300, 4560, 300, 120, 1.0, .1]
 ];
 function wo_height(x, y){
   let h = (wo_mid(x, y) - .5) * .3 + (wo_lo(x, y) - .5) * .5;
-  for (const [cx, cy, rx, ry, hh, pl] of wo_HILLS){
-    const q = Math.sqrt(((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2);
-    if (q < 1){ const t = q < pl ? 1 : 1 - (q - pl) / (1 - pl); h += hh * t * t * (3 - 2 * t); }
+  for (let k = 0; k < wo_HILLS.length; k++){
+    const H = wo_HILLS[k], dx = (x - H[0]) / H[2], dy = (y - H[1]) / H[3];
+    if (dx > 1 || dx < -1 || dy > 1 || dy < -1) continue;
+    const q = Math.sqrt(dx * dx + dy * dy), pl = H[5];
+    if (q < 1){ const t = q < pl ? 1 : 1 - (q - pl) / (1 - pl); h += H[4] * t * t * (3 - 2 * t); }
   }
   return h;
 }
@@ -325,19 +387,26 @@ function wo_slope(x, y){ const i = (y >> 3) * wo_SW + (x >> 3); return Math.abs(
 const wo_ZR = new Uint8Array(wo_ZW * wo_ZH);
 (function wo_zones(){
   const L = [];
-  for (const id in wo_ZELL) for (const e of wo_ZELL[id]) L.push([wo_ZI[id], ...e]);
+  for (const id in wo_ZELL) for (const e of wo_ZELL[id]) L.push(wo_ZI[id], e[0], e[1], 1 / e[2], 1 / e[3]);
+  const LF = Float64Array.from(L), n = LF.length, zst = wo_ZI.stadt;
   for (let j = 0; j < wo_ZH; j++) for (let i = 0; i < wo_ZW; i++){
     const x = i * 16 + 8, y = j * 16 + 8, wob = (wo_mid(x * .7, y * .7) - .5) * .32;
-    let best = 0, bd = 1e9;
-    for (const [z, cx, cy, rx, ry] of L){
-      const d = Math.sqrt(((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2) + (z === wo_ZI.stadt ? 0 : wob);
-      if (d < bd){ bd = d; best = z; }
+    // nächste Ellipse ohne Wellung (die Stadt hat keine) und mit; Wurzel nur für die Sieger
+    let bq = 1e18, bz = 0, sq = 1e18;
+    for (let k = 0; k < n; k += 5){
+      const dx = (x - LF[k + 1]) * LF[k + 3], dy = (y - LF[k + 2]) * LF[k + 4], q = dx * dx + dy * dy;
+      if (LF[k] === zst){ if (q < sq) sq = q; } else if (q < bq){ bq = q; bz = LF[k]; }
     }
+    let best = bz;
+    if (Math.sqrt(sq) < Math.sqrt(bq) + wob) best = zst;
     const C = wo_CITY;
     if ((x > C.x0 - 50 && x < C.x1 + 50 && y > C.y0 - 70 && y < C.y1 + 40) || (x > C.x1 && x < wo_TJ.x + 230 && y > wo_TJ.y - 190 && y < wo_TJ.y + 120)) best = wo_ZI.stadt;   // Stadt und Turnierwiese
     else if (x > wo_SPY.x0 - 60 && x < wo_SPY.x1 + 90 && y > wo_SPY.y0 - 70 && y < wo_yAt(wo_RIVER, x)) best = wo_ZI.speyer;   // Speyer bis an den Strom
     else if (wo_onIsle(x, y)) best = wo_ZI.piratennest;
     else if (x > wo_ANNA.x0 - 60 && x < wo_ANNA.x1 + 60 && y > wo_ANNA.y0 - 80 && y < wo_ANNA.y1 + 50) best = wo_ZI.annaberg;   // Bergstadt
+    else if (x > wo_WIT.x0 - 70 && x < wo_WIT.x1 + 70 && y > wo_WIT.y0 - 90 && y < wo_WIT.y1 + 60) best = wo_ZI.wittenberg;   // Städte der Ostlande
+    else if (x > wo_NUE.x0 - 70 && x < wo_NUE.x1 + 70 && y > wo_NUE.y0 - 110 && y < wo_NUE.y1 + 60) best = wo_ZI.nuernberg;
+    else if (x > wo_AUG.x0 - 70 && x < wo_AUG.x1 + 70 && y > wo_AUG.y0 - 90 && y < wo_AUG.y1 + 60) best = wo_ZI.augsburg;
     else if (x > 4100){ if (best === wo_ZI.piratennest) best = y < 1700 ? wo_ZI.weinberge : wo_ZI.auwald; }
     else if (y < WH0){
       const g = wo_gidx(x, y), w = wo_WSD[g], t = wo_WT[g];
@@ -1046,7 +1115,7 @@ const wo_ALTRIP = { x: 4440, y: 1600 };
 (function wo_auwald(){
   const R = rng(1528), S = 36;
   const CL = [[5330, 2600, 190, 120], [4820, 2060, 170, 110], [5700, 2620, 160, 110], [4520, 2480, 150, 100], [5180, 2860, 170, 100], [5980, 2240, 130, 100]];
-  for (let gy = 1760; gy < WH0; gy += S) for (let gx = 4096; gx < WW; gx += S){
+  for (let gy = 1760; gy < WH0; gy += S) for (let gx = 4096; gx < WW0; gx += S){
     const x = gx + R() * S, y = gy + R() * S;
     if (wo_zid(x, y) !== wo_ZI.auwald) continue;
     if (CL.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < .85 + wo_fin(x, y) * .3) && R() < .92) continue;
@@ -1146,7 +1215,7 @@ const wo_CLEAR = [[620, 1000, 210, 170], [330, 640, 120, 90], [1040, 480, 110, 9
     speyer: ['busch'], fischerdorf: ['weide', 'busch', 'stein'], weinberge: ['busch', 'stein', 'eiche', 'apfelbaum'], auwald: ['weide', 'busch', 'birke', 'eiche'], piratennest: ['busch', 'stein', 'toter_baum']
   };
   for (let k = 0; k < 2600; k++){
-    const x = 20 + R() * (WW - 40), y = 20 + R() * (WH0 - 40), z = ZONES[wo_zid(x, y)].id;
+    const x = 20 + R() * (WW0 - 40), y = 20 + R() * (WH0 - 40), z = ZONES[wo_zid(x, y)].id;
     if (z === 'stadt' && x > wo_CITY.x0 - 20 && x < wo_CITY.x1 + 20 && y > wo_CITY.y0 - 60 && y < wo_CITY.y1 + 20) continue;
     if (z === 'speyer') continue;
     if (R() < .45) continue;
@@ -1154,7 +1223,7 @@ const wo_CLEAR = [[620, 1000, 210, 170], [330, 640, 120, 90], [1040, 480, 110, 9
   }
   // Baumstümpfe und liegende Stämme
   for (let k = 0; k < 520; k++){
-    const x = 20 + R() * (WW - 40), y = 20 + R() * (WH0 - 40), z = ZONES[wo_zid(x, y)].id;
+    const x = 20 + R() * (WW0 - 40), y = 20 + R() * (WH0 - 40), z = ZONES[wo_zid(x, y)].id;
     if (!(z === 'wald' || (z === 'moor' && R() < .5) || (z === 'auwald' && R() < .6) || (z === 'ruine' && R() < .3) || (z === 'fluss' && R() < .2) || (z === 'burg' && R() < .15))) continue;
     const log = R() < .45, len = log ? 22 + R() * 22 | 0 : 0, w = log ? len : 10, h = log ? 7 : 7;
     if (!wo_occFree(x - w / 2 - 6, y - h - 6, x + w / 2 + 6, y + 6) || wo_wsd(x, y) < 8 || wo_rsd(x, y) < 10) continue;
@@ -1352,12 +1421,12 @@ const wo_SWCLEAR = [[640, 3480, 150, 100], [1480, 4420, 170, 100], [940, 3600, 1
   const kinds = { schwarzwald: ['busch', 'stein', 'fichte'], annaberg: ['busch'], silberrevier: ['stein', 'busch', 'birke'], schanze: ['busch', 'stein'], hochgebirge: ['stein', 'stein', 'fels'],
     moor: ['busch', 'stein'], friedhof: ['busch', 'stein'], schlachtfeld: ['stein', 'busch', 'toter_baum'], auwald: ['weide', 'busch', 'birke', 'eiche'] };
   for (let k = 0; k < 1300; k++){
-    const x = 20 + R() * (WW - 40), y = WH0 + R() * (WH - WH0 - 20), z = ZONES[wo_zid(x, y)].id;
+    const x = 20 + R() * (WW0 - 40), y = WH0 + R() * (WH - WH0 - 20), z = ZONES[wo_zid(x, y)].id;
     if (z === 'annaberg' || R() < .45 || !kinds[z]) continue;
     wo_try(wo_pick(R, kinds[z]), x, y, wo_ns(), 10, 10);
   }
   for (let k = 0; k < 360; k++){
-    const x = 20 + R() * (WW - 40), y = WH0 + R() * (WH - WH0 - 20), z = ZONES[wo_zid(x, y)].id;
+    const x = 20 + R() * (WW0 - 40), y = WH0 + R() * (WH - WH0 - 20), z = ZONES[wo_zid(x, y)].id;
     if (!(z === 'schwarzwald' || (z === 'silberrevier' && R() < .5))) continue;
     const log = R() < .45, len = log ? 22 + R() * 22 | 0 : 0, w = log ? len : 10, hh = 7;
     if (!wo_occFree(x - w / 2 - 6, y - hh - 6, x + w / 2 + 6, y + 6) || wo_wsd(x, y) < 8 || wo_rsd(x, y) < 10) continue;
@@ -1365,6 +1434,290 @@ const wo_SWCLEAR = [[640, 3480, 150, 100], [1480, 4420, 170, 100], [940, 3600, 1
     wo_mark(wo_COL, x - w / 2, y - hh + 1, x + w / 2, y + 1, 1); wo_markAny(wo_OCC, x - w / 2 - 2, y - hh - 2, x + w / 2 + 2, y + 3, 1);
   }
 })();
+/* ============ Die Ostlande (Version 26) ============
+   Nach dem Bergland gebaut, damit alte Welt und Bergland genau so bleiben. Sachsen mit Wittenberg und der Dübener Heide,
+   Franken mit Nürnberg, dem Reichswald und Burg Gailingen, Schwaben mit Augsburg, dem Donauried und dem Lechfeld. */
+const wo_OST = {};   // besondere Orte der Ostlande (für Leute, Anführer, Aufträge und Kriegszüge)
+wo_bridgeV(7950, 48, 'stein', 842, 846);     // Elbbrücke vor Wittenberg
+wo_bridgeV(7300, 48, 'stein', 1597, 1601);   // Mainbrücke
+wo_bridgeV(7740, 44, 'stein', 2400, 2404);   // Fleischbrücke über die Pegnitz
+wo_bridgeV(7690, 48, 'holz', 3117, 3121);    // Donaubrücke
+wo_bridgeH(2262, 40, 'holz', 6925, 6950);    // Steg über die Pegnitz am Auweg
+wo_bridgeH(3702, 40, 'holz', 7850, 7878);    // Lechsteg
+/* Stadtmauer einer Stadt der Ostlande: Nord- und Südreihe nach Muster (T Turm, M Mauer, G Tor), Seitenmauern mit Durchlässen
+   (gaps: [oben, unten] je Durchlass; Wasser fließt durch einen Durchlass ohne Weg) */
+function wo_ringWall(C, pat, gaps, sd){
+  const T = makeProp('stadt_turm', 1), M = makeProp('stadt_mauer', 1);
+  const tw = T.foot[0][2] - T.foot[0][0], mw = M.foot[0][2] - M.foot[0][0], th = T.foot[0][3] - T.foot[0][1];
+  wo_reserve(C.gx - 18, C.y0 - 40, C.gx + 18, C.y0 + 40); wo_reserve(C.gx - 18, C.y1 - 40, C.gx + 18, C.y1 + 40);
+  for (const y of [C.y0, C.y1]){
+    let x = C.x0 - tw / 2;
+    for (const ch of pat){
+      const w = ch === 'T' ? tw : ch === 'M' ? mw : 104, cx = x + w / 2;
+      if (ch === 'T') wo_put('stadt_turm', cx, y + 1, wo_ns()); else if (ch === 'M') wo_put('stadt_mauer', cx, y, wo_ns()); else wo_put('stadt_tor', cx, y, y === C.y0 ? 1 : 2);
+      x += w;
+    }
+  }
+  const t = 24, hg = 46, yN = C.y0 + 2, yS = C.y1 - th + 2;
+  for (const [x, left, s0] of [[C.x0, true, sd], [C.x1, false, sd + 10]]){
+    let y = yN, k = 0;
+    for (const [g0, g1] of gaps){
+      wo_add('mauer', x, g0, wo_wallNS(x, y, g0, t, hg, wo_GREY, left, s0 + k, true));
+      wo_put('stadt_turm', x, g0 + 2, s0 + k); wo_put('stadt_turm', x, g1 + 28, s0 + k + 1);
+      wo_reserve(left ? x - 60 : x - 20, g0 + 6, left ? x + 20 : x + 60, g1 - 4);
+      y = g1; k += 2;
+    }
+    wo_add('mauer', x, yS, wo_wallNS(x, y, yS, t, hg, wo_GREY, left, s0 + k, false));
+    wo_feat({ m: WM.SHADOW, x0: x + t / 2 + 1, x1: x + t / 2 + (left ? 8 : 10), y0: yN, y1: yS + 8 });
+  }
+  wo_feat({ m: WM.YARD, sub: 0, x0: C.x0 + 12, y0: C.y0 + 2, x1: C.x1 - 12, y1: C.y1 - 4 });
+  wo_reserve(C.gx - 24, C.y0, C.gx + 24, C.y1);                       // Hauptgasse
+}
+const wo_gap = gy => [gy - 64, gy + 42];
+const wo_inCity = (x, y) => [wo_WIT, wo_NUE, wo_AUG].some(C => x > C.x0 - 30 && x < C.x1 + 30 && y > C.y0 - 60 && y < C.y1 + 30);   // Durchlass für eine Quergasse
+/* Häuserzeile: Liste [Art, x] an der Grundlinie y; Häuser kommen zu den Rattenpunkten */
+function wo_row(y, list, store){
+  for (const [kind, x, key] of list){
+    const h = wo_try(kind, x, y, kind.startsWith('gasthaus') ? 1 : wo_ns(), -2, -40);
+    if (!h) continue;
+    if (key && store) store[key] = h;
+    if (kind.startsWith('gasthaus')) wo_reserve(h.door - 14, y + 2, h.door + 14, y + 34);
+    else if (kind === 'stadthaus' || kind === 'fachwerkhaus') wo_HOUSES.push(h);
+  }
+}
+function wo_market(x0, y0, x1, y1, well, stalls, junk){
+  wo_feat({ m: WM.YARD, sub: 2, x0, y0, x1, y1 });
+  if (well) wo_put(well[0], well[1], well[2], well[3] || 2);
+  for (const [x, y, v] of stalls) wo_try('marktstand', x, y, wo_seedFor('marktstand', v), 1, -40);
+  for (const [k, x, y] of junk || []) wo_try(k, x, y, wo_ns(), 0, -40);
+}
+/* Gärten und Bäume vor einer Stadtmauer */
+function wo_gardens(C, R, n){
+  for (let k = 0; k < n; k++){ const x = C.x0 - 40 - R() * 160, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .5 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
+  for (let k = 0; k < n; k++){ const x = C.x1 + 40 + R() * 160, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .5 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
+}
+
+/* ---------- Wittenberg: Schloss und Schlosskirche im Westen, Markt mit Rathaus und Stadtkirche, Cranachhof, Universität, Lutherhaus im Osten ---------- */
+(function wo_wittenberg(){
+  const C = wo_WIT, R = rng(1517), gy = C.gy;
+  wo_ringWall(C, 'TMMMTMMGMMTMMMT', [wo_gap(gy)], 31);
+  wo_reserve(C.x0 + 14, gy - 16, C.x1 - 14, gy + 16);                  // Collegienstraße
+  wo_OST.schlosskirche = wo_put('schlosskirche', 7630, gy - 22, 1);
+  wo_OST.schloss = wo_put('bergfried', 7752, gy - 28, 3);
+  wo_row(gy - 22, [['stadthaus', 7845], ['kirche', 8080, 'stadtkirche'], ['stadthaus', 8215, 'uni'], ['stadthaus', 8305]], wo_OST);
+  wo_market(7700, gy + 18, 8150, gy + 88, ['brunnen', 7860, gy + 56, 3], [[7740, gy + 62, 2], [7800, gy + 64, 5], [8040, gy + 62, 1], [8100, gy + 62, 4]],
+    [['fass', 7716, gy + 30], ['kisten', 8130, gy + 80], ['karren', 7990, gy + 34]]);
+  wo_row(C.y1 - 60, [['stadthaus', 7560], ['stadthaus', 7645, 'cranach'], ['gasthaus_schwan', 7730, 'innW'], ['stadthaus', 7815, 'rathaus'], ['stadthaus', 8065]], wo_OST);
+  if (wo_OST.innW) wo_INNP.schwan = wo_OST.innW;
+  wo_OST.lutherhaus = wo_try('kloster', 8255, C.y1 - 58, 2, -2, -40);
+  if (wo_OST.rathaus){ wo_put('banner', wo_OST.rathaus.x - 30, C.y1 - 34, 7); wo_put('banner', wo_OST.rathaus.x + 30, C.y1 - 34, 8); }
+  for (let k = 0; k < 12; k++) wo_try(wo_pick(R, ['fass', 'kisten', 'fass', 'karren']), C.x0 + 30 + R() * (C.x1 - C.x0 - 60), C.y0 + 30 + R() * (C.y1 - C.y0 - 60), wo_ns(), 4, 8);
+  wo_try('wegweiser', C.gx + 40, C.y1 + 40, 7, 0, 2);
+  wo_gardens(C, R, 20);
+  // Elbwiesen mit Heuhaufen, Kähne am Ufer
+  for (let k = 0; k < 16; k++){ const x = 7300 + R() * 1300, y = 760 + R() * 40; if (wo_wsd(x, y) > 20) wo_try(R() < .5 ? 'heuhaufen' : 'weide', x, y, wo_ns(), 6, 8); }
+  for (const x of [7820, 8100]) wo_boat(x, 806, 1);
+})();
+
+/* ---------- Nürnberg: Kaiserburg auf dem Felsen, Sebalder und Lorenzer Stadt beiderseits der Pegnitz, Hauptmarkt mit dem Schönen Brunnen ---------- */
+(function wo_nuernberg(){
+  const C = wo_NUE, R = rng(1524), gy = C.gy, g2 = C.gy2;
+  wo_ringWall(C, 'TMMTMMTMGMTMMTMMT', [wo_gap(gy), [2338, 2446], wo_gap(g2)], 41);
+  wo_reserve(C.x0 + 14, gy - 16, C.x1 - 14, gy + 16); wo_reserve(C.x0 + 14, g2 - 16, C.x1 - 14, g2 + 16);
+  // Kaiserburg: Mauer mit Tor zur Gasse, dahinter Sinwellturm, Türme und Kapelle
+  wo_feat({ m: WM.YARD, sub: 1, x0: 7280, y0: 2066, x1: 7580, y1: 2176 });
+  wo_OST.burgtor = wo_put('burg_tor', 7430, 2176, 1);
+  for (const x of [7314, 7350, 7510, 7546]) wo_put('burg_mauer', x, 2174, wo_ns());
+  wo_OST.sinwell = wo_put('bergfried', 7400, 2120, 2); wo_put('burg_turm', 7300, 2130, 3); wo_put('burg_turm', 7560, 2130, 4);
+  wo_OST.burgkapelle = wo_tryNear('kapelle', 7500, 2112, 3, -2, -40);
+  wo_row(gy - 22, [['fachwerkhaus', 7640, 'duerer'], ['kirche', 7860, 'sebald'], ['stadthaus', 8000], ['stadthaus', 8085], ['stadthaus', 8170]], wo_OST);
+  // Hauptmarkt zwischen Sebalder Gasse und Pegnitz, Frauenkirche am Ostrand
+  wo_market(7480, gy + 18, 8090, gy + 112, ['schoenerbrunnen', 7830, gy + 66, 1], [[7520, gy + 50, 1], [7580, gy + 52, 3], [7640, gy + 50, 5], [7900, gy + 52, 2], [7960, gy + 50, 0], [8020, gy + 52, 4], [7560, gy + 100, 2], [7980, gy + 102, 1]],
+    [['fass', 7494, gy + 80], ['kisten', 8070, gy + 84], ['karren', 7660, gy + 98]]);
+  wo_OST.frauenkirche = wo_tryNear('frauenkirche', 8160, gy + 112, 1, -2, -40);
+  wo_OST.weinstadel = wo_tryNear('fachwerkhaus', 7350, 2350, wo_ns(), -2, -40);
+  wo_row(g2 - 22, [['stadthaus', 7340], ['stadthaus', 7425, 'plattner'], ['gasthaus_gloecklein', 7510, 'innN'], ['stadthaus', 7600], ['kirche', 7880, 'lorenz'], ['stadthaus', 8030, 'uhrmacher'], ['stadthaus', 8115]], wo_OST);
+  if (wo_OST.innN) wo_INNP.gloecklein = wo_OST.innN;
+  wo_row(C.y1 - 60, [['stadthaus', 7330], ['stadthaus', 7415, 'lebkuchen'], ['stadthaus', 7500], ['stadthaus', 7585], ['stadthaus', 7900], ['stadthaus', 7985], ['stadthaus', 8070], ['stadthaus', 8155]], wo_OST);
+  // Ufer der Pegnitz in der Stadt: Weiden, Fässer am Weinstadel
+  for (const [k, x, y] of [['weide', 7290, 2440], ['weide', 8190, 2360], ['fass', 7410, 2366], ['fass', 7424, 2372], ['kisten', 7280, 2362]]) wo_try(k, x, y, wo_ns(), 0, -40);
+  for (let k = 0; k < 16; k++) wo_try(wo_pick(R, ['fass', 'kisten', 'fass', 'karren']), C.x0 + 30 + R() * (C.x1 - C.x0 - 60), C.y0 + 30 + R() * (C.y1 - C.y0 - 60), wo_ns(), 4, 8);
+  wo_try('wegweiser', C.gx + 40, C.y0 - 44, 8, 0, 2); wo_try('wegweiser', C.gx - 40, C.y1 + 50, 9, 0, 2);
+  wo_gardens(C, R, 22);
+  // Knoblauchsland: Gemüsefelder nordwestlich der Stadt
+  for (const [x0, y0, x1, y1] of [[6930, 1980, 7090, 2080], [7100, 1960, 7200, 2060], [6960, 2100, 7110, 2190], [7120, 2090, 7190, 2180]]){
+    if (!wo_occFree(x0, y0, x1, y1)) continue;
+    for (let p = x0; p < x1 - 10;){
+      const w = Math.min(x1 - p, 16 + (R() * 12 | 0)), f = wo_feat({ m: WM.FIELD, crop: wo_pick(R, ['green', 'green', 'plow', 'green', 'rye']), vert: true, x0: p, x1: p + w, y0, y1, s: R() * 1000 | 0 });
+      wo_FIELDS.push(f); p += w;
+    }
+    wo_reserve(x0, y0, x1, y1);
+  }
+  for (const [x, y] of [[6900, 2060], [7210, 2010]]){ const h = wo_tryNear('fachwerkhaus', x, y, wo_ns(), 2, 4); if (h) wo_HOUSES.push(h); }
+})();
+
+/* ---------- Augsburg: Dom im Norden, Rathaus und Perlachturm, Weinmarkt, Fuggerhäuser, Fuggerei; Werbeplatz vor dem Tor, Donaulände ---------- */
+(function wo_augsburg(){
+  const C = wo_AUG, R = rng(1521), gy = C.gy;
+  wo_ringWall(C, 'TMMTMGMTMMT', [wo_gap(gy)], 51);
+  wo_reserve(C.x0 + 14, gy - 16, C.x1 - 14, gy + 16);
+  wo_row(gy - 22, [['kirche', 7230, 'dom'], ['stadthaus', 7350], ['stadthaus', 7510, 'rathaus'], ['stadthaus', 7690]], wo_OST);
+  wo_OST.perlach = wo_put('perlach', 7598, gy - 24, 1);
+  wo_market(7160, gy + 18, 7720, gy + 86, ['brunnen', 7300, gy + 54, 5], [[7200, gy + 60, 3], [7250, gy + 62, 1], [7360, gy + 60, 4], [7520, gy + 60, 2], [7580, gy + 62, 0], [7650, gy + 60, 5]],
+    [['fass', 7176, gy + 30], ['kisten', 7700, gy + 76], ['karren', 7480, gy + 34]]);
+  wo_row(C.y1 - 60, [['stadthaus', 7170, 'fugger'], ['stadthaus', 7255], ['gasthaus_lamm', 7340, 'innA']], wo_OST);
+  if (wo_OST.innA) wo_INNP.lamm = wo_OST.innA;
+  // Fuggerei: zwei Zeilen kleiner Häuser an einer eigenen Gasse, mit Tor und Brunnen
+  wo_OST.fuggerei = { x: 7600, y: 3898 };
+  wo_feat({ m: WM.YARD, sub: 2, x0: 7470, y0: 3874, x1: 7740, y1: 3922 });
+  wo_reserve(7470, 3874, 7740, 3922);
+  for (const y of [3870, 3950]) for (const x of [7502, 7570, 7638, 7706]){ const h = wo_try('fuggerhaus', x, y, wo_ns(), -2, -40); if (h) wo_HOUSES.push(h); }
+  wo_tryNear('brunnen', 7604, 3912, 4, 0, -40);
+  for (let k = 0; k < 10; k++) wo_try(wo_pick(R, ['fass', 'kisten', 'fass', 'karren']), C.x0 + 30 + R() * (C.x1 - C.x0 - 60), C.y0 + 30 + R() * (C.y1 - C.y0 - 60), wo_ns(), 4, 8);
+  wo_gardens(C, R, 18);
+  // Werbeplatz der Landsknechte vor dem Nordtor: Zelt, Trommel, Fahnen
+  wo_OST.werbung = { x: 7520, y: 3440 };
+  wo_feat({ m: WM.YARD, sub: 3, e: [7540, 3446, 70, 36] });
+  wo_tryNear('zelt', 7560, 3430, wo_seedFor('zelt', 2), 0, 2); wo_tryNear('banner', 7500, 3440, 9, 0, 2); wo_tryNear('banner', 7610, 3446, 10, 0, 2); wo_tryNear('fass', 7470, 3452, 3, 0, 2);
+  // Donaulände am Nordufer bei der Brücke: Stege, Ulmer Schachteln, Ladung
+  wo_OST.laende = { x: 7600, y: 3050 };
+  for (const px of [7560, 7820]) wo_pier(px, 30, 3064, 3122);
+  wo_boat(7510, 3118, 1); wo_boat(7616, 3120, 2); wo_boat(7870, 3124, 0);
+  for (const [k, x, y] of [['fass', 7590, 3044], ['kisten', 7620, 3040], ['karren', 7650, 3046], ['fass', 7770, 3046]]) wo_try(k, x, y, wo_ns(), 0, 2);
+  wo_try('wegweiser', C.gx + 40, C.y0 - 44, 10, 0, 2);
+})();
+
+/* ---------- Dübener Heide: Kiefern, Birken, Wacholder, Sandflecken, Weiher; Hünengrab (Hackelberg), Schäferei ---------- */
+(function wo_heide(){
+  const R = rng(1532);
+  wo_OST.huenengrab = { x: 8620, y: 1220 };
+  wo_feat({ m: WM.ROCK, e: [8620, 1230, 90, 50] });
+  wo_reserve(8580, 1200, 8660, 1250);
+  for (let k = 0; k < 9; k++){ const a = k / 9 * Math.PI * 2, x = 8620 + Math.cos(a) * 80, y = 1230 + Math.sin(a) * 46; wo_tryNear(k & 1 ? 'stein' : 'fels', x, y, wo_ns(), -4, 2); }
+  const h = wo_tryNear('fachwerkhaus', 7380, 1180, wo_seedFor('fachwerkhaus', 2), 2, 4); if (h){ wo_HOUSES.push(h); wo_OST.schaeferei = h; for (let i = 0; i < 4; i++) wo_tryNear('zaun_h', h.x - 60 + i * 32, h.y + 50, 1, 0, 2); }
+  for (let k = 0; k < 30; k++){ const x = 6400 + R() * 2800, y = 120 + R() * 1350; if (wo_zid(x, y) === wo_ZI.heide && wo_wsd(x, y) > 30) wo_feat({ m: WM.ROCK, e: [x, y, 30 + R() * 50, 14 + R() * 20], s: k }); }
+  for (let k = 0; k < 1400; k++){
+    const x = 6300 + R() * 2900, y = 60 + R() * 1460;
+    if (wo_zid(x, y) !== wo_ZI.heide) continue;
+    const q = R(), n = wo_mid(x * 1.6, y * 1.6);
+    if (n < .4 && q < .7) continue;   // offene Heide
+    const kind = q < .4 ? 'kiefer' : q < .52 ? 'birke' : q < .7 ? 'wacholder' : q < .84 ? 'busch' : q < .93 ? 'stein' : 'toter_baum';
+    wo_try(kind, x, y, wo_ns(), kind === 'busch' || kind === 'stein' || kind === 'wacholder' ? 4 : 9, 9);
+  }
+})();
+
+/* ---------- Reichswald: dichter Wald aus Kiefern und Eichen, Lichtungen, Zeidlerhof mit Bienenstöcken, Köhler ---------- */
+const wo_RWCLEAR = [[8420, 2660, 150, 90], [7600, 2960, 130, 80], [8860, 2480, 120, 80], [6560, 2240, 130, 100], [8200, 2900, 110, 70]];
+(function wo_reichswald(){
+  const R = rng(1527), S = 30;
+  wo_OST.zeidler = { x: 8420, y: 2660 };
+  const h = wo_tryNear('fachwerkhaus', 8380, 2640, wo_seedFor('fachwerkhaus', 1), 2, 4); if (h){ wo_HOUSES.push(h); wo_addFit('holzstoss', h.x + 70, h.y + 4, wo_holzImg(h.x)); }
+  for (const [x, y, v] of [[8470, 2700, 0], [8530, 2690, 1], [8320, 2700, 0]]) wo_tryNear('bienenstand', x, y, wo_seedFor('bienenstand', v), 0, 2);
+  wo_add('meiler', 7620, 2960, wo_meilerImg(7620)); wo_feat({ m: WM.COAL, e: [7620, 2954, 34, 22] });
+  wo_add('koehlerhuette', 7560, 2930, wo_huetteImg(11));
+  for (let gy = 1900; gy < 3100; gy += S) for (let gx = 6200; gx < 9200; gx += S){
+    const x = gx + R() * S, y = gy + R() * S;
+    if (wo_zid(x, y) !== wo_ZI.reichswald) continue;
+    if (wo_RWCLEAR.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 < 1) && R() < .93) continue;
+    const n = wo_mid(x * 1.3, y * 1.3);
+    if (R() > .55 + n * .35) continue;
+    const kind = R() < .1 ? 'busch' : R() < .55 ? 'kiefer' : R() < .35 ? 'fichte' : R() < .6 ? 'eiche' : R() < .7 ? 'birke' : 'toter_baum';
+    wo_try(kind, x, y, wo_ns(), kind === 'busch' ? 4 : 9, 10);
+  }
+})();
+
+/* ---------- Burg Gailingen auf dem Felsen: Ringmauer, Bergfried, Lager der Reisigen ---------- */
+(function wo_gailingen(){
+  const R = rng(1381), cx = 8650, cy = 1890;
+  wo_OST.gailingen = { x: cx, y: cy };
+  wo_feat({ m: WM.YARD, sub: 3, e: [cx, cy + 10, 150, 80] });
+  wo_reserve(cx - 30, cy - 20, cx + 30, cy + 30);
+  wo_tryNear('bergfried', cx - 40, cy - 40, 5, -2, 2);
+  for (let k = 0; k < 12; k++){
+    const a = k / 12 * Math.PI * 2, x = cx + Math.cos(a) * 170, y = cy + 14 + Math.sin(a) * 100;
+    if (Math.abs(a - Math.PI) < .3) continue;   // Tor im Westen
+    wo_tryNear(k % 3 === 0 ? 'ruine_turm' : 'ruine_mauer', x, y, wo_ns(), -4, 2);
+  }
+  for (const [k, x, y] of [['zelt', cx + 60, cy + 20], ['lagerfeuer', cx + 10, cy + 40], ['banner', cx - 70, cy + 30], ['fass', cx + 90, cy + 50], ['kisten', cx - 20, cy + 70], ['spiesse', cx + 40, cy - 30]]) wo_tryNear(k, x, y, wo_ns(), 0, 2);
+  for (let k = 0; k < 200; k++){
+    const x = 8100 + R() * 1100, y = 1650 + R() * 560;
+    if (wo_zid(x, y) !== wo_ZI.gailingen) continue;
+    wo_try(wo_pick(R, ['fels', 'stein', 'kiefer', 'busch', 'toter_baum', 'eiche', 'wacholder']), x, y, wo_ns(), 8, 8);
+  }
+})();
+
+/* ---------- Donauried: Weiden, Schilf und Tümpel an der jungen Donau, Fischerhütte ---------- */
+(function wo_donauried(){
+  const R = rng(1533);
+  wo_OST.weibchen = { x: 7040, y: 3060 };
+  const h = wo_tryNear('fachwerkhaus', 6700, 3000, wo_seedFor('fachwerkhaus', 0), 2, 4); if (h){ wo_HOUSES.push(h); wo_tryNear('netze', h.x + 70, h.y + 10, 1, 0, 3); }
+  for (let k = 0; k < 24; k++){ const x = 6300 + R() * 2900, y = 2900 + R() * 500; if (wo_zid(x, y) === wo_ZI.donauried && wo_wsd(x, y) > 10) wo_feat({ m: WM.MUD, e: [x, y, 20 + R() * 34, 8 + R() * 14], s: k }); }
+  for (let k = 0; k < 900; k++){
+    const x = 6300 + R() * 2900, y = 2850 + R() * 600;
+    if (wo_zid(x, y) !== wo_ZI.donauried) continue;
+    wo_try(wo_pick(R, ['weide', 'weide', 'busch', 'busch', 'birke', 'toter_baum', 'stein']), x, y, wo_ns(), 8, 8);
+  }
+})();
+
+/* ---------- Lechfeld: weite Ebene mit Hügelgräbern, Ulrichskapelle, Ungarnstein und alten Waffen ---------- */
+(function wo_lechfeld(){
+  const R = rng(955);
+  wo_OST.ulrich = wo_tryNear('kapelle', 7200, 4380, 5, 2, 4);
+  wo_OST.ungarnstein = { x: 7560, y: 4460 };
+  wo_feat({ m: WM.ROCK, e: [7560, 4470, 80, 40] });
+  wo_reserve(7520, 4440, 7600, 4490);
+  for (const [k, dx, dy] of [['fels', -60, -10], ['stein', 50, 20], ['spiesse', -30, 30], ['spiesse', 40, -20], ['toter_baum', 80, -30]]) wo_tryNear(k, 7560 + dx, 4460 + dy, wo_ns(), 0, 2);
+  for (let k = 0; k < 14; k++){ const x = 7000 + R() * 900, y = 4050 + R() * 500; if (wo_zid(x, y) === wo_ZI.lechfeld && wo_wsd(x, y) > 20 && wo_rsd(x, y) > 30) wo_feat({ m: WM.MOUND, e: [x, y, 24 + R() * 16, 12 + R() * 8], s: k }); }
+  for (let k = 0; k < 700; k++){
+    const x = 6200 + R() * 3000, y = 3400 + R() * 1200;
+    if (wo_zid(x, y) !== wo_ZI.lechfeld || R() < .4) continue;
+    wo_try(wo_pick(R, ['busch', 'stein', 'busch', 'birke', 'spiesse', 'toter_baum', 'eiche']), x, y, wo_ns(), 10, 10);
+  }
+})();
+
+/* ---------- Alpen im Südosten: wie das Hochgebirge, mit Schnee oben ---------- */
+(function wo_alpen(){
+  const R = rng(1534), snow = (x, y) => wo_height(x, y) > 1.05;
+  for (let k = 0; k < 900; k++){
+    const x = 6150 + R() * 3060, y = 3500 + R() * 1100;
+    if (wo_zid(x, y) !== wo_ZI.hochgebirge) continue;
+    const sn = snow(x, y), q = R();
+    const kind = q < .14 ? (sn ? 'schneeklippe' : 'klippe') : q < .4 ? (sn ? 'schneefels' : 'fels') : q < .6 ? (sn ? 'schneestein' : 'stein') : q < .9 ? (sn ? 'schneefichte' : 'fichte') : (sn ? 'schneefichte' : 'toter_baum');
+    wo_try(kind, x, y, wo_ns(), kind === 'stein' ? 4 : 8, 8);
+  }
+})();
+
+/* ---------- Ufer der Flüsse, Streu in den Ostlanden, Stümpfe ---------- */
+(function wo_ostStreu(){
+  const R = rng(1535);
+  for (const L of [wo_ELBE, wo_PEG, wo_DON, wo_LECH, wo_RIVER]) for (let k = 0; k < L.length; k += 4){
+    const [x, y, w] = L[k];
+    if (x < WW0 + 150) continue;
+    for (const sd of [-1, 1]){
+      if (R() < .55) continue;
+      const z = ZONES[wo_zid(x, y + sd * (w + 20))].id, d = w + 12 + R() * 30;
+      if (z === 'wittenberg' || z === 'nuernberg' || z === 'augsburg') continue;
+      wo_try(z === 'hochgebirge' ? 'stein' : R() < .6 ? 'weide' : R() < .6 ? 'busch' : 'birke', x + (R() - .5) * 10, y + sd * d, wo_ns(), 6, 8);
+    }
+  }
+  const kinds = { heide: ['busch', 'stein', 'wacholder', 'kiefer'], reichswald: ['busch', 'stein', 'kiefer'], gailingen: ['stein', 'busch'], donauried: ['weide', 'busch'], lechfeld: ['busch', 'stein'], hochgebirge: ['stein', 'fels'],
+    wittenberg: ['busch', 'apfelbaum'], nuernberg: ['busch', 'apfelbaum'], augsburg: ['busch', 'apfelbaum'], weinberge: ['busch', 'stein'], auwald: ['weide', 'busch', 'birke'] };
+  for (let k = 0; k < 1800; k++){
+    const x = WW0 + 20 + R() * (WW - WW0 - 40), y = 20 + R() * (WH - 40), z = ZONES[wo_zid(x, y)].id;
+    if (R() < .45 || !kinds[z]) continue;
+    if ((z === 'wittenberg' || z === 'nuernberg' || z === 'augsburg') && wo_inCity(x, y)) continue;
+    wo_try(wo_pick(R, kinds[z]), x, y, wo_ns(), 10, 10);
+  }
+  for (let k = 0; k < 420; k++){
+    const x = WW0 + 20 + R() * (WW - WW0 - 40), y = 20 + R() * (WH - 40), z = ZONES[wo_zid(x, y)].id;
+    if (!(z === 'reichswald' || (z === 'heide' && R() < .4) || (z === 'donauried' && R() < .5))) continue;
+    const log = R() < .45, len = log ? 22 + R() * 22 | 0 : 0, w = log ? len : 10, hh = 7;
+    if (!wo_occFree(x - w / 2 - 6, y - hh - 6, x + w / 2 + 6, y + 6) || wo_wsd(x, y) < 8 || wo_rsd(x, y) < 10) continue;
+    wo_GOBJ.push({ k: log ? 'log' : 'stump', x: Math.round(x), y: Math.round(y), len, s: k + 19000, birch: z === 'donauried' });
+    wo_mark(wo_COL, x - w / 2, y - hh + 1, x + w / 2, y + 1, 1); wo_markAny(wo_OCC, x - w / 2 - 2, y - hh - 2, x + w / 2 + 2, y + 3, 1);
+  }
+})();
+
 PROPS.sort((a, b) => a.y - b.y || a.x - b.x);
 const APPLE_TREES = PROPS.filter(p => p.apple);
 
@@ -1427,7 +1780,7 @@ const SPAWNS = (() => {
   const R = rng(666), S = { wieder: [], ratte: [], pluend: [], armbrust: [], werwolf: [], moor: [], irrlicht: [], rabe: [], pirat: [], pschuetze: [], nix: [],
     wolf: [], schrat: [], wegelagerer: [], kobold: [], grubengeist: [], doppelsoeldner: [], hakenschuetze: [], baer: [], geier: [], eislicht: [] };
   const add = (k, x, y) => { const p = wo_ok(x, y) ? { x: Math.round(x), y: Math.round(y) } : null; if (p && !S[k].some(q => Math.abs(q.x - p.x) < 40 && Math.abs(q.y - p.y) < 40)) S[k].push(p); };
-  const inZone = (zs, n, k, y0, y1) => { for (let t = 0; t < n * 30 && n > 0; t++){ const x = R() * WW, y = y0 === undefined ? R() * WH0 : y0 + R() * (y1 - y0); if (zs.includes(ZONES[wo_zid(x, y)].id)){ const l = S[k].length; add(k, x, y); if (S[k].length > l) n--; } } };
+  const inZone = (zs, n, k, y0, y1) => { for (let t = 0; t < n * 30 && n > 0; t++){ const x = R() * WW0, y = y0 === undefined ? R() * WH0 : y0 + R() * (y1 - y0); if (zs.includes(ZONES[wo_zid(x, y)].id)){ const l = S[k].length; add(k, x, y); if (S[k].length > l) n--; } } };
   for (const g of wo_GRAVES) add('wieder', g.x + (R() - .5) * 8, g.y + 14);
   for (const h of wo_HOUSES) for (const dx of [-30, 0, 30]) add('ratte', h.x + dx, h.y + 10);
   inZone(['stadt', 'dorf', 'fluss'], 30, 'ratte');
@@ -1447,7 +1800,7 @@ const SPAWNS = (() => {
   }
   // Moorleichen an Tümpelrändern und Ufern
   for (let t = 0; t < 6000 && S.moor.length < 60; t++){
-    const x = R() * WW, y = 1700 + R() * 1370, w = wo_wsd(x, y);
+    const x = R() * WW0, y = 1700 + R() * 1370, w = wo_wsd(x, y);
     if (w > 6 && w < 18 && ['moor', 'fluss', 'auwald'].includes(ZONES[wo_zid(x, y)].id)) add('moor', x, y);
   }
   // Bergland

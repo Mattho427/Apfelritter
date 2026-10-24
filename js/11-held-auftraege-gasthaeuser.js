@@ -152,8 +152,9 @@ function refreshStats(){ ST = heroStats(HERO); if (G && G.knight) G.knight.hp = 
 const SPAWN_SLOTS = (() => {
   const R = rng(2024), out = [];
   const TARGET = { obstgarten:22, fluss:16, dorf:20, friedhof:18, lager:18, galgen:16, wald:30, schlachtfeld:24, moor:24, ruine:20, weinberge:24, auwald:28, piratennest:12,
-    schwarzwald:34, silberrevier:30, schanze:26, hochgebirge:34 };
+    schwarzwald:34, silberrevier:30, schanze:26, hochgebirge:34, heide:34, reichswald:34, gailingen:20, donauried:26, lechfeld:28 };
   const NEWZ = { schwarzwald:1, silberrevier:1, schanze:1, hochgebirge:1 };   // Bergland: nur im neuen Kartenteil suchen, damit die alten Lager bleiben, wo sie waren
+  const EASTZ = { heide:1, reichswald:1, gailingen:1, donauried:1, lechfeld:1 };   // Ostlande: nur rechts der alten Welt
   const zid = (x, y) => ZONES[gZid(x, y)].id;
   const nearSafe = (x, y) => [[0, 0], [220, 0], [-220, 0], [0, 220], [0, -220], [160, 160], [-160, 160], [160, -160], [-160, -160]].some(([dx, dy]) => SAFE[zid(clamp(x + dx, 0, GW - 1), clamp(y + dy, 0, GH - 1))]);
   const lairs = Object.values(LAIRS), inns = Object.values(wo_INNP).map(gPt);
@@ -170,7 +171,7 @@ const SPAWN_SLOTS = (() => {
     for (let i = pts.length - 1; i > 0; i--){ const j = R() * (i + 1) | 0; [pts[i], pts[j]] = [pts[j], pts[i]]; }
     for (const [kind, p] of pts){ if (n >= TARGET[zone] * .7) break; if (!free(p.x, p.y, zone)) continue; add(kind, p.x, p.y); n++; }
     for (let t = 0; t < 6000 && n < TARGET[zone]; t++){
-      const x = R() * GW, y = NEWZ[zone] ? (WH0 - 200) * WS + R() * (GH - (WH0 - 200) * WS) : R() * WH0 * WS;
+      const x = EASTZ[zone] ? (WW0 - 200) * WS + R() * (GW - (WW0 - 200) * WS) : R() * WW0 * WS, y = EASTZ[zone] ? R() * GH : NEWZ[zone] ? (WH0 - 200) * WS + R() * (GH - (WH0 - 200) * WS) : R() * WH0 * WS;
       if (zid(x, y) !== zone || !gOk(x, y) || !free(x, y, zone)) continue;
       add(kinds[R() * kinds.length | 0], x, y); n++;
     }
@@ -221,6 +222,12 @@ const FARE = [
   { id:'knappenbrot', kind:'speise', n:'Bergmannsbrot mit Speck und Zwiebeln', fx:{ hpPct:16, regen:2 }, base:10, icon:'brot', only:'kanne' },
   { id:'forellebach', kind:'speise', n:'Forelle aus dem Silberbach', fx:{ hpPct:14, dmgPct:5 }, base:11, icon:'fisch', only:'kanne' },
   { id:'bergbier', kind:'trank', n:'Dunkles Bergbier aus Annaberg', fx:{ crit:5, dmgPct:4 }, base:6, icon:'krug', only:'kanne' },
+  { id:'zander', kind:'speise', n:'Zander aus der Elbe mit Petersilie', fx:{ hpPct:15, regen:3 }, base:11, icon:'fisch', only:'schwan' },
+  { id:'torgauer', kind:'trank', n:'Torgauer Bier, wie es Doktor Luther liebt', fx:{ crit:6, regen:2 }, base:6, icon:'krug', only:'schwan' },
+  { id:'rostbrat', kind:'speise', n:'Sechs Nürnberger Rostbratwürste mit Kren', fx:{ hpPct:14, dmgPct:7 }, base:10, icon:'wurst', only:'gloecklein' },
+  { id:'lebkuechner', kind:'speise', n:'Lebkuchen frisch vom Lebküchner', fx:{ hpPct:10, crit:4 }, base:6, icon:'brot', only:'gloecklein' },
+  { id:'huchen', kind:'speise', n:'Huchen aus dem Lech', fx:{ hpPct:16, dmgPct:5 }, base:12, icon:'fisch', only:'lamm' },
+  { id:'weizen', kind:'trank', n:'Weizenbier aus Augsburg', fx:{ spd:8, crit:4 }, base:6, icon:'krug', only:'lamm' },
   { id:'kofent', kind:'trank', n:'Dünnbier (Kofent)', fx:{ crit:2 }, base:1, icon:'krug' },
   { id:'bier', kind:'trank', n:'Bier nach dem Reinheitsgebot von 1516', fx:{ crit:5 }, base:3, icon:'krug' },
   { id:'wein', kind:'trank', n:'Frankenwein', fx:{ spd:8 }, base:4, icon:'wein' },
@@ -269,7 +276,10 @@ const INN_INFO = {
   krone: { name:'Zur Krone', where:'an der Steinbrücke', host:'Wirt Konrad', role:'Wirt', wall:wp_P.plaster, seed:47 },
   ochse: { name:'Zum Roten Ochsen', where:'am Burgweg', host:'Wirt Bartholomäus', role:'Wirt', wall:wp_P.pink, seed:59 },
   anker: { name:'Zum Anker', where:'in Speyer am Hafen', host:'Wirt Ruprecht', role:'Wirt', wall:wp_P.ochre, seed:71 },
-  kanne: { name:'Zur Silbernen Kanne', where:'in der Bergstadt Annaberg', host:'Wirtin Walburga', role:'Wirtin', wall:wp_P.plaster, seed:83 }
+  kanne: { name:'Zur Silbernen Kanne', where:'in der Bergstadt Annaberg', host:'Wirtin Walburga', role:'Wirtin', wall:wp_P.plaster, seed:83 },
+  schwan: { name:'Zum Weißen Schwan', where:'in Wittenberg', host:'Wirt Melchior', role:'Wirt', wall:wp_P.ochre, seed:97 },
+  gloecklein: { name:'Zum Bratwurstglöcklein', where:'in Nürnberg', host:'Wirtin Kunigunde', role:'Wirtin', wall:wp_P.pink, seed:101 },
+  lamm: { name:'Zum Weißen Lamm', where:'in Augsburg', host:'Wirt Ulrich', role:'Wirt', wall:wp_P.plaster, seed:109 }
 };
 const INN_ART = {
   wirt: np_frames({ robe:'short', apron:'linen', belt:true, beard:true, hairSide:true, hair:['j', 'h'] },
@@ -307,7 +317,7 @@ const INNS = Object.entries(wo_INNP).map(([id, p]) => {
   return Object.assign({ id, x: p.x * WS, y: p.y * WS, dx: p.door * WS, dy: p.y * WS + 12, top: pr ? pr.y - pr.ay : p.y * WS - 200 }, INN_INFO[id]);
 });
 const INN_BY = Object.fromEntries(INNS.map(i => [i.id, i]));
-const HUB_IN = { burg:'in der Reichsburg', stadt:'in der Reichsstadt', speyer:'in Speyer', annaberg:'in der Bergstadt Annaberg' };
+const HUB_IN = { burg:'in der Reichsburg', stadt:'in der Reichsstadt', speyer:'in Speyer', annaberg:'in der Bergstadt Annaberg', wittenberg:'in Wittenberg', nuernberg:'in Nürnberg', augsburg:'in Augsburg' };
 for (const inn of INNS){
   BIND[inn.id] = { x: inn.dx, y: inn.dy + 2 };
   HUB_NAME[inn.id] = 'Gasthaus ' + inn.name;

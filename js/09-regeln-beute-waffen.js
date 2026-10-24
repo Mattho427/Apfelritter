@@ -63,14 +63,16 @@ const SKILLS = [
 /* Gebiete: Stufenbereich der Monster; Burg und Stadt sind sicher */
 const ZONE_LV = { obstgarten:[1, 3], fluss:[2, 4], dorf:[3, 6], friedhof:[5, 8], lager:[6, 9], galgen:[7, 10], wald:[8, 12], schlachtfeld:[10, 14], moor:[12, 16], ruine:[14, 18],
   weinberge:[15, 18], auwald:[16, 19], piratennest:[18, 21],
-  schwarzwald:[19, 22], silberrevier:[21, 24], schanze:[23, 26], hochgebirge:[26, 30] };
-const SAFE = { burg:true, stadt:true, weiler:true, speyer:true, fischerdorf:true, annaberg:true };
+  schwarzwald:[19, 22], silberrevier:[21, 24], schanze:[23, 26], hochgebirge:[26, 30],
+  heide:[10, 14], reichswald:[14, 18], gailingen:[18, 22], donauried:[22, 26], lechfeld:[27, 30] };
+const SAFE = { burg:true, stadt:true, weiler:true, speyer:true, fischerdorf:true, annaberg:true, wittenberg:true, nuernberg:true, augsburg:true };
 const ZONE_MOBS = {
   obstgarten:['wieder', 'pluend'], fluss:['ratte', 'moor'], dorf:['ratte', 'pluend'], friedhof:['wieder', 'rabe'],
   lager:['pluend', 'armbrust'], galgen:['rabe', 'wieder'], wald:['werwolf', 'armbrust', 'rabe'],
   schlachtfeld:['wieder', 'pluend', 'rabe'], moor:['moor', 'irrlicht'], ruine:['pluend', 'armbrust'],
   weinberge:['pluend', 'armbrust', 'rabe'], auwald:['nix', 'werwolf', 'moor'], piratennest:['pirat', 'pschuetze'],
-  schwarzwald:['wolf', 'schrat', 'wegelagerer'], silberrevier:['kobold', 'grubengeist', 'wegelagerer'], schanze:['doppelsoeldner', 'hakenschuetze'], hochgebirge:['baer', 'geier', 'eislicht']
+  schwarzwald:['wolf', 'schrat', 'wegelagerer'], silberrevier:['kobold', 'grubengeist', 'wegelagerer'], schanze:['doppelsoeldner', 'hakenschuetze'], hochgebirge:['baer', 'geier', 'eislicht'],
+  heide:['wolf', 'wegelagerer', 'irrlicht'], reichswald:['werwolf', 'schrat', 'pluend'], gailingen:['pluend', 'armbrust'], donauried:['moor', 'nix', 'irrlicht'], lechfeld:['wieder', 'eislicht']
 };
 const ZONE_INFO = {
   obstgarten:'Unter der Burg. Wiedergänger und Plünderer, gut für den Anfang.',
@@ -95,7 +97,15 @@ const ZONE_INFO = {
   annaberg:'Die Bergstadt am Silberbach, erst vor wenigen Jahren gegründet und schon reich vom Silber. Kirche St. Annen, Gasthaus und Bergamt. Hier seid Ihr sicher.',
   silberrevier:'Halden, Göpel und Stollen. In den alten Gruben hausen Kobolde und die Geister verschütteter Knappen; im Altenberg-Stollen wandelt der Bergmönch.',
   schanze:'Ein Heer von Landsknechten ohne Sold hat sich hinter Schanzkörben verschanzt. Doppelsöldner und Hakenbüchsenschützen, angeführt von ihrem Feldhauptmann.',
-  hochgebirge:'Fels, Geröll und ewiger Schnee. Bären und Bartgeier, Eislichter über den Gletschern, und auf seinem Felsenthron Rübezahl, der Herr der Berge.'
+  hochgebirge:'Fels, Geröll und ewiger Schnee. Bären und Bartgeier, Eislichter über den Gletschern, und auf seinem Felsenthron Rübezahl, der Herr der Berge.',
+  wittenberg:'Die kurfürstliche Residenz an der Elbe mit Schloss, Schlosskirche und Universität. Hier lehrt Doktor Martin Luther, hier malt Meister Cranach. Hier seid Ihr sicher.',
+  heide:'Sand, Heidekraut und Kiefern zwischen Elbe und Main. Kreuzottern im Kraut, Strauchdiebe auf den Wegen, Irrwische über den Weihern; nachts jagt Hackelberg, der Wilde Jäger.',
+  nuernberg:'Die größte Reichsstadt im Reich, mit der Kaiserburg auf dem Felsen, dem Schönen Brunnen am Markt und den besten Plattnern der Welt. Hier seid Ihr sicher.',
+  reichswald:'Kiefern und Eichen, so weit man reitet. Keiler brechen durchs Unterholz, Moosweiblein huschen zwischen den Stämmen, und auf den Wegen lauern Strauchdiebe.',
+  gailingen:'Die Raubburg des Eppelein von Gailingen auf ihrem Felsen. Seine Reisigen überfallen die Nürnberger Kaufleute auf der Straße nach Norden.',
+  donauried:'Schilf, Tümpel und Nebel an der jungen Donau. Riesenkrebse im Schlamm, Moorleichen und Irrwische, und im Fluss singt das Donauweibchen.',
+  augsburg:'Die reiche Reichsstadt am Lech: Fuggerhäuser, Perlachturm und die Fuggerei, in der die Armen für einen Gulden im Jahr wohnen. Hier seid Ihr sicher.',
+  lechfeld:'Die weite Ebene südlich von Augsburg, auf der vor fast sechshundert Jahren die Ungarn geschlagen wurden. Nachts reiten ihre Geister wieder.'
 };
 const zoneLvText = id => ZONE_LV[id] ? 'Stufe ' + ZONE_LV[id][0] + '–' + ZONE_LV[id][1] : SAFE[id] ? 'sicher' : '';
 
@@ -164,7 +174,9 @@ const BOSSES = {
 };
 const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder', rotbart:'pirat', wels:'nix', tatzelwurm:'wolf', bergmoench:'grubengeist', feldhauptmann:'doppelsoeldner', ruebezahl:'eislicht' };
 const BIND = { burg: gNear(1900, 456), stadt: gNear(2972, 2380), speyer: gNear(5060, 1420) };
-const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt', weiler:'Dorf Lindach', speyer:'Reichsstadt Speyer', fischerdorf:'Fischerdorf Altrip', annaberg:'Bergstadt Annaberg' };
+const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt', weiler:'Dorf Lindach', speyer:'Reichsstadt Speyer', fischerdorf:'Fischerdorf Altrip', annaberg:'Bergstadt Annaberg',
+  wittenberg:'Wittenberg', nuernberg:'Reichsstadt Nürnberg', augsburg:'Reichsstadt Augsburg' };
+const hubArt = z => z === 'weiler' || z === 'fischerdorf' ? 'das ' : z === 'wittenberg' ? '' : 'die ';   // Artikel vor dem Ortsnamen
 
 /* ============ Beute: Seltenheit, Grundformen, Zusätze ============ */
 const RARITY = [

@@ -399,8 +399,8 @@ function updateZone(entered){
   }
   if (entered && !RM){ el2.style.animation = 'none'; void el2.offsetWidth; el2.style.animation = 'zonein 1.2s steps(6)'; }
   if (entered && !G.inside && G.zone === 'weiler' && EVT.raid) logLine('Ihr betretet Lindach. Raubritter plündern das Dorf!', '#ff9a8a');
-  else if (entered && !G.inside && SAFE[G.zone] && !isSafe(G.zone)) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das Dorf Lindach' : 'die ' + HUB_NAME[G.zone]) + '. Hier wird gekämpft!', '#ff9a8a');
-  else if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + (G.zone === 'weiler' || G.zone === 'fischerdorf' ? 'das ' : 'die ') + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
+  else if (entered && !G.inside && SAFE[G.zone] && !isSafe(G.zone)) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das Dorf Lindach' : hubArt(G.zone) + HUB_NAME[G.zone]) + '. Hier wird gekämpft!', '#ff9a8a');
+  else if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + hubArt(G.zone) + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
   if (entered && G.inside) logLine(G.inside.church ? 'Ihr tretet ein: ' + G.inside.name + '. Hier ist es still und kühl.' : 'Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
 }
 let bannerTimer = 0;
