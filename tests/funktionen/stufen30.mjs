@@ -9,7 +9,7 @@ await p.evaluate(() => { const h = freshHero('Hans', 'reich'); h.lvl = 19; h.gol
 await p.waitForTimeout(500);
 let fehl = 0;
 const T = async (name, fn, ok, arg) => { const r = await p.evaluate(fn, arg), gut = ok(r); if (!gut) fehl++; console.log((gut ? 'ok   ' : 'FEHL ') + name.padEnd(22), JSON.stringify(r)); return r; };
-await T('Höchststufe', () => ({ max: MAX_LVL, t20: titleOf(20), t25: titleOf(25), t30: titleOf(30) }), r => r.max === 30 && r.t30 === 'König' && r.t20 === 'Erzherzog');
+await T('Höchststufe', () => ({ max: MAX_LVL, t20: titleOf(20), t25: titleOf(25), t30: titleOf(30) }), r => r.max === 30 && r.t30 === 'Großkönig' && r.t25 === 'König' && r.t20 === 'Erzherzog');
 await T('Aufstieg auf 20', () => { gainXp(xpNeed(19)); return { lvl: HERO.lvl, free: talFree() }; }, r => r.lvl === 20 && r.free === 1);
 await T('Rucksack-Knopf', () => { openBag(); return [...$('itemInfo').querySelectorAll('button')].map(x => x.textContent); }, r => r.some(t => /Meisterschaften \(1 frei\)/.test(t)));
 await T('Eiserne Haut', () => { const hp0 = ST.hp; [...$('itemInfo').querySelectorAll('button')].find(x => /Meisterschaften/.test(x.textContent)).click(); document.querySelector('[data-slot="tal:haut"]').click(); return { hp0, hp1: ST.hp, tal: HERO.tal, free: talFree(), dis: document.querySelector('[data-slot="tal:klinge"]').disabled }; },
