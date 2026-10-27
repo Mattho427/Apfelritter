@@ -96,10 +96,10 @@ function bi_heartArt(){
   bi_put(P, 2, 2, I.wht, 1); bi_put(P, 3, 2, I.hrt, 5); bi_put(P, 2, 3, I.hrt, 5);
   return bi_img(P).img;
 }
-/* Königsadler 32 × 28: schwarzer Doppeladler, golden nimbiert, rot gezungt und bewehrt.
-   Linke Hälfte wird gemalt und gespiegelt (Wappenbild ist symmetrisch). */
-const bi_EAP = { a: '#100e13', b: '#1c1a21', c: '#2a2730', d: '#3c3844', e: '#575262', r: '#8e1a1a', R: '#cc3a2c', k: '#5a1010',
-  w: '#e8d8a0', g: '#6e5012', h: '#a8821e', i: '#d8b440', j: '#f2de8a' };
+/* Königsadler 32 × 28: roter Adler mit goldener Krone, goldenem Schnabel und goldenen Fängen.
+   Schwingen, Leib und Stoß: linke Hälfte gemalt und gespiegelt; der Kopf (nach links) einmal darüber. */
+const bi_EAP = { a: '#3a0808', b: '#5e0e0e', c: '#861814', d: '#ac261e', e: '#cc3a2c', r: '#a8821e', R: '#d8b440', k: '#6e5012',
+  w: '#f4ecd8', g: '#6e5012', h: '#a8821e', i: '#d8b440', j: '#f2de8a' };
 function bi_eagleRows(){
   const w = 16, h = 28, G = [];
   for (let y = 0; y < h; y++) G.push(new Array(w).fill('.'));
@@ -112,10 +112,6 @@ function bi_eagleRows(){
   // Leib: Brustfedern in versetzten Reihen
   for (let y = 12; y < 20; y++) for (let x = (y > 17 ? 13 : 12); x < 16; x++) put(y, x, (y & 1) ? ((x + (y >> 1)) & 1 ? 'c' : 'b') : ((x + (y >> 1)) & 1 ? 'd' : 'c'));
   const E = [
-    // Kopf mit offenem Hakenschnabel, Auge und roter Zunge
-    [2, 7, 'cdd'], [3, 5, 'bcddec'], [4, 3, 'ddbwcddc'], [5, 2, 'ecbbbccdc'], [6, 1, 'raaRabbccb'], [7, 2, 'RR..abdcb'],
-    // Hals
-    [8, 8, 'bdcb'], [9, 9, 'bdcb'], [10, 10, 'bdcbb'], [11, 10, 'abcdcb'],
     // Flügelbug und Deckfedern
     [9, 0, 'de'], [10, 0, 'cdeed'], [11, 0, 'bcdcdeeddd'], [12, 0, 'abcbcdcdedcb'], [13, 1, 'abcbcdcdcdc'], [14, 11, 'c'],
     // Schenkel und Fänge
@@ -127,17 +123,17 @@ function bi_eagleRows(){
   for (const [y, x, str] of E) put(y, x, str);
   return G.map(r => r.join(''));
 }
+/* Kopf mit Krone, Auge und Hakenschnabel nach links, Hals bis zur Brust: [Zeile, Spalte, Zeichen] im 32 breiten Bild */
+const bi_EAGLE_HEAD = [
+  [0, 13, 'j.j.j'], [1, 13, 'ijiji'], [2, 13, 'ghihg'],
+  [3, 13, 'cddc'], [4, 11, 'bcdwdc'], [5, 9, 'RRbccddc'], [6, 10, 'r.bcdcb'],
+  [7, 13, 'bdcb'], [8, 13, 'bdcdb'], [9, 13, 'bcdcb'], [10, 12, 'bcdcdcb'], [11, 12, 'abcdcba']
+];
 function bi_eagleArt(){
-  const half = bi_eagleRows(), rows = half.map(r => r + r.split('').reverse().join(''));
-  const c = canvasOf(32, 28), g = c.getContext('2d');
-  // Nimben hinter den Köpfen
-  for (const cx of [8, 24]) for (let y = 0; y < 11; y++) for (let x = Math.floor(cx - 6); x <= cx + 6; x++){
-    const d = Math.hypot(x + .5 - cx, y + .5 - 5.2);
-    if (d > 5.1) continue;
-    const col = d > 4.3 ? '#6e5012' : d > 3.4 ? (x + y) & 1 ? '#d8b440' : '#f2de8a' : (x + y) & 1 ? '#a8821e' : '#d8b440';
-    g.fillStyle = col; g.fillRect(x, y, 1, 1);
-  }
-  g.drawImage(makeSprite(rows, bi_EAP, null, 0), 0, 0);
+  const half = bi_eagleRows(), rows = half.map(r => (r + r.split('').reverse().join('')).split(''));
+  for (const [y, x, str] of bi_EAGLE_HEAD) for (let k = 0; k < str.length; k++) if (str[k] !== '.') rows[y][x + k] = str[k];
+  const c = canvasOf(32, 28);
+  c.getContext('2d').drawImage(makeSprite(rows.map(r => r.join('')), bi_EAP, null, 0), 0, 0);
   return c;
 }
 /* Siegel 40 × 40: goldene Bulle mit Perlrand, Rautengrund und Königsadler */
@@ -1286,67 +1282,32 @@ function wp_chimney(B, x, yb, w, h, s){
   return { x: x + w / 2, y: yb - h - 3 };
 }
 
-/* ---------- Königsadler (schwarzer Doppeladler, rote Zungen und Fänge, goldener Nimbus) ---------- */
+/* ---------- Königsadler: roter Adler mit weißem Auge und dunkelroten Fängen, Kopf nach links (15 × 13) ---------- */
 const wp_EAGLE = {
-  // 15 x 13
   m: [
-    '.nn.........nn.',
-    'n.kk.......kk.n',
-    'rkkk.......kkkr',
-    '.n.kk.....kk.n.',
-    'k...kk.k.kk...k',
-    'kk...kkkkk...kk',
-    'kkk..kkkkk..kkk',
+    '......kk.......',
+    'k....kwkk.....k',
+    'kk..rkkk.....kk',
+    'kkk..kkk....kkk',
+    'kkkk.kkkk..kkkk',
+    'kkkkkkkkkkkkkkk',
     '.kkkkkkkkkkkkk.',
-    '..kkkkkkkkkkk..',
+    '..kkk.kkk.kkk..',
     '...k.kkkkk.k...',
-    '.....rkkkr.....',
+    '.....kkkkk.....',
     '....r.kkk.r....',
-    '.......k.......'
-  ],
-  // 21 x 18
-  l: [
-    '..nnn.........nnn....',
-    '.n...n.......n...n...',
-    'n.kkk.........kkk.n..',
-    'rkkkkk.......kkkkkr..',
-    '.n..kkk.....kkk..n...',
-    '..nn.kk.....kk.nn....',
-    'k.....kk.k.kk.....k..',
-    'kk.....kkkkk.....kk..',
-    'kkk....kkkkk....kkk..',
-    'kkkk..kkkkkkk..kkkk..',
-    '.kkkkkkkkkkkkkkkkk...',
-    '..kkkkkkkkkkkkkkk....',
-    '...kk.kkkkkkk.kk.....',
-    '......kkkkkkk........',
-    '.....rk.kkk.kr.......',
-    '....r.r.kkk.r.r......',
-    '........k.k..........',
-    '.......k...k.........'
-  ],
-  // 9 x 8
-  s: [
-    'rk.....kr',
-    '.kk...kk.',
-    'k..kkk..k',
-    'kk.kkk.kk',
-    '.kkkkkkk.',
-    '...kkk...',
-    '..r.k.r..',
-    '....k....'
+    '...r..k.k..r...',
+    '......k.k......'
   ]
 };
-/* Großform symmetrisch aus linker Hälfte ergänzen */
-(function(){ const L = wp_EAGLE.l; for (let i = 0; i < L.length; i++){ const r = L[i].slice(0, 11); L[i] = r + r.slice(0, 10).split('').reverse().join(''); } })();
 function wp_eagle(B, x, y, size, o){
   o = o || {};
-  const G = wp_EAGLE[size || 'm'], pal = { k: o.k || 0xff1d1a19, r: o.r || wp_c('#9b2a22'), n: o.n === undefined ? wp_c('#d9b04a') : o.n, y: wp_c('#c79a33') };
+  const G = wp_EAGLE[size || 'm'], pal = { k: o.k || wp_c('#8e1c1c'), r: o.r || wp_c('#4e0c0e'), w: wp_c('#f4ecd8') };
   for (let j = 0; j < G.length; j++) for (let i = 0; i < G[j].length; i++){
     const ch = G[j][i]; if (ch === '.') continue;
     let c = pal[ch]; if (!c) continue;
     if (o.warp){ const d = o.warp(i, j); if (d === null) continue; wp_set(B, x + i, y + j + d, c); continue; }
-    if (ch === 'k' && o.hi && wp_h(i, j, 5) > .82) c = wp_c('#3a3532');
+    if (ch === 'k' && o.hi && wp_h(i, j, 5) > .82) c = wp_c('#b8302a');
     wp_set(B, x + i, y + j, c);
   }
 }

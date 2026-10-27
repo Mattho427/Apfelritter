@@ -124,7 +124,7 @@ function heroStats(h){
   }
   if (h.eq.schild && !two && !isBib(h.eq.schild)) s.block += 20;
   if (wtH.dmg !== 1) s.dmg = (s.dmg - wd) * wtH.dmg + wd;   // die ganze Wucht des Hiebs; die Waffe selbst trägt die Art schon in sich
-  // Herkunft und Stärkung durch Speis und Trank
+  // Haus und Stärkung durch Speis und Trank
   s.regen = 1;
   const fx = [(KN_FACTIONS[h.f] || KN_FACTIONS.reich).bonus].concat([h.food, h.drink].map(b => b && b.t > 0 && FARE_BY[b.id] ? FARE_BY[b.id].fx : null));
   for (const e of fx){ if (!e) continue; if (e.hpPct) s.hp *= 1 + e.hpPct / 100; if (e.dmgPct) s.dmg *= 1 + e.dmgPct / 100; if (e.crit) s.crit += e.crit; if (e.spd) s.spd += e.spd; if (e.regen) s.regen = Math.max(s.regen, e.regen); }

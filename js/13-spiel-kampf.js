@@ -684,7 +684,7 @@ function lanceHits(){
   }
 }
 /* Turnier- und Kriegslanze: bemalter Schaft, Brechscheibe, im Sattel aufrecht mit Fähnlein */
-const LANCE_COL = { reich: ['#e0b030', '#1a1818'], frankreich: ['#2a4290', '#e8c040'], england: ['#f2eee4', '#b8281e'], spanien: ['#b8281e', '#f2eee4'] };
+const LANCE_COL = { reich: ['#e0b030', '#a8241e'], frankreich: ['#2e7d40', '#f2eee4'], england: ['#b8302a', '#e8c040'], spanien: ['#2a2a30', '#d8d4c6'] };
 function drawLance(k, fid, couched){
   const C = LANCE_COL[fid] || LANCE_COL.reich, d = k.dir, sx = d === 'left' ? -1 : 1;
   let x0, y0, x1, y1;

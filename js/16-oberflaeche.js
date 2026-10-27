@@ -216,7 +216,7 @@ for (const [kind, name, desc, person] of [
   lazySrc(im, () => urlOf(person ? vkPerson(kind, 0).stand.right : trArt(kind, 0).stand, 2)); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh); $('lifeList').append(li);
 }
-/* Die Ritter Europas: Tafel und Auswahl beim Anlegen */
+/* Die Ritter der vier Häuser: Tafel und Auswahl beim Anlegen */
 const PLATE_URL = {};
 for (const id of FACTION_IDS){
   const F = KN_FACTIONS[id];
@@ -500,7 +500,7 @@ function renderSkills(){
   }
   const pb = document.querySelector('[data-skill="pferd"]');
   if (pb){ pb.classList.toggle('on', !!HERO.riding); if (HERO.horse){ const im = pb.querySelector('img'); HO_ICON[HERO.horse] = HO_ICON[HERO.horse] || urlOf(horseIcon(HERO.horse), 3); im.src = HO_ICON[HERO.horse]; } }
-  // Schildstoß und Schlachtruf mit dem Wappen der eigenen Herkunft
+  // Schildstoß und Schlachtruf mit dem Wappen des eigenen Hauses
   const set = knightSet(HERO.f), F = KN_FACTIONS[HERO.f];
   set.url = set.url || urlOf(set.icon, 3);
   for (const id of ['stoss', 'ruf']){ const im = document.querySelector('[data-skill="' + id + '"] img'); if (im) im.src = set.url; }

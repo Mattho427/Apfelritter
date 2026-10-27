@@ -55,7 +55,7 @@ const SKILLS = [
   { id:'hieb', name:'Hieb', key:'Leer', lvl:1, icon:'sword', desc:'Schwerthieb im Bogen' },
   { id:'rund', name:'Rundhieb', key:'R', lvl:3, cd:6, icon:'sweep', desc:'trifft alles rundherum, 140 % Schaden' },
   { id:'stoss', name:'Schildstoß', key:'F', lvl:6, cd:9, icon:'shield', desc:'Sprung nach vorn, betäubt, wehrt Geschosse ab' },
-  { id:'ruf', name:'Schlachtruf', key:'G', lvl:10, cd:30, icon:'eagle', desc:'Schlachtruf der Herkunft: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer' },
+  { id:'ruf', name:'Schlachtruf', key:'G', lvl:10, cd:30, icon:'eagle', desc:'Schlachtruf des Hauses: 10 Sekunden lang +30 % Schaden und +10 % Volltreffer' },
   { id:'trank', name:'Heiltrank', key:'Q', lvl:1, cd:6, icon:'potion', desc:'heilt 45 % des Lebens' },
   { id:'pferd', name:'Pferd', key:'H', lvl:1, icon:'horse', desc:'auf- und absitzen; im Sattel wird der Hieb zum Lanzenstoß (180 % Schaden, betäubt)' }
 ];

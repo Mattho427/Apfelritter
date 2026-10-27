@@ -634,12 +634,12 @@ FS_PLAY.ringen = {
     if (S.res === null){ const b = btn('Drücken!', () => FS_PLAY.ringen.press(S), 'opt'); opts.append(b); setTimeout(() => { if (b.isConnected) b.focus({ preventScroll: true }); }, 0); }
   }
 };
-/* der Ritter ohne Harnisch, in den Farben seines Landes */
+/* der Ritter ohne Harnisch, in den Farben seines Hauses */
 let FS_HERO = null;
 function fsHeroArt(){
   const f = HERO ? HERO.f : 'reich';
   if (FS_HERO && FS_HERO.f === f) return FS_HERO.a;
-  const C = { reich: ['#6a5010', '#9a7a1c', '#c8a030', '#e6c44c'], frankreich: ['#14244a', '#20366a', '#30508e', '#4a6eb0'], england: ['#5a0e0e', '#861a16', '#ae2c22', '#d0483a'], spanien: ['#6a1010', '#962018', '#c03a20', '#d8a030'] }[f] || ['#4a4a46', '#6a6a64', '#8a8a82', '#aaaaa0'];
+  const C = { reich: ['#6a5010', '#9a7a1c', '#c8a030', '#e6c44c'], frankreich: ['#143a20', '#1f5c30', '#2e7d40', '#4aa05a'], england: ['#5a0e0e', '#861a16', '#ae2c22', '#d0483a'], spanien: ['#1a1a20', '#2e2e36', '#46464f', '#66666f'] }[f] || ['#4a4a46', '#6a6a64', '#8a8a82', '#aaaaa0'];
   const a = np_frames({ robe:'short', belt:true, beard:true, hair:['h', 'j'] }, { 1: C[0], 2: C[1], 3: C[2], 4: C[3], 5: '#3a2c1e', 6: '#4a3a28', 7: '#5a4a34', 8: '#6e5c44' });
   FS_HERO = { f, a }; return a;
 }

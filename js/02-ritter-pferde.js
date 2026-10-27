@@ -1,11 +1,11 @@
 "use strict";
-/* Der Apfelritter, Teil 2 von 27: Der Ritter (Herkunft, Harnisch, Schwert, Aussehen) und die Pferde.
+/* Der Apfelritter, Teil 2 von 27: Der Ritter (Haus, Harnisch, Schwert, Aussehen) und die Pferde.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Der Ritter: Adlerritter in Schaller und gelbem Wappenrock mit dem Adler ============ */
+/* ============ Der Ritter: Harnisch, Wappenrock in der Farbe seines Hauses, Helm mit Helmzier, Dreiecksschild ============ */
 const kn_PAL = {
   K:'#22252b', D:'#434952', M:'#6c747e', L:'#98a1ab', H:'#c5ccd3', G:'#eef1f3',   // blankes Eisen
   O:'#6f4a12', o:'#b07c1c', y:'#dfae2e', Y:'#f2d256',                            // gelbes Tuch
-  e:'#141217', E:'#3a3741', r:'#b8281e',                                           // Adler: schwarz, rot bewehrt
+  e:'#141217', E:'#3a3741', r:'#b8281e',                                           // Schwarz, Rot (Bilder anderer Teile)
   N:'#3a2416', n:'#61402a', b:'#8c6340',                                           // Leder
   A:'#9c7a32', a:'#e0c271',                                                        // Messing
   C:'#858c94', c:'#4a4f57',                                                        // Kettengeflecht
@@ -21,8 +21,8 @@ Object.assign(kn_PAL, {
   Z:'#7a4a32', z:'#c08a66', q:'#e8bc96',                                           // Haut
   F:'#8a8a86', f:'#c8c6be', g:'#f6f4ee'                                            // Federbusch
 });
-const kn_TINC = { or:'1234', gu:'5678', az:'UuJj', ar:'SsTt' };
-let kn_F = null;                     // Herkunft, für die gerade gezeichnet wird
+const kn_TINC = { or:'1234', gu:'5678', az:'UuJj', ar:'SsTt', cl:'OoyY' };   // cl: Tuchfarbe des Hauses
+let kn_F = null;                     // Haus (mit Ausrüstung), für das gerade gezeichnet wird
 const kn_W = 29, kn_H = 48, kn_CX = 14, kn_PAD = 1;
 const kn_new = () => Array.from({ length: kn_H }, () => Array(kn_W).fill('.'));
 function kn_px(g, x, y, ch){ x = Math.round(x); y = Math.round(y); if (ch && ch !== '.' && ch !== ' ' && y >= 0 && y < kn_H && x >= 0 && x < kn_W) g[y][x] = ch; }
@@ -39,29 +39,9 @@ function kn_line(g, x0, y0, x1, y1, ch){
 function kn_tone(t, lift){ const nx = 2 * t - 1, l = -nx * .55 + Math.sqrt(Math.max(0, 1 - nx * nx)) * .75 + (lift || 0); return l > .86 ? 'Y' : l > .45 ? 'y' : l > .05 ? 'o' : 'O'; }
 function kn_cloth(g, y, x0, x1, lift){ for (let x = x0; x <= x1; x++) kn_px(g, x, y, kn_tone((x - x0 + .5) / (x1 - x0 + 1), lift)); }
 
-/* Königsadler für den Schild: 9 breit von vorn, 7 breit schräg gesehen */
-const kn_EAGLE7 = [
-  're...er',
-  '.ee.ee.',
-  'e.eee.e',
-  'eeeeeee',
-  '.eEeEe.',
-  '.e.e.e.',
-  '.reeer.',
-  '...e...'];
-const kn_EAGLE9 = [
-  'ree...eer',
-  '..ee.ee..',
-  'e..eee..e',
-  'ee.eee.ee',
-  'eeeeeeeee',
-  '.eEeeeEe.',
-  '..e.e.e..',
-  '.r.eee.r.',
-  '...e.e...'];
 /* Dreiecksschild: oben gerade, unten spitz, leicht gewölbt. face: 'front' (Adler) oder 'back' (Holz, bemalter Rand) */
 function kn_shield(g, x0, y0, w, h, face, dark){
-  const cx = x0 + w / 2, top = Math.round(h * .48), hwOf = j => {
+  const cx = x0 + w / 2, top = Math.round(h * .48), in_ = new Set(), hwOf = j => {
     if (j < top) return w / 2;
     const q = (j + .5 - top) / (h - top);
     return w / 2 * (1 - Math.pow(q, 1.7));
@@ -78,7 +58,7 @@ function kn_shield(g, x0, y0, w, h, face, dark){
         ch = ((x - x0) % 3 === 0) ? 'W' : (nx < -.2 ? 'w' : 'W');
         if (j === 0 || edgeL || edgeR || bot) ch = edgeR || bot ? rim[1] : rim[2];
       } else {
-        const T = kn_TINC[kn_F.field(d < 0, j < top)];
+        const T = kn_TINC.cl;
         const l = -nx * .45 + .58 - j / h * .2 - (dark ? .3 : 0);
         ch = T[l > .85 ? 3 : l > .42 ? 2 : l > .1 ? 1 : 0];
         if (j === 0) ch = dark ? T[1] : T[3];
@@ -86,26 +66,21 @@ function kn_shield(g, x0, y0, w, h, face, dark){
         else if (edgeR || bot) ch = dark ? T[0] : T[1];
       }
       kn_px(g, x, y0 + j, ch);
+      in_.add(x + ',' + (y0 + j));
     }
   }
-  if (face !== 'back') kn_F.charge(g, x0, y0, w, h, top, dark);
+  if (face !== 'back') kn_charge(g, x0, y0, w, h, dark, in_);
 }
-/* kleine Wappenbilder in die Viertel eines Schildes setzen: art = [oben links, oben rechts, unten links, unten rechts, unten Mitte] */
-function kn_quarters(g, x0, y0, w, h, top, art){
-  const xs = [x0 + Math.round(w * .27), x0 + Math.round(w * .73) - (w >= 9 ? 1 : 0)], ys = [y0 + Math.round(top * .55), y0 + top + Math.round((h - top) * .28)];
-  art.forEach((a, i) => {
-    if (!a) return;
-    const cx = i === 4 ? Math.round(x0 + w / 2 - .5) : xs[i & 1], cy = i === 4 ? ys[1] : ys[i >> 1];
-    if (w < 9){ kn_px(g, cx, cy, a[1][1] !== '.' ? a[1][1] : a[0][1]); return; }
-    kn_art(g, cx - (a[0].length >> 1), cy - 1, a);
-  });
+/* Wappenbild des Hauses mittig in den Schild, nur innerhalb des Schildrands; dark: ferner Schild im Schatten */
+const kn_SHADE = { '4':'3', '3':'2', '2':'1', t:'T', T:'s', s:'S', '8':'7', '7':'6', '6':'5', a:'A', O:'O' };
+function kn_charge(g, x0, y0, w, h, dark, inside){
+  const A = w >= 9 ? kn_F.s9 : kn_F.s7, x = Math.round(x0 + w / 2 - A[0].length / 2), y = y0 + (h <= 14 ? 1 : 2);
+  A.forEach((r, j) => { for (let i = 0; i < r.length; i++){ const ch = r[i]; if (ch !== '.' && inside.has((x + i) + ',' + (y + j))) kn_px(g, x + i, y + j, dark ? kn_SHADE[ch] || ch : ch); } });
 }
-/* Abzeichen auf dem Wappenrock: erst das Kreuz einfärben, dann das Bild darüber */
-function kn_recolor(g, x, y, ramp){ const row = g[y]; if (!row) return; const i = 'OoyY'.indexOf(row[x]); if (i >= 0) row[x] = ramp[i]; }
+/* Abzeichen auf dem Wappenrock: das Wappentier mittig auf Brust (unter dem Halsausschnitt) und Rücken */
 function kn_emblem(g, view){
-  if (kn_F.mark) kn_F.mark(g, view);
-  const a = view === 'F' ? kn_F.chestF : kn_F.chestB;
-  if (a) kn_art(g, a.x, a.y, a.rows);
+  const A = kn_F.chest, x = kn_CX - (A[0].length >> 1);
+  kn_art(g, x, view === 'F' ? 12 : 11, A);
 }
 
 /* Wappenrock von vorn und hinten: Schultern, kurze weite Ärmel, Leib, Schoß mit Falten */
@@ -137,16 +112,6 @@ const kn_HELM_F = [
   'AKDLHGHLLMDKA',
   '.KDLHGHHLMDK.',
   '..KDLHHLMDK..'];
-/* Brustadler: Köpfe beiderseits des Halsausschnitts, Schwingen bis auf die Ärmel */
-const kn_EAGLE_F = [
-  '.eee...eee.',
-  '...ee.ee...',
-  'e...eee...e',
-  'ee.eeeee.ee',
-  'eeeeeeeeeee',
-  '.eEeeeeeEe.',
-  '.e.e.e.e.e.',
-  '...reeer...'];
 const KN_BIB_F = ['555555', '577a75', '57aaa5', '577a75', '577a75', '578775', 'tttTT5'];   // roter Einband, Messingkreuz, Schnitt unten
 const KN_BIB_B = ['5555', 'T775', 'T785', 'T775', 'T775', 'T775', '5555'];
 const KN_BIB_S = ['555', '57T', '5aT', '57T', '57T', '57T', '555'];
@@ -160,7 +125,7 @@ function kn_upperF(atk){
   kn_seg(g, 20, [[9, 'NbNNNaANNNN']]);
   kn_line(g, 9, 22, 20, 25, 'N');
   // Helm
-  kn_art(g, 8, 0, kn_F.helmF);
+  kn_art(g, kn_CX - (kn_F.helmF[0].length >> 1), 0, kn_F.helmF);
   // rechter Arm (Bildlinks): Armröhre, Armkachel mit Muschel
   kn_seg(g, 16, [[5, 'LHD']]);
   kn_seg(g, 17, [[4, 'DLGD']]);
@@ -234,7 +199,7 @@ function kn_upperB(atk){
   // Gürtel
   kn_seg(g, 20, [[9, 'NbNNNNNNNNN']]);
   // Helm
-  kn_art(g, 8, 0, kn_F.helmB);
+  kn_art(g, kn_CX - (kn_F.helmB[0].length >> 1), 0, kn_F.helmB);
   // rechter Arm (Bildrechts) mit dem Schwert
   kn_seg(g, 16, [[21, 'LHD']]);
   kn_seg(g, 17, [[21, 'DLGD']]);
@@ -301,7 +266,6 @@ const kn_HELM_S = [
   '..........KDLHLD',
   '..........KDHGLD',
   '...........KDLD.'];
-const kn_EAGLE_SL = ['ee.ee', '.eee.', 'eeeee', '..e..'];
 /* Leib im Profil: Schoß, Leib, Gürtel, naher Ärmel mit Adler, Helm */
 function kn_bodyS(S){
   const skirt = [[21, 10, 17], [22, 9, 18], [23, 9, 18], [24, 9, 18], [25, 8, 19], [26, 8, 19], [27, 8, 19], [28, 8, 19]];
@@ -317,7 +281,7 @@ function kn_bodyS(S){
   for (let x = 10; x <= 17; x++) S.dk(x, 15);
   for (let y = 10; y <= 14; y++) S.dk(y >= 13 ? 17 : 16, y);
   if (kn_F.sleeve) S.art(kn_F.sleeve[0].length > 3 ? 11 : 12, 11, kn_F.sleeve);
-  S.art(5, 0, kn_F.helmS);
+  S.art(21 - kn_F.helmS[0].length, 0, kn_F.helmS);                              // breitere Helme wachsen nach hinten
 }
 /* Bein im Profil mit Versatz von Knie (dk) und Fuß (df); fern = dunkler */
 function kn_legS(dk, df){
@@ -406,25 +370,40 @@ function drawSword(g, x, y, angle, rots){
 const SWORD_ICON = kn_sword(2).img;
 
 /* ---------- Die Ritter der vier Häuser ----------
-   Jede Herkunft legt fest: Tuchfarben des Wappenrocks, Abzeichen auf Brust, Rücken und Ärmel,
-   Helmform (vorn, hinten, seitlich), Federbusch und das Wappen im Schild. */
-const kn_RED = '5678';
-const kn_LILY3 = ['.4.', '434', '3.3'];
-const kn_LION3 = ['3..4', '.444', '.3.3'];
-const kn_CASTLE3 = ['4.4.4', '44444', '44.44'];
-const kn_LIONP3 = ['.p.', 'pPp', 'P.P'];
-/* große Lilie für Brust und Rücken */
-const kn_LILY_F = [
-  '....4....',
-  '...344...',
-  '...343...',
-  '3..343..3',
-  '43.343.34',
-  '.4334433.',
-  '222222222',
-  '...343...',
-  '..3.3.3..'];
-/* Armet: runder geschlossener Helm, hinten die Scheibe, oben der Federbusch */
+   Jedes Haus legt fest: Tuchfarbe des Wappenrocks (zugleich Schildfeld und Pferdedecke), sein Wappentier für Brust und
+   Rücken (chest), Ärmel (sleeve), Schild (s9 von vorn, s7 schräg und klein), dazu Helm mit Helmzier und Federfarben. */
+/* Haus vom Adler: roter Adler mit weißem Auge, rot bewehrt, auf Gold */
+const kn_EAGLE_C = [
+  '6..55.....6',
+  '6685t6...66',
+  '666.66..666',
+  '66666666666',
+  '.667666766.',
+  '..6.666.6..',
+  '.5..676..5.',
+  '...6.6.6...'];
+const kn_EAGLE9 = ['6..55...6', '668t6..66', '66.56.666', '666666666', '.6676766.', '..6.6.6..', '.5.666.5.', '...6.6...'];
+const kn_EAGLE7 = ['6.55..6', '68t6.66', '6656666', '.66666.', '..666..', '.5.6.5.', '..6.6..'];
+/* Haus der Lilie: silberne Lilie mit eingerollten Seitenblättern, Band und Fuß, auf Grün */
+const kn_LILY9 = ['....t....', '...tTs...', '.tttTsss.', 'tT.tTs.Ts', 'T..tTs..s', '.T.tTs.s.', 'sssssssss', '..tTsTs..', '.t.....s.'];
+const kn_LILY_C = kn_LILY9.slice(0, 8);
+const kn_LILY7 = ['...t...', '..tTs..', '.ttTss.', 'tT.T.Ts', 't..T..s', 'sssssss', '.tTsTs.', '.t...s.'];
+/* Haus der Löwen: goldener steigender Löwe, auf Rot */
+const kn_LION_C = ['.2342....', '34144....', '3.344..34', '4..3443.3', '3.34443.3', '..34443..', '.3.3.43..', '33...333.'];
+const kn_LION9 = ['.2342....', '34144....', '3.344..34', '4..3443.3', '3.34443.3', '..34443..', '..3.4.3..', '.3..43...', '33..333..'];
+const kn_LION7 = ['.234...', '3414..3', '3.344.3', '..3443.', '..3443.', '.3.4.3.', '33..33.'];
+/* Haus der Türme: silberner Turm mit roten Fenstern und rotem Tor, auf Schwarz */
+const kn_TOWER_C = ['t.T.T.s', 'tTTTTTs', '.tTTTs.', '.tT5Ts.', '.tTTTs.', '.tTTTs.', '.t555s.', 'tTTTTTs'];
+const kn_TOWER7 = ['t.T.s', 'tTTTs', '.T5s.', '.TTs.', '.T5s.', 'tTTTs'];
+/* Helmzier über dem Helm: Grundhelm um n Spalten seitlich (beidseits bzw. nach hinten) verbreitern, dann Zier darüber */
+const kn_pad = (rows, l, r) => rows.map(x => '.'.repeat(l) + x + '.'.repeat(r || 0));
+const kn_over = (rows, top) => rows.map((x, j) => top[j] ? [...x].map((c, i) => top[j][i] && top[j][i] !== '.' ? top[j][i] : c).join('') : x);
+/* Flügelhelm: Schaller mit zwei Adlerschwingen (Federfarben F f g, beim Haus vom Adler rot) */
+const kn_WINGS_FB = ['g.g.g.........f.f.f', 'gfgf...........FfFf', '.gfgF.........FfFf.', '..gFF.........FFf..', '...F...........F...'];
+const kn_WING_F = kn_over(kn_pad(kn_HELM_F, 3, 3), kn_WINGS_FB);
+const kn_WING_B = kn_over(kn_pad(kn_HELM_B, 3, 3), kn_WINGS_FB);
+const kn_WING_S = kn_over(kn_pad(kn_HELM_S, 3), ['..g.g.g', '.gfgfgf', '..gfgfF', '....gfFF', '......FF']);
+/* Armet: runder geschlossener Helm, hinten die Scheibe, oben der weiße Federbusch (Haus der Lilie) */
 const kn_ARMET_F = [
   '.....gfF.....',
   '....gfgF.....',
@@ -458,11 +437,11 @@ const kn_ARMET_S = [
   '...AaMLHHHHLLMD.',
   '....ADLHHHLLMD..',
   '......KDLLLMD...'];
-/* geschlossener Helm: hoher Kamm, Visier mit zwei Sehschlitzen */
-const kn_CLOSE_F = [
-  '......H......',
-  '.....LGM.....',
-  '...LHHGHLM...',
+/* geschlossener Helm mit Visier und zwei Sehschlitzen, auf dem Kamm eine goldene Löwenmähne (Haus der Löwen) */
+const kn_MANE_F = [
+  '....gfgfF....',
+  '...gfLGMfF...',
+  '..fLHHGHLMF..',
   '..LHGHGHLMD..',
   '.LHGHHGHLLMD.',
   '.DKKKKKKKKKD.',
@@ -470,33 +449,33 @@ const kn_CLOSE_F = [
   '.DKKKKKKKKKD.',
   '..KLHGHLLMK..',
   '...KDLLMDK...'];
-const kn_CLOSE_B = [
-  '......H......',
-  '.....LGM.....',
-  '...LHHGHLM...',
-  '..LHGHGHLMD..',
-  '.LHGHHGHLLMD.',
-  '.LHHHHGLLLMD.',
-  '.LHHHHGLLLMD.',
-  '.MLHHHLLLLMD.',
+const kn_MANE_B = [
+  '....gfgfF....',
+  '...gfgfgfF...',
+  '...LHfgfLM...',
+  '..LHGfgfLMD..',
+  '.LHGHfgfLLMD.',
+  '.LHHHfgfLLMD.',
+  '.LHHHfFLLLMD.',
+  '.MLHHFLLLLMD.',
   '..KLHHHLLMK..',
   '...KDLLMDK...'];
-const kn_CLOSE_S = [
-  '.......MHHM.....',
-  '......LHGGHL....',
-  '.....LHGHHHHLM..',
-  '....LHGHHHHHHLD.',
-  '....LHHHHHHKKKK.',
+const kn_MANE_S = [
+  '...gfgfMHHM.....',
+  '..gfgfLHGGHL....',
+  '..ffFLHGHHHHLM..',
+  '..fFLHGHHHHHHLD.',
+  '..F.LHHHHHHKKKK.',
   '....LHHHHHHLHGLD',
   '....MLHHHHHKKKKD',
   '....MLHHHHHLLMD.',
   '.....KDLHHLLMD..',
   '......KDLLMD....'];
-/* Borgoñota: offener Helm mit Schirm, Kamm, Wangenklappen und Nackenschutz, roter Federbusch */
-const kn_BORG_F = [
-  '.....gf......',
-  '....gfFM.....',
-  '...LHGFHLM...',
+/* offener Helm mit Schirm, Wangenklappen und Nackenschutz, darauf eine Zinnenkrone aus Messing (Haus der Türme) */
+const kn_CROWN_F = [
+  '...a.a.A.A...',
+  '...aaaaAAA...',
+  '..LaaaaAAAD..',
   '..LHGHGHLLD..',
   '.LHGHHGHLLMD.',
   'DLHHHHHHHLLMD',
@@ -504,10 +483,10 @@ const kn_BORG_F = [
   '.DLDqqzzZDLD.',
   '.KDLqzZzZLDK.',
   '..KDLzZzLDK..'];
-const kn_BORG_B = [
-  '.....gf......',
-  '....gfFM.....',
-  '...LHGFHLM...',
+const kn_CROWN_B = [
+  '...a.a.A.A...',
+  '...aaaaAAA...',
+  '..LaaaaAAAD..',
   '..LHGHGHLLD..',
   '.LHGHHGHLLMD.',
   '.LHHHHGLLLMD.',
@@ -515,10 +494,10 @@ const kn_BORG_B = [
   'LLHHHLLLLLMMD',
   'MLLLLLLLLLMDD',
   '.DDDDDDDDDDD.'];
-const kn_BORG_S = [
-  '...gf..MHHM.....',
-  '...fF.LHGGHL....',
-  '....FLHGHHHHLM..',
+const kn_CROWN_S = [
+  '......a.a.A.A...',
+  '......aaaaAAA...',
+  '.....LaaaaAAAM..',
   '....LHGHHHHHHLD.',
   '....LHHHHHHHHHHD',
   '...MLHHHHHLDqqz.',
@@ -526,59 +505,38 @@ const kn_BORG_S = [
   'LLLMLHHHHHLDqzZ.',
   '..KDLLHHHLLDzZ..',
   '.......KDLLDZ...'];
-/* Astkreuz: zwei gekreuzte Äste mit Aststummeln */
-function kn_markSaltire(g){
-  for (let i = 0; i <= 40; i++){
-    const t = i / 40, y = Math.round(10 + t * 17), a = 9.5 + t * 9, b = 18.5 - t * 9;
-    for (const c of [a, b]){ kn_recolor(g, Math.round(c - .5), y, kn_RED); kn_recolor(g, Math.round(c + .5), y, kn_RED); }
-  }
-  [.18, .42, .66, .86].forEach((t, i) => {
-    const y = Math.round(10 + t * 17), a = 9.5 + t * 9, b = 18.5 - t * 9, sd = i & 1 ? 1 : -1;
-    kn_recolor(g, Math.round(a + sd * 2), y, kn_RED); kn_recolor(g, Math.round(b - sd * 2), y + 1, kn_RED);
-  });
-}
-/* Georgskreuz: rotes Kreuz über Brust und Rücken */
-function kn_markCross(g){
-  for (let y = 8; y <= 28; y++) for (let x = 13; x <= 15; x++) kn_recolor(g, x, y, kn_RED);
-  for (let y = 13; y <= 15; y++) for (let x = 9; x <= 19; x++) kn_recolor(g, x, y, kn_RED);
-}
 const KN_FACTIONS = {
   reich: {
     name:'Haus vom Adler', knight:'Adlerritter', ruler:'Herzogin Mechthild vom Adler', cry:'Für Adler und Krone!',
     bonus:{ hpPct:5 }, bonusText:'+5 % Leben',
-    desc:'Das älteste Haus des Königreichs, treu zur Krone seit vielen Geschlechtern. Gelber Wappenrock mit dem schwarzen Doppeladler, Schaller mit Bart und ein Dreiecksschild mit dem Adler.',
-    cloth:{}, field: () => 'or', rim:'or',
-    charge(g, x0, y0, w, h, top, dark){ const E = w >= 9 ? kn_EAGLE9 : kn_EAGLE7; kn_art(g, Math.round(x0 + w / 2 - E[0].length / 2), y0 + 2, dark ? E.map(r => r.replace(/E/g, 'e')) : E); },
-    chestF:{ x:9, y:12, rows:kn_EAGLE_F }, chestB:{ x:9, y:11, rows:kn_EAGLE_F }, sleeve:kn_EAGLE_SL,
-    helmF:kn_HELM_F, helmB:kn_HELM_B, helmS:kn_HELM_S
+    desc:'Das älteste Haus des Königreichs, treu zur Krone seit vielen Geschlechtern. Goldener Wappenrock mit dem roten Adler, Schaller mit zwei roten Adlerschwingen, im Schild der Adler auf Gold.',
+    cloth:{}, pal:{ F:'#5a1012', f:'#a8241e', g:'#e0584a' }, rim:'gu',
+    chest:kn_EAGLE_C, sleeve:['6.5.6', '66666', '.666.', '.6.6.'], s9:kn_EAGLE9, s7:kn_EAGLE7,
+    helmF:kn_WING_F, helmB:kn_WING_B, helmS:kn_WING_S
   },
   frankreich: {
     name:'Haus der Lilie', knight:'Lilienritter', ruler:'Graf Amaury von der Lilie', cry:'Lilie und Licht!',
     bonus:{ dmgPct:5 }, bonusText:'+5 % Schaden',
-    desc:'Die schweren Reiter des Hauses der Lilie stürmen in geschlossener Reihe. Blauer Rock mit goldenen Lilien, geschlossener Armet mit weißem Federbusch.',
-    cloth:{ O:'#141e48', o:'#22357a', y:'#3452a8', Y:'#5a7ad0' }, field: () => 'az', rim:'az',
-    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_LILY3, kn_LILY3, null, null, kn_LILY3]); },
-    chestF:{ x:10, y:11, rows:kn_LILY_F }, chestB:{ x:10, y:10, rows:kn_LILY_F }, sleeve:kn_LILY3,
+    desc:'Die schweren Reiter des Hauses der Lilie stürmen in geschlossener Reihe. Grüner Wappenrock mit der silbernen Lilie, geschlossener Armet mit weißem Federbusch, im Schild die Lilie auf Grün.',
+    cloth:{ O:'#143a20', o:'#1f5c30', y:'#2e7d40', Y:'#4aa05a' }, rim:'ar',
+    chest:kn_LILY_C, sleeve:['.t.', 'tTs', 'T.s'], s9:kn_LILY9, s7:kn_LILY7,
     helmF:kn_ARMET_F, helmB:kn_ARMET_B, helmS:kn_ARMET_S
   },
   england: {
     name:'Haus der Löwen', knight:'Löwenritter', ruler:'Fürst Edwin der Löwe', cry:'Mit Löwenmut!',
     bonus:{ crit:3 }, bonusText:'+3 % Volltreffer',
-    desc:'Das Haus der Löwen hält die Küsten im Westen und schickt seine Ritter auf jedes Turnier. Weißer Rock mit rotem Kreuz, geschlossener Helm mit hohem Kamm; im Schild vier goldene Löwen.',
-    cloth:{ O:'#7e7a70', o:'#aeaa9c', y:'#d8d4c6', Y:'#f6f2e6' }, field: (left, up) => left === up ? 'az' : 'gu', rim:'gu',
-    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_LION3, kn_LION3, kn_LION3, kn_LION3]); },
-    mark: kn_markCross, sleeve:['.7.', '878', '.7.'],
-    helmF:kn_CLOSE_F, helmB:kn_CLOSE_B, helmS:kn_CLOSE_S
+    desc:'Das Haus der Löwen hält die Küsten im Westen und schickt seine Ritter auf jedes Turnier. Roter Wappenrock mit dem goldenen Löwen, geschlossener Helm mit goldener Mähne, im Schild der Löwe auf Rot.',
+    cloth:{ O:'#5a1012', o:'#8e1c1c', y:'#b8302a', Y:'#d85448' }, pal:{ F:'#8a5a14', f:'#d49a2a', g:'#f4cc5a' }, rim:'or',
+    chest:kn_LION_C, sleeve:['234..', '4144.', '3.443', '..33.'], s9:kn_LION9, s7:kn_LION7,
+    helmF:kn_MANE_F, helmB:kn_MANE_B, helmS:kn_MANE_S
   },
   spanien: {
     name:'Haus der Türme', knight:'Turmritter', ruler:'Markgraf Rodrigo von den Türmen', cry:'Stein und Stahl!',
     bonus:{ spd:5 }, bonusText:'+5 % Hiebtempo',
-    desc:'Das Haus der Türme bewacht die Pässe im Süden, seine Ritter weichen keinen Schritt. Weißer Rock mit dem roten Astkreuz, offene Sturmhaube mit rotem Busch, im Schild vier Türme.',
-    cloth:{ O:'#7e7a70', o:'#aeaa9c', y:'#d8d4c6', Y:'#f6f2e6' }, pal:{ F:'#5a1012', f:'#b8302a', g:'#e8705e' },
-    field: (left, up) => left === up ? 'gu' : 'ar', rim:'gu',
-    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_CASTLE3, kn_CASTLE3, kn_CASTLE3, kn_CASTLE3]); },
-    mark: kn_markSaltire, sleeve:['7.7', '.8.', '7.7'],
-    helmF:kn_BORG_F, helmB:kn_BORG_B, helmS:kn_BORG_S
+    desc:'Das Haus der Türme bewacht die Pässe im Süden, seine Ritter weichen keinen Schritt. Schwarzer Wappenrock mit dem silbernen Turm, offener Helm mit Zinnenkrone, im Schild der Turm auf Schwarz.',
+    cloth:{ O:'#1a1a20', o:'#2e2e36', y:'#46464f', Y:'#66666f' }, rim:'gu',
+    chest:kn_TOWER_C, sleeve:['t.T.s', 'tTTTs', '.T5s.', '.TTs.'], s9:kn_TOWER_C, s7:kn_TOWER7,
+    helmF:kn_CROWN_F, helmB:kn_CROWN_B, helmS:kn_CROWN_S
   }
 };
 for (const F of Object.values(KN_FACTIONS)) F.pal = Object.assign({}, kn_PAL, F.cloth, F.pal || {});
@@ -796,7 +754,7 @@ function kn_buildSet(id, body){
   return { id, walk, atk, hit, fall, plate, icon };
 }
 const KN_SETS = {}, KN_LOOKS = {};
-/* Bildersatz eines Ritters: Herkunft und Aussehen der Ausrüstung (look, siehe lookOf) */
+/* Bildersatz eines Ritters: Haus und Aussehen der Ausrüstung (look, siehe lookOf) */
 function knightSet(id, look){
   if (!KN_FACTIONS[id]) id = 'reich';
   if (!look || !LOOK_RE.test(look)) return KN_SETS[id] || (KN_SETS[id] = Object.assign(kn_buildSet(id), { key: id, sword: null, wr: 1, wt: 'schwert' }));
@@ -814,7 +772,7 @@ const KNIGHT_FIST = makeSprite(['DLHD', 'LGHD', 'KDDK'], kn_PAL, OUT);
 
 /* ============ Pferde: Klepper, Zelter, Streitross ============
    Seitenansicht (64 × 44), vorn und hinten (34 × 44), Boden in Zeile 43. Vier Bilder für den Schritt, eines für den Stand.
-   Fell in vier Tönen d h i k (dunkel .. hell), Mähne l m, Hufe x; Tuch und Wappen aus der Palette der Herkunft. */
+   Fell in vier Tönen d h i k (dunkel .. hell), Mähne l m, Hufe x; Tuch und Wappentier aus der Palette des Hauses. */
 const HORSES = {
   klepper:    { name:'Klepper', art:'einen', lvl:1, price:40, speed:1.45, cloth:'none',
     coat:{ d:'#3e2c1c', h:'#5e4428', i:'#7e5e3a', k:'#9c7c50' }, mane:{ l:'#2a1e14', m:'#4a382a' },
@@ -882,13 +840,10 @@ const HO_STEP = {   // je Bein [Knie, Huf, Heben] für Bild 0..3; Bild 4 = Stand
 };
 const ho_cloth = ch => ({ d:'O', h:'o', i:'y', k:'Y' })[ch];
 const ho_steel = ch => ({ d:'K', h:'D', i:'M', k:'L' })[ch];
-/* Wappen auf der Pferdedecke (Seite) */
-function ho_arms(g, fid, cx, cy){
-  const red = (x, y) => ho_scan(g, x, y, x, y, (X, Y) => { const i = 'OoyY'.indexOf(g[Y][X]); if (i >= 0) g[Y][X] = '5678'[i]; });
-  if (fid === 'reich') kn_EAGLE9.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') ho_px(g, cx - 4 + i, cy - 4 + j, r[i]); });
-  else if (fid === 'frankreich') for (const [x, y] of [[cx - 6, cy - 3], [cx + 6, cy - 3], [cx, cy + 4], [cx - 12, cy + 4], [cx + 12, cy + 4]]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(g, x - 1 + i, y - 1 + j, r[i]); });
-  else if (fid === 'england'){ for (let y = 12; y <= 35; y++) for (let x = cx - 1; x <= cx + 1; x++) red(x, y); for (let x = 6; x <= 48; x++) for (let y = cy - 1; y <= cy + 1; y++) red(x, y); }
-  else if (fid === 'spanien') for (let t = 0; t <= 1; t += .02){ const y = Math.round(13 + t * 20); for (const x of [cx - 10 + t * 20, cx + 10 - t * 20]){ red(Math.round(x), y); red(Math.round(x) + 1, y); } }
+/* Wappentier des Hauses auf der Pferdedecke, mittig um (cx, cy) */
+function ho_arms(g, A, cx, cy){
+  const x0 = cx - (A[0].length >> 1), y0 = cy - (A.length >> 1);
+  A.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') ho_px(g, x0 + i, y0 + j, r[i]); });
 }
 /* Seitenansicht, Blick nach rechts */
 function ho_side(h, fid, f){
@@ -920,7 +875,7 @@ function ho_side(h, fid, f){
       if (y >= 26 && y <= hem && (c === '.' || 'dhikx'.includes(c))) g[Y][X] = y >= hem ? 'a' : ((X + Y) % 4 === 0 ? 'o' : 'y');
       else if (y <= hem - 1 && X % 6 === 0 && 'OoyY'.includes(c)) g[Y][X] = c === 'Y' ? 'y' : c === 'y' ? 'o' : 'O';
     });
-    ho_arms(g, fid, 27, 23);
+    ho_arms(g, kn_F.s9, 27, 23);
     // Rossstirn aus Stahl
     ho_scan(g, 48, 2, 59, 13, (X, Y, x, y) => { const ch = g[Y][X]; if ('dhik'.includes(ch) && x + y > 53) g[Y][X] = ho_steel(ch); });
     ho_px(g, 52, 7, 'K'); ho_px(g, 53, 4, 'G');
@@ -948,14 +903,7 @@ function ho_front(h, fid, f){
   if (h.cloth === 'caparison'){
     ho_scan(under, 4, 10, 30, 34, (X, Y) => { const ch = under[Y][X]; if ('dhik'.includes(ch)) under[Y][X] = ho_cloth(ch); });
     ho_scan(under, 6, 26, 28, 34, (X, Y, x, y) => { const hem = 33 + ((x >> 1) & 1); if (y <= hem) under[Y][X] = y >= hem ? 'a' : (X % 6 === 0 ? 'o' : 'y'); });
-    if (fid === 'reich') kn_EAGLE7.forEach((r, j) => { for (let i = 0; i < 7; i++) if (r[i] !== '.') ho_px(under, 14 + i, 22 + j, r[i]); });
-    else if (fid === 'frankreich') for (const x of [12, 22]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(under, x - 1 + i, 26 + j, r[i]); });
-    else ho_scan(under, 6, 20, 28, 32, (X, Y) => {
-      const i = 'OoyY'.indexOf(under[Y][X]); if (i < 0) return;
-      const x = X / HO_Z, y = Y / HO_Z;
-      const on = fid === 'england' ? (Math.abs(x - 17.4) <= 1.1 || Math.abs(y - 27.4) <= 1.1) : (Math.abs((x - 17.4) - (y - 27.4) * .9) <= 1.1 || Math.abs((x - 17.4) + (y - 27.4) * .9) <= 1.1);
-      if (on) under[Y][X] = '5678'[i];
-    });
+    ho_arms(under, kn_F.s7, 17, 26);
   } else if (h.cloth === 'blanket'){
     ho_scan(under, 5, 13, 29, 22, (X, Y, x, y) => { if (under[Y][X] !== '.' && (x < 9 || x > 25)) under[Y][X] = y === 22 ? 'a' : 'OoyY'[x < 17 ? 2 : 1]; });
   }
@@ -987,14 +935,7 @@ function ho_back(h, fid, f){
   if (h.cloth === 'caparison'){
     ho_scan(over, 3, 12, 31, 34, (X, Y) => { const ch = over[Y][X]; if ('dhik'.includes(ch)) over[Y][X] = ho_cloth(ch); });
     ho_scan(over, 6, 27, 28, 35, (X, Y, x, y) => { const hem = 34 + ((x >> 1) & 1); if (y <= hem) over[Y][X] = y >= hem ? 'a' : (X % 6 === 0 ? 'o' : 'y'); });
-    ho_scan(over, 6, 16, 28, 33, (X, Y) => {
-      const i = 'OoyY'.indexOf(over[Y][X]); if (i < 0) return;
-      const x = X / HO_Z, y = Y / HO_Z;
-      const on = fid === 'england' ? (Math.abs(x - 17.4) <= 1.1 || Math.abs(y - 25.4) <= 1.1) : fid === 'spanien' ? (Math.abs((x - 17.4) - (y - 25.4) * .9) <= 1.1 || Math.abs((x - 17.4) + (y - 25.4) * .9) <= 1.1) : false;
-      if (on) over[Y][X] = '5678'[i];
-    });
-    if (fid === 'reich') kn_EAGLE9.forEach((r, j) => { for (let i = 0; i < 9; i++) if (r[i] !== '.') ho_px(over, 13 + i, 20 + j, r[i]); });
-    if (fid === 'frankreich') for (const [x, y] of [[11, 21], [23, 21], [17, 28]]) kn_LILY3.forEach((r, j) => { for (let i = 0; i < 3; i++) if (r[i] !== '.') ho_px(over, x - 1 + i, y - 1 + j, r[i]); });
+    ho_arms(over, kn_F.s9, 17, 24);
   } else if (h.cloth === 'blanket'){
     ho_scan(over, 4, 14, 30, 18, (X, Y, x, y) => { if (over[Y][X] !== '.') over[Y][X] = y === 18 ? 'a' : 'OoyY'[x < 17 ? 2 : 1]; });
   }
@@ -1025,7 +966,7 @@ function ho_rider(view){
   }
   return g;
 }
-/* alle Bilder eines Pferdes mit Reiter für eine Herkunft */
+/* alle Bilder eines Pferdes mit Reiter für ein Haus */
 const HO_SETS = {};
 function horseSet(hid, fid){
   const key = hid + '|' + fid;
@@ -1057,11 +998,3 @@ function drawMounted(g, hid, fid, dir, x, y, f, alpha){
   if (fr.over) g.drawImage(fr.over, hx, hy);
 }
 
-const KNIGHT_NOTES = [
-  'Der Ritter trägt den Wappenrock des Königreichs: gelbes Tuch mit dem schwarzen Doppeladler auf Brust, Rücken und Ärmeln. So erkannte man im Getümmel, für wen er kämpfte.',
-  'Auf dem Kopf sitzt eine Schaller mit Visier und schmalem Sehschlitz, hinten läuft sie in einen langen Nackenschirm aus. Kinn und Kehle deckt der Bart, eine gewölbte Platte vor dem Hals.',
-  'Unter dem Rock steckt er in einem Plattenharnisch: Armröhren mit Armkacheln, eiserne Handschuhe, darunter schaut der Kettenschurz hervor. Das Beinzeug hat Kniebuckel mit Muscheln und spitze Eisenschuhe.',
-  'Am linken Arm hängt ein Dreiecksschild aus Holz, mit Leder bezogen und bemalt, wieder mit dem Königsadler.',
-  'Seine Waffe ist ein langes Schwert mit gerader Parierstange und Scheibenknauf, gut 1,3 Meter lang. Er führt es mit einer Hand, denn die andere hält den Schild.',
-  'Schaller und Dreiecksschild stammen aus dem 15. Jahrhundert. Um 1520 galt so eine Rüstung schon als altmodisch, doch mancher Ritter im Königreich trug noch, was sein Vater getragen hatte.'
-];
