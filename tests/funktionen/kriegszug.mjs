@@ -1,4 +1,4 @@
-// Kriegszüge: Rabenfurt 1525 (Kanone, Tiergarten, König Aldemar) und Steinwacht 1529 (Lunten gegen die Zeit, der Aga), Werber und Schiffmeister
+// Kriegszüge: Rabenfurt (Kanone, Tiergarten, König Aldemar) und Steinwacht (Lunten gegen die Zeit, der Heerführer der Garde), Werber und Schiffmeister
 import { chromium, OUT, PAGE } from '../pfad.mjs';
 const b = await chromium.launch(), p = await (await b.newContext({ viewport: { width: 1400, height: 860 } })).newPage(), errs = [];
 p.on('pageerror', e => errs.push(e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' ')));
@@ -18,7 +18,7 @@ await p.evaluate(() => { closePanel(); HERO.lvl = 28; refreshStats(); });
 // Rabenfurt
 await T('Nach Rabenfurt', () => { const n = NPCS.find(q => q.id === 'werber'); openTalk(n); [...$('talkBody').querySelectorAll('button')].find(x => /nach Rabenfurt/.test(x.textContent)).click();
   const M = DG_ON; return { id: M && M.id, step: M.kz.step, foes: kzFoes(), elite: G.mons.filter(m => m.elite).map(m => m.nm || m.elite + ' ' + m.lvl), lvl: M.lvl, tracker: $('tracker').textContent }; },
-  r => r.id === 'pavia' && r.step === 0 && r.foes >= 17 && r.elite.length === 1 && /Rabenfurt 1525: Feuert die Kanone/.test(r.tracker));
+  r => r.id === 'pavia' && r.step === 0 && r.foes >= 17 && r.elite.length === 1 && /Rabenfurt: Feuert die Kanone/.test(r.tracker));
 await shot('kz_pavia_lager.png');
 await T('Kanone abfeuern', () => { const M = DG_ON, L = M.levers[0], k = G.knight; k.x = L.o.x; k.y = L.o.y + 24; G.dgNear = null; dgNear(); const lab = $('btnTalk').textContent; talk();
   return { lab, step: M.kz.step, offen: M.gates[0].open, go: kzGo(M), lab2: $('btnTalk').textContent }; },
