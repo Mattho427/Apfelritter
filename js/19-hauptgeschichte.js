@@ -1,9 +1,9 @@
 "use strict";
-/* Der Apfelritter, Teil 19 von 27: Hauptgeschichte 1520–1529.
+/* Der Apfelritter, Teil 19 von 27: Hauptgeschichte „Unruhige Zeiten“.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Hauptgeschichte: Unruhige Zeiten 1520–1525 ============
+/* ============ Hauptgeschichte: Unruhige Zeiten ============
    Fünf Kapitel, jedes eine Folge von Schritten: sprechen (talk), hingehen (goto), kämpfen (kill), geleiten (escort),
-   jagen (hunt), entscheiden (choice). Zwischenszenen spielen in der Welt oder auf einer Bühne (Reichstag zu Worms).
+   jagen (hunt), entscheiden (choice). Zwischenszenen spielen in der Welt oder auf einer Bühne (Hoftag zu Brunnhall).
    Stand in HERO.story: c Kapitel, s Schritt, n Zähler, b Anführer erschlagen, e Weg beim Geleit, a Hinterhalt,
    f Entscheidungen, gn Gewissen (wer Gnade zeigt und Wort hält, dem vertrauen später beide Seiten), log Chronik. */
 const stP = (x, y) => ({ x: x * WS, y: y * WS });   // Weltpixel → Spielfeld
@@ -24,29 +24,29 @@ const ST_PAL = {
 const stPal = (k, R) => { const p = ST_PAL[k], o = { R: R || '#8a1c1c', h: '#3a2a1a', j: '#5a4028', w: '#8a8478', x: '#c8c2b0' }; p.forEach((c, i) => { o[i + 1] = c; }); return o; };
 const ST_CAST = {
   me:        { nm: '' },
-  luther:    { nm: 'Doktor Martin Luther', p: ['moench', 1] },
-  amsdorf:   { nm: 'Nikolaus von Amsdorf', o: { robe: 'long', hat: 'barett', fur: true, hair: ['h', 'j'] }, pal: 'gelehrt' },
-  kaspar:    { nm: 'Reichsherold Kaspar Sturm', o: { robe: 'short', hat: 'barett', belt: true, chain: true, staff: true, parti: true, hair: ['h', 'j'] }, pal: 'herold', R: '#b8281e' },
-  bote:      { nm: 'Reichsbote Ambrosius', o: { robe: 'short', hat: 'filz', belt: true, parti: true, hair: ['h', 'j'] }, pal: 'bote' },
-  aleander:  { nm: 'Kommissar Aleander', o: { robe: 'long', hat: 'barett', fur: true, hair: ['w', 'x'] }, pal: 'rot' },
+  luther:    { nm: 'Bruder Elias', p: ['moench', 1] },
+  amsdorf:   { nm: 'Magister Nikolaus', o: { robe: 'long', hat: 'barett', fur: true, hair: ['h', 'j'] }, pal: 'gelehrt' },
+  kaspar:    { nm: 'Königsherold Kaspar', o: { robe: 'short', hat: 'barett', belt: true, chain: true, staff: true, parti: true, hair: ['h', 'j'] }, pal: 'herold', R: '#b8281e' },
+  bote:      { nm: 'Königsbote Ambrosius', o: { robe: 'short', hat: 'filz', belt: true, parti: true, hair: ['h', 'j'] }, pal: 'bote' },
+  aleander:  { nm: 'Legat Hieronymus', o: { robe: 'long', hat: 'barett', fur: true, hair: ['w', 'x'] }, pal: 'rot' },
   henker:    { nm: 'Meister Hans, der Henker', o: { robe: 'short', hat: 'kapuze', belt: true, hair: ['h', 'j'] }, pal: 'henker' },
   melchior:  { nm: 'Drucker Melchior', p: ['haendler', 0] },
-  eck:       { nm: 'Johann von der Ecken', o: { robe: 'long', hat: 'barett', fur: true, beard: true, hair: ['h', 'j'] }, pal: 'rot' },
+  eck:       { nm: 'Kanzler Johann', o: { robe: 'long', hat: 'barett', fur: true, beard: true, hair: ['h', 'j'] }, pal: 'rot' },
   buerger1:  { nm: 'Bürger', p: ['buerger', 1] },
   buerger2:  { nm: 'Bürgerin', p: ['buergerin', 0] },
   buerger3:  { nm: 'Bürger', p: ['buerger', 2] },
   magd:      { nm: 'Magd', p: ['magd', 0] },
-  kaiser:    { nm: 'Kaiser Karl V.', kn: ['reich', '44444'], crown: true },
-  wenkheim:  { nm: 'Burkhard Hund von Wenkheim', kn: ['reich', '33343'] },
+  kaiser:    { nm: 'König Albrecht', kn: ['reich', '44444'], crown: true },
+  wenkheim:  { nm: 'Burkhard vom Hag', kn: ['reich', '33343'] },
   reiter:    { nm: 'Vermummter Reiter', kn: ['reich', '22222'] },
-  hutten:    { nm: 'Ulrich von Hutten', kn: ['reich', '22232'] },
-  sickingen: { nm: 'Franz von Sickingen', kn: ['reich', '44443'] },
-  goetz:     { nm: 'Götz von Berlichingen', kn: ['reich', '33343'] },
+  hutten:    { nm: 'Ulrich von Hagen', kn: ['reich', '22232'] },
+  sickingen: { nm: 'Eberhard vom Stein', kn: ['reich', '44443'] },
+  goetz:     { nm: 'Gottfried mit der Eisenhand', kn: ['reich', '33343'] },
   konrad:    { nm: 'Junker Konrad von Lindach', kn: ['reich', '11111'] },
-  truchsess: { nm: 'Georg Truchsess von Waldburg', kn: ['spanien', '44443'] },
+  truchsess: { nm: 'Georg Truchsess von Waldeck', kn: ['spanien', '44443'] },
   fuerst:    { nm: 'Feldhauptmann der Fürsten', kn: ['england', '33333'] },
-  jaecklein: { nm: 'Jäcklein Rohrbach', o: { robe: 'short', hat: 'filz', beard: true, belt: true, hair: ['j', 'h'] }, pal: 'jaeck' },
-  hipler:    { nm: 'Wendel Hipler', o: { robe: 'long', hat: 'barett', beard: true, belt: true, hair: ['w', 'x'] }, pal: 'gruen' },
+  jaecklein: { nm: 'Jäcklein Mühlbach', o: { robe: 'short', hat: 'filz', beard: true, belt: true, hair: ['j', 'h'] }, pal: 'jaeck' },
+  hipler:    { nm: 'Wendel Federlein', o: { robe: 'long', hat: 'barett', beard: true, belt: true, hair: ['w', 'x'] }, pal: 'gruen' },
   bauer1:    { nm: 'Bauer', p: ['bauer', 0] },
   bauer2:    { nm: 'Bäuerin', p: ['baeuerin', 0] },
   bauer3:    { nm: 'Bauer', o: { robe: 'short', hat: 'filz', beard: true, belt: true, hair: ['h', 'j'] }, pal: 'bauer' },
@@ -289,8 +289,8 @@ function stOverlay(cam){
   ctx.fillStyle = '#0a080b'; ctx.fillRect(0, 0, W, bar); ctx.fillRect(0, H - bar, W, bar);
 }
 
-/* ---------- Bühne: der Saal im Bischofshof zu Worms, April 1521 ----------
-   Holzgetäfelte Wand mit Wandteppichen, in der Mitte der Thron unter rotem Baldachin, links und rechts die Reichsstände
+/* ---------- Bühne: der Saal im Bischofshof zu Brunnhall, April 1521 ----------
+   Holzgetäfelte Wand mit Wandteppichen, in der Mitte der Thron unter rotem Baldachin, links und rechts die Stände
    auf Bänken, Fliesenboden, hohe Fenster und Kerzen. Einmal gemalt, die Kerzen flackern beim Zeichnen. */
 let ST_HALL = null;
 function stHall(){
@@ -321,7 +321,7 @@ function stHall(){
     g.fillStyle = '#5a6e80'; for (let yy = y0 + 18; yy < y0 + h; yy += 10) g.fillRect(x0, yy, w, 1); g.fillRect(x0 + w / 2, y0 + 4, 1, h);
     g.fillStyle = 'rgba(230,240,255,.18)'; g.fillRect(x0 + 3, y0 + 14, 8, h - 10);
   }
-  // Wandteppiche: zwei seitliche, ein großer hinter dem Thron mit dem Reichsadler
+  // Wandteppiche: zwei seitliche, ein großer hinter dem Thron mit dem Königsadler
   const tap = (x, y, w, h, col) => {
     g.fillStyle = OUT; g.fillRect(x - 2, y - 2, w + 4, h + 4);
     g.fillStyle = col; g.fillRect(x, y, w, h);
@@ -337,7 +337,7 @@ function stHall(){
   for (const [w, y] of [[150, wallY + 18], [120, wallY + 6]]){ g.fillStyle = OUT; g.fillRect(cx - w / 2 - 1, y - 1, w + 2, 14); g.fillStyle = '#8a8478'; g.fillRect(cx - w / 2, y, w, 12); g.fillStyle = '#b0aa9c'; g.fillRect(cx - w / 2, y, w, 2); }
   g.fillStyle = OUT; g.fillRect(cx - 21, wallY - 52, 42, 60); g.fillStyle = '#b08a1e'; g.fillRect(cx - 19, wallY - 50, 38, 56); g.fillStyle = '#d8b030'; g.fillRect(cx - 19, wallY - 50, 38, 3);
   g.fillStyle = '#7a1e1e'; g.fillRect(cx - 14, wallY - 44, 28, 46); g.fillStyle = '#a42a2a'; g.fillRect(cx - 14, wallY - 44, 28, 3);
-  // die Reichsstände auf Bänken zu beiden Seiten
+  // die Stände auf Bänken zu beiden Seiten
   const lords = [['buerger', 0], ['buerger', 1], ['buerger', 2], ['buergerin', 1], ['buerger', 0], ['moench', 0]];
   for (const side of [-1, 1]) for (let row = 0; row < 2; row++){
     const bx = cx + side * (W * .28) - 70, by = wallY + 48 + row * 56;
@@ -701,34 +701,34 @@ function stTalkFallback(){
 }
 
 /* ---------- Die fünf Kapitel ----------
-   Orte in Weltpixeln. Historisch: Karls Krönung in Aachen (Oktober 1520), Aleanders Bücherverbrennungen (Mainz, November 1520,
-   der Henker weigerte sich), Luther in Worms (April 1521) mit dem Reichsherold Kaspar Sturm, der vorgetäuschte Überfall
-   (Mai 1521), Sickingens Fehde gegen Trier (1522) und sein Tod auf Nanstein (Mai 1523), die zwölf Artikel (März 1525),
-   Weinsberg (Ostern 1525), Götz als Bauernhauptmann, der Vertrag von Weingarten (April 1525). */
+   Orte in Weltpixeln. Alle Personen und Orte sind erfunden: der junge König Albrecht, der Legat und die verbotenen Bücher,
+   der Wanderprediger Bruder Elias auf dem Hoftag zu Brunnhall, der vorgetäuschte Überfall, die Fehde des Ritters Eberhard
+   vom Stein gegen Hohenstift, die zwölf Artikel der Bauern, Rebenau, Gottfried mit der Eisenhand als Bauernhauptmann,
+   der Vertrag von Weidach. */
 const ST_TITLES = { bauern: 'Bauernritter', herren: 'Bannerherr des Bundes', frieden: 'Friedensstifter' };
 const ST_KAISERWEG = [[2040, 800], [1960, 800], [1946, 836], [1890, 874], [1860, 930], [1876, 1010], [1898, 1100], [1900, 1200], [1900, 1310], [2150, 1330], [2350, 1372], [2470, 1400], [2620, 1404], [2760, 1384], [2830, 1480], [2900, 1600], [2950, 1720], [2966, 1800], [2966, 1856]];
 const ST_HIPLERWEG = [[2470, 640], [2455, 720], [2440, 790], [2300, 790], [2150, 788], [2040, 800], [1960, 800], [1946, 836], [1890, 874], [1860, 930], [1876, 1010], [1898, 1100], [1900, 1200], [1900, 1286]];
 const isF = (k, v) => f => f[k] === v;
 const ST_CH = [
 /* ===== Kapitel 1 ===== */
-{ n: 1, t: 'Der neue Kaiser', year: 'Herbst 1520', lvl: 2,
-  d: 'In Aachen ist der junge Karl gekrönt worden. Sein erstes Ausschreiben soll ins Reichsland kommen, doch der Reichsbote ist überfällig.',
-  reward: f => f.k1 === 'brand' ? { s: 'kleinod', n: 'Rosenkranz des Kommissars', aff: ['hp', 'arm', 'crit'], r: 3 } : { s: 'kleinod', n: 'Lettern des Druckers Melchior', aff: ['str', 'crit', 'spd'], r: 3 },
+{ n: 1, t: 'Der neue König', year: 'Herbst, im ersten Jahr', lvl: 2,
+  d: 'In der Krönungsstadt ist der junge Albrecht zum König gekrönt worden. Sein erstes Ausschreiben soll ins Königsland kommen, doch der Königsbote ist überfällig.',
+  reward: f => f.k1 === 'brand' ? { s: 'kleinod', n: 'Rosenkranz des Legaten', aff: ['hp', 'arm', 'crit'], r: 3 } : { s: 'kleinod', n: 'Lettern des Druckers Melchior', aff: ['str', 'crit', 'spd'], r: 3 },
   steps: [
-  { type: 'talk', npc: 'vogt', opt: 'Ihr habt nach mir geschickt?', t: 'Sprecht mit dem Vogt in der Reichsburg', d: 'Der Vogt Heinrich lässt nach Euch schicken.',
+  { type: 'talk', npc: 'vogt', opt: 'Ihr habt nach mir geschickt?', t: 'Sprecht mit dem Vogt in der Königsburg', d: 'Der Vogt Heinrich lässt nach Euch schicken.',
     scene: [
-      { title: 'Kapitel 1: Der neue Kaiser', sub: 'Reichsland, im Herbst des Jahres 1520' },
-      { say: 'vogt', text: 'Gut, dass Ihr kommt. In Aachen hat man den jungen Karl gekrönt, den Enkel des alten Kaisers Maximilian. Zwanzig Jahre ist er alt und herrscht über Spanien, Burgund und das Reich.' },
-      { say: 'vogt', text: 'Sein erstes Ausschreiben ist zu uns unterwegs: Er ruft die Stände zum Reichstag nach Worms. Doch der Reichsbote ist überfällig. Gestern hätte er hier sein sollen.' },
+      { title: 'Kapitel 1: Der neue König', sub: 'Königsland, im Herbst des ersten Jahres' },
+      { say: 'vogt', text: 'Gut, dass Ihr kommt. In der Krönungsstadt hat man den jungen Albrecht gekrönt, den Enkel des alten Königs. Zwanzig Jahre ist er alt und erbt ein Königreich voller Streit.' },
+      { say: 'vogt', text: 'Sein erstes Ausschreiben ist zu uns unterwegs: Er ruft die Stände zum Hoftag nach Brunnhall. Doch der Königsbote ist überfällig. Gestern hätte er hier sein sollen.' },
       { say: 'me', text: 'Welchen Weg nimmt er?' },
       { say: 'vogt', text: 'Den Burgweg hinab, durch die Obstgärten. Dort treibt sich Gesindel herum. Reitet hinunter und seht nach ihm.' }
     ] },
-  { type: 'goto', at: [1880, 1080], r: 60, place: 'Der Reichsbote', t: 'Sucht den Reichsboten in den Obstgärten', d: 'Er kam den Burgweg herunter, durch die Obstgärten.',
+  { type: 'goto', at: [1880, 1080], r: 60, place: 'Der Königsbote', t: 'Sucht den Königsboten in den Obstgärten', d: 'Er kam den Burgweg herunter, durch die Obstgärten.',
     cast: [{ id: 'bote', at: [1880, 1080], lie: true }],
     scene: [
       { pan: [1880, 1066] },
       { say: 'bote', text: 'Herr Ritter … Gott sei Dank. Sie kamen aus den Bäumen, fünf Mann mit Spießen und Knüppeln.' },
-      { say: 'bote', text: 'Die Ledertasche mit dem kaiserlichen Siegel haben sie mir genommen. Ihr Anführer heißt Hans Ohnegnad. Nach Westen sind sie, zu den alten Bäumen.' },
+      { say: 'bote', text: 'Die Ledertasche mit dem königlichen Siegel haben sie mir genommen. Ihr Anführer heißt Hans Ohnegnad. Nach Westen sind sie, zu den alten Bäumen.' },
       { say: 'me', text: 'Bleibt liegen und haltet durch. Ich hole Euch die Tasche zurück.' }
     ] },
   { type: 'kill', at: [1560, 1040], place: 'Strauchdiebe', t: 'Holt die Tasche von den Strauchdieben zurück', d: 'Hans Ohnegnad und seine Strauchdiebe lagern westlich des Burgwegs.',
@@ -737,44 +737,44 @@ const ST_CH = [
     after: [
       { say: 'me', text: 'Da ist die Tasche, und das Siegel ist unversehrt. Zurück zum Vogt.' }
     ] },
-  { type: 'talk', npc: 'vogt', opt: 'Die Tasche des Reichsboten', t: 'Bringt die Tasche zum Vogt',
+  { type: 'talk', npc: 'vogt', opt: 'Die Tasche des Königsboten', t: 'Bringt die Tasche zum Vogt',
     scene: [
       { say: 'vogt', text: 'Ihr habt sie! Und das Siegel ist heil. Lasst sehen …' },
-      { say: 'vogt', text: '„Wir, Karl, erwählter Römischer Kaiser, laden Kurfürsten, Fürsten, Grafen, Herren und Städte auf den Tag der Heiligen Drei Könige nach Worms.“ Da wird über vieles gesprochen werden. Auch über einen Mönch aus Wittenberg.' },
-      { say: 'vogt', text: 'Die Reichsstadt muss eine Abschrift haben. Bringt sie dem Bürgermeister Ulman. Und Ritter: In der Stadt gärt es. Seht Euch vor.' }
+      { say: 'vogt', text: '„Wir, Albrecht, von Gottes Gnaden König, laden Herzöge, Fürsten, Grafen, Herren und Städte auf den Tag der Heiligen Drei Könige nach Brunnhall.“ Da wird über vieles gesprochen werden. Auch über einen Mönch aus Schwanstedt.' },
+      { say: 'vogt', text: 'Die Königsstadt muss eine Abschrift haben. Bringt sie dem Bürgermeister Ulman. Und Ritter: In der Stadt gärt es. Seht Euch vor.' }
     ] },
-  { type: 'talk', npc: 'buerger', opt: 'Ein Ausschreiben des Kaisers', t: 'Bringt die Abschrift zum Bürgermeister der Reichsstadt',
+  { type: 'talk', npc: 'buerger', opt: 'Ein Ausschreiben des Königs', t: 'Bringt die Abschrift zum Bürgermeister der Königsstadt',
     scene: [
-      { say: 'buerger', text: 'Ein Ausschreiben des Kaisers, mit Siegel! Habt Dank, Herr Ritter. Worms also … Die Stadt wird Gesandte schicken.' },
+      { say: 'buerger', text: 'Ein Ausschreiben des Königs, mit Siegel! Habt Dank, Herr Ritter. Brunnhall also … Die Stadt wird Gesandte schicken.' },
       { put: 'aleander', at: [3090, 2318], dir: 'left' }, { put: 'henker', at: [3110, 2338], dir: 'left' }, { put: 'melchior', at: [2952, 2340], dir: 'right' },
       { put: 'bu1', as: 'buerger1', at: [2948, 2300], dir: 'right' }, { put: 'bu2', as: 'buerger2', at: [3034, 2366], dir: 'up' }, { put: 'magd', at: [2968, 2378], dir: 'up' },
       { fx: 'books', at: [2990, 2334] },
       { pan: [2990, 2330] },
       { walk: 'aleander', to: [3020, 2320], face: 'left' }, { walk: 'henker', to: [3006, 2344], face: 'left', wait: true },
-      { say: 'aleander', text: 'Im Namen Seiner Heiligkeit, des Papstes Leo! Ich bin Hieronymus Aleander, Gesandter des Heiligen Stuhls. Diese Bücher des Ketzers Luther werden heute verbrannt.' },
-      { say: 'melchior', text: 'Das sind meine Drucke! „An den christlichen Adel deutscher Nation“. Darin steht nichts als die Wahrheit über Rom!' },
+      { say: 'aleander', text: 'Im Namen Seiner Heiligkeit, des Heiligen Vaters! Ich bin Hieronymus, sein Legat. Diese Bücher des Ketzers Elias werden heute verbrannt.' },
+      { say: 'melchior', text: 'Das sind meine Drucke! „An den christlichen Adel des Königreichs“. Darin steht nichts als die Wahrheit über die Heilige Stadt!' },
       { say: 'aleander', text: 'Meister Hans, entzündet den Haufen.' },
       { say: 'henker', text: 'Erst frage ich die Bürger dieser Stadt: Sind diese Bücher nach Recht und Urteil verdammt?' },
       { say: 'bu1', nm: 'Die Bürger', text: 'Nein! Kein Gericht hat sie verurteilt!' },
       { say: 'henker', text: 'Dann verbrenne ich sie nicht. Ich vollstrecke nur, was ein Richter verurteilt hat.' },
       { walk: 'henker', to: [3070, 2350] },
-      { say: 'aleander', text: 'Feigling! … Ihr da, Ritter. Ihr steht im Dienst des Kaisers, und der Kaiser steht zur Kirche. Nehmt die Fackel.' },
+      { say: 'aleander', text: 'Feigling! … Ihr da, Ritter. Ihr steht im Dienst des Königs, und der König steht zur Kirche. Nehmt die Fackel.' },
       { hold: true }
     ] },
   { type: 'choice', auto: true, who: 'aleander', t: 'Entscheidet Euch auf dem Markt (E)',
-    q: 'Aleander hält Euch die Fackel hin. Der Drucker Melchior sieht Euch an, die Bürger schweigen.',
+    q: 'Der Legat hält Euch die Fackel hin. Der Drucker Melchior sieht Euch an, die Bürger schweigen.',
     opts: [
-      { t: 'Die Fackel nehmen und den Haufen anzünden', f: { k1: 'brand' }, log: 'Herbst 1520: Ihr habt auf dem Markt Luthers Bücher für den Kommissar Aleander verbrannt.',
+      { t: 'Die Fackel nehmen und den Haufen anzünden', f: { k1: 'brand' }, log: 'Im ersten Herbst: Ihr habt auf dem Markt die Bücher des Bruders Elias für den Legaten Hieronymus verbrannt.',
         scene: [
           { fx: 'fire', at: [2990, 2332], big: 1.1, sound: 'fire' },
-          { say: 'aleander', text: 'So geht es allen Schriften gegen den Heiligen Vater. Der Kaiser wird von Eurer Treue hören.' },
+          { say: 'aleander', text: 'So geht es allen Schriften gegen den Heiligen Vater. Der König wird von Eurer Treue hören.' },
           { say: 'melchior', text: 'Bücher kann man verbrennen, Herr Ritter. Was darin steht, nicht. Es ist längst tausendfach gedruckt.' },
           { say: 'buerger', text: 'Mir gefällt das nicht. Aber Ihr habt getan, was Ihr für Eure Pflicht haltet. Hier ist der Dank der Stadt für das Ausschreiben.' }
         ] },
-      { t: 'Euch weigern wie der Henker', f: { k1: 'weigern' }, gn: 1, log: 'Herbst 1520: Ihr habt Euch geweigert, Bücher zu verbrennen, die kein Gericht verurteilt hatte.',
+      { t: 'Euch weigern wie der Henker', f: { k1: 'weigern' }, gn: 1, log: 'Im ersten Herbst: Ihr habt Euch geweigert, Bücher zu verbrennen, die kein Gericht verurteilt hatte.',
         scene: [
           { say: 'me', text: 'Der Henker hat recht. Kein Gericht hat diese Bücher verurteilt. Ich verbrenne sie nicht.' },
-          { say: 'aleander', text: 'Das wird der Kaiser erfahren! Diese ganze Stadt steht im Ruch der Ketzerei.' },
+          { say: 'aleander', text: 'Das wird der König erfahren! Diese ganze Stadt steht im Ruch der Ketzerei.' },
           { walk: 'aleander', to: [3150, 2318], spd: 60 },
           { say: 'melchior', text: 'Das vergesse ich Euch nicht, Herr Ritter. Wenn Ihr je einen Drucker braucht: Meine Presse steht Euch offen.' },
           { say: 'buerger', text: 'Mutig, vielleicht zu mutig. Aber die Stadt dankt Euch, für das Ausschreiben und für den Frieden auf dem Markt.' }
@@ -782,53 +782,53 @@ const ST_CH = [
     ] }
   ] },
 /* ===== Kapitel 2 ===== */
-{ n: 2, t: 'Hier stehe ich', year: 'Frühjahr 1521', lvl: 5,
-  d: 'Der Kaiser hat Doktor Martin Luther nach Worms geladen und ihm freies Geleit versprochen. Der Reichsherold sucht einen Ritter für den Weg durch das Reichsland.',
-  reward: f => f.k2 === 'kampf' ? { s: 'helm', n: 'Visierhelm des Wenkheim', aff: ['arm', 'hp', 'str'], r: 3 } : { s: 'kleinod', n: 'Brief des Junkers Jörg', aff: ['hp', 'crit', 'spd'], r: 3 },
+{ n: 2, t: 'Der Wanderprediger', year: 'Frühjahr, im zweiten Jahr', lvl: 5,
+  d: 'Der König hat Bruder Elias nach Brunnhall geladen und ihm freies Geleit versprochen. Der Königsherold sucht einen Ritter für den Weg durch das Königsland.',
+  reward: f => f.k2 === 'kampf' ? { s: 'helm', n: 'Visierhelm des Burkhard', aff: ['arm', 'hp', 'str'], r: 3 } : { s: 'kleinod', n: 'Brief des Junkers Jörg', aff: ['hp', 'crit', 'spd'], r: 3 },
   steps: [
-  { type: 'talk', npc: 'herold', opt: 'Ihr sucht einen Ritter?', t: 'Sprecht mit dem Herold vor der Reichsstadt', d: 'Herold Kaspar steht bei der Turnierwiese östlich der Stadt.',
+  { type: 'talk', npc: 'herold', opt: 'Ihr sucht einen Ritter?', t: 'Sprecht mit dem Herold vor der Königsstadt', d: 'Herold Kaspar steht bei der Turnierwiese östlich der Stadt.',
     scene: [
-      { title: 'Kapitel 2: Hier stehe ich', sub: 'Reichsland, im April des Jahres 1521' },
-      { say: 'herold', text: 'Ihr seid der Ritter, der das Ausschreiben gerettet hat? Dann seid Ihr der Rechte. Ich bin nicht nur Turnierherold: Der Kaiser hat mich zum Reichsherold ernannt, Kaspar Sturm ist mein Name.' },
-      { say: 'herold', text: 'Mein Auftrag: Ich geleite Doktor Martin Luther aus Wittenberg nach Worms. Der Kaiser hat ihm freies Geleit zugesagt, hin und zurück.' },
-      { say: 'me', text: 'Freies Geleit hatte auch Jan Hus in Konstanz. Man hat ihn trotzdem verbrannt.' },
+      { title: 'Kapitel 2: Der Wanderprediger', sub: 'Königsland, im April des zweiten Jahres' },
+      { say: 'herold', text: 'Ihr seid der Ritter, der das Ausschreiben gerettet hat? Dann seid Ihr der Rechte. Ich bin nicht nur Turnierherold: Der König hat mich zum Königsherold ernannt, Kaspar ist mein Name.' },
+      { say: 'herold', text: 'Mein Auftrag: Ich geleite Bruder Elias aus Schwanstedt nach Brunnhall. Der König hat ihm freies Geleit zugesagt, hin und zurück.' },
+      { say: 'me', text: 'Freies Geleit hatte vor hundert Jahren auch der Prediger von Hohenstift. Man hat ihn trotzdem verbrannt.' },
       { say: 'herold', text: 'Darum brauche ich Euch. Es gibt Leute, die auf das Kopfgeld hoffen, das manche Pfaffen versprechen. Trefft uns am Gasthaus Zum Roten Ochsen am Burgweg.' }
     ] },
-  { type: 'goto', at: [2046, 800], r: 60, place: 'Zum Roten Ochsen', t: 'Trefft Luther am Gasthaus Zum Roten Ochsen', d: 'Am Burgweg unter der Reichsburg.',
+  { type: 'goto', at: [2046, 800], r: 60, place: 'Zum Roten Ochsen', t: 'Trefft Bruder Elias am Gasthaus Zum Roten Ochsen', d: 'Am Burgweg unter der Königsburg.',
     cast: [{ id: 'luther', at: [2024, 810] }, { id: 'kaspar', at: [2068, 810] }],
     scene: [
       { pan: [2046, 804] },
-      { say: 'kaspar', text: 'Da seid Ihr. Herr Doktor, das ist der Ritter, von dem ich Euch erzählt habe.' },
-      { say: 'luther', text: 'Gott zum Gruß, Herr Ritter. Man hat mir geraten umzukehren. In Worms würde man mich verbrennen wie den Hus.' },
-      { say: 'luther', text: 'Aber ich sage Euch: Und wären so viel Teufel in Worms, wie Ziegel auf den Dächern, ich wollte doch hinein.' },
-      { say: 'me', text: 'Dann bringe ich Euch sicher bis an die Brücke vor der Reichsstadt. Dort übernimmt die Stadt das Geleit.' }
+      { say: 'kaspar', text: 'Da seid Ihr. Bruder Elias, das ist der Ritter, von dem ich Euch erzählt habe.' },
+      { say: 'luther', text: 'Gott zum Gruß, Herr Ritter. Man hat mir geraten umzukehren. In Brunnhall würde man mich verbrennen wie den Prediger von Hohenstift.' },
+      { say: 'luther', text: 'Aber ich sage Euch: Und stünde in Brunnhall hinter jedem Ziegel ein Teufel, ich ginge doch hinein.' },
+      { say: 'me', text: 'Dann bringe ich Euch sicher bis an die Brücke vor der Königsstadt. Dort übernimmt die Stadt das Geleit.' }
     ] },
-  { type: 'escort', who: ['kaspar', 'luther'], lead: 'Doktor Luther', path: ST_KAISERWEG, spd: 38, t: 'Geleitet Luther zur Brücke vor der Reichsstadt',
-    d: 'Bleibt nahe beim Zug, sonst wartet er auf Euch.', wait: 'Herr Ritter, wir warten auf Euch!', cleared: 'Die Kopfgeldjäger sind vertrieben. Luther betet kurz, dann geht es weiter.',
+  { type: 'escort', who: ['kaspar', 'luther'], lead: 'Bruder Elias', path: ST_KAISERWEG, spd: 38, t: 'Geleitet Bruder Elias zur Brücke vor der Königsstadt',
+    d: 'Bleibt nahe beim Zug, sonst wartet er auf Euch.', wait: 'Herr Ritter, wir warten auf Euch!', cleared: 'Die Kopfgeldjäger sind vertrieben. Bruder Elias betet kurz, dann geht es weiter.',
     amb: [
-      { at: .3, nm: 'Überfall!', sub: 'Kopfgeldjäger wollen Luther', cry: '„Der Ketzer ist hundert Gulden wert, Geleit hin oder her!“', mobs: [{ k: 'pluend', n: 3, nm: 'Kopfgeldjäger' }, { k: 'armbrust', n: 1, nm: 'Kopfgeldjäger' }] },
-      { at: .7, nm: 'Hinterhalt', sub: 'Schützt den Doktor!', mobs: [{ k: 'pluend', n: 2, nm: 'Kopfgeldjäger' }, { k: 'armbrust', n: 2, nm: 'Armbruster der Kopfgeldjäger' }] }
+      { at: .3, nm: 'Überfall!', sub: 'Kopfgeldjäger wollen Bruder Elias', cry: '„Der Ketzer ist hundert Gulden wert, Geleit hin oder her!“', mobs: [{ k: 'pluend', n: 3, nm: 'Kopfgeldjäger' }, { k: 'armbrust', n: 1, nm: 'Kopfgeldjäger' }] },
+      { at: .7, nm: 'Hinterhalt', sub: 'Schützt den Prediger!', mobs: [{ k: 'pluend', n: 2, nm: 'Kopfgeldjäger' }, { k: 'armbrust', n: 2, nm: 'Armbruster der Kopfgeldjäger' }] }
     ],
     after: [
       { say: 'luther', text: 'Ihr habt Euer Leben für einen armen Mönch gewagt. Gott vergelte es Euch.' },
-      { say: 'kaspar', text: 'Von hier an geleitet uns die Stadt. Wartet auf Nachricht aus Worms, Herr Ritter.' },
-      { title: 'Worms, am 18. April 1521', sub: 'Im Bischofshof tagt der Reichstag. Der Kaiser, die Kurfürsten und die Stände des Reiches sind versammelt.' },
+      { say: 'kaspar', text: 'Von hier an geleitet uns die Stadt. Wartet auf Nachricht aus Brunnhall, Herr Ritter.' },
+      { title: 'Brunnhall, im April', sub: 'Im Bischofshof tagt der Hoftag. Der König, die Herzöge und die Stände des Königreichs sind versammelt.' },
       { stage: 'worms' },
       { put: 'kaiser', at: [0, -14], dir: 'down' }, { put: 'eck', at: [-70, 34], dir: 'right' }, { put: 'luther', at: [0, 82], dir: 'up' }, { put: 'kaspar', at: [104, 70], dir: 'up' },
-      { say: 'eck', text: 'Martin Luther! Seine Kaiserliche Majestät fragt Euch zum zweiten Mal: Bekennt Ihr Euch zu diesen Büchern, und widerruft Ihr, was darin gegen die Kirche steht?' },
-      { say: 'luther', text: 'Wenn ich nicht durch Zeugnisse der Schrift oder durch klare Gründe der Vernunft überwunden werde, so bleibe ich gebunden an die Schrift. Mein Gewissen ist gefangen in Gottes Wort.' },
-      { say: 'luther', text: 'Widerrufen kann und will ich nichts, weil es weder sicher noch geraten ist, gegen das Gewissen zu handeln. Hier stehe ich, ich kann nicht anders. Gott helfe mir. Amen.' },
+      { say: 'eck', text: 'Bruder Elias! Seine Königliche Majestät fragt Euch zum zweiten Mal: Bekennt Ihr Euch zu diesen Büchern, und widerruft Ihr, was darin gegen die Kirche steht?' },
+      { say: 'luther', text: 'Solange mich niemand mit der Schrift oder mit klaren Gründen widerlegt, bleibe ich bei dem, was ich geschrieben habe. Mein Gewissen gehört Gott, nicht diesem Saal.' },
+      { say: 'luther', text: 'Widerrufen will ich nichts, denn gegen das Gewissen zu handeln ist weder recht noch sicher. Ich bleibe dabei. Gott helfe mir. Amen.' },
       { sound: 'bell' },
-      { say: 'kaiser', text: 'Ein einzelner Mönch irrt, wenn er gegen die Meinung der ganzen Christenheit steht. Ich bin entschlossen, dafür meine Reiche, meine Freunde, meinen Leib und mein Leben einzusetzen.' },
-      { title: 'Das Wormser Edikt', sub: 'Im Mai 1521 verhängt der Kaiser die Reichsacht über Luther: Niemand darf ihn beherbergen, jeder soll ihn ausliefern. Doch das Geleit für die Heimreise gilt noch einundzwanzig Tage.' },
+      { say: 'kaiser', text: 'Ein einzelner Mönch irrt, wenn er gegen die Meinung der ganzen Christenheit steht. Ich bin entschlossen, dafür meine Krone, meine Freunde, meinen Leib und mein Leben einzusetzen.' },
+      { title: 'Das Brunnhaller Edikt', sub: 'Wenige Wochen später verhängt der König die Acht über Bruder Elias: Niemand darf ihn beherbergen, jeder soll ihn ausliefern. Doch das Geleit für die Heimreise gilt noch einundzwanzig Tage.' },
       { stage: null }
     ] },
-  { type: 'talk', npc: 'herold', opt: 'Gibt es Nachricht aus Worms?', t: 'Sprecht wieder mit dem Herold',
+  { type: 'talk', npc: 'herold', opt: 'Gibt es Nachricht aus Brunnhall?', t: 'Sprecht wieder mit dem Herold',
     scene: [
-      { say: 'herold', text: 'Ihr habt es gehört: Die Acht ist verhängt. Ich habe den Doktor ein Stück auf dem Heimweg geleitet, dann hat er mich zurückgeschickt.' },
-      { say: 'herold', text: 'Er nimmt den Weg durch den Finsterwald, mit seinem Freund Amsdorf. Mir ist nicht wohl dabei. Reitet ihm nach, Herr Ritter!' }
+      { say: 'herold', text: 'Ihr habt es gehört: Die Acht ist verhängt. Ich habe den Prediger ein Stück auf dem Heimweg geleitet, dann hat er mich zurückgeschickt.' },
+      { say: 'herold', text: 'Er nimmt den Weg durch den Finsterwald, mit seinem Freund Nikolaus. Mir ist nicht wohl dabei. Reitet ihm nach, Herr Ritter!' }
     ] },
-  { type: 'goto', at: [1050, 862], r: 70, place: 'Weg in den Finsterwald', t: 'Holt Luther auf dem Weg in den Finsterwald ein', d: 'Der Weg zweigt westlich der Obstgärten in den Wald ab.',
+  { type: 'goto', at: [1050, 862], r: 70, place: 'Weg in den Finsterwald', t: 'Holt Bruder Elias auf dem Weg in den Finsterwald ein', d: 'Der Weg zweigt westlich der Obstgärten in den Wald ab.',
     cast: [{ id: 'luther', at: [1032, 870], dir: 'left' }, { id: 'amsdorf', at: [1068, 876], dir: 'left' }],
     scene: [
       { pan: [1040, 866] },
@@ -836,27 +836,27 @@ const ST_CH = [
       { put: 'wenk', as: 'wenkheim', at: [850, 850], dir: 'right', ride: 'streitross' }, { put: 'r1', as: 'reiter', at: [840, 900], dir: 'right', ride: 'zelter' }, { put: 'r2', as: 'reiter', at: [870, 806], dir: 'right', ride: 'zelter' },
       { sound: 'horn' },
       { walk: 'wenk', to: [982, 862] }, { walk: 'r1', to: [996, 908] }, { walk: 'r2', to: [1008, 828], wait: true },
-      { say: 'wenk', nm: 'Vermummter Reiter', text: 'Halt! Wer von euch ist der Mönch Martinus? Absteigen, alle beide!' },
+      { say: 'wenk', nm: 'Vermummter Reiter', text: 'Halt! Wer von euch ist der Mönch Elias? Absteigen, alle beide!' },
       { say: 'amsdorf', text: 'Herr Ritter, helft uns! Das sind Räuber!' },
       { hold: true }
     ] },
   { type: 'choice', auto: true, who: 'reiter', t: 'Entscheidet Euch im Finsterwald (E)',
     cast: [{ id: 'luther', at: [1032, 870], dir: 'left' }, { id: 'amsdorf', at: [1068, 876], dir: 'left' }],
-    q: 'Die vermummten Reiter umringen Luther. Ihr Anführer trägt kein Wappen, aber er reitet ein Pferd, das mehr wert ist als ein ganzes Dorf.',
+    q: 'Die vermummten Reiter umringen Bruder Elias. Ihr Anführer trägt kein Wappen, aber er reitet ein Pferd, das mehr wert ist als ein ganzes Dorf.',
     opts: [
-      { t: 'Das Schwert ziehen und die Reiter angreifen', f: { k2: 'kampf' }, log: 'Mai 1521: Im Finsterwald habt Ihr Luther gegen vermummte Reiter verteidigt.',
+      { t: 'Das Schwert ziehen und die Reiter angreifen', f: { k2: 'kampf' }, log: 'Im zweiten Frühjahr: Im Finsterwald habt Ihr Bruder Elias gegen vermummte Reiter verteidigt.',
         scene: [
-          { say: 'me', text: 'Hier kommt keiner durch! Der Doktor steht unter kaiserlichem Geleit!' },
+          { say: 'me', text: 'Hier kommt keiner durch! Der Prediger steht unter königlichem Geleit!' },
           { say: 'wenk', nm: 'Vermummter Reiter', text: 'Dann eben mit Gewalt. Knechte, haltet ihn auf, aber tötet ihn nicht!' }
         ] },
-      { t: 'Die Hand vom Schwert lassen und abwarten', f: { k2: 'still' }, gn: 1, log: 'Mai 1521: Im Finsterwald habt Ihr die vermummten Reiter gewähren lassen und geschwiegen.',
+      { t: 'Die Hand vom Schwert lassen und abwarten', f: { k2: 'still' }, gn: 1, log: 'Im zweiten Frühjahr: Im Finsterwald habt Ihr die vermummten Reiter gewähren lassen und geschwiegen.',
         scene: [
           { say: 'me', text: 'Räuber auf solchen Pferden? Und keiner greift nach dem Geldbeutel. Hier stimmt etwas nicht.' },
           { walk: 'wenk', to: [1010, 866], wait: true },
-          { say: 'wenk', nm: 'Vermummter Reiter', text: 'Klug, Ritter. Hört gut zu und vergesst es dann: Wir dienen dem Kurfürsten Friedrich von Sachsen. Der Doktor wird versteckt, bis die Acht ihn nicht mehr findet.' },
+          { say: 'wenk', nm: 'Vermummter Reiter', text: 'Klug, Ritter. Hört gut zu und vergesst es dann: Wir dienen dem Herzog der Nordmark. Der Prediger wird versteckt, bis die Acht ihn nicht mehr findet.' },
           { say: 'luther', text: 'Also doch Freunde! Herr Ritter, sagt niemandem, was Ihr gesehen habt. Und betet für mich.' },
           { walk: 'luther', to: [880, 862] }, { walk: 'r1', to: [860, 900] }, { walk: 'r2', to: [860, 820] }, { walk: 'wenk', to: [850, 860] }, { walk: 'amsdorf', to: [1220, 862], wait: true },
-          { title: 'Junker Jörg', sub: 'Luther verschwindet. Viele halten ihn für tot. Auf der Wartburg aber lebt bald ein bärtiger Junker Jörg und übersetzt das Neue Testament ins Deutsche.' }
+          { title: 'Junker Jörg', sub: 'Bruder Elias verschwindet. Viele halten ihn für tot. Auf Burg Waldeck aber lebt bald ein bärtiger Junker Jörg und überträgt die Heilige Schrift in die Sprache des Volkes.' }
         ] }
     ] },
   { type: 'kill', if: isF('k2', 'kampf'), at: [1000, 872], place: 'Vermummte Knechte', t: 'Wehrt die vermummten Knechte ab',
@@ -864,114 +864,114 @@ const ST_CH = [
     mobs: [{ k: 'pluend', n: 4, nm: 'Vermummter Knecht', tint: 'dunkel' }],
     after: [
       { say: 'wenkheim', nm: 'Vermummter Reiter', text: 'Genug! Haltet ein, Ritter, Ihr kämpft gegen Freunde.' },
-      { say: 'wenkheim', text: 'Ich bin Burkhard Hund von Wenkheim. Wir kommen im Auftrag des Kurfürsten von Sachsen. Der Doktor muss verschwinden, ehe ihn die Acht trifft. Alle Welt soll glauben, Räuber hätten ihn verschleppt.' },
+      { say: 'wenkheim', text: 'Ich bin Burkhard vom Hag. Wir kommen im Auftrag des Herzogs der Nordmark. Der Prediger muss verschwinden, ehe ihn die Acht trifft. Alle Welt soll glauben, Räuber hätten ihn verschleppt.' },
       { say: 'luther', text: 'So ist das also. Lasst es gut sein, Herr Ritter. Gott schickt mir Freunde, die wie Räuber aussehen.' },
-      { say: 'me', text: 'Dann geht mit Gott, Herr Doktor. Gesehen habe ich nichts, außer einem guten Kampf.' },
+      { say: 'me', text: 'Dann geht mit Gott, Bruder Elias. Gesehen habe ich nichts, außer einem guten Kampf.' },
       { walk: 'luther', to: [880, 862] }, { walk: 'wenkheim', to: [850, 852] }, { walk: 'amsdorf', to: [1220, 862], wait: true },
-      { title: 'Junker Jörg', sub: 'Luther verschwindet. Viele halten ihn für tot. Auf der Wartburg aber lebt bald ein bärtiger Junker Jörg und übersetzt das Neue Testament ins Deutsche.' }
+      { title: 'Junker Jörg', sub: 'Bruder Elias verschwindet. Viele halten ihn für tot. Auf Burg Waldeck aber lebt bald ein bärtiger Junker Jörg und überträgt die Heilige Schrift in die Sprache des Volkes.' }
     ] }
   ] },
 /* ===== Kapitel 3 ===== */
-{ n: 3, t: 'Der letzte Ritter', year: '1522 bis 1523', lvl: 8,
-  d: 'Die Reichsritter verarmen, die Fürsten werden mächtiger. Franz von Sickingen, der stärkste Ritter am Rhein, ruft seine Standesgenossen zur Fehde gegen den Erzbischof von Trier.',
-  reward: f => f.k3 === 'sick' ? { s: 'waffe', n: 'Sickingens Schwert', aff: ['str', 'crit', 'spd'], r: 4 } : { s: 'schild', n: 'Schild der Fürsten von Hessen und der Pfalz', aff: ['block', 'arm', 'hp'], r: 4 },
+{ n: 3, t: 'Der letzte Ritter', year: 'Im zweiten und dritten Jahr', lvl: 8,
+  d: 'Die freien Ritter verarmen, die Fürsten werden mächtiger. Eberhard vom Stein, der stärkste Ritter am Strom, ruft seine Standesgenossen zur Fehde gegen den Erzbischof von Hohenstift.',
+  reward: f => f.k3 === 'sick' ? { s: 'waffe', n: 'Eberhards Schwert', aff: ['str', 'crit', 'spd'], r: 4 } : { s: 'schild', n: 'Schild des Fürstenbundes', aff: ['block', 'arm', 'hp'], r: 4 },
   steps: [
-  { type: 'talk', npc: 'hutten', opt: 'Ihr wolltet mich sprechen?', t: 'Ein Ritter wartet vor dem Gasthaus Zum Goldenen Adler', d: 'In der Reichsstadt, im Nordosten nahe der Mauer.',
+  { type: 'talk', npc: 'hutten', opt: 'Ihr wolltet mich sprechen?', t: 'Ein Ritter wartet vor dem Gasthaus Zum Goldenen Adler', d: 'In der Königsstadt, im Nordosten nahe der Mauer.',
     cast: [{ id: 'hutten', at: [3120, 2130], talk: true, greet: 'Ihr seid doch der Ritter, von dem man sich erzählt? Auf ein Wort.' }],
     scene: [
-      { title: 'Kapitel 3: Der letzte Ritter', sub: 'Reichsland, im Sommer des Jahres 1522' },
-      { say: 'hutten', text: 'Ulrich von Hutten, Ritter und Dichter. „Ich hab’s gewagt“, das ist mein Wahlspruch. Man erzählt sich, Ihr hättet den Luther beschützt.' },
-      { say: 'hutten', text: 'Hört: Die Fürsten fressen uns Ritter auf, die geistlichen Herren pressen das Land aus. Mein Freund Franz von Sickingen hat in Landau die Ritterschaft am Rhein zu einem Bund geschlossen.' },
-      { say: 'hutten', text: 'Wir ziehen gegen den Erzbischof von Trier. Fällt Trier, fällt die Macht der Pfaffenfürsten. Reitet mit uns!' }
+      { title: 'Kapitel 3: Der letzte Ritter', sub: 'Königsland, im Sommer des zweiten Jahres' },
+      { say: 'hutten', text: 'Ulrich von Hagen, Ritter und Dichter. „Lieber kühn als klein“, das ist mein Wahlspruch. Man erzählt sich, Ihr hättet den Prediger beschützt.' },
+      { say: 'hutten', text: 'Hört: Die Fürsten fressen uns Ritter auf, die geistlichen Herren pressen das Land aus. Mein Freund Eberhard vom Stein hat die Ritterschaft am Strom zu einem Bund geschlossen.' },
+      { say: 'hutten', text: 'Wir ziehen gegen den Erzbischof von Hohenstift. Fällt Hohenstift, fällt die Macht der Pfaffenfürsten. Reitet mit uns!' }
     ] },
-  { type: 'choice', auto: true, who: 'hutten', t: 'Gebt Hutten eine Antwort (E)',
+  { type: 'choice', auto: true, who: 'hutten', t: 'Gebt Ulrich eine Antwort (E)',
     cast: [{ id: 'hutten', at: [3120, 2130], mute: true }],
-    q: 'Hutten wartet auf Eure Antwort. Wer mit Sickingen reitet, bricht den ewigen Landfrieden des Reiches. Wer ablehnt, steht auf der Seite der Fürsten.',
+    q: 'Ulrich wartet auf Eure Antwort. Wer mit Eberhard reitet, bricht den ewigen Landfrieden des Königreichs. Wer ablehnt, steht auf der Seite der Fürsten.',
     opts: [
-      { t: 'Mit Sickingen gegen Trier reiten', f: { k3: 'sick' }, log: '1522: Ihr seid mit Franz von Sickingen gegen Trier geritten.',
-        scene: [{ say: 'hutten', text: 'So spricht ein Ritter! Sickingen lagert mit seinem Heer im Landsknechtslager. Meldet Euch bei ihm.' }] },
-      { t: 'Ablehnen und dem Vogt Meldung machen', f: { k3: 'fuerst' }, log: '1522: Ihr habt Hutten abgewiesen und den Fürsten gedient.',
-        scene: [{ say: 'hutten', text: 'Dann seid Ihr ein Knecht der Fürsten wie alle anderen. Wir sehen uns auf dem Feld, Ritter.' }, { say: 'me', text: 'Der Landfriede gilt für alle. Auch für Sickingen.' }] }
+      { t: 'Mit Eberhard gegen Hohenstift reiten', f: { k3: 'sick' }, log: 'Im zweiten Jahr: Ihr seid mit Eberhard vom Stein gegen Hohenstift geritten.',
+        scene: [{ say: 'hutten', text: 'So spricht ein Ritter! Eberhard lagert mit seinem Heer im Landsknechtslager. Meldet Euch bei ihm.' }] },
+      { t: 'Ablehnen und dem Vogt Meldung machen', f: { k3: 'fuerst' }, log: 'Im zweiten Jahr: Ihr habt Ulrich abgewiesen und den Fürsten gedient.',
+        scene: [{ say: 'hutten', text: 'Dann seid Ihr ein Knecht der Fürsten wie alle anderen. Wir sehen uns auf dem Feld, Ritter.' }, { say: 'me', text: 'Der Landfriede gilt für alle. Auch für Eberhard.' }] }
     ] },
-  // mit Sickingen
-  { type: 'goto', if: isF('k3', 'sick'), at: [2962, 1215], r: 70, place: 'Sickingens Lager', t: 'Meldet Euch bei Sickingen im Landsknechtslager',
+  // mit Eberhard
+  { type: 'goto', if: isF('k3', 'sick'), at: [2962, 1215], r: 70, place: 'Eberhards Lager', t: 'Meldet Euch bei Eberhard im Landsknechtslager',
     cast: [{ id: 'sickingen', at: [2945, 1195] }, { id: 'goetz', at: [2988, 1200] }],
     scene: [
       { pan: [2966, 1202] },
-      { say: 'sickingen', text: 'Hutten schickt Euch? Willkommen, Ritter. Ich bin Franz von Sickingen. Mehr als zwanzig Fehden habe ich geführt, gegen Städte, Fürsten und Herzöge.' },
-      { say: 'goetz', text: 'Götz von Berlichingen. Die rechte Hand hab ich vor Landshut gelassen, die eiserne tut’s auch. Schön, dass noch einer Mut hat.' },
-      { say: 'sickingen', text: 'Wir ziehen gegen Trier. Der Erzbischof Richard wird lernen, was die Ritterschaft vermag.' },
-      { title: 'Trier, im September 1522', sub: 'Sickingen belagert Trier eine Woche lang. Doch die Stadt hält, und die Fürsten von Hessen und der Pfalz eilen dem Erzbischof zu Hilfe. Sickingen muss abziehen.' },
-      { title: 'Im Frühjahr 1523', sub: 'Nun schlagen die Fürsten zurück. Mit Kartaunen, schweren Geschützen, ziehen sie gegen Sickingen und seine Freunde.' },
-      { say: 'sickingen', text: 'Sie kommen. Hessen, Pfalz und Trier, mit mehr Landsknechten, als ich Reiter habe. Haltet sie vom Lager fern, Ritter!' }
+      { say: 'sickingen', text: 'Ulrich schickt Euch? Willkommen, Ritter. Ich bin Eberhard vom Stein. Mehr als zwanzig Fehden habe ich geführt, gegen Städte, Fürsten und Herzöge.' },
+      { say: 'goetz', text: 'Gottfried, genannt mit der Eisenhand. Die rechte Hand hab ich vor einer Stadtmauer gelassen, die eiserne tut’s auch. Schön, dass noch einer Mut hat.' },
+      { say: 'sickingen', text: 'Wir ziehen gegen Hohenstift. Der Erzbischof Richard wird lernen, was die Ritterschaft vermag.' },
+      { title: 'Hohenstift, im Herbst', sub: 'Eberhard belagert Hohenstift eine Woche lang. Doch die Stadt hält, und der Landgraf vom Walde und der Graf vom Strom eilen dem Erzbischof zu Hilfe. Eberhard muss abziehen.' },
+      { title: 'Im folgenden Frühjahr', sub: 'Nun schlagen die Fürsten zurück. Mit Kartaunen, schweren Geschützen, ziehen sie gegen Eberhard und seine Freunde.' },
+      { say: 'sickingen', text: 'Sie kommen. Der Landgraf, der Graf vom Strom und Hohenstift, mit mehr Landsknechten, als ich Reiter habe. Haltet sie vom Lager fern, Ritter!' }
     ] },
   { type: 'kill', if: isF('k3', 'sick'), at: [2985, 1330], place: 'Angriff der Fürsten', t: 'Haltet die Landsknechte der Fürsten vom Lager fern', cap: 5,
     cast: [{ id: 'sickingen', at: [2945, 1195] }, { id: 'goetz', at: [2988, 1200] }],
     mobs: [{ k: 'pluend', n: 5, nm: 'Landsknecht der Fürsten', tint: 'fuersten' }, { k: 'armbrust', n: 3, nm: 'Armbruster der Fürsten', tint: 'fuersten' }],
-    boss: { k: 'raubritter', nm: 'Feldhauptmann der Fürsten', hpf: .4, lv: 1, tint: 'fuersten', sub: 'führt die Landsknechte der Fürsten', cry: 'Für Hessen und die Pfalz! Ergebt euch, Rebellen!' },
+    boss: { k: 'raubritter', nm: 'Feldhauptmann der Fürsten', hpf: .4, lv: 1, tint: 'fuersten', sub: 'führt die Landsknechte der Fürsten', cry: 'Für die Fürsten! Ergebt euch, Rebellen!' },
     after: [
       { put: 'fh', as: 'fuerst', at: [2985, 1330], dir: 'up' }, { pan: [2985, 1318] },
       { say: 'fuerst', text: 'Genug … ich ergebe mich. Ihr kämpft gut, Ritter. Aber Ihr wisst so gut wie ich: Draußen warten zehnmal so viele.' },
       { hold: true }
     ] },
   { type: 'choice', if: isF('k3', 'sick'), auto: true, who: 'fuerst', t: 'Entscheidet über den Gefangenen (E)',
-    q: 'Der Feldhauptmann der Fürsten kniet vor Euch. Sickingens Leute rufen: „Hängt ihn!“ Ein Gefangener seines Ranges brächte auch ein schönes Lösegeld.',
+    q: 'Der Feldhauptmann der Fürsten kniet vor Euch. Eberhards Leute rufen: „Hängt ihn!“ Ein Gefangener seines Ranges brächte auch ein schönes Lösegeld.',
     opts: [
-      { t: 'Ihn laufen lassen: Ritterlich ist, wer Gnade zeigt', f: { k3g: 'gnade' }, gn: 1, log: 'Frühjahr 1523: Ihr habt den gefangenen Feldhauptmann der Fürsten freigelassen.',
+      { t: 'Ihn laufen lassen: Ritterlich ist, wer Gnade zeigt', f: { k3g: 'gnade' }, gn: 1, log: 'Im dritten Frühjahr: Ihr habt den gefangenen Feldhauptmann der Fürsten freigelassen.',
         scene: [{ say: 'fuerst', text: 'Das vergesse ich Euch nicht. Wenn der Tag kommt, an dem Ihr Gnade braucht, erinnert man sich an Euch.' }, { walk: 'fh', to: [2985, 1520], spd: 60, wait: true }] },
-      { t: 'Ihn gegen Lösegeld festsetzen', f: { k3g: 'geld' }, log: 'Frühjahr 1523: Ihr habt den Feldhauptmann gegen Lösegeld festgesetzt.',
-        scene: [{ say: 'goetz', nm: 'Götz von Berlichingen', text: 'Recht so! Ein Feldhauptmann bringt gut und gern hundert Gulden, davon kauft man Pulver. Hier ist Euer Anteil.', fn: () => { HERO.gold += 100; updateHud(); Sound.coin(); } }] }
+      { t: 'Ihn gegen Lösegeld festsetzen', f: { k3g: 'geld' }, log: 'Im dritten Frühjahr: Ihr habt den Feldhauptmann gegen Lösegeld festgesetzt.',
+        scene: [{ say: 'goetz', nm: 'Gottfried mit der Eisenhand', text: 'Recht so! Ein Feldhauptmann bringt gut und gern hundert Gulden, davon kauft man Pulver. Hier ist Euer Anteil.', fn: () => { HERO.gold += 100; updateHud(); Sound.coin(); } }] }
     ] },
-  { type: 'scene', if: isF('k3', 'sick'), t: 'Burg Nanstein',
+  { type: 'scene', if: isF('k3', 'sick'), t: 'Burg Stein',
     scene: [
-      { title: 'Burg Nanstein, am 7. Mai 1523', sub: 'Die Kartaunen der Fürsten schießen Sickingens Burg in Trümmer. Ein Balken, von einer Kugel getroffen, verwundet ihn tödlich.' },
+      { title: 'Burg Stein, im Mai', sub: 'Die Kartaunen der Fürsten schießen Eberhards Burg in Trümmer. Ein Balken, von einer Kugel getroffen, verwundet ihn tödlich.' },
       { put: 'sick', as: 'sickingen', at: [2962, 1200], dir: 'down' }, { dead: ['sick', true] }, { put: 'gz', as: 'goetz', at: [2998, 1196], dir: 'left' }, { hero: [2928, 1206], dir: 'right' }, { cam: [2962, 1200] },
-      { say: 'sick', nm: 'Franz von Sickingen', text: 'Ritter … Ihr seid noch da. Die Zeit der Ritter ist vorbei. Die Kanonen der Fürsten haben sie erschossen.' },
-      { say: 'sick', nm: 'Franz von Sickingen', text: 'Nehmt mein Schwert. Es soll keinem Fürsten über dem Kamin hängen.' },
-      { say: 'gz', nm: 'Götz von Berlichingen', text: 'Franz ist tot. Hutten ist in die Schweiz geflohen, krank und arm, sagt man. Und ich … ich reite heim auf meine Burg und halte still.' },
-      { title: 'Das Ende der Reichsritter', sub: 'Mit Sickingen fällt die Macht der freien Ritter. Hutten stirbt im Sommer 1523 auf der Insel Ufenau im Zürichsee. Die Fürsten aber sind mächtiger als je zuvor.' }
+      { say: 'sick', nm: 'Eberhard vom Stein', text: 'Ritter … Ihr seid noch da. Die Zeit der Ritter ist vorbei. Die Kanonen der Fürsten haben sie erschossen.' },
+      { say: 'sick', nm: 'Eberhard vom Stein', text: 'Nehmt mein Schwert. Es soll keinem Fürsten über dem Kamin hängen.' },
+      { say: 'gz', nm: 'Gottfried mit der Eisenhand', text: 'Eberhard ist tot. Ulrich ist über die Berge geflohen, krank und arm, sagt man. Und ich … ich reite heim auf meine Burg und halte still.' },
+      { title: 'Das Ende der freien Ritter', sub: 'Mit Eberhard fällt die Macht der freien Ritter. Ulrich stirbt im Sommer auf einer Insel in einem fernen See. Die Fürsten aber sind mächtiger als je zuvor.' }
     ] },
   // mit den Fürsten
-  { type: 'talk', if: isF('k3', 'fuerst'), npc: 'vogt', opt: 'Hutten wirbt Ritter für Sickingen', t: 'Macht dem Vogt Meldung',
+  { type: 'talk', if: isF('k3', 'fuerst'), npc: 'vogt', opt: 'Ulrich wirbt Ritter für Eberhard', t: 'Macht dem Vogt Meldung',
     scene: [
-      { say: 'vogt', text: 'Hutten war hier? Gut, dass Ihr es mir meldet. Sickingen bricht den ewigen Landfrieden, den Kaiser Maximilian verkündet hat.' },
-      { title: 'Trier, im September 1522', sub: 'Sickingen belagert Trier eine Woche lang. Doch die Stadt hält, und die Fürsten von Hessen und der Pfalz eilen dem Erzbischof zu Hilfe. Sickingen muss abziehen.' },
-      { title: 'Im Frühjahr 1523', sub: 'Nun schlagen die Fürsten zurück. Mit Kartaunen, schweren Geschützen, ziehen sie gegen Sickingen und seine Freunde.' },
-      { say: 'vogt', text: 'Die Fürsten verlangen unsere Hilfe. Sickingens Reiter halten das Landsknechtslager. Schlagt sie heraus, und ist Sickingen selbst dort: Bringt ihn lebend.' }
+      { say: 'vogt', text: 'Ulrich war hier? Gut, dass Ihr es mir meldet. Eberhard bricht den ewigen Landfrieden, den der alte König verkündet hat.' },
+      { title: 'Hohenstift, im Herbst', sub: 'Eberhard belagert Hohenstift eine Woche lang. Doch die Stadt hält, und der Landgraf vom Walde und der Graf vom Strom eilen dem Erzbischof zu Hilfe. Eberhard muss abziehen.' },
+      { title: 'Im folgenden Frühjahr', sub: 'Nun schlagen die Fürsten zurück. Mit Kartaunen, schweren Geschützen, ziehen sie gegen Eberhard und seine Freunde.' },
+      { say: 'vogt', text: 'Die Fürsten verlangen unsere Hilfe. Eberhards Reiter halten das Landsknechtslager. Schlagt sie heraus, und ist Eberhard selbst dort: Bringt ihn lebend.' }
     ] },
-  { type: 'kill', if: isF('k3', 'fuerst'), at: [2962, 1160], place: 'Sickingens Lager', t: 'Schlagt Sickingens Leute aus dem Landsknechtslager', cap: 5,
-    mobs: [{ k: 'pluend', n: 5, nm: 'Sickingens Knecht', tint: 'gold' }, { k: 'armbrust', n: 3, nm: 'Sickingens Schütze', tint: 'gold' }],
-    boss: { k: 'raubritter', nm: 'Franz von Sickingen', hpf: .4, lv: 2, tint: 'gold', sub: 'der letzte Ritter', cry: 'Ich bin Franz von Sickingen! Mich nimmt kein Fürstenknecht!' },
+  { type: 'kill', if: isF('k3', 'fuerst'), at: [2962, 1160], place: 'Eberhards Lager', t: 'Schlagt Eberhards Leute aus dem Landsknechtslager', cap: 5,
+    mobs: [{ k: 'pluend', n: 5, nm: 'Eberhards Knecht', tint: 'gold' }, { k: 'armbrust', n: 3, nm: 'Eberhards Schütze', tint: 'gold' }],
+    boss: { k: 'raubritter', nm: 'Eberhard vom Stein', hpf: .4, lv: 2, tint: 'gold', sub: 'der letzte Ritter', cry: 'Ich bin Eberhard vom Stein! Mich nimmt kein Fürstenknecht!' },
     after: [
       { put: 'sick', as: 'sickingen', at: [2962, 1165], dir: 'down' }, { dead: ['sick', true] }, { pan: [2962, 1165] },
-      { say: 'sick', nm: 'Franz von Sickingen', text: 'Ihr … habt gut gefochten. Für die falsche Seite, aber gut.' },
-      { say: 'sick', nm: 'Franz von Sickingen', text: 'Die Zeit der Ritter ist vorbei. Morgen gehört die Welt den Fürsten und ihren Kanonen. Gebt acht auf meine Knechte. Sie haben nur getan, was ich befahl.' },
+      { say: 'sick', nm: 'Eberhard vom Stein', text: 'Ihr … habt gut gefochten. Für die falsche Seite, aber gut.' },
+      { say: 'sick', nm: 'Eberhard vom Stein', text: 'Die Zeit der Ritter ist vorbei. Morgen gehört die Welt den Fürsten und ihren Kanonen. Gebt acht auf meine Knechte. Sie haben nur getan, was ich befahl.' },
       { hold: true }
     ] },
-  { type: 'choice', if: isF('k3', 'fuerst'), auto: true, who: 'sickingen', t: 'Entscheidet über Sickingens Knechte (E)',
-    q: 'Sickingen ist tödlich verwundet. Seine Knechte haben die Waffen gestreckt. Die Fürsten wollen sie hängen sehen, zur Warnung für alle Ritter.',
+  { type: 'choice', if: isF('k3', 'fuerst'), auto: true, who: 'sickingen', t: 'Entscheidet über Eberhards Knechte (E)',
+    q: 'Eberhard ist tödlich verwundet. Seine Knechte haben die Waffen gestreckt. Die Fürsten wollen sie hängen sehen, zur Warnung für alle Ritter.',
     opts: [
-      { t: 'Seine Knechte heimlich ziehen lassen', f: { k3g: 'gnade' }, gn: 1, log: 'Frühjahr 1523: Ihr habt Sickingens Knechte vor dem Strick bewahrt.',
-        scene: [{ say: 'me', text: 'Geht. Schnell, bevor die Fürsten kommen. Und tragt nie wieder Waffen gegen das Reich.' }, { say: 'sick', nm: 'Franz von Sickingen', text: 'Habt Dank … Ihr seid doch ein Ritter.' }] },
-      { t: 'Sie den Fürsten übergeben', f: { k3g: 'recht' }, log: 'Frühjahr 1523: Ihr habt Sickingens Knechte den Fürsten ausgeliefert.',
-        scene: [{ say: 'me', text: 'Das Recht muss seinen Lauf nehmen. Wer den Landfrieden bricht, steht vor Gericht.' }, { say: 'sick', nm: 'Franz von Sickingen', text: 'So sei es. Ihr dient Euren Herren gut.' }] }
+      { t: 'Seine Knechte heimlich ziehen lassen', f: { k3g: 'gnade' }, gn: 1, log: 'Im dritten Frühjahr: Ihr habt Eberhards Knechte vor dem Strick bewahrt.',
+        scene: [{ say: 'me', text: 'Geht. Schnell, bevor die Fürsten kommen. Und tragt nie wieder Waffen gegen das Königreich.' }, { say: 'sick', nm: 'Eberhard vom Stein', text: 'Habt Dank … Ihr seid doch ein Ritter.' }] },
+      { t: 'Sie den Fürsten übergeben', f: { k3g: 'recht' }, log: 'Im dritten Frühjahr: Ihr habt Eberhards Knechte den Fürsten ausgeliefert.',
+        scene: [{ say: 'me', text: 'Das Recht muss seinen Lauf nehmen. Wer den Landfrieden bricht, steht vor Gericht.' }, { say: 'sick', nm: 'Eberhard vom Stein', text: 'So sei es. Ihr dient Euren Herren gut.' }] }
     ] },
-  { type: 'scene', if: isF('k3', 'fuerst'), t: 'Burg Nanstein',
+  { type: 'scene', if: isF('k3', 'fuerst'), t: 'Burg Stein',
     scene: [
-      { title: 'Burg Nanstein, am 7. Mai 1523', sub: 'Franz von Sickingen stirbt an seinen Wunden, kurz nachdem er sich den Fürsten ergeben hat. Hutten flieht in die Schweiz und stirbt im Sommer auf der Insel Ufenau.' },
-      { title: 'Das Ende der Reichsritter', sub: 'Die Fürsten haben gesiegt. Die freien Ritter verlieren ihre Burgen, ihre Fehden und ihre Macht.' }
+      { title: 'Burg Stein, im Mai', sub: 'Eberhard vom Stein stirbt an seinen Wunden, kurz nachdem er sich den Fürsten ergeben hat. Ulrich flieht über die Berge und stirbt im Sommer auf einer Insel in einem fernen See.' },
+      { title: 'Das Ende der freien Ritter', sub: 'Die Fürsten haben gesiegt. Die freien Ritter verlieren ihre Burgen, ihre Fehden und ihre Macht.' }
     ] }
   ] },
 /* ===== Kapitel 4 ===== */
-{ n: 4, t: 'Der Bundschuh', year: '1524', lvl: 11,
+{ n: 4, t: 'Der Bundschuh', year: 'Im vierten Jahr', lvl: 11,
   d: 'In Lindach murren die Bauern: Zehnt, Fron und der Wildbann drücken sie. Im Süden haben sich schon die ersten Dörfer erhoben.',
   reward: f => f.k4 === 'rede' ? { s: 'kleinod', n: 'Die zwölf Artikel', aff: ['hp', 'crit', 'spd'], r: 4 } : f.k4 === 'schwert' ? { s: 'ruestung', n: 'Harnisch des Junkers', aff: ['arm', 'hp', 'str'], r: 4 } : { s: 'beine', n: 'Bundschuhe', aff: ['spd', 'hp', 'crit'], r: 4 },
   steps: [
-  { type: 'talk', npc: 'vogt', opt: 'Ihr habt mich rufen lassen?', t: 'Sprecht mit dem Vogt in der Reichsburg',
+  { type: 'talk', npc: 'vogt', opt: 'Ihr habt mich rufen lassen?', t: 'Sprecht mit dem Vogt in der Königsburg',
     scene: [
-      { title: 'Kapitel 4: Der Bundschuh', sub: 'Reichsland, im Herbst des Jahres 1524' },
-      { say: 'vogt', text: 'In Lindach gärt es. Der junge Junker Konrad hat Schulden bei den Fuggern in Augsburg. Also nimmt er den Bauern mehr: den großen Zehnt, den kleinen Zehnt, Frondienst an sechs Tagen.' },
-      { say: 'vogt', text: 'Bei Stühlingen im Schwarzwald haben sich die Bauern schon erhoben. Sie tragen den Bundschuh auf ihren Fahnen. Reitet nach Lindach und seht, wie es dort steht.' }
+      { title: 'Kapitel 4: Der Bundschuh', sub: 'Königsland, im Herbst des vierten Jahres' },
+      { say: 'vogt', text: 'In Lindach gärt es. Der junge Junker Konrad hat Schulden bei den Goldmanns in Goldbrunn. Also nimmt er den Bauern mehr: den großen Zehnt, den kleinen Zehnt, Frondienst an sechs Tagen.' },
+      { say: 'vogt', text: 'Im Süden, am Rand des Schwarztanns, haben sich die Bauern schon erhoben. Sie tragen den Bundschuh auf ihren Fahnen. Reitet nach Lindach und seht, wie es dort steht.' }
     ] },
   { type: 'goto', at: [2470, 600], r: 80, place: 'Die Linde in Lindach', t: 'Reitet nach Lindach zur Dorflinde',
     scene: [
@@ -979,7 +979,7 @@ const ST_CH = [
       { pan: [2470, 612] },
       { say: 'jaeck', text: 'Der Junker frisst uns die Haare vom Kopf! Und seine Säue und Hirsche fressen uns die Saat vom Feld, und wehe, einer von uns schießt einen Hasen!' },
       { say: 'hip', text: 'Ruhig, Jäcklein. Mit Geschrei richtet man nichts aus. Mit Recht schon eher.' },
-      { say: 'hip', text: 'Herr Ritter, ich bin Wendel Hipler. Ich war Kanzler bei den Grafen von Hohenlohe. Ich kenne das Recht der Herren, und ich weiß, wo es Unrecht ist.' },
+      { say: 'hip', text: 'Herr Ritter, ich bin Wendel Federlein. Ich war Kanzler bei den Grafen von Hohenlinden. Ich kenne das Recht der Herren, und ich weiß, wo es Unrecht ist.' },
       { put: 'kon', as: 'konrad', at: [2640, 640], dir: 'left' }, { put: 'kn1', as: 'knecht', at: [2672, 630], dir: 'left' }, { put: 'kn2', as: 'knecht', at: [2672, 660], dir: 'left' },
       { walk: 'kon', to: [2560, 620] }, { walk: 'kn1', to: [2592, 610] }, { walk: 'kn2', to: [2592, 646], wait: true },
       { say: 'kon', text: 'Was ist das für eine Versammlung? Der Zehnt ist fällig, und morgen ist Frondienst auf meinen Äckern. Wer nicht kommt, zahlt Strafe.' },
@@ -989,28 +989,28 @@ const ST_CH = [
       { say: 'hip', text: 'Herr Ritter, Ihr seid weder Bauer noch Junker. Helft uns: Die Wildschweine aus dem Finsterwald verwüsten die Rübenäcker. Erlegt sie ein Ritter, ist es kein Wildern.' }
     ] },
   { type: 'hunt', kind: 'wildschwein', n: 3, unit: 'Wildschweine', at: [1150, 760], place: 'Finsterwald (Wildschweine)', t: 'Erlegt drei Wildschweine im Finsterwald', d: 'Wildschweine leben im Finsterwald und wehren sich.',
-    after: [{ say: 'me', text: 'Drei Keiler weniger. Die Rübenäcker in Lindach werden es danken. Zurück zu Hipler.' }] },
-  { type: 'talk', npc: 'hipler', opt: 'Die Keiler sind erlegt', t: 'Sprecht mit Wendel Hipler in Lindach',
+    after: [{ say: 'me', text: 'Drei Keiler weniger. Die Rübenäcker in Lindach werden es danken. Zurück zu Federlein.' }] },
+  { type: 'talk', npc: 'hipler', opt: 'Die Keiler sind erlegt', t: 'Sprecht mit Wendel Federlein in Lindach',
     cast: [{ id: 'hipler', at: [2496, 612], talk: true, greet: 'Ah, der Ritter! Habt Ihr die Keiler erwischt?' }],
     scene: [
-      { say: 'hipler', text: 'Gott vergelt’s! Und nun etwas Wichtigeres. Aus Memmingen kommt dies hier: zwölf Artikel, aufgeschrieben von den Bauern in Oberschwaben.' },
+      { say: 'hipler', text: 'Gott vergelt’s! Und nun etwas Wichtigeres. Aus dem Süden kommt dies hier: zwölf Artikel, aufgeschrieben von den Bauern im Schwarztann.' },
       { say: 'hipler', text: 'Freie Wahl des Pfarrers. Kein kleiner Zehnt. Keine Leibeigenschaft, denn Christus hat uns alle erlöst. Freie Jagd und freier Fischfang, Holz aus dem Wald, gemessene Fron, alte Strafen statt neuer Willkür.' },
-      { say: 'hipler', text: 'Das ist kein Aufruhr, das ist eine Bitte mit Gründen aus der Schrift. Bringt den Text zum Drucker in der Reichsstadt. Hundert Abzüge, für jedes Dorf einen.' }
+      { say: 'hipler', text: 'Das ist kein Aufruhr, das ist eine Bitte mit Gründen aus der Schrift. Bringt den Text zum Drucker in der Königsstadt. Hundert Abzüge, für jedes Dorf einen.' }
     ] },
-  { type: 'talk', npc: 'melchior', opt: 'Hipler schickt mich mit einem Text', t: 'Bringt die zwölf Artikel zum Drucker Melchior in der Reichsstadt',
+  { type: 'talk', npc: 'melchior', opt: 'Federlein schickt mich mit einem Text', t: 'Bringt die zwölf Artikel zum Drucker Melchior in der Königsstadt',
     cast: [{ id: 'melchior', at: [2954, 2300], talk: true, role: 'Drucker', greet: 'Bücher, Flugschriften, Ablassbriefe … Was darf es sein?' }],
     scene: [
       { if: isF('k1', 'weigern'), say: 'melchior', text: 'Der Ritter vom Markt! Für Euch tue ich alles. Zeigt her … die zwölf Artikel. Die gehen weg wie warme Semmeln.' },
       { if: isF('k1', 'brand'), say: 'melchior', text: 'Ihr? Ihr habt meine Bücher angezündet. … Gut, für die Bauern drucke ich es trotzdem. Nicht für Euch.' },
       { sound: 'anvil' }, { wait: .5 }, { sound: 'anvil' }, { wait: .5 },
-      { say: 'melchior', text: 'Die Presse knarrt, die Druckerschwärze stinkt, und morgen liest das halbe Reichsland, was die Bauern wollen. Bringt einen Abzug zu Junker Konrad. Er soll ihn als Erster lesen.' }
+      { say: 'melchior', text: 'Die Presse knarrt, die Druckerschwärze stinkt, und morgen liest das halbe Königsland, was die Bauern wollen. Bringt einen Abzug zu Junker Konrad. Er soll ihn als Erster lesen.' }
     ] },
   { type: 'talk', npc: 'konrad', opt: 'Ich bringe Euch die Artikel der Bauern', t: 'Bringt die Artikel zu Junker Konrad in Lindach',
     cast: [{ id: 'konrad', at: [2330, 482], talk: true, role: 'Herr von Lindach', greet: 'Ihr seid der Ritter, der für die Bauern Keiler jagt? Was wollt Ihr?' }],
     scene: [
       { say: 'konrad', text: 'Zwölf Artikel … „dass wir frei sind und sein wollen“. Keine Leibeigenschaft! Und wer bestellt dann meine Felder?' },
       { say: 'me', text: 'Dieselben Leute, Junker. Nur gegen Lohn und nach Recht.' },
-      { say: 'konrad', text: 'Ihr redet wie ein Prediger aus Wittenberg. … Ich will darüber nachdenken. Aber den Zehnt zahlen sie, dieses Jahr noch.' },
+      { say: 'konrad', text: 'Ihr redet wie ein Prediger aus Schwanstedt. … Ich will darüber nachdenken. Aber den Zehnt zahlen sie, dieses Jahr noch.' },
       { title: 'In derselben Nacht', sub: 'Über Lindach liegt Nebel. In der Zehntscheune des Junkers lagert das Korn des ganzen Dorfes.' }
     ] },
   { type: 'goto', at: [2545, 488], r: 70, place: 'Die Zehntscheune', t: 'Seht nach der Zehntscheune in Lindach',
@@ -1025,17 +1025,17 @@ const ST_CH = [
   { type: 'choice', auto: true, who: 'jaecklein', t: 'Entscheidet Euch an der Zehntscheune (E)',
     q: 'Jäcklein und seine Leute stehen mit Fackeln vor der Zehntscheune. Im Dorf schläft alles.',
     opts: [
-      { t: 'Mit Jäcklein reden und ihn umstimmen', f: { k4: 'rede' }, gn: 1, log: '1524: Ihr habt Jäcklein Rohrbach ausgeredet, die Zehntscheune anzuzünden.',
+      { t: 'Mit Jäcklein reden und ihn umstimmen', f: { k4: 'rede' }, gn: 1, log: 'Im vierten Jahr: Ihr habt Jäcklein Mühlbach ausgeredet, die Zehntscheune anzuzünden.',
         scene: [
           { say: 'me', text: 'Brennt die Scheune, hungert im Winter ganz Lindach, nicht der Junker. Und morgen hängen sie euch für Brandstiftung, und zwar mit Recht.' },
-          { say: 'me', text: 'Hipler hat einen besseren Weg. Die Artikel sind gedruckt, das ganze Land liest sie. Wartet ab.' },
+          { say: 'me', text: 'Federlein hat einen besseren Weg. Die Artikel sind gedruckt, das ganze Land liest sie. Wartet ab.' },
           { say: 'jaeck', text: '… Verflucht. Ihr habt recht, das Korn brauchen wir selbst. Aber merkt Euch: Wenn die Herren nicht hören wollen, kommt der Bundschuh. Im Frühjahr.' },
           { torch: ['jaeck', false] }, { torch: ['b1', false] }, { torch: ['b2', false] },
           { walk: 'jaeck', to: [2400, 640] }, { walk: 'b1', to: [2420, 660] }, { walk: 'b2', to: [2380, 660], wait: true }
         ] },
-      { t: 'Das Schwert ziehen und die Scheune schützen', f: { k4: 'schwert' }, log: '1524: Ihr habt die Zehntscheune mit dem Schwert gegen Jäckleins Leute verteidigt.',
+      { t: 'Das Schwert ziehen und die Scheune schützen', f: { k4: 'schwert' }, log: 'Im vierten Jahr: Ihr habt die Zehntscheune mit dem Schwert gegen Jäckleins Leute verteidigt.',
         scene: [{ say: 'me', text: 'Brandstiftung ist ein Verbrechen. Geht heim, oder ich treibe euch heim!' }, { say: 'jaeck', text: 'Ein Herrenknecht also! Leute, schlagt ihn nieder!' }] },
-      { t: 'Zur Seite treten und sie gewähren lassen', f: { k4: 'brand' }, log: '1524: Ihr habt zugesehen, wie die Zehntscheune des Junkers brannte.',
+      { t: 'Zur Seite treten und sie gewähren lassen', f: { k4: 'brand' }, log: 'Im vierten Jahr: Ihr habt zugesehen, wie die Zehntscheune des Junkers brannte.',
         scene: [
           { say: 'me', text: 'Es ist nicht meine Scheune. Und nicht mein Korn.' },
           { walk: 'jaeck', to: [2540, 500], wait: true },
@@ -1048,52 +1048,52 @@ const ST_CH = [
     mobs: [{ k: 'pluend', n: 4, nm: 'Jäckleins Mann', tint: 'bauer', lv: -1 }],
     after: [{ say: null, nm: 'Jäcklein, aus der Dunkelheit', text: 'Das büßt Ihr, Ritter! Wenn der Bundschuh kommt, steht Ihr auf der falschen Seite!' }] },
   { type: 'scene', t: 'Winter',
-    scene: [{ title: 'Winter 1524 auf 1525', sub: 'In Oberschwaben, in Franken, im Elsass und in Thüringen rotten sich die Bauern zu Haufen zusammen. Die zwölf Artikel werden mehr als zwanzigmal nachgedruckt.' }] }
+    scene: [{ title: 'Im Winter darauf', sub: 'In allen Tälern des Königreichs rotten sich die Bauern zu Haufen zusammen. Die zwölf Artikel werden mehr als zwanzigmal nachgedruckt.' }] }
   ] },
 /* ===== Kapitel 5 ===== */
-{ n: 5, t: 'Der Bauernkrieg', year: 'Frühjahr 1525', lvl: 14,
-  d: 'Überall im Süden des Reiches stehen die Haufen der Bauern. Der Schwäbische Bund schickt seine Landsknechte unter Georg Truchsess von Waldburg, den man bald den Bauernjörg nennt.',
+{ n: 5, t: 'Der Bauernkrieg', year: 'Frühjahr, im fünften Jahr', lvl: 14,
+  d: 'Überall im Süden des Königreichs stehen die Haufen der Bauern. Der Bund der Herren schickt seine Landsknechte unter Georg Truchsess von Waldeck, den man bald den Bauernjörg nennt.',
   reward: f => f.k5 === 'bauern' ? { s: 'kleinod', n: 'Die Bundschuhfahne', aff: ['str', 'hp', 'crit'], r: 4, title: ST_TITLES.bauern, tid: 'bauern' }
-    : f.k5 === 'herren' ? { s: 'waffe', n: 'Bannerschwert des Schwäbischen Bundes', aff: ['str', 'crit', 'spd'], r: 4, title: ST_TITLES.herren, tid: 'herren' }
+    : f.k5 === 'herren' ? { s: 'waffe', n: 'Bannerschwert des Bundes der Herren', aff: ['str', 'crit', 'spd'], r: 4, title: ST_TITLES.herren, tid: 'herren' }
     : { s: 'kleinod', n: 'Friedensbrief von Lindach', aff: ['hp', 'arm', 'crit'], r: 4, title: ST_TITLES.frieden, tid: 'frieden' },
   steps: [
   { type: 'goto', at: [2470, 600], r: 90, place: 'Lindach', t: 'Reitet nach Lindach', d: 'Der Bundschuh weht über Lindach.',
     scene: [
-      { title: 'Kapitel 5: Der Bauernkrieg', sub: 'Reichsland, im April des Jahres 1525' },
+      { title: 'Kapitel 5: Der Bauernkrieg', sub: 'Königsland, im April des fünften Jahres' },
       { put: 'gz', as: 'goetz', at: [2470, 580], dir: 'down' }, { put: 'hip', as: 'hipler', at: [2420, 600], dir: 'right' }, { put: 'jaeck', as: 'jaecklein', at: [2526, 606], dir: 'left' },
       { put: 'b1', as: 'bauer1', at: [2440, 652], dir: 'up' }, { put: 'b2', as: 'bauer3', at: [2480, 662], dir: 'up' }, { put: 'b3', as: 'bauer2', at: [2516, 652], dir: 'up' }, { put: 'b4', as: 'landsknecht', at: [2400, 642], dir: 'up' },
       { pan: [2470, 616] },
       { say: 'gz', text: 'Ihr! Gut, dass ein vernünftiger Mensch kommt. Die Bauern haben mich zu ihrem Hauptmann gemacht. Gefragt haben sie mich nicht: Hauptmann oder tot, das war die Wahl.' },
-      { if: isF('k3', 'sick'), say: 'gz', text: 'Seit Franz von Sickingen tot ist, bin ich ein Ritter ohne Fehde. Jetzt führe ich Bauern. Die Welt steht kopf.' },
-      { say: 'jaeck', text: 'In Weinsberg haben wir den Grafen von Helfenstein durch die Spieße gejagt, am Ostersonntag! So geht es allen, die uns geschunden haben.' },
+      { if: isF('k3', 'sick'), say: 'gz', text: 'Seit Eberhard vom Stein tot ist, bin ich ein Ritter ohne Fehde. Jetzt führe ich Bauern. Die Welt steht kopf.' },
+      { say: 'jaeck', text: 'In Rebenau haben wir den Grafen von Hellenstein durch die Spieße gejagt, am Ostersonntag! So geht es allen, die uns geschunden haben.' },
       { if: isF('k4', 'brand'), say: 'jaeck', text: 'Und Ihr, Ritter, Ihr habt bei der Scheune zugesehen. Ihr seid einer von uns.' },
       { if: isF('k4', 'schwert'), say: 'jaeck', text: 'Und der da hat bei der Scheune auf uns eingeschlagen. Was will der Herrenknecht hier?' },
       { if: isF('k4', 'rede'), say: 'jaeck', text: 'Ihr habt mich damals von der Scheune weggeredet. Vielleicht hattet Ihr recht. Vielleicht auch nicht.' },
-      { say: 'hip', text: 'Weinsberg war ein Verbrechen, Jäcklein, und es wird uns alle teuer zu stehen kommen. Der Truchsess von Waldburg zieht mit dem Heer des Schwäbischen Bundes heran.' },
-      { say: 'hip', text: 'Bei Weingarten aber hat er mit den Bauern vom Bodensee einen Vertrag geschlossen, ganz ohne Schlacht. Wenn es dort ging, geht es auch hier.' },
+      { say: 'hip', text: 'Rebenau war ein Verbrechen, Jäcklein, und es wird uns alle teuer zu stehen kommen. Der Truchsess von Waldeck zieht mit dem Heer des Bundes der Herren heran.' },
+      { say: 'hip', text: 'Bei Weidach aber hat er mit den Bauern vom See einen Vertrag geschlossen, ganz ohne Schlacht. Wenn es dort ging, geht es auch hier.' },
       { say: 'gz', text: 'Ritter, Ihr kennt beide Seiten. Wo steht Ihr?' },
       { hold: true }
     ] },
   { type: 'choice', auto: true, who: 'goetz', t: 'Entscheidet Euch in Lindach (E)',
-    q: 'Götz, Hipler und Jäcklein sehen Euch an. Vor dem Dorf sammelt sich der Haufen, und von Westen naht das Heer des Bundes.',
+    q: 'Gottfried, Federlein und Jäcklein sehen Euch an. Vor dem Dorf sammelt sich der Haufen, und von Westen naht das Heer des Bundes.',
     opts: [
-      { t: 'Zu den Bauern stehen und Lindach verteidigen', f: { k5: 'bauern' }, log: 'April 1525: Ihr habt Lindach gegen das Heer des Schwäbischen Bundes verteidigt.',
+      { t: 'Zu den Bauern stehen und Lindach verteidigen', f: { k5: 'bauern' }, log: 'Im fünften Frühjahr: Ihr habt Lindach gegen das Heer des Bundes der Herren verteidigt.',
         scene: [{ say: 'gz', text: 'Dann haltet das Dorf. Der Bund kommt über den Burgweg, gleich sind sie da.' }, { say: 'jaeck', text: 'Endlich ein Ritter auf der richtigen Seite!' }] },
-      { t: 'Zum Truchsess reiten und dem Bund dienen', f: { k5: 'herren' }, log: 'April 1525: Ihr seid mit dem Heer des Schwäbischen Bundes gegen die Bauern geritten.',
+      { t: 'Zum Truchsess reiten und dem Bund dienen', f: { k5: 'herren' }, log: 'Im fünften Frühjahr: Ihr seid mit dem Heer des Bundes der Herren gegen die Bauern geritten.',
         scene: [{ say: 'jaeck', text: 'Verräter! Lauft nur zu Euren Herren!' }, { say: 'gz', text: 'Geht. Vielleicht ist es besser, wenn einer von uns auf der anderen Seite steht. Der Truchsess lagert an der Kreuzung in den Obstgärten.' }] },
-      { t: 'Zwischen beiden vermitteln, wie in Weingarten', f: { k5: 'frieden' }, need: (f, S) => S.gn >= 2, log: 'April 1525: Ihr habt zwischen den Bauern und dem Bund vermittelt.',
+      { t: 'Zwischen beiden vermitteln, wie in Weidach', f: { k5: 'frieden' }, need: (f, S) => S.gn >= 2, log: 'Im fünften Frühjahr: Ihr habt zwischen den Bauern und dem Bund vermittelt.',
         no: 'Dafür müssten Euch beide Seiten vertrauen. Wer früher Gnade gezeigt und auf sein Gewissen gehört hat (mindestens zweimal), dem hört man jetzt zu.',
         scene: [{ say: 'hip', text: 'Ich wusste es! Kommt, wir bringen dem Truchsess die zwölf Artikel und ein Angebot. Ihr schützt mich unterwegs.' }, { say: 'jaeck', text: 'Verhandeln! Mit dem Bauernjörg! Ihr werdet schon sehen, was davon kommt.' }, { say: 'gz', text: 'Versucht es. Ich halte den Haufen ruhig, so lange ich kann.' }] }
     ] },
   // bei den Bauern
   { type: 'kill', if: isF('k5', 'bauern'), at: [2462, 640], unsafe: 'weiler', place: 'Lindach', t: 'Verteidigt Lindach gegen das Heer des Bundes', cap: 5,
     mobs: [{ k: 'pluend', n: 6, nm: 'Landsknecht des Bundes', tint: 'bund' }, { k: 'armbrust', n: 4, nm: 'Hakenschütze des Bundes', tint: 'bund' }],
-    boss: { k: 'raubritter', nm: 'Georg Truchsess von Waldburg', hpf: .45, lv: 2, tint: 'bund', sub: 'Feldherr des Schwäbischen Bundes', cry: 'Ergebt euch, oder ich brenne das Dorf nieder!' },
+    boss: { k: 'raubritter', nm: 'Georg Truchsess von Waldeck', hpf: .45, lv: 2, tint: 'bund', sub: 'Feldherr des Bundes der Herren', cry: 'Ergebt euch, oder ich brenne das Dorf nieder!' },
     after: [
       { put: 'tr', as: 'truchsess', at: [2462, 640], dir: 'up' }, { pan: [2462, 630] },
-      { say: 'tr', nm: 'Georg Truchsess von Waldburg', text: 'Genug! Zurück, Männer! … Dieses Dorf ist es nicht wert. Aber merkt Euch, Ritter: Für jeden Bauern, der hier lebt, sterben anderswo hundert.' },
+      { say: 'tr', nm: 'Georg Truchsess von Waldeck', text: 'Genug! Zurück, Männer! … Dieses Dorf ist es nicht wert. Aber merkt Euch, Ritter: Für jeden Bauern, der hier lebt, sterben anderswo hundert.' },
       { walk: 'tr', to: [2200, 790], spd: 70 },
-      { title: 'Im Mai 1525', sub: 'Der Truchsess schlägt die Bauern bei Böblingen, bei Königshofen und vor Würzburg. Bei Frankenhausen fällt Thomas Müntzer. Mehr als siebzigtausend Bauern sterben.' },
+      { title: 'Im Mai', sub: 'Der Truchsess schlägt die Bauern im ganzen Süden, auf offenem Feld und vor den Mauern der Städte. Mehr als siebzigtausend Bauern sterben.' },
       { title: 'Lindach', sub: 'Doch Lindach steht. Junker Konrad, eingeschüchtert, erlaubt dem Dorf die Jagd auf den eigenen Feldern und erlässt den kleinen Zehnt. Die Bauern nennen Euch den Bauernritter.' }
     ] },
   // beim Bund
@@ -1101,232 +1101,231 @@ const ST_CH = [
     cast: [{ id: 'truchsess', at: [1922, 1300] }, { id: 'landsknecht', at: [1878, 1292] }],
     scene: [
       { pan: [1904, 1306] },
-      { say: 'truchsess', text: 'Ein Ritter, der den Weg zu uns findet. Gut. Georg Truchsess von Waldburg, Feldherr des Schwäbischen Bundes.' },
+      { say: 'truchsess', text: 'Ein Ritter, der den Weg zu uns findet. Gut. Georg Truchsess von Waldeck, Feldherr des Bundes der Herren.' },
       { say: 'truchsess', text: 'Die Bauern nennen mich den Bauernjörg. Sollen sie. Ordnung hat Gott der Welt gegeben, und wer sie umstürzt, den trifft das Schwert.' },
-      { say: 'truchsess', text: 'Beim Landsknechtslager sammelt sich ein Haufen, angeführt von dem Mörder von Weinsberg. Zerschlagt ihn.' }
+      { say: 'truchsess', text: 'Beim Landsknechtslager sammelt sich ein Haufen, angeführt von dem Mörder von Rebenau. Zerschlagt ihn.' }
     ] },
   { type: 'kill', if: isF('k5', 'herren'), at: [2985, 1300], place: 'Der Haufen', t: 'Zerschlagt den Haufen beim Landsknechtslager', cap: 5,
     mobs: [{ k: 'pluend', n: 8, nm: 'Aufständischer Bauer', tint: 'bauer', lv: -1 }],
-    boss: { k: 'pluend', nm: 'Jäcklein Rohrbach', hpf: 7, lv: 2, tint: 'bauer', sub: 'der Hauptmann von Weinsberg', cry: 'Für Weinsberg und den Bundschuh!' },
+    boss: { k: 'pluend', nm: 'Jäcklein Mühlbach', hpf: 7, lv: 2, tint: 'bauer', sub: 'der Hauptmann von Rebenau', cry: 'Für Rebenau und den Bundschuh!' },
     after: [
       { put: 'gz', as: 'goetz', at: [3012, 1290], dir: 'left' }, { pan: [2990, 1300] },
       { say: 'gz', text: 'Es ist vorbei. Ich lege mein Amt nieder, Ritter. Ich war nie gern Hauptmann von Bauern.' },
-      { say: 'gz', text: 'Sagt dem Truchsess, Götz von Berlichingen ergibt sich. Man wird mir den Prozess machen. Aber hängen wird man mich nicht. Mich nicht.' },
-      { title: 'Im Mai 1525', sub: 'Jäcklein Rohrbach wird gefangen und bei Neckargartach verbrannt. Der Truchsess schlägt die Bauern bei Böblingen, bei Königshofen und vor Würzburg. Mehr als siebzigtausend Bauern sterben.' },
+      { say: 'gz', text: 'Sagt dem Truchsess, Gottfried mit der Eisenhand ergibt sich. Man wird mir den Prozess machen. Aber hängen wird man mich nicht. Mich nicht.' },
+      { title: 'Im Mai', sub: 'Jäcklein Mühlbach wird gefangen und verbrannt. Der Truchsess schlägt die Bauern im ganzen Süden. Mehr als siebzigtausend Bauern sterben.' },
       { title: 'Lindach', sub: 'Lindach wird zur Strafe gebrandschatzt, und Junker Konrad verlangt den doppelten Zehnt. Der Bund ehrt Euch als Bannerherrn. Ihr habt gesiegt, doch froh werdet Ihr darüber nicht.' }
     ] },
   // als Vermittler
-  { type: 'escort', if: isF('k5', 'frieden'), who: ['hipler'], lead: 'Wendel Hipler', path: ST_HIPLERWEG, spd: 36, t: 'Bringt Wendel Hipler sicher zum Truchsess', d: 'Der Truchsess lagert an der Kreuzung in den Obstgärten.',
-    wait: 'Herr Ritter, allein komme ich nicht weit!', cleared: 'Der Weg ist frei. Hipler wischt sich den Schweiß von der Stirn.',
+  { type: 'escort', if: isF('k5', 'frieden'), who: ['hipler'], lead: 'Wendel Federlein', path: ST_HIPLERWEG, spd: 36, t: 'Bringt Wendel Federlein sicher zum Truchsess', d: 'Der Truchsess lagert an der Kreuzung in den Obstgärten.',
+    wait: 'Herr Ritter, allein komme ich nicht weit!', cleared: 'Der Weg ist frei. Federlein wischt sich den Schweiß von der Stirn.',
     amb: [
       { at: .35, nm: 'Jäckleins Leute', sub: 'Sie wollen keinen Frieden', cry: '„Kein Vertrag mit dem Bauernjörg! Schlagt den Schreiber tot!“', mobs: [{ k: 'pluend', n: 4, nm: 'Jäckleins Mann', tint: 'bauer', lv: -1 }] },
       { at: .78, nm: 'Plündernde Landsknechte', sub: 'Sie wollen Beute, keinen Frieden', mobs: [{ k: 'pluend', n: 2, nm: 'Landsknecht des Bundes', tint: 'bund' }, { k: 'armbrust', n: 2, nm: 'Hakenschütze des Bundes', tint: 'bund' }] }
     ],
     after: [
       { put: 'tr', as: 'truchsess', at: [1924, 1300], dir: 'down' }, { put: 'lk', as: 'landsknecht', at: [1878, 1292], dir: 'down' }, { pan: [1904, 1302] },
-      { say: 'esc0', nm: 'Wendel Hipler', text: 'Herr Truchsess, ich bin Wendel Hipler und spreche für den Haufen von Lindach. Wir bringen die zwölf Artikel und ein Angebot.' },
-      { say: 'tr', nm: 'Georg Truchsess von Waldburg', text: 'Ein Schreiber und ein Ritter. Was wollt ihr? Eure Bauern haben in Weinsberg Edelleute ermordet.' },
-      { say: 'me', text: 'Nicht diese Bauern. In Lindach ist niemand getötet worden. Bei Weingarten habt Ihr einen Vertrag geschlossen. Schließt hier noch einen.' },
-      { if: isF('k3g', 'gnade'), say: 'tr', nm: 'Georg Truchsess von Waldburg', text: 'Man erzählt sich, Ihr hättet im Krieg um Sickingen Gnade geübt, wo andere gehängt hätten. Das spricht für Euch.' },
-      { say: 'tr', nm: 'Georg Truchsess von Waldburg', text: '… Also gut. Die Bauern von Lindach legen die Waffen nieder und gehen heim. Der Bund zieht ab. Über die Artikel richten Schiedsleute, je zwei von jeder Seite.' },
-      { say: 'esc0', nm: 'Wendel Hipler', text: 'Mehr kann man in diesen Zeiten nicht verlangen. Ich bringe die Nachricht ins Dorf.' },
-      { say: 'tr', nm: 'Georg Truchsess von Waldburg', text: 'Eines noch. Der Mörder von Weinsberg, Jäcklein Rohrbach, steht nicht unter diesem Frieden. Und wie ich höre, ist er mit seinen Leuten schon unterwegs hierher.' }
+      { say: 'esc0', nm: 'Wendel Federlein', text: 'Herr Truchsess, ich bin Wendel Federlein und spreche für den Haufen von Lindach. Wir bringen die zwölf Artikel und ein Angebot.' },
+      { say: 'tr', nm: 'Georg Truchsess von Waldeck', text: 'Ein Schreiber und ein Ritter. Was wollt ihr? Eure Bauern haben in Rebenau Edelleute ermordet.' },
+      { say: 'me', text: 'Nicht diese Bauern. In Lindach ist niemand getötet worden. Bei Weidach habt Ihr einen Vertrag geschlossen. Schließt hier noch einen.' },
+      { if: isF('k3g', 'gnade'), say: 'tr', nm: 'Georg Truchsess von Waldeck', text: 'Man erzählt sich, Ihr hättet im Krieg um Eberhard Gnade geübt, wo andere gehängt hätten. Das spricht für Euch.' },
+      { say: 'tr', nm: 'Georg Truchsess von Waldeck', text: '… Also gut. Die Bauern von Lindach legen die Waffen nieder und gehen heim. Der Bund zieht ab. Über die Artikel richten Schiedsleute, je zwei von jeder Seite.' },
+      { say: 'esc0', nm: 'Wendel Federlein', text: 'Mehr kann man in diesen Zeiten nicht verlangen. Ich bringe die Nachricht ins Dorf.' },
+      { say: 'tr', nm: 'Georg Truchsess von Waldeck', text: 'Eines noch. Der Mörder von Rebenau, Jäcklein Mühlbach, steht nicht unter diesem Frieden. Und wie ich höre, ist er mit seinen Leuten schon unterwegs hierher.' }
     ] },
   { type: 'kill', if: isF('k5', 'frieden'), at: [1900, 1340], place: 'Lager des Truchsess', t: 'Haltet Jäcklein auf, ehe er den Frieden zerschlägt',
     cast: [{ id: 'truchsess', at: [1924, 1300] }, { id: 'hipler', at: [1886, 1304] }],
     mobs: [{ k: 'pluend', n: 4, nm: 'Jäckleins Mann', tint: 'bauer', lv: -1 }],
-    boss: { k: 'pluend', nm: 'Jäcklein Rohrbach', hpf: 7, lv: 2, tint: 'bauer', sub: 'will keinen Frieden', cry: 'Kein Friede mit den Herren!' },
+    boss: { k: 'pluend', nm: 'Jäcklein Mühlbach', hpf: 7, lv: 2, tint: 'bauer', sub: 'will keinen Frieden', cry: 'Kein Friede mit den Herren!' },
     after: [
       { put: 'jk', as: 'jaecklein', at: [1900, 1338], dir: 'up' }, { pan: [1900, 1322] },
-      { say: 'jk', nm: 'Jäcklein Rohrbach', text: 'Ihr … verfluchter Friedensmacher. Ihr wisst nicht, was die Herren mit uns machen, wenn wir die Waffen strecken.' },
+      { say: 'jk', nm: 'Jäcklein Mühlbach', text: 'Ihr … verfluchter Friedensmacher. Ihr wisst nicht, was die Herren mit uns machen, wenn wir die Waffen strecken.' },
       { say: 'me', text: 'Vielleicht. Aber Lindach lebt, und morgen gehen die Bauern heim zu ihren Familien.' },
-      { title: 'Im Mai 1525', sub: 'Anderswo schlägt der Truchsess die Haufen bei Böblingen, bei Königshofen und vor Würzburg. Mehr als siebzigtausend Bauern sterben. Der Vertrag von Weingarten aber hält, und auch der von Lindach.' },
-      { title: 'Lindach', sub: 'Die Schiedsleute erlassen den kleinen Zehnt und begrenzen die Fron. Junker Konrad murrt, aber er hält sich daran. Im Reichsland nennt man Euch den Friedensstifter.' }
+      { title: 'Im Mai', sub: 'Anderswo schlägt der Truchsess die Haufen im ganzen Süden. Mehr als siebzigtausend Bauern sterben. Der Vertrag von Weidach aber hält, und auch der von Lindach.' },
+      { title: 'Lindach', sub: 'Die Schiedsleute erlassen den kleinen Zehnt und begrenzen die Fron. Junker Konrad murrt, aber er hält sich daran. Im Königsland nennt man Euch den Friedensstifter.' }
     ] }
   ] }
 ];
-/* ---------- Kapitel 6 bis 8: Speyer 1526–1529 ----------
-   Historisch: erster Reichstag zu Speyer unter Erzherzog Ferdinand (Juni bis August 1526), die evangelischen Fürsten mit
-   „V.D.M.I.Æ." auf dem Ärmel, der Abschied vom 27. August („wie es ein jeder vor Gott und Kaiserlicher Majestät zu verantworten
-   hofft"), die Schlacht bei Mohács (29. August 1526); der Sacco di Roma (6. Mai 1527) und die heimkehrenden Landsknechte;
-   der zweite Reichstag zu Speyer und die Protestation vom 19. April 1529, die Belagerung Wiens (Herbst 1529).
-   Eitel Schott von Hohenrhein, der Domherr Lambert und die Winzer sind erfunden. */
+/* ---------- Kapitel 6 bis 8: Altmünster ----------
+   Der erste Hoftag zu Altmünster unter Herzog Leopold, die evangelischen Fürsten mit „V.D.M.I.Æ." auf dem Ärmel, der Abschied
+   („wie es ein jeder vor Gott und Königlicher Majestät zu verantworten hofft"), die Kunde aus dem Osten; die Plünderung der
+   Heiligen Stadt und die heimkehrenden Landsknechte; der zweite Hoftag und die Protestation, die Belagerung Steinwachts.
+   Alle Personen und Orte sind erfunden. */
 Object.assign(ST_CAST, {
   domherr:   { nm: 'Domherr Lambert', o: { robe: 'long', hat: 'barett', fur: true, hair: ['w', 'x'] }, pal: 'rot', R: '#b8281e' },
   winzer:    { nm: 'Winzer Veit', o: { robe: 'short', hat: 'filz', beard: true, belt: true, hair: ['h', 'j'] }, pal: 'bauer' },
   winzerin:  { nm: 'Winzerin Gret', p: ['baeuerin', 1] },
-  ferdinand: { nm: 'Erzherzog Ferdinand', kn: ['spanien', '44444'], crown: true },
-  johann:    { nm: 'Kurfürst Johann von Sachsen', kn: ['reich', '44443'] },
-  philipp:   { nm: 'Landgraf Philipp von Hessen', kn: ['england', '33343'] },
-  jsturm:    { nm: 'Jakob Sturm von Straßburg', o: { robe: 'long', hat: 'barett', fur: true, beard: true, hair: ['h', 'j'] }, pal: 'gelehrt' },
-  schott:    { nm: 'Eitel Schott von Hohenrhein', kn: ['reich', '22232'] },
+  ferdinand: { nm: 'Herzog Leopold', kn: ['spanien', '44444'], crown: true },
+  johann:    { nm: 'Herzog Johann von der Nordmark', kn: ['reich', '44443'] },
+  philipp:   { nm: 'Landgraf Philipp vom Walde', kn: ['england', '33343'] },
+  jsturm:    { nm: 'Ratsherr Jakob Sturm', o: { robe: 'long', hat: 'barett', fur: true, beard: true, hair: ['h', 'j'] }, pal: 'gelehrt' },
+  schott:    { nm: 'Eitel Schott von Hohenstein', kn: ['reich', '22232'] },
   pirat:     { nm: 'Flusspirat', p: ['wache', 2] }
 });
 for (const id of ['domherr', 'winzer', 'winzerin', 'ferdinand', 'johann', 'philipp', 'jsturm', 'schott', 'pirat']) ST_CAST[id].id = id;
-Object.assign(ST_TITLES, { prot: 'Ritter der Protestation', erzh: 'Bannerherr des Erzherzogs', rfrieden: 'Hüter des Reichsfriedens' });
+Object.assign(ST_TITLES, { prot: 'Ritter der Protestation', erzh: 'Bannerherr des Herzogs', rfrieden: 'Hüter des Landfriedens' });
 ST_CH.push(
 /* ===== Kapitel 6 ===== */
-{ n: 6, t: 'Der Reichstag zu Speyer', year: 'Sommer 1526', lvl: 16,
-  d: 'In Speyer tagen die Stände des Reiches unter Erzherzog Ferdinand, dem Bruder des Kaisers. Die Stadt ist voller Gesandter, und auf dem Strom treiben die Piraten des Hinrich Rotbart ihr Unwesen.',
+{ n: 6, t: 'Der Hoftag zu Altmünster', year: 'Sommer, im sechsten Jahr', lvl: 16,
+  d: 'In Altmünster tagen die Stände des Königreichs unter Herzog Leopold, dem Bruder des Königs. Die Stadt ist voller Gesandter, und auf dem Strom treiben die Piraten des Hinrich Rotbart ihr Unwesen.',
   reward: f => f.k6 === 'evang' ? { s: 'kleinod', n: 'Ärmelband „Verbum Domini“', aff: ['hp', 'crit', 'spd'], r: 4 }
-    : f.k6 === 'alt' ? { s: 'waffe', n: 'Schwert aus der Rüstkammer Ferdinands', aff: ['str', 'crit', 'spd'], r: 4 }
-    : { s: 'kleinod', n: 'Siegel des Abschieds von Speyer', aff: ['hp', 'arm', 'crit'], r: 4 },
+    : f.k6 === 'alt' ? { s: 'waffe', n: 'Schwert aus der Rüstkammer Leopolds', aff: ['str', 'crit', 'spd'], r: 4 }
+    : { s: 'kleinod', n: 'Siegel des Abschieds von Altmünster', aff: ['hp', 'arm', 'crit'], r: 4 },
   steps: [
-  { type: 'goto', at: [4960, 1400], r: 80, place: 'Markt zu Speyer', t: 'Reitet nach Speyer auf den Markt', d: 'Der Reichsherold Kaspar Sturm erwartet Euch auf dem Markt der Reichsstadt Speyer, am Strom im Osten.',
+  { type: 'goto', at: [4960, 1400], r: 80, place: 'Markt zu Altmünster', t: 'Reitet nach Altmünster auf den Markt', d: 'Der Königsherold Kaspar erwartet Euch auf dem Markt der Domstadt Altmünster, am Strom im Osten.',
     cast: [{ id: 'kaspar', at: [4986, 1392] }, { id: 'domherr', at: [4950, 1396], dir: 'right' }],
     scene: [
-      { title: 'Kapitel 6: Der Reichstag zu Speyer', sub: 'Speyer, im Juni des Jahres 1526' },
+      { title: 'Kapitel 6: Der Hoftag zu Altmünster', sub: 'Altmünster, im Juni des sechsten Jahres' },
       { pan: [4968, 1394] },
-      { say: 'kaspar', text: 'Da seid Ihr ja! Fünf Jahre ist es her, dass wir den Doktor Luther nach Worms geleitet haben. Jetzt tagt der Reichstag in Speyer.' },
-      { say: 'kaspar', text: 'Der Kaiser kämpft in Italien gegen den König von Frankreich, also führt sein Bruder Ferdinand den Vorsitz. Und der Kurfürst von Sachsen und der Landgraf von Hessen sind mit großem Gefolge gekommen.' },
-      { say: 'kaspar', text: 'Ihre Leute tragen fünf Buchstaben auf dem Ärmel: V.D.M.I.Æ. Verbum Domini manet in aeternum, das Wort des Herrn bleibt in Ewigkeit. Ganz Speyer redet davon.' },
-      { say: 'domherr', text: 'Und unterdessen plündern die Flusspiraten unsere Schiffe! Ich bin Lambert, Domherr am Kaiserdom. Die Kähne mit Korn und Wein für die Gesandten werden nachts im Hafen ausgeraubt.' },
-      { say: 'domherr', text: 'Die Leute des Hinrich Rotbart kommen von ihrer Insel herüber, als gehöre ihnen der Strom. Wenn der Reichstag hungert, geht er auseinander, ehe etwas beschlossen ist.' },
+      { say: 'kaspar', text: 'Da seid Ihr ja! Fünf Jahre ist es her, dass wir Bruder Elias nach Brunnhall geleitet haben. Jetzt tagt der Hoftag in Altmünster.' },
+      { say: 'kaspar', text: 'Der König kämpft jenseits der Berge gegen König Aldemar, also führt sein Bruder Leopold den Vorsitz. Und der Herzog der Nordmark und der Landgraf vom Walde sind mit großem Gefolge gekommen.' },
+      { say: 'kaspar', text: 'Ihre Leute tragen fünf Buchstaben auf dem Ärmel: V.D.M.I.Æ. Verbum Domini manet in aeternum, das Wort des Herrn bleibt in Ewigkeit. Ganz Altmünster redet davon.' },
+      { say: 'domherr', text: 'Und unterdessen plündern die Flusspiraten unsere Schiffe! Ich bin Lambert, Domherr am Dom. Die Kähne mit Korn und Wein für die Gesandten werden nachts im Hafen ausgeraubt.' },
+      { say: 'domherr', text: 'Die Leute des Hinrich Rotbart kommen von ihrer Insel herüber, als gehöre ihnen der Strom. Wenn der Hoftag hungert, geht er auseinander, ehe etwas beschlossen ist.' },
       { say: 'me', text: 'Dann sollen sie heute Nacht einen Ritter im Hafen finden.' }
     ] },
-  { type: 'kill', at: [5150, 1662], unsafe: 'speyer', place: 'Der Hafen', t: 'Vertreibt die Flusspiraten aus dem Hafen von Speyer', d: 'Am Kai vor dem Hafentor liegen die Kähne des Domkapitels.', cap: 6,
+  { type: 'kill', at: [5150, 1662], unsafe: 'speyer', place: 'Der Hafen', t: 'Vertreibt die Flusspiraten aus dem Hafen von Altmünster', d: 'Am Kai vor dem Hafentor liegen die Kähne des Domkapitels.', cap: 6,
     mobs: [{ k: 'pirat', n: 5, nm: 'Flusspirat' }, { k: 'pschuetze', n: 3, nm: 'Piratenschütze' }],
     boss: { k: 'pirat', nm: 'Bootsmann Henne Schwarzhand', hpf: 6, lv: 1, tint: 'dunkel', sub: 'Rotbarts Bootsmann', cry: 'Der Strom gehört Rotbart, und was darauf schwimmt, auch!' },
     after: [
       { put: 'hm', as: 'domherr', at: [5100, 1630], dir: 'down' }, { pan: [5130, 1650] },
       { say: 'me', text: 'Der Bootsmann trug einen Brief bei sich. Gesiegelt, aber nicht mit Rotbarts Zeichen: ein Schott, ein Querbalken im Schild.' },
       { say: 'hm', nm: 'Domherr Lambert', text: 'Zeigt her … „Fünfzig Gulden für jeden Kahn, der die Gesandten der neuen Lehre nicht erreicht.“ Unterschrieben: E. S. v. H.' },
-      { say: 'hm', nm: 'Domherr Lambert', text: 'Eitel Schott von Hohenrhein, ein verarmter Ritter aus den Bergen. Er bezahlt Piraten, damit der Reichstag scheitert. Ich bringe den Brief dem Erzherzog.' },
-      { say: 'hm', nm: 'Domherr Lambert', text: 'Herr Ritter, der Herold sucht Euch im Ratshof. Heute wird dort über das Wormser Edikt gestritten.' }
+      { say: 'hm', nm: 'Domherr Lambert', text: 'Eitel Schott von Hohenstein, ein verarmter Ritter aus den Bergen. Er bezahlt Piraten, damit der Hoftag scheitert. Ich bringe den Brief dem Herzog.' },
+      { say: 'hm', nm: 'Domherr Lambert', text: 'Herr Ritter, der Herold sucht Euch im Ratshof. Heute wird dort über das Brunnhaller Edikt gestritten.' }
     ] },
-  { type: 'goto', at: [4846, 1508], r: 60, place: 'Ratshof', t: 'Geht zum Ratshof von Speyer', d: 'Der Ratshof steht in der südlichen Häuserzeile am Markt.',
+  { type: 'goto', at: [4846, 1508], r: 60, place: 'Ratshof', t: 'Geht zum Ratshof von Altmünster', d: 'Der Ratshof steht in der südlichen Häuserzeile am Markt.',
     cast: [{ id: 'kaspar', at: [4870, 1514], dir: 'left' }],
     scene: [
       { say: 'kaspar', text: 'Kommt mit hinein, Ihr seid mein Zeuge. Und schweigt, es sei denn, man fragt Euch.' },
-      { title: 'Speyer, im August 1526', sub: 'Im Ratshof ringen die Stände um das Wormser Edikt. Soll es überall gelten, oder darf jeder Fürst selbst entscheiden?' },
+      { title: 'Altmünster, im August 1526', sub: 'Im Ratshof ringen die Stände um das Brunnhaller Edikt. Soll es überall gelten, oder darf jeder Fürst selbst entscheiden?' },
       { stage: 'speyer' },
       { put: 'ferdinand', at: [0, -14], dir: 'down' }, { put: 'johann', at: [-92, 40], dir: 'right' }, { put: 'philipp', at: [-64, 64], dir: 'right' }, { put: 'domherr', at: [86, 40], dir: 'left' }, { put: 'kaspar', at: [104, 76], dir: 'up' },
-      { say: 'ferdinand', text: 'Seine Majestät der Kaiser verlangt, dass das Edikt von Worms befolgt wird. Wer Luthers Lehre duldet, stellt sich gegen Kaiser und Kirche.' },
+      { say: 'ferdinand', text: 'Seine Majestät der König verlangt, dass das Edikt von Brunnhall befolgt wird. Wer die Lehre des Bruders Elias duldet, stellt sich gegen König und Kirche.' },
       { say: 'philipp', text: 'Mit Verlaub, Euer Liebden: In meinem Land predigt man das Evangelium. Soll ich meine Prediger verjagen, weil ein Edikt es befiehlt, das kein Konzil bestätigt hat?' },
-      { say: 'johann', text: 'Ein Konzil soll entscheiden, frei und christlich, in deutschen Landen. Bis dahin kann niemand über unser Gewissen gebieten.' },
-      { say: 'domherr', text: 'Ein Konzil! Und bis es kommt, reißt jeder Fürst Klöster ein und nimmt die Kirchengüter. So zerfällt das Reich.' },
+      { say: 'johann', text: 'Ein Konzil soll entscheiden, frei und christlich, hier im Königreich. Bis dahin kann niemand über unser Gewissen gebieten.' },
+      { say: 'domherr', text: 'Ein Konzil! Und bis es kommt, reißt jeder Fürst Klöster ein und nimmt die Kirchengüter. So zerfällt das Königreich.' },
       { say: 'kaspar', text: '(leise) Ritter, man fragt nach Euch. Ihr habt die Piraten aus dem Hafen vertrieben, also hört man Euch zu. Was sagt Ihr?' },
       { hold: true }
     ] },
   { type: 'choice', auto: true, who: 'kaspar', t: 'Entscheidet Euch im Ratshof (E)',
-    q: 'Die Stände sehen Euch an: der Erzherzog auf seinem Stuhl, die Fürsten von Sachsen und Hessen mit den fünf Buchstaben am Ärmel, der Domherr mit dem Brief des Eitel Schott.',
+    q: 'Die Stände sehen Euch an: Herzog Leopold auf seinem Stuhl, der Herzog der Nordmark und der Landgraf mit den fünf Buchstaben am Ärmel, der Domherr mit dem Brief des Eitel Schott.',
     opts: [
-      { t: 'Für die evangelischen Stände sprechen', f: { k6: 'evang' }, log: 'Sommer 1526: Im Ratshof zu Speyer habt Ihr für die evangelischen Stände gesprochen.',
+      { t: 'Für die evangelischen Stände sprechen', f: { k6: 'evang' }, log: 'Im sechsten Sommer: Im Ratshof zu Altmünster habt Ihr für die evangelischen Stände gesprochen.',
         scene: [
           { stage: 'speyer' },
-          { say: 'me', text: 'Ich habe Luther nach Worms geleitet. Er hat nichts verlangt als Gründe aus der Schrift. Man soll niemanden zwingen, gegen sein Gewissen zu glauben.' },
+          { say: 'me', text: 'Ich habe Bruder Elias nach Brunnhall geleitet. Er hat nichts verlangt als Gründe aus der Schrift. Man soll niemanden zwingen, gegen sein Gewissen zu glauben.' },
           { say: 'philipp', text: 'Wohl gesprochen! Ein Ritter, der weiß, wofür er das Schwert trägt.' },
-          { say: 'ferdinand', text: 'Ihr sprecht kühn für einen Ritter. Merkt Euch: Der Kaiser vergisst nicht, wer an seiner Seite stand.' }
+          { say: 'ferdinand', text: 'Ihr sprecht kühn für einen Ritter. Merkt Euch: Der König vergisst nicht, wer an seiner Seite stand.' }
         ] },
-      { t: 'Zum Erzherzog und zum Edikt halten', f: { k6: 'alt' }, log: 'Sommer 1526: Im Ratshof zu Speyer habt Ihr zum Erzherzog und zum Wormser Edikt gehalten.',
+      { t: 'Zum Herzog und zum Edikt halten', f: { k6: 'alt' }, log: 'Im sechsten Sommer: Im Ratshof zu Altmünster habt Ihr zum Herzog und zum Brunnhaller Edikt gehalten.',
         scene: [
           { stage: 'speyer' },
-          { say: 'me', text: 'Ich habe den Treueid auf den Kaiser geschworen. Ein Reich, ein Glaube, ein Gesetz. Sonst gehen wir in Fehden unter wie zu Sickingens Zeiten.' },
+          { say: 'me', text: 'Ich habe den Treueid auf den König geschworen. Ein Königreich, ein Glaube, ein Gesetz. Sonst gehen wir in Fehden unter wie zu Eberhards Zeiten.' },
           { say: 'ferdinand', text: 'Endlich ein Mann von Treue. Ihr sollt einen Platz in meinem Gefolge haben, wenn Ihr wollt.' },
-          { say: 'johann', text: 'Die Treue zum Kaiser ehrt Euch. Doch Gott ist man mehr Treue schuldig als jedem Fürsten.' }
+          { say: 'johann', text: 'Die Treue zum König ehrt Euch. Doch Gott ist man mehr Treue schuldig als jedem Fürsten.' }
         ] },
-      { t: 'Auf einen Ausgleich drängen, bis ein Konzil kommt', f: { k6: 'ausgleich' }, gn: 1, log: 'Sommer 1526: Im Ratshof zu Speyer habt Ihr auf einen Ausgleich bis zum Konzil gedrängt.',
+      { t: 'Auf einen Ausgleich drängen, bis ein Konzil kommt', f: { k6: 'ausgleich' }, gn: 1, log: 'Im sechsten Sommer: Im Ratshof zu Altmünster habt Ihr auf einen Ausgleich bis zum Konzil gedrängt.',
         scene: [
           { stage: 'speyer' },
           { say: 'me', text: 'Ihr Herren, während Ihr streitet, bezahlt einer wie Eitel Schott Piraten, damit Ihr hungert. Einigt Euch, wenigstens bis ein Konzil entscheidet. Sonst gewinnen nur die Räuber.' },
-          { say: 'kaspar', text: 'Der Ritter hat recht. Und aus Ungarn kommen böse Nachrichten: Der Sultan zieht mit einem großen Heer die Donau herauf.' },
-          { say: 'ferdinand', text: '… Dann soll es so sein. Bis zum Konzil hält es jeder Stand mit dem Edikt, wie er es vor Gott und dem Kaiser verantworten kann.' }
+          { say: 'kaspar', text: 'Der Ritter hat recht. Und aus dem Osten kommen böse Nachrichten: Der Fremde Fürst zieht mit einem großen Heer die Silberach herauf.' },
+          { say: 'ferdinand', text: '… Dann soll es so sein. Bis zum Konzil hält es jeder Stand mit dem Edikt, wie er es vor Gott und dem König verantworten kann.' }
         ] }
     ] },
   { type: 'scene', t: 'Der Abschied',
     scene: [
-      { title: 'Der Abschied von Speyer', sub: 'Am 27. August 1526 einigen sich die Stände: Bis zu einem Konzil soll jeder Stand es mit dem Wormser Edikt so halten, wie er es vor Gott und Kaiserlicher Majestät zu verantworten hofft.' },
-      { title: 'Mohács, am 29. August 1526', sub: 'Zwei Tage später schlägt Sultan Süleyman das Heer der Ungarn. König Ludwig ertrinkt auf der Flucht in einem Bach. Ungarn und Böhmen fallen an Erzherzog Ferdinand, und mit ihnen der Krieg gegen die Türken.' },
-      { title: 'Eitel Schott', sub: 'Der Erzherzog lässt Eitel Schott von Hohenrhein vorladen. Doch der Ritter erscheint nicht. Man sagt, er sei zu Rotbart auf die Insel geflohen.' }
+      { title: 'Der Abschied von Altmünster', sub: 'Ende August einigen sich die Stände: Bis zu einem Konzil soll jeder Stand es mit dem Brunnhaller Edikt so halten, wie er es vor Gott und Königlicher Majestät zu verantworten hofft.' },
+      { title: 'Kunde aus dem Osten', sub: 'Zwei Tage später schlägt der Fremde Fürst das Heer der Ostmark. Ihr König ertrinkt auf der Flucht in einem Bach. Die Ostmark fällt an Herzog Leopold, und mit ihr der Krieg gegen das Heer des Fremden Fürsten.' },
+      { title: 'Eitel Schott', sub: 'Der Herzog lässt Eitel Schott von Hohenstein vorladen. Doch der Ritter erscheint nicht. Man sagt, er sei zu Rotbart auf die Insel geflohen.' }
     ] }
   ] },
 /* ===== Kapitel 7 ===== */
-{ n: 7, t: 'Die Beute aus Rom', year: 'Herbst 1527', lvl: 18,
-  d: 'Im Mai haben die Landsknechte des Kaisers Rom geplündert. Jetzt ziehen sie heim, mit Kirchensilber im Tornister, und an der Weinstraße nehmen sie, was die Winzer mühsam geerntet haben.',
+{ n: 7, t: 'Die Beute aus der Heiligen Stadt', year: 'Herbst, im siebten Jahr', lvl: 18,
+  d: 'Im Mai haben die Landsknechte des Königs die Heilige Stadt geplündert. Jetzt ziehen sie heim, mit Kirchensilber im Tornister, und an der Weinstraße nehmen sie, was die Winzer mühsam geerntet haben.',
   reward: f => f.k7 === 'dom' ? { s: 'kleinod', n: 'Reliquiar von Sankt Peter', aff: ['hp', 'arm', 'crit'], r: 4 }
     : f.k7 === 'winzer' ? { s: 'beine', n: 'Wingertstiefel der Weinstraße', aff: ['hp', 'spd', 'arm'], r: 4 }
-    : { s: 'waffe', n: 'Römischer Silberdegen', aff: ['str', 'crit', 'spd'], r: 4 },
+    : { s: 'waffe', n: 'Silberdegen aus der Heiligen Stadt', aff: ['str', 'crit', 'spd'], r: 4 },
   steps: [
-  { type: 'goto', at: [5300, 330], r: 80, place: 'Wallfahrtskapelle', t: 'Reitet die Weinstraße hinauf zur Wallfahrtskapelle', d: 'Die Weinstraße führt vom Nordtor Speyers hinauf in die Weinberge.',
+  { type: 'goto', at: [5300, 330], r: 80, place: 'Wallfahrtskapelle', t: 'Reitet die Weinstraße hinauf zur Wallfahrtskapelle', d: 'Die Weinstraße führt vom Nordtor Altmünsters hinauf in die Weinberge.',
     cast: [{ id: 'winzer', at: [5282, 342], dir: 'right' }, { id: 'winzerin', at: [5320, 346], dir: 'left' }],
     scene: [
-      { title: 'Kapitel 7: Die Beute aus Rom', sub: 'An der Weinstraße, im Herbst des Jahres 1527' },
+      { title: 'Kapitel 7: Die Beute aus der Heiligen Stadt', sub: 'An der Weinstraße, im Herbst des siebten Jahres' },
       { pan: [5300, 336] },
       { say: 'winzer', text: 'Herr Ritter! Der Heilige Wendelin hat Euch geschickt. Ich bin Veit, und unten am Hang sind meine Wingerte. Waren meine Wingerte.' },
-      { say: 'winzerin', text: 'Landsknechte, Herr! Sie kommen aus Italien. Im Mai waren sie in Rom, als die Stadt erstürmt wurde. Jetzt trinken sie unseren Most und schlagen die Fässer ein.' },
-      { say: 'winzer', text: 'Ihr Feldweibel prahlt, er habe im Vatikan geschlafen und dem Papst ins Fenster gespuckt. Den Herzog von Bourbon hat eine Kugel an der Mauer getroffen, und der alte Frundsberg liegt krank daheim. Keiner hält die Kerle mehr im Zaum.' },
+      { say: 'winzerin', text: 'Landsknechte, Herr! Sie kommen von jenseits der Berge. Im Mai waren sie in der Heiligen Stadt, als sie erstürmt wurde. Jetzt trinken sie unseren Most und schlagen die Fässer ein.' },
+      { say: 'winzer', text: 'Ihr Feldweibel prahlt, er habe im Palast des Heiligen Vaters geschlafen und ihm ins Fenster gespuckt. Ihren Feldherrn hat eine Kugel an der Mauer getroffen, und der alte Hauptmann Eisenfaust liegt krank daheim. Keiner hält die Kerle mehr im Zaum.' },
       { say: 'me', text: 'Dann halte ich sie im Zaum. Wo lagern sie?' },
       { say: 'winzer', text: 'Am Wingertpfad östlich der Straße, beim großen Kelterhaus. Gott schütze Euch.' }
     ] },
   { type: 'kill', at: [5560, 720], place: 'Die Landsknechte', t: 'Vertreibt die Landsknechte aus den Weinbergen', d: 'Am Wingertpfad östlich der Weinstraße.', cap: 6,
-    mobs: [{ k: 'pluend', n: 6, nm: 'Landsknecht aus Rom', tint: 'gold' }, { k: 'armbrust', n: 3, nm: 'Hakenschütze aus Rom', tint: 'gold' }],
-    boss: { k: 'raubritter', nm: 'Feldweibel Lienhart Rauchbein', hpf: .5, lv: 2, tint: 'gold', sub: 'aus dem Heer, das Rom geplündert hat', cry: 'Rom haben wir genommen, da nehmen wir auch euren Wein!' },
+    mobs: [{ k: 'pluend', n: 6, nm: 'Plündernder Landsknecht', tint: 'gold' }, { k: 'armbrust', n: 3, nm: 'Plündernder Hakenschütze', tint: 'gold' }],
+    boss: { k: 'raubritter', nm: 'Feldweibel Lienhart Rauchbein', hpf: .5, lv: 2, tint: 'gold', sub: 'aus dem Heer, das die Heilige Stadt geplündert hat', cry: 'Die Heilige Stadt haben wir genommen, da nehmen wir auch euren Wein!' },
     after: [
       { put: 'wz', as: 'winzer', at: [5520, 700], dir: 'right' }, { pan: [5550, 712] },
       { say: 'me', text: 'Im Tornister des Feldweibels liegt ein Reliquiar aus Silber, vergoldet, mit Edelsteinen. Darauf eingraviert: SANCTVS PETRVS.' },
-      { say: 'wz', nm: 'Winzer Veit', text: 'Aus Rom … aus Sankt Peter! Und daneben Dukaten, mehr als ich in zehn Jahren verdiene. Herr Ritter, was macht Ihr damit?' },
+      { say: 'wz', nm: 'Winzer Veit', text: 'Aus der Heiligen Stadt … aus Sankt Peter! Und daneben Dukaten, mehr als ich in zehn Jahren verdiene. Herr Ritter, was macht Ihr damit?' },
       { hold: true }
     ] },
-  { type: 'choice', auto: true, who: 'winzer', t: 'Entscheidet über die Beute aus Rom (E)',
-    q: 'Vor Euch liegen das Reliquiar aus Sankt Peter und ein Beutel römischer Dukaten. Die Winzer haben ihre ganze Ernte verloren.',
+  { type: 'choice', auto: true, who: 'winzer', t: 'Entscheidet über die Beute (E)',
+    q: 'Vor Euch liegen das Reliquiar aus Sankt Peter und ein Beutel Dukaten. Die Winzer haben ihre ganze Ernte verloren.',
     opts: [
-      { t: 'Das Reliquiar dem Domherrn in Speyer bringen', f: { k7: 'dom' }, gn: 1, log: 'Herbst 1527: Ihr habt das geraubte Reliquiar aus Rom dem Dom zu Speyer übergeben.',
-        scene: [{ say: 'me', text: 'Was aus einer Kirche geraubt wurde, gehört in eine Kirche. Der Domherr in Speyer soll es verwahren, bis Rom es zurückfordert.' }, { say: 'winzer', text: 'Das ist recht. Aber die Dukaten, Herr? Wir haben nichts mehr für den Winter.' }, { say: 'me', text: 'Die Dukaten gehören euch. Kauft Saatgut und neue Fässer.' }] },
-      { t: 'Alles den Winzern geben, damit sie ihre Höfe wieder aufbauen', f: { k7: 'winzer' }, gn: 1, log: 'Herbst 1527: Ihr habt die Beute aus Rom den geplünderten Winzern an der Weinstraße geschenkt.',
-        scene: [{ say: 'me', text: 'Rom ist weit, und der Papst hat Silber genug. Eure Kinder hungern hier. Verkauft das Reliquiar in Straßburg und baut eure Höfe wieder auf.' }, { say: 'winzer', text: 'Gott vergelt es Euch tausendmal! Solange ich lebe, steht in meinem Keller ein Fass für Euch bereit.' }] },
-      { t: 'Die Beute behalten', f: { k7: 'selbst' }, log: 'Herbst 1527: Ihr habt die Beute aus Rom behalten.',
+      { t: 'Das Reliquiar dem Domherrn in Altmünster bringen', f: { k7: 'dom' }, gn: 1, log: 'Im siebten Herbst: Ihr habt das geraubte Reliquiar dem Dom zu Altmünster übergeben.',
+        scene: [{ say: 'me', text: 'Was aus einer Kirche geraubt wurde, gehört in eine Kirche. Der Domherr in Altmünster soll es verwahren, bis die Heilige Stadt es zurückfordert.' }, { say: 'winzer', text: 'Das ist recht. Aber die Dukaten, Herr? Wir haben nichts mehr für den Winter.' }, { say: 'me', text: 'Die Dukaten gehören euch. Kauft Saatgut und neue Fässer.' }] },
+      { t: 'Alles den Winzern geben, damit sie ihre Höfe wieder aufbauen', f: { k7: 'winzer' }, gn: 1, log: 'Im siebten Herbst: Ihr habt die Beute den geplünderten Winzern an der Weinstraße geschenkt.',
+        scene: [{ say: 'me', text: 'Die Heilige Stadt ist weit, und der Heilige Vater hat Silber genug. Eure Kinder hungern hier. Verkauft das Reliquiar in Burgfelden und baut eure Höfe wieder auf.' }, { say: 'winzer', text: 'Gott vergelt es Euch tausendmal! Solange ich lebe, steht in meinem Keller ein Fass für Euch bereit.' }] },
+      { t: 'Die Beute behalten', f: { k7: 'selbst' }, log: 'Im siebten Herbst: Ihr habt die Beute behalten.',
         scene: [{ fn: () => { HERO.gold += 400; updateHud(); } }, { say: 'me', text: 'Ich habe sie erschlagen, also ist es meine Beute. So ist Kriegsrecht.' }, { say: 'winzer', text: 'Dann seid Ihr nicht besser als die Landsknechte, Herr. Nur höflicher.' }] }
     ] },
-  { type: 'goto', if: isF('k7', 'dom'), at: [5240, 1404], r: 60, place: 'Kaiserdom', t: 'Bringt das Reliquiar zum Domherrn am Kaiserdom', d: 'Der Domherr wartet vor dem Kaiserdom in Speyer.',
+  { type: 'goto', if: isF('k7', 'dom'), at: [5240, 1404], r: 60, place: 'Dom', t: 'Bringt das Reliquiar zum Domherrn am Dom', d: 'Der Domherr wartet vor dem Dom in Altmünster.',
     cast: [{ id: 'domherr', at: [5250, 1392] }],
     scene: [
       { pan: [5246, 1396] },
       { say: 'domherr', text: 'Ein Reliquiar aus Sankt Peter? Heilige Mutter Gottes … Ihr hättet es verkaufen können und wärt ein reicher Mann.' },
-      { say: 'domherr', text: 'Der Dom wird es verwahren, und wenn Frieden ist, geht es nach Rom zurück. Ich werde für Euch beten, Herr Ritter, ob Ihr nun der alten oder der neuen Lehre folgt.' },
+      { say: 'domherr', text: 'Der Dom wird es verwahren, und wenn Frieden ist, geht es in die Heilige Stadt zurück. Ich werde für Euch beten, Herr Ritter, ob Ihr nun der alten oder der neuen Lehre folgt.' },
       { say: 'domherr', text: 'Und hört: Eitel Schott ist wieder gesehen worden, auf der Insel bei Rotbart. Er hat Geld, viel Geld. Woher, weiß niemand.' }
     ] },
   { type: 'scene', t: 'Winter',
     scene: [
-      { title: 'Winter 1527 auf 1528', sub: 'Rom liegt in Trümmern, Papst Clemens muss sich dem Kaiser beugen. Im Reich aber führen immer mehr Fürsten und Städte die neue Lehre ein, so wie es der Abschied von Speyer erlaubt. Die Altgläubigen sinnen auf Rache.' }
+      { title: 'Im Winter darauf', sub: 'Die Heilige Stadt liegt in Trümmern, der Heilige Vater muss sich dem König beugen. Im Königreich aber führen immer mehr Fürsten und Städte die neue Lehre ein, so wie es der Abschied von Altmünster erlaubt. Die Altgläubigen sinnen auf Rache.' }
     ] }
   ] },
 /* ===== Kapitel 8 ===== */
-{ n: 8, t: 'Die Protestation', year: 'Frühjahr 1529', lvl: 20,
-  d: 'Wieder tagt der Reichstag in Speyer, doch diesmal hat die altgläubige Mehrheit den Abschied von 1526 aufgehoben. Die evangelischen Stände wollen sich nicht beugen. Und auf der Insel im Strom sammelt Eitel Schott seine Leute.',
+{ n: 8, t: 'Die Protestation', year: 'Frühjahr, im neunten Jahr', lvl: 20,
+  d: 'Wieder tagt der Hoftag in Altmünster, doch diesmal hat die altgläubige Mehrheit den Abschied von damals aufgehoben. Die evangelischen Stände wollen sich nicht beugen. Und auf der Insel im Strom sammelt Eitel Schott seine Leute.',
   reward: f => f.k8 === 'prot' ? { s: 'kleinod', n: 'Abschrift der Protestation', aff: ['hp', 'str', 'crit'], r: 4, title: ST_TITLES.prot, tid: 'prot' }
-    : f.k8 === 'kaiser' ? { s: 'schild', n: 'Wappenschild Ferdinands von Österreich', aff: ['arm', 'hp', 'block'], r: 4, title: ST_TITLES.erzh, tid: 'erzh' }
-    : { s: 'ruestung', n: 'Harnisch des Reichsfriedens', aff: ['hp', 'arm', 'str'], r: 4, title: ST_TITLES.rfrieden, tid: 'rfrieden' },
+    : f.k8 === 'kaiser' ? { s: 'schild', n: 'Wappenschild Herzog Leopolds', aff: ['arm', 'hp', 'block'], r: 4, title: ST_TITLES.erzh, tid: 'erzh' }
+    : { s: 'ruestung', n: 'Harnisch des Landfriedens', aff: ['hp', 'arm', 'str'], r: 4, title: ST_TITLES.rfrieden, tid: 'rfrieden' },
   steps: [
-  { type: 'goto', at: [4846, 1508], r: 60, place: 'Ratshof', t: 'Geht zum Ratshof von Speyer', d: 'Der Reichsherold erwartet Euch vor dem Ratshof am Markt.',
+  { type: 'goto', at: [4846, 1508], r: 60, place: 'Ratshof', t: 'Geht zum Ratshof von Altmünster', d: 'Der Königsherold erwartet Euch vor dem Ratshof am Markt.',
     cast: [{ id: 'kaspar', at: [4872, 1514], dir: 'left' }, { id: 'jsturm', at: [4822, 1516], dir: 'right' }],
     scene: [
-      { title: 'Kapitel 8: Die Protestation', sub: 'Speyer, im April des Jahres 1529' },
+      { title: 'Kapitel 8: Die Protestation', sub: 'Altmünster, im April des neunten Jahres' },
       { pan: [4848, 1512] },
-      { say: 'kaspar', text: 'Drei Jahre ist es her. Damals haben sich die Stände geeinigt. Jetzt hat die Mehrheit den Abschied von 1526 aufgehoben: Das Edikt von Worms soll wieder gelten, keine Neuerungen mehr.' },
-      { say: 'jsturm', text: 'Jakob Sturm, Gesandter der Stadt Straßburg. Herr Ritter, wir Städte und die evangelischen Fürsten lassen uns nicht überstimmen. Nicht in Fragen des Glaubens.' },
+      { say: 'kaspar', text: 'Drei Jahre ist es her. Damals haben sich die Stände geeinigt. Jetzt hat die Mehrheit den Abschied von damals aufgehoben: Das Edikt von Brunnhall soll wieder gelten, keine Neuerungen mehr.' },
+      { say: 'jsturm', text: 'Jakob Sturm, Gesandter der Stadt Burgfelden. Herr Ritter, wir Städte und die evangelischen Fürsten lassen uns nicht überstimmen. Nicht in Fragen des Glaubens.' },
       { say: 'jsturm', text: 'Heute wird im Ratshof eine Schrift verlesen. Kommt und hört sie Euch an.' },
-      { title: 'Speyer, am 19. April 1529', sub: 'Im Ratshof stehen die evangelischen Stände vor Erzherzog Ferdinand: der Kurfürst von Sachsen, der Landgraf von Hessen, der Markgraf von Brandenburg-Ansbach, die Herzöge von Lüneburg, der Fürst von Anhalt und vierzehn Reichsstädte.' },
+      { title: 'Altmünster, im April', sub: 'Im Ratshof stehen die evangelischen Stände vor Herzog Leopold: der Herzog der Nordmark, der Landgraf vom Walde, zwei Markgrafen, drei Grafen und vierzehn freie Städte.' },
       { stage: 'speyer' },
       { put: 'ferdinand', at: [0, -14], dir: 'down' }, { put: 'johann', at: [-80, 54], dir: 'up' }, { put: 'philipp', at: [-40, 70], dir: 'up' }, { put: 'jsturm', at: [40, 70], dir: 'up' }, { put: 'kaspar', at: [104, 76], dir: 'up' },
       { say: 'johann', text: 'Wir protestieren hiermit vor Gott, unserem einigen Schöpfer, Erhalter, Erlöser und Seligmacher, der ein Erforscher aller Herzen ist.' },
       { say: 'johann', text: 'In Sachen, Gottes Ehre und unserer Seelen Heil und Seligkeit belangend, muss ein jeglicher für sich selbst vor Gott stehen und Rechenschaft geben.' },
-      { say: 'philipp', text: 'Darum können wir dem Beschluss der Mehrheit nicht folgen. Wir berufen uns auf den Kaiser und auf ein freies Konzil.' },
+      { say: 'philipp', text: 'Darum können wir dem Beschluss der Mehrheit nicht folgen. Wir berufen uns auf den König und auf ein freies Konzil.' },
       { say: 'ferdinand', text: 'Der Beschluss ist gefasst. Ihr habt ihm zu gehorchen. Ich nehme Eure Schrift nicht an.' },
       { walk: 'ferdinand', to: [200, -14], spd: 60, wait: true },
-      { say: 'jsturm', text: 'Er geht! Dann tragen wir die Protestation selbst zum Kaiser. Ein Schiff liegt im Hafen bereit, Meister Kaspar soll die Gesandten begleiten.' },
+      { say: 'jsturm', text: 'Er geht! Dann tragen wir die Protestation selbst zum König. Ein Schiff liegt im Hafen bereit, Meister Kaspar soll die Gesandten begleiten.' },
       { stage: null },
       { hold: true }
     ] },
   { type: 'choice', auto: true, who: 'kaspar', t: 'Entscheidet Euch vor dem Ratshof (E)',
-    q: 'Die Gesandten wollen ihre Schrift zum Kaiser bringen. Der Erzherzog hat sie abgewiesen. Kaspar Sturm sieht Euch fragend an.',
+    q: 'Die Gesandten wollen ihre Schrift zum König bringen. Der Herzog hat sie abgewiesen. Kaspar sieht Euch fragend an.',
     opts: [
-      { t: 'Den protestierenden Ständen Euer Schwert anbieten', f: { k8: 'prot' }, log: 'April 1529: Ihr habt den protestierenden Ständen in Speyer Euer Schwert angeboten.',
-        scene: [{ say: 'me', text: 'Wer für sein Gewissen einsteht, verdient einen Ritter an seiner Seite. Ich bringe die Gesandten sicher aus Speyer.' }, { say: 'jsturm', text: 'Dann segelt Ihr mit Meister Kaspar voraus. Das Schiff der Gesandten folgt am Abend.' }] },
-      { t: 'Dem Erzherzog dienen, wie es Eure Pflicht ist', f: { k8: 'kaiser' }, log: 'April 1529: Ihr habt Euch dem Erzherzog Ferdinand angeschlossen.',
-        scene: [{ say: 'me', text: 'Ich habe dem Kaiser die Treue geschworen. Der Erzherzog spricht für ihn. Ich folge seinem Ruf.' }, { say: 'kaspar', text: 'Dann geht zu ihm. Ich begleite die Gesandten trotzdem, das ist mein Amt als Herold, gleich wem sie dienen.' }] },
-      { t: 'Freies Geleit für beide Seiten fordern, damit der Friede im Reich hält', f: { k8: 'frieden' }, gn: 1, need: (f, S) => S.gn >= 3, log: 'April 1529: Ihr habt in Speyer freies Geleit für beide Seiten gefordert.',
-        no: 'Dafür müssten beide Seiten Euch vertrauen. Wer oft Gnade gezeigt und auf sein Gewissen gehört hat (mindestens dreimal), dessen Wort gilt jetzt bei Katholiken und Protestanten.',
-        scene: [{ say: 'me', text: 'Ihr könnt streiten, so viel Ihr wollt. Aber auf dem Strom und auf den Straßen des Reiches soll jeder Gesandte sicher reisen, gleich welchem Glauben er folgt.' }, { say: 'kaspar', text: 'Das ist die Stimme, die dem Reich fehlt. Ich trage Euren Vorschlag zu beiden Seiten.' }] }
+      { t: 'Den protestierenden Ständen Euer Schwert anbieten', f: { k8: 'prot' }, log: 'Im neunten Frühjahr: Ihr habt den protestierenden Ständen in Altmünster Euer Schwert angeboten.',
+        scene: [{ say: 'me', text: 'Wer für sein Gewissen einsteht, verdient einen Ritter an seiner Seite. Ich bringe die Gesandten sicher aus Altmünster.' }, { say: 'jsturm', text: 'Dann segelt Ihr mit Meister Kaspar voraus. Das Schiff der Gesandten folgt am Abend.' }] },
+      { t: 'Dem Herzog dienen, wie es Eure Pflicht ist', f: { k8: 'kaiser' }, log: 'Im neunten Frühjahr: Ihr habt Euch dem Herzog Leopold angeschlossen.',
+        scene: [{ say: 'me', text: 'Ich habe dem König die Treue geschworen. Der Herzog spricht für ihn. Ich folge seinem Ruf.' }, { say: 'kaspar', text: 'Dann geht zu ihm. Ich begleite die Gesandten trotzdem, das ist mein Amt als Herold, gleich wem sie dienen.' }] },
+      { t: 'Freies Geleit für beide Seiten fordern, damit der Friede im Königreich hält', f: { k8: 'frieden' }, gn: 1, need: (f, S) => S.gn >= 3, log: 'Im neunten Frühjahr: Ihr habt in Altmünster freies Geleit für beide Seiten gefordert.',
+        no: 'Dafür müssten beide Seiten Euch vertrauen. Wer oft Gnade gezeigt und auf sein Gewissen gehört hat (mindestens dreimal), dessen Wort gilt jetzt bei beiden Lehren.',
+        scene: [{ say: 'me', text: 'Ihr könnt streiten, so viel Ihr wollt. Aber auf dem Strom und auf den Straßen des Königreichs soll jeder Gesandte sicher reisen, gleich welchem Glauben er folgt.' }, { say: 'kaspar', text: 'Das ist die Stimme, die dem Königreich fehlt. Ich trage Euren Vorschlag zu beiden Seiten.' }] }
     ] },
   { type: 'scene', t: 'Nachricht vom Strom',
     scene: [
@@ -1340,18 +1339,18 @@ ST_CH.push(
     ] },
   { type: 'kill', at: [5900, 1790], place: 'Das Lager unter dem Zollturm', t: 'Stürmt das Lager der Piraten unter dem Zollturm und befreit die Gefangenen', d: 'Über die Schiffbrücke und den Auweg erreicht man die Insel im Strom, oder mit dem Fährmann.', cap: 7,
     mobs: [{ k: 'pirat', n: 6, nm: 'Schotts Pirat' }, { k: 'pschuetze', n: 4, nm: 'Schotts Schütze' }],
-    boss: { k: 'raubritter', nm: 'Eitel Schott von Hohenrhein', hpf: .55, lv: 2, tint: 'dunkel', sub: 'Raubritter, gekauft von den Feinden des Friedens', cry: 'Keine Schrift erreicht den Kaiser! Das Reich gehört denen, die zahlen!' },
+    boss: { k: 'raubritter', nm: 'Eitel Schott von Hohenstein', hpf: .55, lv: 2, tint: 'dunkel', sub: 'Raubritter, gekauft von den Feinden des Friedens', cry: 'Keine Schrift erreicht den König! Das Königreich gehört denen, die zahlen!' },
     after: [
       { put: 'ks', as: 'kaspar', at: [5930, 1770], dir: 'left' }, { put: 'js', as: 'jsturm', at: [5950, 1786], dir: 'left' }, { put: 'sc', as: 'schott', at: [5884, 1800], dir: 'right' }, { dead: ['sc', true] }, { pan: [5912, 1786] },
-      { say: 'ks', nm: 'Reichsherold Kaspar Sturm', text: 'Herr Ritter! Zum dritten Mal rettet Ihr mich. Ich sollte Euch zum Ehrenherold machen.' },
-      { say: 'sc', nm: 'Eitel Schott von Hohenrhein', text: '… Ihr Narren. Glaubt Ihr, eine Schrift ändert etwas? Ob Papst oder Luther, am Ende entscheidet das Schwert.' },
-      { say: 'js', nm: 'Jakob Sturm von Straßburg', text: 'Vielleicht. Aber diese Schrift entscheidet, wofür man das Schwert zieht. Die Siegel sind unversehrt. Wir bringen sie zum Kaiser.' },
-      { if: isF('k8', 'prot'), say: 'js', nm: 'Jakob Sturm von Straßburg', text: 'Die Städte und Fürsten werden nicht vergessen, wer zu ihnen stand, als es gefährlich war.' },
-      { if: isF('k8', 'kaiser'), say: 'ks', nm: 'Reichsherold Kaspar Sturm', text: 'Der Erzherzog wird hören, dass Ihr Gesandte gerettet habt, deren Schrift er nicht annehmen wollte. Das ist wahre Treue zum Reich.' },
-      { if: isF('k8', 'frieden'), say: 'ks', nm: 'Reichsherold Kaspar Sturm', text: 'Beide Seiten haben Eurem Vorschlag zugestimmt: Freies Geleit für alle Gesandten. Wenigstens auf dem Strom herrscht nun Friede.' },
-      { title: 'Die Protestanten', sub: 'Am 25. April 1529 legen die Stände ihre Berufung an den Kaiser schriftlich nieder. Seit dem Reichstag von Speyer nennt man die Anhänger der neuen Lehre Protestanten.' },
-      { title: 'Wien, im Herbst 1529', sub: 'Sultan Süleyman belagert Wien. Altgläubige und Protestanten schicken gemeinsam Truppen, und die Stadt hält stand. Im Oktober zieht das türkische Heer ab.' },
-      { title: 'Unruhige Zeiten', sub: 'Neun Jahre lang habt Ihr das Reich durch seine unruhigsten Zeiten begleitet. Von Aachen bis Speyer kennt man Euren Namen.' }
+      { say: 'ks', nm: 'Königsherold Kaspar', text: 'Herr Ritter! Zum dritten Mal rettet Ihr mich. Ich sollte Euch zum Ehrenherold machen.' },
+      { say: 'sc', nm: 'Eitel Schott von Hohenstein', text: '… Ihr Narren. Glaubt Ihr, eine Schrift ändert etwas? Ob alte oder neue Lehre, am Ende entscheidet das Schwert.' },
+      { say: 'js', nm: 'Ratsherr Jakob Sturm', text: 'Vielleicht. Aber diese Schrift entscheidet, wofür man das Schwert zieht. Die Siegel sind unversehrt. Wir bringen sie zum König.' },
+      { if: isF('k8', 'prot'), say: 'js', nm: 'Ratsherr Jakob Sturm', text: 'Die Städte und Fürsten werden nicht vergessen, wer zu ihnen stand, als es gefährlich war.' },
+      { if: isF('k8', 'kaiser'), say: 'ks', nm: 'Königsherold Kaspar', text: 'Der Herzog wird hören, dass Ihr Gesandte gerettet habt, deren Schrift er nicht annehmen wollte. Das ist wahre Treue zum Königreich.' },
+      { if: isF('k8', 'frieden'), say: 'ks', nm: 'Königsherold Kaspar', text: 'Beide Seiten haben Eurem Vorschlag zugestimmt: Freies Geleit für alle Gesandten. Wenigstens auf dem Strom herrscht nun Friede.' },
+      { title: 'Die Protestanten', sub: 'Wenige Tage später legen die Stände ihre Berufung an den König schriftlich nieder. Seit dem Hoftag von Altmünster nennt man die Anhänger der neuen Lehre Protestanten.' },
+      { title: 'Steinwacht, im Herbst', sub: 'Der Fremde Fürst belagert Steinwacht. Altgläubige und Protestanten schicken gemeinsam Truppen, und die Stadt hält stand. Im Oktober zieht das fremde Heer ab.' },
+      { title: 'Unruhige Zeiten', sub: 'Neun Jahre lang habt Ihr das Königreich durch seine unruhigsten Zeiten begleitet. Von der Krönungsstadt bis Altmünster kennt man Euren Namen.' }
     ] }
   ] }
 );

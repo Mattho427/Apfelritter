@@ -61,7 +61,7 @@ function wp_xFlagCloth(B, x, y, w, h, s){
   wp_eagle(B, x + (w >> 1) - 7, y + (h >> 1) - 6, 'm');
 }
 
-/* ---------- Reichsburg ---------- */
+/* ---------- Königsburg ---------- */
 function wp_cMauer(s, v){
   const B = wp_img(64, 72, 70), ay = B.ay, top = ay - 46, R = rng(s);
   wp_xMason(B, 0, top, 64, ay, { s: 77, per: 64, more: { buckel: false, stain: .6 } });
@@ -112,7 +112,7 @@ function wp_cTor(s){
   wp_rect(B, ax0 + 2, ay - ah - 2, ax0 + aw - 2, ay - ah - 1, wp_P.iron[1]);
   // Bogenkeilsteine
   for (let k = 0; k <= 12; k++){ const a = Math.PI * (k / 12), x = cx - Math.cos(a) * (aw / 2 + 2), y = ay - ah - Math.sin(a) * 10; wp_rect(B, x - 1, y - 2, x + 2, y + 1, wp_tone(wp_P.stone, k % 2 ? .75 : .55, x | 0, y | 0)); }
-  // Reichswappen über dem Tor
+  // Königswappen über dem Tor
   wp_rect(B, cx - 10, top - 26, cx + 10, top - 6, (x, y) => wp_tone(wp_P.gold, .55 - (x - cx) * .02 + (y === top - 26 ? .3 : 0), x, y));
   wp_eagle(B, cx - 7, top - 22, 'm');
   wp_xSlit(B, 8, top + 14, 9); wp_xSlit(B, 95, top + 14, 9); wp_xSlit(B, cx - 20, top - 22, 6); wp_xSlit(B, cx + 20, top - 22, 6);
@@ -131,7 +131,7 @@ function wp_cBergfried(s){
   wp_xCren(B, x0 - 4, x1 + 4, top - 6, 10, 6, 11, { s: 102 });
   // hohes Walmdach mit Schiefer
   for (let y = top - 52; y < top - 15; y++){ const t = (y - (top - 52)) / 37, hw = 6 + t * 36; for (let x = Math.floor(cx - hw); x < cx + hw; x++){ const nx = (x - cx) / hw; wp_set(B, x, y, wp_tone(wp_P.slate, .58 - nx * .3 - ((y - top) % 3 === 0 ? .16 : 0) + (wp_h(x >> 1, (y / 3) | 0, s) - .5) * .22, x, y)); } }
-  // Reichsbanner auf der Stange
+  // Königsbanner auf der Stange
   wp_seg(B, cx, top - 50, cx, top - 74, 1.4, wp_P.iron[3]); wp_set(B, cx, top - 75, wp_P.gold[5]);
   wp_xFlagCloth(B, cx + 1, top - 73, 22, 15, s % 7);
   // Fenster, Hocheingang, Schlitze
@@ -475,12 +475,12 @@ function wp_kScheibe(s){
   wp_set(B, cx, cy, wp_P.gold[5]);
   return wp_xRes(B, [[-9, -3, 9, 1]], null);
 }
-/* Lilienbanner des Königs von Frankreich: blaues Tuch mit drei goldenen Lilien (Kriegszug nach Pavia) */
+/* Sonnenbanner König Aldemars: blaues Tuch mit goldener Sonne (Kriegszug nach Rabenfurt; Name lilienbanner bleibt für die Gewölbeteile) */
 function wp_kLilien(s){
   const B = wp_img(24, 56, 52), cx = B.ax - 8, ay = B.ay, x = cx + 1, y = ay - 50, w = 17, h = 16, lily = new Set();
   wp_rect(B, cx - 2, ay - 3, cx + 3, ay, wp_P.grey[3]);
   wp_seg(B, cx, ay - 2, cx, ay - 52, 1.6, wp_P.oak[3]); wp_set(B, cx, ay - 53, wp_P.gold[5]); wp_set(B, cx, ay - 52, wp_P.gold[3]);
-  for (const [ox, oy] of [[2, 2], [10, 2], [6, 9]]) ['..g..', '.ggg.', 'g.g.g', 'ggggg', '..g..', '.g.g.'].forEach((r, j) => [...r].forEach((c, i) => { if (c === 'g') lily.add((ox + i) + ',' + (oy + j)); }));
+  ['g...g...g', '.g..g..g.', '..ggggg..', '..ggggg..', 'ggggggggg', '..ggggg..', '..ggggg..', '.g..g..g.', 'g...g...g'].forEach((r, j) => [...r].forEach((c, i) => { if (c === 'g') lily.add((4 + i) + ',' + (3 + j)); }));
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++){
     const wave = Math.round(Math.sin(i * .35 + s) * 1.2), X = x + i, Y = y + j + wave;
     const t = .62 + Math.sin(i * .35 + s + 1.2) * .2 - j / h * .1 + (i === w - 1 && j % 4 === 0 ? -.4 : 0);

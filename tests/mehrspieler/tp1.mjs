@@ -82,8 +82,8 @@ console.log('Hans Meldungen:', await ev(A, () => [...document.querySelectorAll('
 await ev(A, () => { HERO.lw = { w: orWeek() - 1, p: 120 }; HERO.lwp = null; lwRoll(); lwAdd(7); fameNow(); });
 await ev(B, () => { HERO.lw = { w: orWeek() - 1, p: 40 }; HERO.lwp = null; lwRoll(); lwAdd(30); fameNow(); });
 await wait(7000);
-ok(await ev(A, () => ASV.glory && lwWinners().join() === 'reich'), 'Das Reich hat letzte Woche gewonnen, Hans hat den Ruhm');
-ok(await ev(B, () => !ASV.glory && lwWinners().join() === 'reich'), 'Grete sieht den Sieg des Reiches');
+ok(await ev(A, () => ASV.glory && lwWinners().join() === 'reich'), 'Das Königreich hat letzte Woche gewonnen, Hans hat den Ruhm');
+ok(await ev(B, () => !ASV.glory && lwWinners().join() === 'reich'), 'Grete sieht den Sieg des Königreichs');
 const xpb = await ev(A, () => { const x0 = HERO.xp, l0 = HERO.lvl; gainXp(100); return HERO.lvl === l0 ? HERO.xp - x0 : -1; });
 ok(xpb === 105, 'Ruhm: +5 % Erfahrung (' + xpb + ')');
 await ev(B, () => { closePanel(); const n = NPCS.find(n => n.id === 'herold'); G.knight.x = n.x + 16; G.knight.y = n.y + 8; openTalk(n); renderTalk('lw'); });

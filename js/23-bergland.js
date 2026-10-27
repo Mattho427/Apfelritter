@@ -1,10 +1,10 @@
 "use strict";
-/* Der Apfelritter, Teil 23 von 27: Das Bergland: Bergstadt Annaberg, ihre Leute, die Aufträge des Bergmeisters.
+/* Der Apfelritter, Teil 23 von 27: Das Bergland: Bergstadt Silberberg, ihre Leute, die Aufträge des Bergmeisters.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Das Bergland (Version 25) ============
-   Südlich der Reichsstadt liegt das Bergland: Schwarzwald, Silberrevier, Söldnerschanze und Hochgebirge, in der Mitte die
-   Bergstadt Annaberg. Hier geht es von Stufe 19 bis 30. Der Bergmeister vergibt die Aufträge, im Gasthaus Zur Silbernen Kanne
+   Südlich der Königsstadt liegt das Bergland: Schwarztann, Silberrevier, Söldnerschanze und Hochgebirge, in der Mitte die
+   Bergstadt Silberberg. Hier geht es von Stufe 19 bis 30. Der Bergmeister vergibt die Aufträge, im Gasthaus Zur Silbernen Kanne
    kann man rasten, in der St. Annenkirche beten. */
 NPC_ART.bergmeister = np_frames({ robe: 'long', hat: 'barett', fur: true, chain: true, belt: true, staff: true, beard: true, hair: ['h', 'j'] },
   { 1: '#141218', 2: '#221e28', 3: '#322c3a', 4: '#463e50', 5: '#e2ded0', 6: '#c8c4b2', 7: '#aaa696', 8: '#8a8678' });
@@ -15,7 +15,7 @@ NPC_ART.stall2 = np_frames({ robe: 'short', hat: 'filz', belt: true, beard: true
   { 1: '#3a2c1e', 2: '#4e3c28', 3: '#645036', 4: '#7c6646', 5: '#2c3424', 6: '#3e4a32', 7: '#526044', 8: '#6a7a58', R: '#8a1c1c' });
 for (const n of [
   { id: 'bergmeister', name: 'Bergmeister Kaspar Eibenstock', role: 'Aufträge', hub: 'annaberg', at: gNear(2830, wo_ANNA.gy + 34), quest: true,
-    greet: ['Glück auf, Herr Ritter! Das Silber macht Annaberg reich, aber die Berge geben es nicht umsonst her.', 'Wölfe im Tann, Kobolde in den Gruben, Landsknechte vor den Toren. Ich brauche jeden Mann, der ein Schwert führen kann.', 'Vor zwanzig Jahren stand hier nur Wald. Heute prägen wir Taler aus unserem Silber.'] },
+    greet: ['Glück auf, Herr Ritter! Das Silber macht Silberberg reich, aber die Berge geben es nicht umsonst her.', 'Wölfe im Tann, Kobolde in den Gruben, Landsknechte vor den Toren. Ich brauche jeden Mann, der ein Schwert führen kann.', 'Vor zwanzig Jahren stand hier nur Wald. Heute prägen wir Taler aus unserem Silber.'] },
   { id: 'kraemerin3', name: 'Krämerin Anna', role: 'Händlerin', hub: 'annaberg', at: gNear(3070, wo_ANNA.gy + 40), shop: true,
     greet: ['Heiltränke und alles, was ein Ritter im Gebirge braucht. Und ich kaufe, was Ihr dort findet.', 'Silbererz? Bärenfell? Zeigt her!'] },
   { id: 'schmied2', name: 'Schmied Merten', role: 'Schmied', hub: 'annaberg', at: gNear(2700, wo_ANNA.gy + 36), smith: true,
@@ -27,7 +27,7 @@ for (const n of [
 
 /* ---------- Aufträge des Bergmeisters (Stufe 19 bis 30) ---------- */
 for (const q of [
-  { id: 'g1', giver: 'bergmeister', lvl: 19, kind: 'wolf', zone: 'schwarzwald', need: 8, t: 'Wölfe im Schwarzwald',
+  { id: 'g1', giver: 'bergmeister', lvl: 19, kind: 'wolf', zone: 'schwarzwald', need: 8, t: 'Wölfe im Schwarztann',
     d: 'Die Fuhrleute, die Holz für unsere Gruben bringen, werden von Wolfsrudeln angefallen. Erschlagt acht Grauwölfe, dann kommen die Wagen wieder durch.' },
   { id: 'g2', giver: 'bergmeister', lvl: 20, kind: 'wegelagerer', zone: 'schwarzwald', need: 8, t: 'Das Räuberlager', after: 'g1',
     d: 'Auf einer Lichtung im Tann lagern Wegelagerer und rauben die Silberfuhren aus. Acht von ihnen müssen fallen.' },
@@ -46,7 +46,7 @@ for (const q of [
   { id: 'g9', giver: 'bergmeister', lvl: 24, kind: 'hakenschuetze', zone: 'schanze', need: 8, t: 'Hakenbüchsen', after: 'g8',
     d: 'Ihre Hakenbüchsen schießen weiter als jede Armbrust. Bringt acht Schützen zum Schweigen, ehe sie unsere Fuhren beschießen.' },
   { id: 'g10', giver: 'bergmeister', lvl: 26, boss: 'feldhauptmann', zone: 'schanze', need: 1, t: 'Feldhauptmann Balthasar Wüst', after: 'g9',
-    d: 'Balthasar Wüst führt den Haufen. Er hat schon in Italien gefochten und fürchtet weder Gott noch Kaiser. Stellt ihn in seiner Schanze.' },
+    d: 'Balthasar Wüst führt den Haufen. Er hat in vielen Kriegen jenseits der Berge gefochten und fürchtet weder Gott noch König. Stellt ihn in seiner Schanze.' },
   { id: 'g11', giver: 'bergmeister', lvl: 26, kind: 'baer', zone: 'hochgebirge', need: 6, t: 'Bären am Pass', after: 'g10',
     d: 'Am Passweg ins Hochgebirge reißen Bären die Saumtiere. Sechs Braunbären, dann können die Säumer wieder ziehen.' },
   { id: 'g12', giver: 'bergmeister', lvl: 27, kind: 'geier', zone: 'hochgebirge', need: 8, t: 'Bartgeier', after: 'g11',

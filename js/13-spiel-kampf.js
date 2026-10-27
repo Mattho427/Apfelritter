@@ -923,7 +923,7 @@ function questProgress(m){
     const hit = d.boss ? m.k === d.boss : q.id === 'kg' ? m.zone === d.zone && xpMul(m.lvl - HERO.lvl) > 0 : m.k === d.kind && m.zone === d.zone;
     if (!hit) continue;
     q.n++;
-    if (q.n >= d.need){ Sound.quest(); showBanner('Auftrag erfüllt', d.t); logLine('Auftrag erfüllt: ' + d.t + '. Kehrt zum ' + ({ vogt: 'Vogt', schreiber: 'Stadtschreiber in Speyer' }[d.giver] || 'Bürgermeister') + ' zurück.', '#ecd27a'); }
+    if (q.n >= d.need){ Sound.quest(); showBanner('Auftrag erfüllt', d.t); logLine('Auftrag erfüllt: ' + d.t + '. Kehrt zum ' + ({ vogt: 'Vogt', schreiber: 'Stadtschreiber in Altmünster' }[d.giver] || 'Bürgermeister') + ' zurück.', '#ecd27a'); }
   }
   renderTracker();
 }
@@ -952,7 +952,7 @@ function hurt(from, dmg, ranged){
 function die(){
   const k = G.knight;
   k.hp = 0; G.mode = 'dying'; G.dieT = 1.3; atkHeld = false; atkBtn = false; G.buffT = 0; HERO.riding = false; k.ride = null;
-  G.ablassUsed = !!HERO.ablass;   // ein Ablassbrief (Kaiserdom) bewahrt einmal das Gold
+  G.ablassUsed = !!HERO.ablass;   // ein Ablassbrief (Dom) bewahrt einmal das Gold
   if (HERO.ablass){ HERO.ablass = false; G.lostGold = 0; renderBuffs(); }
   else { G.lostGold = Math.floor(HERO.gold * .1); HERO.gold -= G.lostGold; }
   for (const m of G.mons) if (m.mode === 'fight' && (!m.tgt || m.tgt === G.knight)) goHome(m);

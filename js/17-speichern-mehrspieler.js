@@ -130,7 +130,7 @@ function setupRoom(room){
     const live = new Set();
     for (const p of ch.peers){ if (p.sameTab) NET.me = p.peer; if (p.sameTab || p.kind !== 'viewer') continue; if (readPeer(p)) live.add(p.peer); }
     for (const id of [...PEERS.keys()]) if (!live.has(id)) PEERS.delete(id);
-    for (const p of ch.joined) if (!p.sameTab && p.kind === 'viewer' && p.presence && p.presence.nm && G && G.mode !== 'title') logLine(cleanName(p.presence.nm) + ' ist im Reichsland.', '#9cc8ff');
+    for (const p of ch.joined) if (!p.sameTab && p.kind === 'viewer' && p.presence && p.presence.nm && G && G.mode !== 'title') logLine(cleanName(p.presence.nm) + ' ist im Königsland.', '#9cc8ff');
     const n = ch.peers.filter(p => p.kind === 'viewer').length;
     $('online').textContent = Math.max(1, n); $('onlineWrap').hidden = n < 2;
   }, () => { PEERS.clear(); $('onlineWrap').hidden = true; renderParty(); });
@@ -397,7 +397,7 @@ function peerView(view, body, opts){
   ask('Handeln', 'trade', 0, q.bz ? 'beschäftigt' : '');
   if (HERO.or && !(q.or && q.or.id === HERO.or.id)) ask('In Euren Orden aufnehmen (' + HERO.or.kz + ')', 'order', HERO.or.id, '');
   if (G.inside && !G.inside.church){ const b = btn('Würfeln', () => renderTalk('dicestake'), 'opt'); b.disabled = !!q.bz; opts.append(b); }
-  else opts.append(el('p', 'hint', 'Gewürfelt wird im Gasthaus. Den Tjost reitet Ihr auf der Turnierwiese vor dem Osttor der Reichsstadt.'));
+  else opts.append(el('p', 'hint', 'Gewürfelt wird im Gasthaus. Den Tjost reitet Ihr auf der Turnierwiese vor dem Osttor der Königsstadt.'));
   opts.append(btn('Lebt wohl', closePanel, 'opt'));
   body.append(opts);
 }

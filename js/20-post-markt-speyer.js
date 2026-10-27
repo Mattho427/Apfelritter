@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 20 von 27: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Speyer und Fluss.
+/* Der Apfelritter, Teil 20 von 27: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Altmünster und Fluss.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Mehrspieler über die Zeit: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus ============
    Jeder Ritter schreibt nur in sein eigenes Dokument der Ruhmeshalle (heroes/<id>), alle anderen lesen es mit.
@@ -190,8 +190,8 @@ function lwStand(w){
 function lwWinners(){ const { tot } = lwStand(orWeek() - 1), best = Math.max(0, ...Object.values(tot)); return best > 0 ? Object.keys(tot).filter(f => tot[f] === best) : []; }
 
 /* ---------- Ordenshaus ---------- */
-const LW_LAND = { reich: 'Das Reich', frankreich: 'Frankreich', england: 'England', spanien: 'Spanien' };
-const lwIn = f => f === 'reich' ? 'das Reich' : LW_LAND[f];   // mitten im Satz
+const LW_LAND = { reich: 'Das Haus vom Adler', frankreich: 'Das Haus der Lilie', england: 'Das Haus der Löwen', spanien: 'Das Haus der Türme' };
+const lwIn = f => LW_LAND[f].replace(/^D/, 'd');   // mitten im Satz
 const OH_STEPS = [300, 1000, 2500, 5000, 9000];
 const OH_PERK = [['Ordensstube', '+5 % Gulden von allem, was Ihr aufhebt'], ['Ordenskammer', '+5 % Erfahrung'], ['Ordensapotheke', 'jeden Tag zwei Heiltränke beim Kämmerer'], ['Waffenkammer', '+3 % Schaden'], ['Ordenshof', '+5 % Leben']];
 function ohSum(){
@@ -266,7 +266,7 @@ function asTick(fromSub){
   const ord = HERO.or ? ohLvl(ohSum()) : 0, glory = lwWinners().includes(HERO.f);
   if (ord !== ASV.ord || glory !== ASV.glory){
     if (ord > ASV.ord && !AS.firstOrd) logLine('Das Ordenshaus ist gewachsen: ' + OH_PERK[ord - 1][0] + '. ' + OH_PERK[ord - 1][1] + '.', '#ffd98a');
-    if (glory && !ASV.glory) logLine('Ruhm des Landes: ' + LW_LAND[HERO.f] + ' hat den Länderwettstreit der letzten Woche gewonnen. Diese Woche +5 % Erfahrung und Gulden.', '#ffd98a');
+    if (glory && !ASV.glory) logLine('Ruhm des Hauses: ' + LW_LAND[HERO.f] + ' hat den Wettstreit der Häuser in der letzten Woche gewonnen. Diese Woche +5 % Erfahrung und Gulden.', '#ffd98a');
     ASV.ord = ord; ASV.glory = glory; refreshStats(); renderBuffs();
   }
   AS.firstOrd = !AS.got;
@@ -285,14 +285,14 @@ NPC_ART.postreiter = np_frames({ robe: 'short', hat: 'filz', belt: true, parti: 
 NPC_ART.marktvogt = np_frames({ robe: 'long', hat: 'barett', fur: true, beard: true, belt: true, hair: ['h', 'j'] }, { 1: '#16241c', 2: '#22362a', 3: '#30483a', 4: '#425e4c', 5: '#2a1a10', 6: '#3e2a1a', 7: '#56402a', 8: '#6e563c' });
 NPC_ART.kaemmerer = np_frames({ robe: 'long', hat: 'barett', chain: true, beard: true, hair: ['w', 'x'] }, { 1: '#3a0e12', 2: '#5a1a1e', 3: '#7a2a2a', 4: '#9a3a34', 5: '#141218', 6: '#221e28', 7: '#322c3a', 8: '#463e50', w: '#8a8478', x: '#c8c2b0' });
 for (const n of [
-  { id: 'postmeister', name: 'Postmeister Johann von Taxis', role: 'Kaiserliche Post', hub: 'stadt', at: gNear(2884, 2306), post: true,
-    greet: ['Die Post der Taxis reitet von Brüssel bis Innsbruck. Und von hier zu jedem Ritter im Reichsland.', 'Ein Brief, ein Beutel Gulden, ein gutes Schwert: Meine Reiter bringen alles.', 'Alle fünf Meilen ein frisches Pferd, so ist die kaiserliche Post schneller als jeder Bote.'] },
-  { id: 'postreiter', name: 'Postreiter Kilian', role: 'Kaiserliche Post', hub: 'burg', at: gNear(1850, 528), post: true,
-    greet: ['Das Horn am Gürtel, den Brief in der Tasche. Wohin soll es gehen, Herr Ritter?', 'Ich reite für die Taxis. Briefe holt Ihr bei mir oder beim Postmeister in der Stadt.'] },
+  { id: 'postmeister', name: 'Postmeister Johann Eilbote', role: 'Königliche Post', hub: 'stadt', at: gNear(2884, 2306), post: true,
+    greet: ['Meine Postreiter reiten von der Küste bis in die Berge. Und von hier zu jedem Ritter im Königsland.', 'Ein Brief, ein Beutel Gulden, ein gutes Schwert: Meine Reiter bringen alles.', 'Alle fünf Meilen ein frisches Pferd, so ist die königliche Post schneller als jeder Bote.'] },
+  { id: 'postreiter', name: 'Postreiter Kilian', role: 'Königliche Post', hub: 'burg', at: gNear(1850, 528), post: true,
+    greet: ['Das Horn am Gürtel, den Brief in der Tasche. Wohin soll es gehen, Herr Ritter?', 'Ich reite für die königliche Post. Briefe holt Ihr bei mir oder beim Postmeister in der Stadt.'] },
   { id: 'marktvogt', name: 'Marktvogt Sebald', role: 'Marktplatz', hub: 'stadt', at: gNear(3008, 2286), market: true,
     greet: ['Auf diesem Markt kauft Ihr, was andere Ritter anbieten, auch wenn sie gerade nicht in der Stadt sind.', 'Ehrliches Maß, ehrlicher Preis. Und ein Zwanzigstel für die Stadt.', 'Wer zuerst zahlt, bekommt die Ware. So ist es Brauch.'] },
   { id: 'kaemmerer', name: 'Ordenskämmerer Ruprecht', role: 'Ordenshaus', hub: 'stadt', at: gNear(3412, 2300), ordhaus: true,
-    greet: ['Jeder Gulden für das Ordenshaus macht alle Brüder stärker.', 'Ein Orden ohne Haus ist wie ein Ritter ohne Pferd.', 'Ich führe die Bücher aller Ordenshäuser des Reichslandes.'] }
+    greet: ['Jeder Gulden für das Ordenshaus macht alle Brüder stärker.', 'Ein Orden ohne Haus ist wie ein Ritter ohne Pferd.', 'Ich führe die Bücher aller Ordenshäuser des Königslandes.'] }
 ]){ n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; NPCS.push(n); }
 { const k = NPCS.find(n => n.id === 'kaemmerer'); Object.defineProperty(k, 'role', { get: () => HERO && HERO.or && ASV.ord ? 'Ordenshaus · Stufe ' + ASV.ord : 'Ordenshaus' }); }
 /* Fahnenmast am Ordenshaus: zeigt das Banner des eigenen Ordens und seine Stufe */
@@ -312,7 +312,7 @@ function asList(cam, list){
 function asBuffs(box){
   if (!HERO) return;
   const chip = (icon, txt, title) => { const c = el('span', 'buff'), im = el('img'); im.src = icon; im.alt = ''; c.append(im, el('span', null, txt)); c.title = title; box.append(c); };
-  if (ASV.glory) chip(urlOf(ICONS.eagle, 2), 'Ruhm', 'Ruhm des Landes: Euer Land hat den Länderwettstreit der letzten Woche gewonnen. +5 % Erfahrung und Gulden.');
+  if (ASV.glory) chip(urlOf(ICONS.eagle, 2), 'Ruhm', 'Ruhm des Hauses: Euer Haus hat den Wettstreit der Häuser in der letzten Woche gewonnen. +5 % Erfahrung und Gulden.');
   if (ASV.ord > 0 && HERO.or) chip(orUrl(HERO.or.wp, 2), 'Haus ' + ASV.ord, 'Ordenshaus Stufe ' + ASV.ord + ': ' + OH_PERK.slice(0, ASV.ord).map(p => p[1]).join(', ') + '.');
 }
 function asRows(box){
@@ -331,7 +331,7 @@ function asTalkOpts(n, opts){
     opts.append(btn('Einen Brief schreiben (' + PORTO + ' Gulden Porto)', () => { AS.draft = AS.draft || { to: '', tx: '', g: 0, idx: null }; renderTalk('postNeu'); }, 'opt'));
   }
   if (n.market) opts.append(btn('Markt: Angebote der Ritter', () => renderTalk('markt'), 'opt'), btn('Etwas verkaufen', () => { AS.sell = { idx: null, p: 0 }; renderTalk('marktV'); }, 'opt'), btn('Meine Angebote und Käufe', () => renderTalk('marktM'), 'opt'));
-  if (n.joust) opts.append(btn('Länderwettstreit', () => renderTalk('lw'), 'opt'));
+  if (n.joust) opts.append(btn('Wettstreit der Häuser', () => renderTalk('lw'), 'opt'));
   if (n.ordhaus) opts.append(btn('Ordenshaus' + (HERO.or ? ' des „' + HERO.or.nm + '“' : ''), () => renderTalk('ordh'), 'opt'));
 }
 /* eine Zeile mit Gegenstand: Bild, Name in der Farbe der Seltenheit, Werte, darunter ein Zusatz */
@@ -372,7 +372,7 @@ function asLwClaim(){
   HERO.lwClaim = w;
   const gold = 30 + HERO.lvl * 8;
   HERO.gold += gold; HERO.potions = Math.min(20, HERO.potions + 2);
-  showBanner('Wochenlohn des Landes', gold + ' Gulden und zwei Heiltränke');
+  showBanner('Wochenlohn des Hauses', gold + ' Gulden und zwei Heiltränke');
   logLine('Der Herold zahlt den Wochenlohn für ' + lwIn(HERO.f) + ': ' + gold + ' Gulden und zwei Heiltränke.', '#ffd98a');
   Sound.levelUp(); updateHud(); markDirty(true);
 }
@@ -381,7 +381,7 @@ function asView(view, body, opts){
   G.talk.view = view;
   const back = to => opts.append(btn('Zurück', () => renderTalk(to || 'main'), 'tbtn'));
   if (!asOnline() && view !== 'lw' && view !== 'ordh'){
-    $('talkText').textContent = 'Die kaiserliche Post und der Markt verbinden Euch mit den anderen Rittern. Ohne Anmeldung bleibt Ihr hier für Euch.';
+    $('talkText').textContent = 'Die königliche Post und der Markt verbinden Euch mit den anderen Rittern. Ohne Anmeldung bleibt Ihr hier für Euch.';
     back(); body.append(opts); return;
   }
   if (view === 'post'){
@@ -432,7 +432,7 @@ function asView(view, body, opts){
     const cnt = el('small', 'hint', D.tx.length + ' / 200');
     ta.addEventListener('input', () => { D.tx = ta.value; cnt.textContent = ta.value.length + ' / 200'; });
     body.append(sel, ta, cnt);
-    if (!K.length) body.append(el('p', 'hint', 'Noch kennt der Postmeister keinen anderen Ritter. Wer einmal im Reichsland war, steht in seinem Buch.'));
+    if (!K.length) body.append(el('p', 'hint', 'Noch kennt der Postmeister keinen anderen Ritter. Wer einmal im Königsland war, steht in seinem Buch.'));
     const gold = el('div', 'tgold'); gold.append(el('span', null, 'Gulden beilegen: ' + D.g));
     for (const d of [-50, -10, 10, 50]){ const b = btn((d > 0 ? '+' : '−') + Math.abs(d), () => { D.g = clamp(D.g + d, 0, Math.max(0, Math.min(POST_GOLD, HERO.gold - PORTO))); renderTalk('postNeu'); }, 'tbtn'); b.dataset.slot = 'pg:' + d; gold.append(b); }
     body.append(gold, el('p', 'hint', 'Einen Gegenstand beilegen (antippen, noch einmal antippen: keiner):'));
@@ -494,10 +494,10 @@ function asView(view, body, opts){
   }
   if (view === 'lw'){
     const w = orWeek(), win = lwWinners(); lwRoll();
-    $('talkText').textContent = 'Hört, hört! Jede Woche wetteifern die Ritter des Reiches, Frankreichs, Englands und Spaniens um den Ruhm ihres Landes. Punkte bringt alles, was ein Ritter vollbringt: Monster und Anführer, Weltereignisse, Tjost, Feste, Jagd, Gewölbe und die Hauptgeschichte.';
+    $('talkText').textContent = 'Hört, hört! Jede Woche wetteifern die Ritter der vier Häuser, vom Adler, von der Lilie, der Löwen und der Türme, um den Ruhm ihres Hauses. Punkte bringt alles, was ein Ritter vollbringt: Monster und Anführer, Weltereignisse, Tjost, Feste, Jagd, Gewölbe und die Hauptgeschichte.';
     body.append(el('p', 'hint', 'Diese Woche, Stand jetzt:'), asLwBars(w));
-    body.append(el('p', 'hint', 'Euer Beitrag: ' + HERO.lw.p + ' Punkte für ' + lwIn(HERO.f) + '. ' + (win.length ? 'Letzte Woche gewann ' + win.map(lwIn).join(' und ') + '.' : 'Letzte Woche hat kein Land gewonnen.') + ' Die Ritter des Siegerlandes haben eine Woche lang +5 % Erfahrung und Gulden und holen hier einen Wochenlohn ab.'));
-    if (win.includes(HERO.f)){ const done = HERO.lwClaim === w, b = btn(done ? 'Wochenlohn dieser Woche erhalten' : 'Wochenlohn des Landes abholen', () => { asLwClaim(); renderTalk('lw'); }, 'opt' + (done ? '' : ' ready')); b.disabled = done; opts.append(b); }
+    body.append(el('p', 'hint', 'Euer Beitrag: ' + HERO.lw.p + ' Punkte für ' + lwIn(HERO.f) + '. ' + (win.length ? 'Letzte Woche gewann ' + win.map(lwIn).join(' und ') + '.' : 'Letzte Woche hat kein Haus gewonnen.') + ' Die Ritter des Siegerhauses haben eine Woche lang +5 % Erfahrung und Gulden und holen hier einen Wochenlohn ab.'));
+    if (win.includes(HERO.f)){ const done = HERO.lwClaim === w, b = btn(done ? 'Wochenlohn dieser Woche erhalten' : 'Wochenlohn des Hauses abholen', () => { asLwClaim(); renderTalk('lw'); }, 'opt' + (done ? '' : ' ready')); b.disabled = done; opts.append(b); }
     if (!asOnline()) body.append(el('p', 'hint', 'Ohne Anmeldung zählen nur Eure eigenen Punkte.'));
     back(); body.append(opts); return;
   }
@@ -524,7 +524,7 @@ function asView(view, body, opts){
   }
   back(); body.append(opts);
 }
-/* Ruhmeshalle: Länderwettstreit */
+/* Ruhmeshalle: Wettstreit der Häuser */
 function asFameLw(box){
   const w = orWeek(), st = lwStand(w), win = lwWinners();
   Object.keys(st.tot).sort((a, b) => st.tot[b] - st.tot[a]).forEach((f, i) => {
@@ -532,11 +532,11 @@ function asFameLw(box){
     li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', st.tot[f] + ' Punkte'), el('span', 'fk', st.cnt[f] + ' Ritter diese Woche' + (win.includes(f) ? ' · Sieger der letzten Woche' : '')));
     box.append(li);
   });
-  box.append(el('li', 'empty', 'Jede Woche ab Montag beginnt der Wettstreit neu. Punkte bringt alles, was ein Ritter vollbringt; den Stand verkündet der Herold vor der Reichsstadt.'));
+  box.append(el('li', 'empty', 'Jede Woche ab Montag beginnt der Wettstreit neu. Punkte bringt alles, was ein Ritter vollbringt; den Stand verkündet der Herold vor der Königsstadt.'));
 }
 
 
-/* ============ Stromland: Leute in Speyer und Altrip, Fährmann, Fischerei, Schiffsreise, Aufträge des Stadtschreibers ============ */
+/* ============ Stromland: Leute in Altmünster und Weidenau, Fährmann, Fischerei, Schiffsreise, Aufträge des Stadtschreibers ============ */
 Object.assign(Sound, {
   plop(){ this.tone(520, .08, 'sine', .05, -260); this.noise(.06, .03, 2600, .02); },
   bite(){ this.tone(300, .05, 'square', .04, 120); this.tone(420, .05, 'square', .035, 120, .07); this.noise(.08, .05, 1800); },
@@ -551,17 +551,17 @@ NPC_ART.schreiber = np_frames({ robe: 'long', hat: 'barett', fur: true, belt: tr
 NPC_ART.reichsherold = np_frames({ robe: 'short', hat: 'barett', belt: true, chain: true, staff: true, parti: true, hair: ['h', 'j'] }, { 1: '#141218', 2: '#221e28', 3: '#322c3a', 4: '#463e50', 5: '#7a5a10', 6: '#b08a1e', 7: '#d8b030', 8: '#f0d460', R: '#b8281e' });
 for (const n of [
   { id: 'hafenmeister', name: 'Hafenmeister Claus Ruthard', role: 'Hafen und Überfahrt', hub: 'speyer', at: gNear(5200, 1632), ferry: 'speyer',
-    greet: ['Holz aus dem Schwarzwald, Wein aus der Pfalz, Tuch aus Flandern: Alles geht über meinen Kai.', 'Die Piraten auf der Insel kosten uns jede Woche ein Schiff. Der Rat zahlt gut für ihre Köpfe.', 'Wollt Ihr flussabwärts? Meine Schiffer fahren bis zur Steinbrücke vor der Reichsstadt.'] },
+    greet: ['Holz aus dem Schwarztann, Wein von den Hängen, Tuch aus dem Norden: Alles geht über meinen Kai.', 'Die Piraten auf der Insel kosten uns jede Woche ein Schiff. Der Rat zahlt gut für ihre Köpfe.', 'Wollt Ihr flussabwärts? Meine Schiffer fahren bis zur Steinbrücke vor der Königsstadt.'] },
   { id: 'schreiber', name: 'Stadtschreiber Konrad Lehmann', role: 'Aufträge', hub: 'speyer', at: gNear(4846, 1512), quest: true,
-    greet: ['Speyer ist eine freie Reichsstadt, und das Reichskammergericht sitzt in unseren Mauern. Ordnung ist hier Pflicht.', 'Der Rat braucht einen Ritter, der mehr kann als Wein trinken. Seid Ihr so einer?', 'Ich führe die Bücher der Stadt, und darin steht viel Unglück: Piraten, Nöcke, Landsknechte.'] },
+    greet: ['Altmünster ist eine freie Domstadt, und das Hofgericht des Königs sitzt in unseren Mauern. Ordnung ist hier Pflicht.', 'Der Rat braucht einen Ritter, der mehr kann als Wein trinken. Seid Ihr so einer?', 'Ich führe die Bücher der Stadt, und darin steht viel Unglück: Piraten, Nöcke, Landsknechte.'] },
   { id: 'kraemerin2', name: 'Krämerin Barbara', role: 'Händlerin', hub: 'speyer', at: gNear(4834, 1340), shop: true,
-    greet: ['Heiltränke aus der Apotheke am Dom, und ich kaufe, was Ihr draußen erbeutet.', 'Wein aus der Pfalz habe ich nicht, dafür alles andere.'] },
-  { id: 'reichsherold', name: 'Reichsherold Jörg Rugen', role: 'Ehre und Wochenprüfungen', hub: 'speyer', at: gNear(4986, 1344), ehre: true,
-    greet: ['Ich verzeichne die Taten der Ritter in den Wappenbüchern des Reiches.', 'Wer die Prüfungen des Reiches besteht, dessen Name wird in ganz Deutschland genannt.', 'Ein Kaiser ist Ihr schon? Dann zeigt, was ein Kaiser noch lernen kann.'] },
+    greet: ['Heiltränke aus der Apotheke am Dom, und ich kaufe, was Ihr draußen erbeutet.', 'Wein von den Hängen habe ich nicht, dafür alles andere.'] },
+  { id: 'reichsherold', name: 'Königsherold Jörg Rugen', role: 'Ehre und Wochenprüfungen', hub: 'speyer', at: gNear(4986, 1344), ehre: true,
+    greet: ['Ich verzeichne die Taten der Ritter in den Wappenbüchern des Königreichs.', 'Wer die Prüfungen des Königreichs besteht, dessen Name wird im ganzen Königreich genannt.', 'Ein König seid Ihr schon? Dann zeigt, was ein König noch lernen kann.'] },
   { id: 'fischer', name: 'Fischer Nikolaus', role: 'Fischer', hub: 'fischerdorf', at: gNear(4440, 1614), fish: true, ferry: 'altrip',
-    greet: ['Der Rhein gibt jedem etwas, man muss nur Geduld haben. Und eine gute Angel.', 'Im Frühjahr und im Herbst ziehen die Salme den Strom hinauf. Dann ist hier Leben!', 'Nachts beißen die Aale. Und manchmal etwas Größeres, das man lieber nicht am Haken hätte.'] },
+    greet: ['Der Strom gibt jedem etwas, man muss nur Geduld haben. Und eine gute Angel.', 'Im Frühjahr und im Herbst ziehen die Salme den Strom hinauf. Dann ist hier Leben!', 'Nachts beißen die Aale. Und manchmal etwas Größeres, das man lieber nicht am Haken hätte.'] },
   { id: 'faehrmann', name: 'Fährmann Veit', role: 'Überfahrt', hub: 'stadt', at: gNear(3070, 1842), ferry: 'stadt',
-    greet: ['Den Fluss hinauf bis zum Rhein und nach Speyer, so weit wie mein Schiff fährt.', 'Zu Fuß ist es weit bis Speyer, mit dem Schiff ein Gebet und ein Lied.'] }
+    greet: ['Den Fluss hinauf bis zum Strom und nach Altmünster, so weit wie mein Schiff fährt.', 'Zu Fuß ist es weit bis Altmünster, mit dem Schiff ein Gebet und ein Lied.'] }
 ]){ n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; NPCS.push(n); }
 { const sb = NPCS.find(n => n.id === 'schreiber'); if (sb) BIND.speyer = { x: sb.x, y: sb.y + 30 }; }
 
@@ -598,11 +598,11 @@ const FISH = {
   zander:   { n: 'Zander', v: 11, cm: [38, 92], body: '2', fin: 'y', bar: '1' },
   hecht:    { n: 'Hecht', v: 13, cm: [42, 128], body: 'V', fin: 'v', dot: 'u', long: true, r: 1 },
   aal:      { n: 'Aal', v: 10, cm: [48, 112], body: 'm', fin: 'l', eel: true },
-  lachs:    { n: 'Rheinsalm', v: 24, cm: [58, 118], body: '4', fin: '3', dot: '2', r: 1 },
+  lachs:    { n: 'Stromsalm', v: 24, cm: [58, 118], body: '4', fin: '3', dot: '2', r: 1 },
   wels:     { n: 'Wels', v: 20, cm: [80, 230], body: 'y', fin: 'l', long: true, r: 1 },
   stoer:    { n: 'Stör', v: 70, cm: [120, 280], body: '3', fin: '2', long: true, r: 2 },
   stiefel:  { n: 'Alter Stiefel', v: 0, junk: true },
-  muenze:   { n: 'Römische Münze', v: 45, junk: true, r: 2 }
+  muenze:   { n: 'Alte Goldmünze', v: 45, junk: true, r: 2 }
 };
 const ROD_PRICE = 30;
 function fishIcon(F){
@@ -728,11 +728,11 @@ function fishList(cam, list){
   } });
 }
 
-/* ---------- Schiffsreise zwischen Reichsstadt, Altrip und Speyer ---------- */
+/* ---------- Schiffsreise zwischen Königsstadt, Weidenau und Altmünster ---------- */
 const FERRY = {
-  stadt: { name: 'Reichsstadt (Steinbrücke)', npc: 'faehrmann' },
-  altrip: { name: 'Fischerdorf Altrip', npc: 'fischer' },
-  speyer: { name: 'Speyer (Hafen)', npc: 'hafenmeister' }
+  stadt: { name: 'Königsstadt (Steinbrücke)', npc: 'faehrmann' },
+  altrip: { name: 'Fischerdorf Weidenau', npc: 'fischer' },
+  speyer: { name: 'Altmünster (Hafen)', npc: 'hafenmeister' }
 };
 const FERRY_COST = { 'stadt-altrip': 14, 'stadt-speyer': 18, 'altrip-speyer': 4 };
 const ferryCost = (a, b) => Math.round((FERRY_COST[[a, b].sort().join('-')] || 10) * (1 + HERO.lvl * .12));
@@ -785,8 +785,8 @@ function strView(view, body, opts){
   }
 }
 function fishHint(id){
-  return { rotauge: 'überall im Fluss', barsch: 'im Fluss und im Rhein', schleie: 'in Teichen und im Moor', forelle: 'im Mühlbach', karpfen: 'in Teichen und Altwassern', zander: 'im Fluss, eher selten',
-    hecht: 'Räuber im Fluss und in Teichen', aal: 'nachts im Fluss und im Moor', lachs: 'im Rhein, im Frühling und im Herbst', wels: 'im Rhein und im Altwasser, nachts', stoer: 'im Rhein, sehr selten' }[id] || '';
+  return { rotauge: 'überall im Fluss', barsch: 'im Fluss und im Strom', schleie: 'in Teichen und im Moor', forelle: 'im Mühlbach', karpfen: 'in Teichen und Altwassern', zander: 'im Fluss, eher selten',
+    hecht: 'Räuber im Fluss und in Teichen', aal: 'nachts im Fluss und im Moor', lachs: 'im Strom, im Frühling und im Herbst', wels: 'im Strom und im Altwasser, nachts', stoer: 'im Strom, sehr selten' }[id] || '';
 }
 function strHero(h){
   h.rod = !!h.rod; h.fishTip = !!h.fishTip; h.fished = Math.max(0, h.fished | 0);

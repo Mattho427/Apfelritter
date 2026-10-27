@@ -1,16 +1,16 @@
 "use strict";
 /* Der Apfelritter, Teil 14 von 27: Tjost, Gewölbe, Feste im Jahreslauf.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Turnier: Tjost auf der Wiese vor der Reichsstadt ============
+/* ============ Turnier: Tjost auf der Wiese vor der Königsstadt ============
    Drei Durchgänge an der Schranke. Kurz vor dem Zusammenprall wandert das Ziel über den Gegner:
    mit Hieb die Lanze senken. Helm 2 Punkte, Schild 1 Punkt, aus dem Sattel heben gewinnt sofort. */
 const JOUST_FOES = [
   { id:'konrad', name:'Junker Konrad von Lindach', short:'Konrad', lvl: 4, f:'reich', look:'11111', stake: 10, prize: 35, trophy: { name:'Turnierkranz', r: 2 }, osc: 1.5,
     say:'Ein junger Herr aus dem Dorf unter der Burg. Er reitet tapfer, aber noch ungestüm.' },
-  { id:'bayard', name:'Chevalier Bayard', short:'Bayard', lvl: 10, f:'frankreich', look:'22232', stake: 40, prize: 140, trophy: { name:'Silberner Sporn', r: 3 }, osc: 2.1,
-    say:'Pierre Terrail, Herr von Bayard, der Ritter ohne Furcht und Tadel. Er hat bei Marignano gefochten.' },
-  { id:'goetz', name:'Götz von Berlichingen', short:'Götz', lvl: 16, f:'reich', look:'33343', stake: 120, prize: 420, trophy: { name:'Goldene Kette des Turniers', r: 4 }, osc: 2.8,
-    say:'Der fränkische Reichsritter mit der eisernen Hand. Grob, gefürchtet und kaum je aus dem Sattel zu heben.' }
+  { id:'bayard', name:'Ritter Bertram ohne Furcht', short:'Bertram', lvl: 10, f:'frankreich', look:'22232', stake: 40, prize: 140, trophy: { name:'Silberner Sporn', r: 3 }, osc: 2.1,
+    say:'Bertram vom Haus der Lilie, der Ritter ohne Furcht und Tadel. Er hat in jedem großen Feldzug in der ersten Reihe gefochten.' },
+  { id:'goetz', name:'Gottfried mit der Eisenhand', short:'Gottfried', lvl: 16, f:'reich', look:'33343', stake: 120, prize: 420, trophy: { name:'Goldene Kette des Turniers', r: 4 }, osc: 2.8,
+    say:'Der freie Ritter mit der eisernen Hand. Grob, gefürchtet und kaum je aus dem Sattel zu heben.' }
 ];
 const LISTS = (() => { const p = GPROPS.find(q => q.kind === 'schranke'); return p ? { x: p.x, y: p.y } : null; })();
 const JOUST_AIM = 430;   // Abstand, ab dem das Ziel wandert und die Lanze gesenkt werden kann
@@ -787,7 +787,7 @@ function dgMiniMap(){
 
 /* ============ Feste im Jahreslauf ============
    Am zweiten und dritten Spieltag jeder Jahreszeit wird gefeiert, für alle Ritter zugleich: Maifest am Maibaum in Lindach,
-   Johannisfeuer im Obstgarten, Erntedank und Weihnachtsmarkt auf dem Markt der Reichsstadt. Jedes Fest hat Musik, tanzende
+   Johannisfeuer im Obstgarten, Erntedank und Weihnachtsmarkt auf dem Markt der Königsstadt. Jedes Fest hat Musik, tanzende
    Leute, einen Gastgeber mit Speis und Trank und ein Spiel mit Preis (einmal je Fest). Koordinaten in Weltpixeln.
    sea und days legen fest, wann gefeiert wird; die Feste der Version 27 (Ostern, Schützenfest, Martini, Fastnacht) liegen
    an den übrigen Tagen und stehen in Teil 25 (extra: true). */
@@ -796,17 +796,17 @@ const FESTS = [
     host:{ name:'Maikönigin Gretl', at:[2436, 640], o:{ robe:'long', hat:'haube', belt:true }, pal:{ 1:'#c8c0a8', 2:'#e0d8c0', 3:'#f0ead8', 4:'#fbf8ee', 5:'#2e5a24', 6:'#3e7230', 7:'#548a40', 8:'#6ea654' },
       greet:['Grüß Gott, Herr Ritter! Tanzt mit uns um den Maibaum!', 'Wer den Kranz von der Spitze holt, ist der Held des Tages.', 'Der Maiwein ist frisch, mit Waldmeister aus dem Finsterwald.'] },
     gameText:'Klettert den Maibaum hinauf: Drückt den Hieb, wenn die Marke im grünen Feld steht. Dreimal daneben, und Ihr rutscht hinunter. Oben hängt der Kranz.' },
-  { id:'johannis', sea:1, days:[1, 2], name:'Johannisfeuer', where:'auf der Wiese vor der Reichsburg', tune:'johannis', game:'springen', gameName:'Feuerspringen', prize:'Johanniskraut-Amulett', c:[2200, 694],
+  { id:'johannis', sea:1, days:[1, 2], name:'Johannisfeuer', where:'auf der Wiese vor der Königsburg', tune:'johannis', game:'springen', gameName:'Feuerspringen', prize:'Johanniskraut-Amulett', c:[2200, 694],
     host:{ name:'Feuermeister Wendel', at:[2146, 734], o:{ robe:'short', apron:'leather', beard:true, belt:true, hair:['h', 'j'] }, pal:{ 1:'#5a1e10', 2:'#7a2e18', 3:'#9a4222', 4:'#b85a30', 5:'#3a2c1e', 6:'#4a3a28', 7:'#5a4a34', 8:'#6e5c44' },
       greet:['Am Johannistag brennt das Feuer die ganze Nacht.', 'Wer übers Feuer springt, bleibt ein Jahr lang gesund. So sagt man.', 'Nehmt ein Stockbrot, es ist gleich gar.'] },
     gameText:'Lauft an und springt übers Feuer: Drückt den Hieb, wenn Ihr im hellen Feld vor den Flammen seid. Drei Sprünge, jeder schwerer.' },
-  { id:'ernte', sea:2, days:[1, 2], name:'Erntedank', where:'auf dem Markt der Reichsstadt', tune:'ernte', game:'stein', gameName:'Steinstoßen', prize:'Erntekrone', c:[2966, 2318],
+  { id:'ernte', sea:2, days:[1, 2], name:'Erntedank', where:'auf dem Markt der Königsstadt', tune:'ernte', game:'stein', gameName:'Steinstoßen', prize:'Erntekrone', c:[2966, 2318],
     host:{ name:'Erntevogt Sebald', at:[2878, 2326], o:{ robe:'short', hat:'filz', beard:true, belt:true, hair:['w', 'x'] }, pal:{ 1:'#3a4a1c', 2:'#4e6226', 3:'#667a32', 4:'#80923e', 5:'#4a3a28', 6:'#5e4a34', 7:'#725c42', 8:'#8a7254' },
       greet:['Gott sei Dank für die Ernte! Feiert mit, Herr Ritter.', 'Der bärenstarke Hans stößt den Stein zwölfeinhalb Ellen weit. Schafft Ihr mehr?', 'Probiert den Federweißer, er ist von diesem Herbst.'] },
     gameText:'Haltet den Hieb gedrückt und lasst los, wenn die Kraft am größten ist. Drei Würfe; der bärenstarke Hans hält den Rekord mit 12,5 Ellen.' },
-  { id:'advent', sea:3, days:[1, 2], name:'Weihnachtsmarkt', where:'auf dem Markt der Reichsstadt', tune:'advent', game:'schnee', gameName:'Schneeballschlacht', prize:'Lebkuchenherz', c:[2966, 2318],
+  { id:'advent', sea:3, days:[1, 2], name:'Weihnachtsmarkt', where:'auf dem Markt der Königsstadt', tune:'advent', game:'schnee', gameName:'Schneeballschlacht', prize:'Lebkuchenherz', c:[2966, 2318],
     host:{ name:'Marktfrau Agnes', at:[2878, 2326], o:{ robe:'long', hat:'haube', apron:'linen' }, pal:{ 1:'#4a1414', 2:'#6e2020', 3:'#8e3028', 4:'#ae4a3a', 5:'#1e3a24', 6:'#2a5030', 7:'#386640', 8:'#4a7c50' },
-      greet:['Heißer Würzwein und Lebkuchen aus Nürnberg!', 'Die Lehrbuben wollen eine Schneeballschlacht. Traut Ihr Euch?', 'Seht den Baum mit Äpfeln und Kerzen, so macht man es jetzt im Elsass.'] },
+      greet:['Heißer Würzwein und Lebkuchen aus Burgfelden!', 'Die Lehrbuben wollen eine Schneeballschlacht. Traut Ihr Euch?', 'Seht den Baum mit Äpfeln und Kerzen, so macht man es jetzt in den großen Städten.'] },
     gameText:'Drei Lehrbuben fordern Euch heraus. Mit dem Hieb werft Ihr Schneebälle in Blickrichtung. Trefft jeden dreimal, bevor sie Euch zehnmal treffen oder die Minute um ist.' }
 ];
 const FEST_ART = {}, FEST_HOST = {}, FEST_OBJ = {};
@@ -859,8 +859,8 @@ function festHost(f){
   const H = f.host, art = FEST_ART[f.id] || (FEST_ART[f.id] = np_frames(H.o, H.pal)), p = gNear(H.at[0], H.at[1]);
   return (FEST_HOST[f.id] = { id: 'fest_' + f.id, key: 'fest_' + f.id, name: H.name, role: f.name, x: p.x, y: p.y, art, fest: f.id, greet: H.greet });
 }
-const FEST_SELLER = { id: 'fest_haendler', key: 'fest_haendler', name: 'Fahrender Händler Benedetto', role: 'aus Venedig', fest: 'ernte', festShop: true,
-  greet: ['Seide, Gewürze, und Waffen aus Mailand! Nur heute, nur hier.', 'Benedetto handelt ehrlich. Meistens.'] };
+const FEST_SELLER = { id: 'fest_haendler', key: 'fest_haendler', name: 'Fahrender Händler Benedetto', role: 'aus dem fernen Süden', fest: 'ernte', festShop: true,
+  greet: ['Seide, Gewürze und Waffen aus den Schmieden des Südens! Nur heute, nur hier.', 'Benedetto handelt ehrlich. Meistens.'] };
 /* Fest beginnt oder endet */
 function festSync(){
   const f = festNow(), id = f ? f.id : null;
@@ -1171,7 +1171,7 @@ function festTalkView(view, body, opts){
     // Händler: zwei Stücke je Fest
     const key = festKey();
     if (!G.festShop || G.festShop.key !== key) G.festShop = { key, items: [makeItem(pick(SLOTS), HERO.lvl + 1, 2), makeItem(pick(SLOTS), HERO.lvl + 2, 3)] };
-    $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden. Benedetto zeigt, was er aus Mailand und Venedig mitgebracht hat.';
+    $('talkText').textContent = 'Ihr habt ' + HERO.gold + ' Gulden. Benedetto zeigt, was er aus dem fernen Süden mitgebracht hat.';
     G.festShop.items.forEach((it, j) => {
       if (!it) return;
       const r = el('div', 'shoprow'), ic = el('img'); ic.src = itemUrl(it); ic.alt = ''; ic.style.boxShadow = '0 0 0 2px ' + RARITY[it.r].c;

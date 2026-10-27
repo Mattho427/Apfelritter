@@ -6,7 +6,7 @@ ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'rei
 const riding = () => !!(HERO && HERO.riding && HERO.horse && !G.inside);
 function mountHorse(){
   if (!canAct() || G.inside || DG_ON) return;
-  if (!HERO.horse){ floatText(G.knight.x, G.knight.y - KS.ay - 4, 'Kein Pferd', '#d8c69c'); logLine('Ihr habt kein Pferd. Der Stallmeister in der Reichsburg verkauft welche.', '#d8c69c'); return; }
+  if (!HERO.horse){ floatText(G.knight.x, G.knight.y - KS.ay - 4, 'Kein Pferd', '#d8c69c'); logLine('Ihr habt kein Pferd. Der Stallmeister in der Königsburg verkauft welche.', '#d8c69c'); return; }
   if (G.combatT < 3){ floatText(G.knight.x, G.knight.y - KS.ay - 4, 'Nicht im Kampf', '#d8c69c'); return; }
   HERO.riding = true; Sound.neigh();
   if (!G.lanceTip){ G.lanceTip = true; logLine('Im Sattel wird der Hieb zum Lanzenstoß. Zum Kampf zu Fuß mit H absitzen.', '#ffd98a'); }
@@ -159,9 +159,9 @@ const BEASTS = [
   ['rotbart', 'Hinrich Rotbart', 'Piratennest, Stufe 21, schnell und ruft seine Mannschaft'],
   ['wels', 'Der Waller', 'Auwald am großen Altwasser, Stufe 20, schnellt mit offenem Maul vor'],
   ['noeck', 'Der Nöck', 'Versunkene Zollburg, nur mit Gefährten: taucht ab, setzt den Saal unter Wasser und schickt Flutwellen'],
-  ['wolf', 'Grauwolf', 'Schwarzwald, jagt im Rudel, duckt sich und springt'],
-  ['schrat', 'Waldschrat', 'Schwarzwald, langsam und zäh wie ein alter Baum'],
-  ['wegelagerer', 'Wegelagerer', 'Schwarzwald und Silberrevier, sticht mit dem Spieß'],
+  ['wolf', 'Grauwolf', 'Schwarztann, jagt im Rudel, duckt sich und springt'],
+  ['schrat', 'Waldschrat', 'Schwarztann, langsam und zäh wie ein alter Baum'],
+  ['wegelagerer', 'Wegelagerer', 'Schwarztann und Silberrevier, sticht mit dem Spieß'],
   ['kobold', 'Kobold', 'Silberrevier, flink, hackt mit der Keilhaue, stiehlt Silbererz'],
   ['grubengeist', 'Grubengeist', 'Silberrevier, Geist eines verschütteten Knappen, sein Griff macht langsam'],
   ['doppelsoeldner', 'Doppelsöldner', 'Söldnerschanze, grell gekleidet und hart im Nehmen'],
@@ -169,45 +169,45 @@ const BEASTS = [
   ['baer', 'Braunbär', 'Hochgebirge, stürmt mit aller Wucht heran'],
   ['geier', 'Bartgeier', 'Hochgebirge, kreist und stößt herab'],
   ['eislicht', 'Eislicht', 'Hochgebirge, kaltes Licht über den Schneefeldern'],
-  ['tatzelwurm', 'Der Tatzelwurm', 'Teufelsschlucht im Schwarzwald, Stufe 23, schnellt mit giftigem Biss vor'],
+  ['tatzelwurm', 'Der Tatzelwurm', 'Teufelsschlucht im Schwarztann, Stufe 23, schnellt mit giftigem Biss vor'],
   ['bergmoench', 'Der Bergmönch', 'Altenberg-Stollen im Silberrevier, Stufe 25, verschwindet und taucht mit dem Fäustel wieder auf'],
   ['feldhauptmann', 'Feldhauptmann Balthasar Wüst', 'Söldnerschanze, Stufe 27, schnell und ruft seine Doppelsöldner'],
   ['ruebezahl', 'Rübezahl', 'Felsenthron im Hochgebirge, Stufe 31, stürmt mit dem Baumstamm heran'],
-  ['kreuzotter', 'Kreuzotter', 'Dübener Heide, liegt im Heidekraut und beißt blitzschnell zu'],
-  ['strauchdieb', 'Strauchdieb', 'Heide, Reichswald und Gailingen, lauert an den Wegen'],
-  ['irrwisch', 'Irrwisch', 'Heide und Donauried, rötliches Licht über Weihern und Sumpf'],
-  ['keiler', 'Keiler', 'Reichswald, bricht mit gesenkten Hauern durchs Unterholz'],
-  ['moosweib', 'Moosweiblein', 'Reichswald, flinker Waldgeist im Mantel aus Moos'],
-  ['reisiger', 'Reisiger', 'Burg Gailingen, gerüsteter Knecht des Raubritters'],
-  ['riesenkrebs', 'Riesenkrebs', 'Donauried, kriecht aus dem Schlamm und kneift mit den Scheren'],
-  ['geisterreiter', 'Geisterreiter', 'Lechfeld, ungarischer Reiter aus der Schlacht von 955, reitet nachts'],
-  ['geisterbogner', 'Geisterbogner', 'Lechfeld, schießt vom Pferd aus großer Entfernung'],
-  ['hackelberg', 'Hackelberg, der Wilde Jäger', 'Hünengrab in der Dübener Heide, Stufe 15, jagt mit der Saufeder und ruft seine Hunde'],
-  ['eppelein', 'Eppelein von Gailingen', 'Burg Gailingen, Stufe 23, Raubritter zu Pferd, ruft seine Reisigen'],
-  ['donauweibchen', 'Das Donauweibchen', 'Ufer der Donau im Ried, Stufe 27, singt und schickt das Wasser gegen Euch'],
-  ['bulcsu', 'Bulcsú, der Geisterfürst', 'Ungarnstein auf dem Lechfeld, Stufe 31, führt die Geisterreiter an'],
-  ['schweizer', 'Schweizer Reisläufer', 'Kriegszug nach Pavia, Eidgenosse im Sold des Königs mit dem Spieß'],
-  ['arkebusier', 'Arkebusier des Königs', 'Kriegszug nach Pavia, schießt aus der Deckung der Hecken'],
-  ['gendarm', 'Französischer Gendarm', 'Kriegszug nach Pavia, schwerer Reiter in blankem Harnisch'],
-  ['franz', 'König Franz I. von Frankreich', 'Kriegszug nach Pavia, im Lager hinter dem Tiergarten, ergibt sich erst, wenn er geschlagen ist'],
-  ['janitschar', 'Janitschar', 'Kriegszug nach Wien, Kerntruppe des Sultans mit dem weißen Börk'],
-  ['tuefekci', 'Büchsenschütze der Janitscharen', 'Kriegszug nach Wien, schießt mit der Luntenflinte'],
-  ['mineur', 'Osmanischer Mineur', 'Kriegszug nach Wien, gräbt Stollen unter die Mauern'],
-  ['aga', 'Der Aga der Janitscharen', 'Kriegszug nach Wien, führt den Sturm in den Gegenminen']
+  ['kreuzotter', 'Kreuzotter', 'Grauwalder Heide, liegt im Heidekraut und beißt blitzschnell zu'],
+  ['strauchdieb', 'Strauchdieb', 'Heide, Königsforst und Rabeneck, lauert an den Wegen'],
+  ['irrwisch', 'Irrwisch', 'Heide und Silberried, rötliches Licht über Weihern und Sumpf'],
+  ['keiler', 'Keiler', 'Königsforst, bricht mit gesenkten Hauern durchs Unterholz'],
+  ['moosweib', 'Moosweiblein', 'Königsforst, flinker Waldgeist im Mantel aus Moos'],
+  ['reisiger', 'Reisiger', 'Burg Rabeneck, gerüsteter Knecht des Raubritters'],
+  ['riesenkrebs', 'Riesenkrebs', 'Silberried, kriecht aus dem Schlamm und kneift mit den Scheren'],
+  ['geisterreiter', 'Geisterreiter', 'Geisterfeld, Steppenreiter aus der alten Schlacht, reitet nachts'],
+  ['geisterbogner', 'Geisterbogner', 'Geisterfeld, schießt vom Pferd aus großer Entfernung'],
+  ['hackelberg', 'Hackelberg, der Wilde Jäger', 'Hünengrab in der Grauwalder Heide, Stufe 15, jagt mit der Saufeder und ruft seine Hunde'],
+  ['eppelein', 'Eppelein von Rabeneck', 'Burg Rabeneck, Stufe 23, Raubritter zu Pferd, ruft seine Reisigen'],
+  ['donauweibchen', 'Das Riedweibchen', 'Ufer der Silberach im Ried, Stufe 27, singt und schickt das Wasser gegen Euch'],
+  ['bulcsu', 'Gorm, der Geisterfürst', 'Heidenstein auf dem Geisterfeld, Stufe 31, führt die Geisterreiter an'],
+  ['schweizer', 'Reisläufer', 'Kriegszug nach Rabenfurt, Spießknecht im Sold König Aldemars'],
+  ['arkebusier', 'Arkebusier König Aldemars', 'Kriegszug nach Rabenfurt, schießt aus der Deckung der Hecken'],
+  ['gendarm', 'Lanzenreiter', 'Kriegszug nach Rabenfurt, schwerer Reiter in blankem Harnisch'],
+  ['franz', 'König Aldemar der Stolze', 'Kriegszug nach Rabenfurt, im Lager hinter dem Tiergarten, ergibt sich erst, wenn er geschlagen ist'],
+  ['janitschar', 'Gardekrieger', 'Kriegszug nach Steinwacht, Kerntruppe des Fremden Fürsten mit dem weißen Filzhut'],
+  ['tuefekci', 'Büchsner der Garde', 'Kriegszug nach Steinwacht, schießt mit der Luntenflinte'],
+  ['mineur', 'Mineur', 'Kriegszug nach Steinwacht, gräbt Stollen unter die Mauern'],
+  ['aga', 'Der Heerführer der Garde', 'Kriegszug nach Steinwacht, führt den Sturm in den Gegenminen']
 ];
 for (const [kind, name, desc] of BEASTS){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name), v = el('span', 'val' + (MON[kind].boss ? ' bad' : ''), MON[kind].boss ? 'Anführer' : '');
   lazySrc(im, () => urlOf(artOf(kind).idle.r[0].img, 2)); im.alt = '';
   wh.append(el('small', null, desc)); li.append(im, wh, v); $('beasts').append(li);
 }
-/* Leben im Reichsland: Tiere und Leute */
+/* Leben im Königsland: Tiere und Leute */
 for (const [kind, name, desc, person] of [
   ['huhn', 'Hühner, Gänse, Schweine', 'an Höfen, im Dorf Lindach und in den Gassen der Stadt'],
   ['kuh', 'Kühe, Schafe, Ziegen', 'auf Weiden; die Schäfer ziehen mit ihren Herden unter der Burg und in der Flussaue'],
   ['reh', 'Rehe, Hirsche, Hasen', 'an Waldrändern und Lichtungen, Hasen auf Wiesen und Feldern; scheu'],
   ['fuchs', 'Füchse und Wildschweine', 'im Finsterwald und am Rand der Obstgärten'],
   ['ente', 'Enten, Frösche, Fische', 'auf Teichen, am Fluss und im Moor'],
-  ['buerger', 'Bürger und Mägde', 'in der Reichsstadt und auf der Burg, grüßen und wissen Neues', true],
+  ['buerger', 'Bürger und Mägde', 'in der Königsstadt und auf der Burg, grüßen und wissen Neues', true],
   ['haendler', 'Händler', 'an den Marktständen in der Stadt und am Anger von Lindach', true],
   ['wache', 'Wachen', 'an den Toren von Burg und Stadt', true],
   ['moench', 'Mönche und Pilger', 'im Klostergarten und unterwegs auf den Straßen', true]
@@ -232,7 +232,7 @@ function renderPick(){
     const F = KN_FACTIONS[id], b = el('button', 'fpick'), im = el('img');
     b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(G.pickF === id));
     lazySrc(im, () => PLATE_URL[id]); im.alt = '';
-    b.append(im, el('span', null, F.name.replace(/^(Heiliges Römisches |Königreich )/, '')));
+    b.append(im, el('span', null, F.name.replace(/^Haus (vom |der )/, '')));
     b.addEventListener('click', () => { G.pickF = id; Sound.click(); renderPick(); });
     box.append(b);
   }
@@ -310,7 +310,7 @@ function ghostArt(art){
   const side = o => ({ r: o.r.map(fr), l: o.l.map(fr) });
   return Object.assign({}, art, { move: side(art.move), idle: side(art.idle), act: side(art.act) });
 }
-for (const [art, name, desc] of [[BOSS_ART.raubritter, 'Überfall auf Lindach', 'jeden Spieltag um 9 Uhr, also alle 24 Minuten: Eine Raubritterbande zieht ins Dorf, das dann nicht mehr sicher ist. Sind genug Räuber vertrieben (je mehr Ritter, desto mehr), stellt sich ihr Hauptmann Eppelein von Gailingen.'],
+for (const [art, name, desc] of [[BOSS_ART.raubritter, 'Überfall auf Lindach', 'jeden Spieltag um 9 Uhr, also alle 24 Minuten: Eine Raubritterbande zieht ins Dorf, das dann nicht mehr sicher ist. Sind genug Räuber vertrieben (je mehr Ritter, desto mehr), stellt sich ihr Hauptmann Eppelein von Rabeneck.'],
   [ghostArt(MON_ART.werwolf), 'Die Wilde Jagd', 'jede Spielnacht um 22 Uhr, im Wechsel über dem Finsterwald, dem Moor und dem Galgenberg: der Wilde Jäger mit seinen Geisterhunden. Bis zum Morgengrauen muss er gebannt sein.']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
   lazySrc(im, () => urlOf(art.idle.r[0].img, 1)); im.alt = '';
@@ -691,7 +691,7 @@ function openBag(){ if (!openPanel('ovBag')) return; G.sel = null; G.dropAsk = f
 function renderQuests(){
   const box = $('questList'); box.textContent = '';
   stQuestCard(box); rrQuestCard(box);
-  if (!HERO.quests.length){ box.append(el('p', 'hint', 'Kein Auftrag. Der Vogt in der Reichsburg und der Bürgermeister der Reichsstadt haben Arbeit für Euch.')); return; }
+  if (!HERO.quests.length){ box.append(el('p', 'hint', 'Kein Auftrag. Der Vogt in der Königsburg und der Bürgermeister der Königsstadt haben Arbeit für Euch.')); return; }
   for (const q of HERO.quests){
     const d = qInfo(q), r = qReward(d), done = q.n >= d.need, card = el('div', 'qcard' + (done ? ' done' : ''));
     card.append(el('h4', null, d.t), el('p', null, d.d));
@@ -1068,7 +1068,7 @@ function requestSong(id, name){
 /* ---------- Tod ---------- */
 function showDead(){
   $('deadText').textContent = G.ablassUsed ? 'Der Ablassbrief bewahrt Euer Gold. Eure Ausrüstung bleibt Euch.' : G.lostGold ? 'Ihr verliert ' + G.lostGold + ' Gulden. Eure Ausrüstung bleibt Euch.' : 'Eure Ausrüstung bleibt Euch.';
-  const where = HUB_IN[HERO.bind] || 'in der Reichsburg';
+  const where = HUB_IN[HERO.bind] || 'in der Königsburg';
   $('btnRespawn').textContent = where[0].toUpperCase() + where.slice(1) + ' erwachen';
   showOverlay('ovDead'); Sound.stopMusic();
   setTimeout(() => { if (G.mode === 'dead') $('btnRespawn').focus({ preventScroll: true }); }, 600);

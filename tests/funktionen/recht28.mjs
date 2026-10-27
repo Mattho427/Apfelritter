@@ -1,5 +1,5 @@
 // Recht und Ruf (Version 28): Ansehen bei vier Ständen mit Preisen und Lohn, Diebstahl, Wilderei, Festnahme, Bußgeld, Pranger,
-// Kerker (Bestechung und Ausbruch), Flucht, Steckbriefe, die Fehde gegen Absberg, die Glaubensentscheidung, Spielstand
+// Kerker (Bestechung und Ausbruch), Flucht, Steckbriefe, die Fehde gegen Schwarzeck, die Glaubensentscheidung, Spielstand
 import { chromium, OUT, PAGE, zeigeTafel, schliesseTafel } from '../pfad.mjs';
 const b = await chromium.launch(), p = await (await b.newContext({ viewport: { width: 1400, height: 860 } })).newPage(), errs = [];
 p.on('pageerror', e => errs.push(e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' ')));
@@ -87,7 +87,7 @@ await T('Gefasst', async () => { await zurWache();
 await T('Selbst stellen', () => { closePanel(); rrS().halt = null; rrS().cool = nowS() + 60; const n = goN('buettel_s'); openTalk(n); const b = btnT(/Euch stellen/); if (!b) return 'kein Knopf';
   const fine = Math.round(rrBounty() * .75); b.click(); const g0 = HERO.gold; btnT(/Bußgeld zahlen/).click(); return { fine, bezahlt: g0 - HERO.gold, acht: HERO.acht }; },
   r => r.bezahlt === r.fine && !r.acht);
-// Wilderei im Reichswald
+// Wilderei im Königsforst
 await T('Wilderei', () => { closePanel(); goW(8300, 2920); G.zone = gZone(G.knight.x, G.knight.y).id; const v0 = HERO.ruf.fuersten; window.__rrSeen = 1;
   rrHunt({ k: 'hase' }); const nachHase = rrWanted(); rrHunt({ k: 'hirsch' }); const a = rrBounty();
   HERO.ruf.fuersten = 60; rrHunt({ k: 'hirsch' }); const mitRecht = rrBounty(); HERO.ruf.fuersten = v0 - 5; window.__rrSeen = null;
@@ -109,28 +109,28 @@ await T('Gesuchter fällt', async () => { const o = G.mons.find(m => m.stb === '
 await T('Kopfgeld abholen', () => { const n = goN('buettel_n'); openTalk(n); const mark = npcMark(n), g0 = HERO.gold; btnT(/Kopfgeld abholen/).click();
   return { mark, gold: HERO.gold - g0, stb: HERO.stb, n: HERO.stbN, woche: HERO.stbW.d }; },
   r => r.mark === '?' && r.gold === 75 && !r.stb && r.n === 1 && r.woche.includes('rossdieb'));
-// Die Fehde gegen Absberg
+// Die Fehde gegen Schwarzeck
 await T('Fehde beginnt', () => { closePanel(); HERO.lvl = 24; refreshStats(); HERO.done.push('n6'); const n = goN('pirckheimer'); openTalk(n); const mark = npcMark(n);
-  btnT(/Von Absberg/).click(); btnT(/Fehdebrief/).click(); return { mark, F: HERO.fehde, tr: $('tracker').textContent }; },
-  r => r.mark === '!' && r.F.st === 1 && /Absbergs Reisige 0 \/ 10/.test(r.tr));
+  btnT(/Von Schwarzeck/).click(); btnT(/Fehdebrief/).click(); return { mark, F: HERO.fehde, tr: $('tracker').textContent }; },
+  r => r.mark === '!' && r.F.st === 1 && /Schwarzecks Reisige 0 \/ 10/.test(r.tr));
 await T('Reisige', () => { closePanel(); for (let i = 0; i < 10; i++){ const m = createMonster('reisiger', 100, 100, 22, null); m.zone = 'gailingen'; kill(m); } return HERO.fehde; }, r => r.st === 2 && r.n === 0);
 await T('Überfälle', async () => { goW(8300, 2920); const R = rrS(), out = [];
   for (let j = 0; j < 3; j++){ R.fdT = 0; R.amb = null; await new Promise(r => setTimeout(r, 300)); const ms = G.mons.filter(m => m.fdA && m.fdA === (R.amb && R.amb.id)); out.push(ms.map(m => m.nm).join('+')); for (const m of ms){ m.hp = 1; kill(m); } }
   return { out, F: HERO.fehde, ziel: rrTarget() && rrTarget().label }; },
-  r => r.out.length === 3 && /Absbergs Hauptmann/.test(r.out[0]) && r.F.st === 3 && r.ziel === 'Absbergs Lager');
-await T('Absbergs Lager', async () => { const c = gNear(FD_CAMP[0], FD_CAMP[1]), k = G.knight; k.x = c.x - 200; k.y = c.y + 60; updateZone(true); G.mons.length = 0; await new Promise(r => setTimeout(r, 600));
+  r => r.out.length === 3 && /Schwarzecks Hauptmann/.test(r.out[0]) && r.F.st === 3 && r.ziel === 'Schwarzecks Lager');
+await T('Schwarzecks Lager', async () => { const c = gNear(FD_CAMP[0], FD_CAMP[1]), k = G.knight; k.x = c.x - 200; k.y = c.y + 60; updateZone(true); G.mons.length = 0; await new Promise(r => setTimeout(r, 600));
   const a = G.mons.find(m => m.k === 'absberg'); return { da: !!a, nm: a && a.nm, art: !!artOf('absberg'), wachen: G.mons.filter(m => m.fdA === -1).length, hp: a && a.max }; },
-  r => r.da && r.nm === 'Hans Thomas von Absberg' && r.art && r.wachen === 3);
+  r => r.da && r.nm === 'Hans Thomas von Schwarzeck' && r.art && r.wachen === 3);
 await shot('recht_absberg.png');
-await T('Absberg fällt', async () => { const a = G.mons.find(m => m.k === 'absberg'), k = G.knight; k.x = a.x - 80; k.y = a.y; engage(a); await new Promise(r => setTimeout(r, 1200)); const st = a.st; a.hp = 1; kill(a);
+await T('Schwarzeck fällt', async () => { const a = G.mons.find(m => m.k === 'absberg'), k = G.knight; k.x = a.x - 80; k.y = a.y; engage(a); await new Promise(r => setTimeout(r, 1200)); const st = a.st; a.hp = 1; kill(a);
   await new Promise(r => setTimeout(r, 300)); return { st, F: HERO.fehde, hand: G.loot.some(l => l.it && l.it.u === 'absberg'), ziel: rrTarget().label }; },
-  r => r.F.st === 4 && r.hand && r.ziel === 'Pirckheimer');
-await T('Fehde zu Ende', () => { const n = goN('pirckheimer'); openTalk(n); const v0 = HERO.ruf.fuersten; btnT(/Absberg ist geschlagen/).click(); btnT(/Schwäbischen Bund/).click();
+  r => r.F.st === 4 && r.hand && r.ziel === 'Steinhauer');
+await T('Fehde zu Ende', () => { const n = goN('pirckheimer'); openTalk(n); const v0 = HERO.ruf.fuersten; btnT(/Schwarzeck ist geschlagen/).click(); btnT(/Bund der Herren/).click();
   return { F: HERO.fehde, d: HERO.ruf.fuersten - v0, troph: TROPHY_BY.fehde.ok(HERO), tr: $('tracker').textContent }; },
   r => r.F.st === 5 && r.F.e === 'bund' && r.d === 10 && r.troph && !/Fehde:/.test(r.tr));
 // Glaube
 await T('Glaube: zu früh', () => { closePanel(); HERO.thesen = 0; const n = goN('melanchthon'); openTalk(n); btnT(/Bekenntnis annehmen/).click(); return $('talkText').textContent; }, r => /Thesen/.test(r));
-await T('Augsburger Bekenntnis', () => { HERO.thesen = 1; HERO.ablass = true; const r0 = Object.assign({}, HERO.ruf), regen0 = heroStats(Object.assign({}, HERO, { eq: Object.assign({}, HERO.eq, { schild: makeItem('schild', 20, 2, { bib: true }) }) })).regen;
+await T('Goldbrunner Bekenntnis', () => { HERO.thesen = 1; HERO.ablass = true; const r0 = Object.assign({}, HERO.ruf), regen0 = heroStats(Object.assign({}, HERO, { eq: Object.assign({}, HERO.eq, { schild: makeItem('schild', 20, 2, { bib: true }) }) })).regen;
   renderTalk('main'); btnT(/Bekenntnis annehmen/).click(); btnT(/Ich bekenne/).click();
   const ch = NPCS.find(n => n.ablass); let abl = 'kein Ablassprediger'; if (ch){ const o = el('div'); chTalkOpts(ch, o); abl = [...o.querySelectorAll('button')].map(b => b.textContent + (b.disabled ? ' (aus)' : '')).join('|'); }
   return { g: HERO.glaube, dk: HERO.ruf.kirche - r0.kirche, ds: HERO.ruf.staedte - r0.staedte, ablass: HERO.ablass, abl, troph: TROPHY_BY.bekenntnis.ok(HERO) }; },
@@ -147,11 +147,11 @@ await T('Weitere Quellen', () => { closePanel(); const v = () => Object.assign({
 await T('Lehensgeld', () => { HERO.ruf.fuersten = 85; const n = goN('vogt'); openTalk(n); const b = btnT(/Lehensgeld abholen/); if (!b) return 'kein Knopf'; const g0 = HERO.gold, soll = 30 + HERO.lvl * 6; b.click(); return { g: HERO.gold - g0, soll, wieder: !!(btnT(/abgeholt/) && btnT(/abgeholt/).disabled) }; },
   r => r.g === r.soll && r.wieder);
 // Auftragsbuch und Tafel
-await T('Auftragsbuch', async () => { closePanel(); rrCrime(50, 'Diebstahl in der Reichsstadt'); openQuests(); await new Promise(r => setTimeout(r, 200));
+await T('Auftragsbuch', async () => { closePanel(); rrCrime(50, 'Diebstahl in der Königsstadt'); openQuests(); await new Promise(r => setTimeout(r, 200));
   const c = document.querySelector('.rufcard'); return { rows: c ? c.querySelectorAll('.rufrow').length : 0, txt: c ? c.textContent : '' }; },
   r => r.rows === 4 && /Verehrt/.test(r.txt) && /Gesucht: 50 Gulden/.test(r.txt) && /alten Glauben/.test(r.txt));
 await (await p.$('#ovQuests .panel')).screenshot({ path: OUT + 'recht_ansehen.png' });
-await T('Tafel', () => { closePanel(); return { ruf: $('rufList').children.length, recht: $('rechtList').children.length, beast: [...$('beasts').querySelectorAll('.what')].some(w => /Absberg/.test(w.textContent)) }; }, r => r.ruf === 4 && r.recht === 7 && r.beast);
+await T('Tafel', () => { closePanel(); return { ruf: $('rufList').children.length, recht: $('rechtList').children.length, beast: [...$('beasts').querySelectorAll('.what')].some(w => /Schwarzeck/.test(w.textContent)) }; }, r => r.ruf === 4 && r.recht === 7 && r.beast);
 await zeigeTafel(p, '#rufList'); await p.waitForTimeout(400); await (await p.$('#ovNotes .panel')).screenshot({ path: OUT + 'recht_tafel.png' }); await schliesseTafel(p);
 // Wegweiser: Gebiete in Weltpixeln
 await T('Wegweiser', () => { HERO.stb = null; HERO.quests = [{ id: 'kg', zone: 'wald', need: 10, n: 0, lvl: 20, giver: 'vogt' }]; goN('vogt'); const st = window.stTarget; window.stTarget = () => null; const t = questTarget(), z = ZONE_BY_ID.wald; window.stTarget = st;

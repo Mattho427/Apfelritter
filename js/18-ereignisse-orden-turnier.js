@@ -9,7 +9,7 @@
    weniger dem Schaden, den jeder Teilnehmer gemeldet hat; den Höchstwert bringt jeder Teilnehmer nach seiner Stufe mit. */
 const EV_N = 96;
 const EV_DEFS = [
-  { id: 'ueberfall', kind: 'raid', name: 'Überfall auf Lindach', at: 9, len: 5, boss: 'raubritter', bossName: 'Eppelein von Gailingen', where: 'in Dorf Lindach',
+  { id: 'ueberfall', kind: 'raid', name: 'Überfall auf Lindach', at: 9, len: 5, boss: 'raubritter', bossName: 'Eppelein von Rabeneck', where: 'in Dorf Lindach',
     siteAt: [2530, 690, 'Dorf Lindach'], bossAt: [2540, 700], goal: [2530, 690, 150, 110], wave: [5, 25, 14], need: [20, 8, 60], hpf: .5, unit: 'Räubern vertrieben',
     pick: R => R() < .32 ? 'armbrust' : 'pluend',
     soon: 'In Lindach läutet die Sturmglocke: Eine Raubritterbande zieht heran!', start: 'Raubritter überfallen Dorf Lindach! Vertreibt die Bande, dann stellt sich ihr Hauptmann.',
@@ -20,17 +20,17 @@ const EV_DEFS = [
     won: 'Die Wilde Jagd ist gebannt', lost: 'Der Morgen graut, die Wilde Jagd verweht im Wind.', prize: 'Horn des Wilden Jägers', prizeAcc: 'das Horn des Wilden Jägers', aff: ['crit', 'spd', 'str'],
     mobs: { werwolf: 'Geisterhund' } },
   /* nachmittags im Wechsel von drei Spieltagen */
-  { id: 'brand', kind: 'fire', name: 'Brand der Reichsstadt', at: 15, len: 4, cyc: [3, 0], where: 'in der Reichsstadt', siteAt: [2966, 2300, 'die Reichsstadt'],
-    soon: 'Über den Dächern der Reichsstadt steigt Rauch auf. Ein Funke ist in ein Strohlager gefallen!', start: 'Feuer in der Reichsstadt! Füllt Eimer an den Brunnen und löscht die brennenden Häuser, bevor die Gassen in Flammen stehen.',
-    won: 'Die Reichsstadt ist gerettet', lost: 'Das Feuer frisst sich durch die Gassen, mehrere Häuser brennen nieder.', prize: 'Zunftmedaille der Reichsstadt', prizeAcc: 'die Zunftmedaille der Reichsstadt', aff: ['hp', 'arm', 'spd'] },
+  { id: 'brand', kind: 'fire', name: 'Brand der Königsstadt', at: 15, len: 4, cyc: [3, 0], where: 'in der Königsstadt', siteAt: [2966, 2300, 'die Königsstadt'],
+    soon: 'Über den Dächern der Königsstadt steigt Rauch auf. Ein Funke ist in ein Strohlager gefallen!', start: 'Feuer in der Königsstadt! Füllt Eimer an den Brunnen und löscht die brennenden Häuser, bevor die Gassen in Flammen stehen.',
+    won: 'Die Königsstadt ist gerettet', lost: 'Das Feuer frisst sich durch die Gassen, mehrere Häuser brennen nieder.', prize: 'Zunftmedaille der Königsstadt', prizeAcc: 'die Zunftmedaille der Königsstadt', aff: ['hp', 'arm', 'spd'] },
   { id: 'pest', kind: 'raid', name: 'Der Rattenkönig', at: 15, len: 4, cyc: [3, 1], boss: 'werwolf', bossName: 'Der Rattenkönig', where: 'im Dorf am Fluss', ratKing: true,
     siteAt: [1760, 2340, 'das Dorf am Fluss'], bossAt: [1770, 2330], goal: [1760, 2350, 170, 110], wave: [8, 15, 12], need: [30, 10, 90], hpf: .45, unit: 'Pestratten erschlagen',
     ins: [[1590, 2300], [1960, 2240], [1760, 2530], [1900, 2450]], pick: () => 'ratte',
     soon: 'In den Kornspeichern des Dorfes am Fluss raschelt und quiekt es. Die Pestratten kommen!', start: 'Pestratten überschwemmen das Dorf am Fluss! Erschlagt sie, bis der Rattenkönig selbst aus dem Speicher kriecht.',
     won: 'Der Rattenkönig ist erschlagen', lost: 'Die Ratten verschwinden in den Gräben, die Pest bleibt im Dorf.', prize: 'Pfeife des Rattenfängers', prizeAcc: 'die Pfeife des Rattenfängers', aff: ['spd', 'crit', 'hp'], mobs: { ratte: 'Pestratte' } },
-  { id: 'kaiser', kind: 'escort', name: 'Der Kaiser kommt', at: 15, len: 5, cyc: [3, 2], where: 'von der Reichsburg zur Reichsstadt', siteAt: [1900, 640, 'die Reichsburg'],
-    soon: 'Ein Bote reitet durchs Land: Heute zieht Kaiser Karl von der Reichsburg in die Reichsstadt!', start: 'Der Zug des Kaisers bricht von der Reichsburg auf! Schützt ihn auf dem Weg in die Reichsstadt vor Strauchdieben und Wegelagerern.',
-    won: 'Der Kaiser ist in der Reichsstadt', lost: 'Der Kaiser kehrt um, der Weg war zu unsicher.', prize: 'Kaiserlicher Gnadenpfennig', prizeAcc: 'den Kaiserlichen Gnadenpfennig', aff: ['hp', 'str', 'crit'],
+  { id: 'kaiser', kind: 'escort', name: 'Der König kommt', at: 15, len: 5, cyc: [3, 2], where: 'von der Königsburg zur Königsstadt', siteAt: [1900, 640, 'die Königsburg'],
+    soon: 'Ein Bote reitet durchs Land: Heute zieht König Albrecht von der Königsburg in die Königsstadt!', start: 'Der Zug des Königs bricht von der Königsburg auf! Schützt ihn auf dem Weg in die Königsstadt vor Strauchdieben und Wegelagerern.',
+    won: 'Der König ist in der Königsstadt', lost: 'Der König kehrt um, der Weg war zu unsicher.', prize: 'Königlicher Gnadenpfennig', prizeAcc: 'den Königlichen Gnadenpfennig', aff: ['hp', 'str', 'crit'],
     pick: R => R() < .35 ? 'armbrust' : 'pluend', mobs: { pluend: 'Strauchdieb', armbrust: 'Wegelagerer' } }
 ];
 const EV_KAISER = [[1900, 600], [1904, 700], [1940, 744], [1970, 790], [1946, 836], [1890, 874], [1860, 930], [1876, 1010], [1898, 1100], [1900, 1200], [1900, 1310], [2150, 1330], [2350, 1372], [2470, 1400], [2620, 1404], [2760, 1384], [2830, 1480], [2900, 1600], [2950, 1720], [2966, 1800], [2966, 1880], [2966, 1990], [2966, 2120]];
@@ -181,7 +181,7 @@ function evRun(dt, now){
   const left = Math.max(0, E.t1 - now), key = E.phase + ':' + killed + '/' + E.need + ':' + Math.ceil(left) + ':' + Math.round(hp / Math.max(1, maxHp) * 100) + ':' + near;
   if (key !== E.key){ E.key = key; renderTracker(); }
 }
-/* ---------- Brand der Reichsstadt: Eimer vom Brunnen zu den brennenden Häusern ----------
+/* ---------- Brand der Königsstadt: Eimer vom Brunnen zu den brennenden Häusern ----------
    Acht Häuser fangen nacheinander Feuer. Jeder zählt in der Anwesenheit (f), wie viele Eimer er an welches Haus
    gebracht hat; zusammen gelöscht ist ein Feuer, wenn genug Eimer da waren. */
 const EV_IGNITE = [0, 0, 0, 35, 60, 90, 120, 150];
@@ -209,7 +209,7 @@ function evFireRun(E, parts, now, near){
   const left = Math.max(0, E.t1 - now), key = 'f' + out + ':' + burn + ':' + Math.ceil(left);
   if (key !== E.key){ E.key = key; renderTracker(); }
 }
-/* ---------- Der Kaiser kommt: Zug auf dem Weg von der Burg zur Stadt ----------
+/* ---------- Der König kommt: Zug auf dem Weg von der Burg zur Stadt ----------
    Der Zug geht seinen Weg, an drei Stellen lauern Strauchdiebe. Er wartet, bis alle sechs an einer Stelle erschlagen
    sind (Bitliste wie bei der Räuberbande). Wer weiter ist, meldet seinen Stand (s); der weiteste gilt. */
 function evAt(E, s){
@@ -225,11 +225,11 @@ function evEscortRun(E, parts, now){
   const cleared = ids.length && ids.every(i => E.all[i]);
   if (E.s >= k - 1 && !cleared){
     E.s = Math.min(E.s, k);
-    if (!E.halt){ E.halt = true; if (Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1200 && G.mode === 'play'){ showBanner('Überfall auf den Kaiserzug', 'Schützt den Kaiser!'); Sound.horn(); } }
+    if (!E.halt){ E.halt = true; if (Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1200 && G.mode === 'play'){ showBanner('Überfall auf den Königszug', 'Schützt den König!'); Sound.horn(); } }
     const outside = !G.inside && !DG_ON;
     if (outside && Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1400) for (const i of ids) if (!E.all[i] && !E.spawned.has(i)) evSpawn(E, i, E.ambK);
   } else {
-    if (E.halt && cleared){ E.halt = false; E.ambK++; if (Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1200) logLine('Die Strauchdiebe sind vertrieben, der Zug des Kaisers zieht weiter.', '#9fe08a'); }
+    if (E.halt && cleared){ E.halt = false; E.ambK++; if (Math.hypot(G.knight.x - E.pos.x, G.knight.y - E.pos.y) < 1200) logLine('Die Strauchdiebe sind vertrieben, der Zug des Königs zieht weiter.', '#9fe08a'); }
     else if (cleared) E.ambK++;
     E.s = Math.min(E.len, E.s + EV_KSPEED * dt);
   }
@@ -295,7 +295,7 @@ function evLights(v, L){
   if (E.d.kind === 'fire') for (const f of E.fires) if (f.lit && !f.out && v(f.x, f.y, 300)) L.push([f.x, f.y, 280, 1, 1]);
   if (E.d.kind === 'escort' && E.pos && v(E.pos.x, E.pos.y, 200)) L.push([E.pos.x, E.pos.y - 30, 200, .9, 1]);
 }
-/* der Kaiserzug: der Kaiser zu Pferd mit Krone, davor und dahinter zwei Reichsritter */
+/* der Königszug: der König zu Pferd mit Krone, davor und dahinter zwei Ritter der Garde */
 const EV_ESC = [0, 1].map(() => ({ x: 0, y: 0, dir: 'down', moving: false, anim: 0, atkT: 0, atkLen: SWING, swA0: 0, swA1: 0, mult: 1, bashT: 0, inv: 0, slowT: 0, ride: null, lance: 0 }));
 function evList(cam, list){
   const E = EVT.cur; if (!E || E.d.kind !== 'escort' || E.over || !E.pos || G.inside || DG_ON) return;
@@ -306,7 +306,7 @@ function evList(cam, list){
     drawMounted(ctx, 'streitross', set.key, E.dir, p.x, p.y, f);
     const hx = Math.round(p.x) - 4, hy = Math.round(p.y) - 70;   // Krone über dem Helm
     ctx.fillStyle = OUT; ctx.fillRect(hx - 1, hy - 1, 11, 7); ctx.fillStyle = '#e0c040'; ctx.fillRect(hx, hy + 2, 9, 3); ctx.fillRect(hx, hy, 1, 2); ctx.fillRect(hx + 4, hy - 1, 1, 3); ctx.fillRect(hx + 8, hy, 1, 2); ctx.fillStyle = '#b8281e'; ctx.fillRect(hx + 4, hy + 3, 1, 1);
-    drawText('Kaiser Karl', p.x, p.y - 92, '#ffd98a');
+    drawText('König Albrecht', p.x, p.y - 92, '#ffd98a');
   } });
   EV_ESC.forEach((g, i) => {
     const off = i ? -46 : 40, side = i ? 18 : -18;
@@ -440,7 +440,7 @@ function renderFameTab(){
   if (fameTab === 'ehre'){ ehFameTab(box, rows); return; }
   if (fameTab === 'orden'){
     const L = orKnown().slice(0, 12);
-    if (!L.length){ box.append(el('li', 'empty', 'Noch steht kein Orden in der Wappenrolle. Gegründet wird beim Herold vor der Reichsstadt.')); return; }
+    if (!L.length){ box.append(el('li', 'empty', 'Noch steht kein Orden in der Wappenrolle. Gegründet wird beim Herold vor der Königsstadt.')); return; }
     L.forEach((o, i) => { const li = el('li', HERO && HERO.or && HERO.or.id === o.id ? 'me' : ''), nm = el('span', 'fn'), im = el('img', 'forb'); im.src = orUrl(o.wp, 2); im.alt = ''; nm.append(im, o.nm); li.append(el('span', 'fr', String(i + 1)), nm, el('span', 'fl', o.kz), el('span', 'fk', o.n + ' Ritter, zusammen Stufe ' + o.lv + (o.gm ? ' · Großmeister ' + o.gm : '') + (o.oh >= OH_STEPS[0] ? ' · Ordenshaus Stufe ' + ohLvl(o.oh) : ''))); box.append(li); });
     return;
   }
@@ -606,7 +606,7 @@ function ordenView(view, body, opts){
     opts.append(btn('Zurück', () => renderTalk('orden'), 'tbtn')); body.append(opts); return;
   }
   if (!O){
-    $('talkText').textContent = 'In meiner Wappenrolle stehen die Ritterorden des Reichslandes. Gründet einen eigenen für ' + OR_COST + ' Gulden, oder lasst Euch von einem Ordensritter aufnehmen: Sprecht ihn im Land an.';
+    $('talkText').textContent = 'In meiner Wappenrolle stehen die Ritterorden des Königslandes. Gründet einen eigenen für ' + OR_COST + ' Gulden, oder lasst Euch von einem Ordensritter aufnehmen: Sprecht ihn im Land an.';
     const b = btn('Einen Orden gründen (' + OR_COST + ' Gulden)', () => renderTalk('ordenNeu'), 'opt'); b.disabled = HERO.gold < OR_COST; opts.append(b);
     const known = orKnown();
     if (known.length){ body.append(el('p', 'hint', 'Bekannte Orden:')); for (const o of known.slice(0, 8)){ const r = el('div', 'shoprow'), ic = el('img'), t = el('div', 'stx'); ic.src = orUrl(o.wp); ic.alt = ''; t.append(el('b', null, o.nm + ' (' + o.kz + ')'), el('small', null, o.n + (o.n === 1 ? ' Ritter' : ' Ritter') + (o.gm ? ' · Großmeister ' + o.gm : ''))); r.append(ic, t); body.append(r); } }

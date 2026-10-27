@@ -1,7 +1,7 @@
 "use strict";
 /* Der Apfelritter, Teil 7 von 27: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Die Welt: das Reichsland 6144 × 4608, im Süden das Bergland (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
+/* ============ Die Welt: das Königsland 6144 × 4608, im Süden das Bergland (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
 const wo_T0 = performance.now();
 const wo_CW = WW >> 3, wo_CH = WH >> 3;                // Kollisionsraster, 8 px
 const wo_GW = (WW >> 2) + 2, wo_GH = (WH >> 2) + 2;     // Feldraster, 4 px (Wasser, Wege)
@@ -79,8 +79,8 @@ function wo_spline(pts, step){
 /* ============ Gebiete ============ */
 const ZONES = [
   { id: 'obstgarten', name: 'Die Obstgärten', monsters: ['wieder', 'pluend'], label: { x: 1660, y: 1150 } },
-  { id: 'burg', name: 'Die Reichsburg', monsters: ['pluend', 'armbrust'], label: { x: 1900, y: 110 } },
-  { id: 'stadt', name: 'Die Reichsstadt', monsters: ['ratte', 'pluend', 'armbrust'], label: { x: 2966, y: 2440 } },
+  { id: 'burg', name: 'Die Königsburg', monsters: ['pluend', 'armbrust'], label: { x: 1900, y: 110 } },
+  { id: 'stadt', name: 'Die Königsstadt', monsters: ['ratte', 'pluend', 'armbrust'], label: { x: 2966, y: 2440 } },
   { id: 'dorf', name: 'Das verbrannte Dorf', monsters: ['ratte', 'pluend'], label: { x: 1760, y: 2330 } },
   { id: 'wald', name: 'Der Finsterwald', monsters: ['werwolf', 'armbrust', 'rabe'], label: { x: 640, y: 560 } },
   { id: 'moor', name: 'Das Moor', monsters: ['moor', 'irrlicht'], label: { x: 420, y: 2640 } },
@@ -91,26 +91,26 @@ const ZONES = [
   { id: 'ruine', name: 'Die Raubritterburg', monsters: ['pluend', 'armbrust'], label: { x: 3540, y: 170 } },
   { id: 'fluss', name: 'Die Flussaue', monsters: ['ratte', 'moor'], label: { x: 2280, y: 1760 } },
   { id: 'weiler', name: 'Das Dorf Lindach', monsters: [], label: { x: 2520, y: 846 } },
-  { id: 'speyer', name: 'Die Reichsstadt Speyer', monsters: [], label: { x: 5100, y: 1100 } },
-  { id: 'fischerdorf', name: 'Das Fischerdorf Altrip', monsters: [], label: { x: 4430, y: 1500 } },
+  { id: 'speyer', name: 'Die Domstadt Altmünster', monsters: [], label: { x: 5100, y: 1100 } },
+  { id: 'fischerdorf', name: 'Das Fischerdorf Weidenau', monsters: [], label: { x: 4430, y: 1500 } },
   { id: 'weinberge', name: 'Die Weinberge', monsters: ['pluend', 'armbrust'], label: { x: 5200, y: 560 } },
   { id: 'auwald', name: 'Der Auwald', monsters: ['nix', 'werwolf'], label: { x: 5120, y: 2440 } },
   { id: 'piratennest', name: 'Das Piratennest', monsters: ['pirat', 'pschuetze'], label: { x: 5700, y: 1720 } },
   // Das Bergland im Süden (Version 25)
-  { id: 'schwarzwald', name: 'Der Schwarzwald', monsters: ['wolf', 'schrat', 'wegelagerer'], label: { x: 1180, y: 3960 } },
-  { id: 'annaberg', name: 'Die Bergstadt Annaberg', monsters: [], label: { x: 2900, y: 3300 } },
+  { id: 'schwarzwald', name: 'Der Schwarztann', monsters: ['wolf', 'schrat', 'wegelagerer'], label: { x: 1180, y: 3960 } },
+  { id: 'annaberg', name: 'Die Bergstadt Silberberg', monsters: [], label: { x: 2900, y: 3300 } },
   { id: 'silberrevier', name: 'Das Silberrevier', monsters: ['kobold', 'grubengeist', 'wegelagerer'], label: { x: 2420, y: 4200 } },
   { id: 'schanze', name: 'Die Söldnerschanze', monsters: ['doppelsoeldner', 'hakenschuetze'], label: { x: 4400, y: 3330 } },
   { id: 'hochgebirge', name: 'Das Hochgebirge', monsters: ['baer', 'geier', 'eislicht'], label: { x: 4700, y: 4400 } },
   // Die Ostlande (Version 26): Sachsen im Norden, Franken in der Mitte, Schwaben im Süden
-  { id: 'wittenberg', name: 'Wittenberg an der Elbe', monsters: [], label: { x: 7920, y: 270 } },
-  { id: 'heide', name: 'Die Dübener Heide', monsters: ['kreuzotter', 'strauchdieb', 'irrwisch'], label: { x: 7300, y: 1230 } },
-  { id: 'nuernberg', name: 'Die Reichsstadt Nürnberg', monsters: [], label: { x: 7740, y: 1960 } },
-  { id: 'reichswald', name: 'Der Reichswald', monsters: ['keiler', 'moosweib', 'strauchdieb'], label: { x: 8300, y: 2920 } },
-  { id: 'gailingen', name: 'Burg Gailingen', monsters: ['reisiger', 'armbrust', 'strauchdieb'], label: { x: 8650, y: 1760 } },
-  { id: 'donauried', name: 'Das Donauried', monsters: ['riesenkrebs', 'moor', 'irrwisch'], label: { x: 6720, y: 3300 } },
-  { id: 'augsburg', name: 'Die Reichsstadt Augsburg', monsters: [], label: { x: 7430, y: 3440 } },
-  { id: 'lechfeld', name: 'Das Lechfeld', monsters: ['geisterreiter', 'geisterbogner', 'wieder'], label: { x: 7400, y: 4300 } }
+  { id: 'wittenberg', name: 'Schwanstedt an der Schwane', monsters: [], label: { x: 7920, y: 270 } },
+  { id: 'heide', name: 'Die Grauwalder Heide', monsters: ['kreuzotter', 'strauchdieb', 'irrwisch'], label: { x: 7300, y: 1230 } },
+  { id: 'nuernberg', name: 'Die Handelsstadt Burgfelden', monsters: [], label: { x: 7740, y: 1960 } },
+  { id: 'reichswald', name: 'Der Königsforst', monsters: ['keiler', 'moosweib', 'strauchdieb'], label: { x: 8300, y: 2920 } },
+  { id: 'gailingen', name: 'Burg Rabeneck', monsters: ['reisiger', 'armbrust', 'strauchdieb'], label: { x: 8650, y: 1760 } },
+  { id: 'donauried', name: 'Das Silberried', monsters: ['riesenkrebs', 'moor', 'irrwisch'], label: { x: 6720, y: 3300 } },
+  { id: 'augsburg', name: 'Die Kaufmannsstadt Goldbrunn', monsters: [], label: { x: 7430, y: 3440 } },
+  { id: 'lechfeld', name: 'Das Geisterfeld', monsters: ['geisterreiter', 'geisterbogner', 'wieder'], label: { x: 7400, y: 4300 } }
 ];
 const wo_ZI = {}; ZONES.forEach((z, i) => { wo_ZI[z.id] = i; });
 /* Gebietskerne: Ellipsen [cx, cy, rx, ry] */
@@ -135,9 +135,9 @@ const wo_ZELL = {
   augsburg: [[7430, 3740, 420, 300]],
   lechfeld: [[7420, 4290, 520, 320], [8300, 3720, 380, 420], [6620, 3760, 380, 360]]
 };
-/* Bergstadt Annaberg: Mauerring mit Nord- und Südtor, Durchlässe im Westen und Osten */
+/* Bergstadt Silberberg: Mauerring mit Nord- und Südtor, Durchlässe im Westen und Osten */
 const wo_ANNA = { x0: 2630, x1: 3170, y0: 3340, y1: 3760, gx: 2900, gy: 3550 };
-/* Speyer: Mauerring mit Nord- und Hafentor, davor der Kai am Strom */
+/* Altmünster: Mauerring mit Nord- und Hafentor, davor der Kai am Strom */
 const wo_SPY = { x0: 4714, x1: 5486, y0: 1170, y1: 1580, gx: 5100, quay: 1640 };
 /* Stadtmauer (Fußlinien) und Burgring */
 const wo_CITY = { x0: 2580, x1: 3352, y0: 2000, y1: 2620, gx: 2966 };
@@ -160,7 +160,7 @@ const wo_RIVER = wo_spline([
   [1810, 1906, 30], [1700, 1928, 31], [1580, 1968, 31], [1460, 2016, 31], [1340, 2058, 32], [1220, 2086, 32], [1100, 2100, 32],
   [960, 2110, 33], [860, 2116, 33], [780, 2122, 33], [700, 2146, 34], [600, 2190, 35], [480, 2240, 37], [340, 2290, 38],
   [200, 2318, 40], [60, 2334, 40], [-80, 2342, 40]], 8);
-/* Altarm des Stroms: zweigt oberhalb von Speyer ab und umschließt die Insel mit dem Piratennest */
+/* Altarm des Stroms: zweigt oberhalb von Altmünster ab und umschließt die Insel mit dem Piratennest */
 const wo_ARM = wo_spline([[6060, 1580, 28], [5990, 1660, 28], [5930, 1760, 27], [5850, 1840, 27], [5740, 1890, 27], [5620, 1904, 27], [5500, 1880, 27], [5400, 1820, 27],
   [5330, 1752, 28], [5300, 1724, 30]], 8);
 /* y einer Flusslinie bei x (Strom und Altarm laufen dort von Ost nach West) */
@@ -177,13 +177,13 @@ function wo_onIsle(x, y){
   const a = wo_yAt(wo_RIVER, x), b = wo_yAt(wo_ARM, x);
   return a !== null && b !== null && y > a && y < b;
 }
-/* Silberbach: entspringt im Quellsee unter dem Hochgebirge und fließt nach Westen durch Revier und Schwarzwald */
+/* Silberbach: entspringt im Quellsee unter dem Hochgebirge und fließt nach Westen durch Revier und Schwarztann */
 const wo_SBACH = wo_spline([[4880, 4034, 9], [4760, 4060, 10], [4600, 4120, 11], [4440, 4170, 12], [4300, 4184, 12], [4140, 4176, 13], [4000, 4160, 13], [3840, 4120, 14],
   [3700, 4080, 14], [3540, 4036, 15], [3400, 4000, 15], [3260, 3972, 16], [3140, 3962, 16], [3020, 3972, 16], [2900, 3990, 17], [2780, 4024, 17], [2650, 4060, 17],
   [2520, 4096, 18], [2400, 4118, 18], [2260, 4116, 18], [2100, 4098, 19], [1950, 4066, 19], [1800, 4042, 19], [1650, 4048, 20], [1500, 4064, 20], [1350, 4100, 20],
   [1200, 4140, 21], [1050, 4176, 21], [900, 4200, 21], [750, 4214, 22], [600, 4224, 22], [450, 4240, 22], [300, 4258, 22], [150, 4270, 22], [-80, 4284, 22]], 8);
-/* Ostlande: die Elbe bei Wittenberg (kommt von Osten, biegt nach Norden ab), die Pegnitz durch Nürnberg in den Main,
-   die Donau (Quelle unter dem Hochgebirge) und der Lech, der von den Alpen an Augsburg vorbei in die Donau fließt */
+/* Ostlande: die Schwane bei Schwanstedt (kommt von Osten, biegt nach Norden ab), die Burgach durch Burgfelden in den Furtbach,
+   die Silberach (Quelle unter dem Hochgebirge) und der Wildbach, der von den Alpen an Goldbrunn vorbei in die Silberach fließt */
 const wo_ELBE = wo_spline([[9300, 1040, 38], [9000, 1000, 38], [8700, 950, 38], [8400, 890, 38], [8150, 852, 37], [7950, 842, 37], [7700, 846, 36], [7450, 830, 36],
   [7200, 770, 35], [7000, 680, 34], [6860, 560, 34], [6760, 400, 33], [6710, 200, 33], [6690, -80, 33]], 8);
 const wo_PEG = wo_spline([[9300, 2230, 14], [9000, 2262, 15], [8700, 2300, 15], [8450, 2350, 16], [8240, 2392, 16], [8000, 2402, 16], [7740, 2402, 16], [7480, 2398, 17],
@@ -203,9 +203,9 @@ const wo_PONDS = [
   [520, 3020, 50, 20, 3], [60, 2600, 30, 40, 3],
   // Altwasser im Auwald
   [4700, 2300, 74, 30, 2], [5320, 2520, 96, 36, 2], [5660, 2330, 62, 26, 2], [4900, 2720, 84, 30, 2], [5940, 2720, 72, 34, 3], [4380, 2180, 50, 22, 2], [5600, 2860, 60, 24, 3],
-  // Bergland: Quellsee des Silberbachs, Bergseen, ein Weiher im Schwarzwald
+  // Bergland: Quellsee des Silberbachs, Bergseen, ein Weiher im Schwarztann
   [4960, 4022, 92, 44, 2], [5640, 4470, 76, 34, 2], [6020, 3820, 58, 30, 2], [1480, 4420, 64, 30, 2], [640, 3480, 48, 24, 2], [3560, 4420, 44, 22, 2],
-  // Ostlande: Donauquelle, Heideweiher, Tümpel im Donauried, Weiher im Reichswald, Bergsee in den Alpen
+  // Ostlande: Silberachquelle, Heideweiher, Tümpel im Silberried, Weiher im Königsforst, Bergsee in den Alpen
   [6372, 3026, 44, 24, 2], [7560, 1300, 52, 24, 2], [8620, 1130, 46, 22, 2], [6950, 980, 40, 20, 3],
   [6600, 3240, 60, 26, 3], [6920, 3290, 44, 20, 3], [7120, 3230, 50, 22, 3], [6460, 3180, 36, 18, 3], [8400, 3240, 56, 22, 3], [8760, 3250, 44, 20, 3], [6760, 3360, 34, 16, 3],
   [8760, 2700, 58, 26, 2], [7260, 2940, 40, 20, 2], [8860, 4260, 70, 32, 2]
@@ -275,7 +275,7 @@ const wo_ROADS = [
   { t: 3, hw: 12, p: [[1900, 330], [1900, 470], [1900, 560], [1900, 652]] },                                   // Burghof
   { t: 0, hw: 11, p: [[1900, 640], [1904, 700], [1940, 744], [1970, 790], [1946, 836], [1890, 874], [1860, 930], [1876, 1010], [1898, 1100], [1900, 1200], [1900, 1310]] }, // Burgweg
   { t: 0, hw: 11, p: [[1900, 1310], [1894, 1450], [1886, 1600], [1882, 1760], [1880, 1850], [1880, 1960], [1866, 2060], [1820, 2160], [1770, 2250], [1740, 2380], [1720, 2520], [1712, 2660], [1700, 2760]] }, // Südweg
-  { t: 0, hw: 12, p: [[-20, 1470], [200, 1452], [420, 1420], [650, 1380], [900, 1350], [1150, 1330], [1400, 1318], [1650, 1310], [1900, 1310], [2150, 1330], [2350, 1372], [2470, 1400], [2540, 1404], [2620, 1404], [2760, 1384], [2950, 1340], [3150, 1316], [3350, 1312], [3550, 1322], [3760, 1356], [3950, 1372], [4120, 1378], [4290, 1396], [4450, 1440], [4590, 1520], [4720, 1596], [4860, 1632], [5000, 1642], [5100, 1644]] }, // Reichsstraße
+  { t: 0, hw: 12, p: [[-20, 1470], [200, 1452], [420, 1420], [650, 1380], [900, 1350], [1150, 1330], [1400, 1318], [1650, 1310], [1900, 1310], [2150, 1330], [2350, 1372], [2470, 1400], [2540, 1404], [2620, 1404], [2760, 1384], [2950, 1340], [3150, 1316], [3350, 1312], [3550, 1322], [3760, 1356], [3950, 1372], [4120, 1378], [4290, 1396], [4450, 1440], [4590, 1520], [4720, 1596], [4860, 1632], [5000, 1642], [5100, 1644]] }, // Königsstraße
   { t: 0, hw: 12, p: [[2760, 1384], [2830, 1480], [2900, 1600], [2950, 1720], [2966, 1800], [2966, 1880], [2966, 1990]] }, // zur Steinbrücke
   { t: 3, hw: 20, p: [[2966, 1960], [2966, 2100], [2966, 2230]] },                                             // Hauptgasse Nord
   { t: 3, hw: 20, p: [[2966, 2390], [2966, 2520], [2966, 2650]] },                                             // Hauptgasse Süd
@@ -300,9 +300,9 @@ const wo_ROADS = [
   { t: 1, hw: 6, p: [[2140, 1324], [2160, 1220], [2180, 1160]] },                                              // zum Obsthof
   { t: 0, hw: 9, p: [[2350, 800], [2392, 736], [2428, 668], [2444, 612]] },                                    // Dorfweg Lindach
   { t: 1, hw: 7, p: [[2290, 590], [2380, 600], [2444, 612], [2520, 604], [2610, 586]] },                      // Dorfgasse
-  { t: 3, hw: 16, p: [[4760, 1640], [4900, 1642], [5100, 1644], [5300, 1642], [5470, 1634]] },                 // Kai in Speyer
-  { t: 3, hw: 20, p: [[5100, 1620], [5100, 1500], [5100, 1380], [5100, 1260], [5100, 1150]] },                 // Hauptgasse Speyer
-  { t: 3, hw: 15, p: [[4740, 1384], [4920, 1382], [5100, 1380], [5280, 1382], [5460, 1384]] },                 // Quergasse Speyer
+  { t: 3, hw: 16, p: [[4760, 1640], [4900, 1642], [5100, 1644], [5300, 1642], [5470, 1634]] },                 // Kai in Altmünster
+  { t: 3, hw: 20, p: [[5100, 1620], [5100, 1500], [5100, 1380], [5100, 1260], [5100, 1150]] },                 // Hauptgasse Altmünster
+  { t: 3, hw: 15, p: [[4740, 1384], [4920, 1382], [5100, 1380], [5280, 1382], [5460, 1384]] },                 // Quergasse Altmünster
   { t: 0, hw: 11, p: [[5100, 1160], [5100, 1060], [5130, 940], [5180, 820], [5240, 700], [5290, 570], [5310, 430], [5300, 300]] }, // Weinstraße
   { t: 1, hw: 7, p: [[5240, 700], [5400, 690], [5560, 720], [5720, 800], [5860, 880]] },                       // Wingertpfad Ost
   { t: 1, hw: 7, p: [[5180, 820], [5020, 780], [4860, 730], [4720, 700]] },                                    // Wingertpfad West
@@ -312,11 +312,11 @@ const wo_ROADS = [
   { t: 1, hw: 7, p: [[4450, 1440], [4442, 1500], [4436, 1560], [4430, 1620]] },                                // Fischergasse
   { t: 1, hw: 6, p: [[5090, 2040], [4900, 2140], [4700, 2240], [4520, 2380], [4420, 2560]] },                 // Pfad im Auwald
   // Bergland
-  { t: 0, hw: 11, p: [[2950, 2740], [2954, 2840], [2952, 2960], [2944, 3080], [2934, 3200], [2916, 3260], [2900, 3330]] },  // Bergstraße nach Annaberg
-  { t: 3, hw: 18, p: [[2900, 3310], [2900, 3430], [2900, 3550], [2900, 3670], [2900, 3790]] },                 // Hauptgasse Annaberg
-  { t: 3, hw: 14, p: [[2610, 3550], [2760, 3550], [2900, 3550], [3040, 3550], [3190, 3550]] },                 // Quergasse Annaberg
-  { t: 0, hw: 11, p: [[2610, 3550], [2480, 3566], [2300, 3600], [2100, 3630], [1900, 3650], [1700, 3672], [1500, 3700], [1300, 3730], [1100, 3760], [900, 3790], [700, 3810], [500, 3830], [300, 3850], [100, 3866], [-20, 3874]] }, // Schwarzwaldstraße
-  { t: 1, hw: 8, p: [[1300, 2830], [1270, 2940], [1240, 3060], [1210, 3200], [1180, 3360], [1150, 3520], [1130, 3640], [1110, 3755]] }, // Klosterweg in den Schwarzwald
+  { t: 0, hw: 11, p: [[2950, 2740], [2954, 2840], [2952, 2960], [2944, 3080], [2934, 3200], [2916, 3260], [2900, 3330]] },  // Bergstraße nach Silberberg
+  { t: 3, hw: 18, p: [[2900, 3310], [2900, 3430], [2900, 3550], [2900, 3670], [2900, 3790]] },                 // Hauptgasse Silberberg
+  { t: 3, hw: 14, p: [[2610, 3550], [2760, 3550], [2900, 3550], [3040, 3550], [3190, 3550]] },                 // Quergasse Silberberg
+  { t: 0, hw: 11, p: [[2610, 3550], [2480, 3566], [2300, 3600], [2100, 3630], [1900, 3650], [1700, 3672], [1500, 3700], [1300, 3730], [1100, 3760], [900, 3790], [700, 3810], [500, 3830], [300, 3850], [100, 3866], [-20, 3874]] }, // Schwarztannstraße
+  { t: 1, hw: 8, p: [[1300, 2830], [1270, 2940], [1240, 3060], [1210, 3200], [1180, 3360], [1150, 3520], [1130, 3640], [1110, 3755]] }, // Klosterweg in den Schwarztann
   { t: 0, hw: 11, p: [[3190, 3550], [3320, 3550], [3500, 3540], [3700, 3520], [3900, 3500], [4100, 3480], [4300, 3470], [4440, 3474]] }, // Oststraße zur Schanze
   { t: 0, hw: 10, p: [[3680, 3090], [3660, 3200], [3620, 3320], [3560, 3440], [3500, 3540]] },                 // vom Schlachtfeld herab
   { t: 1, hw: 7, p: [[4420, 2560], [4440, 2720], [4460, 2900], [4470, 3080], [4460, 3260], [4440, 3420]] },     // Auwald zur Schanze
@@ -325,24 +325,24 @@ const wo_ROADS = [
   { t: 1, hw: 8, p: [[4440, 3480], [4560, 3600], [4680, 3740], [4800, 3860], [4960, 3906], [5140, 3950], [5320, 4040], [5500, 4130], [5680, 4220]] }, // Passweg ins Hochgebirge
   { t: 1, hw: 7, p: [[600, 3820], [580, 3960], [560, 4100], [548, 4240], [530, 4370]] },                       // Pfad zur Teufelsschlucht
   // Ostlande
-  { t: 0, hw: 12, p: [[5860, 880], [6050, 940], [6300, 1000], [6600, 1040], [6900, 1060], [7200, 1050], [7500, 1010], [7750, 960], [7900, 940], [7950, 900], [7950, 840], [7950, 780], [7950, 730]] }, // Hohe Straße nach Wittenberg
-  { t: 3, hw: 18, p: [[7950, 290], [7950, 400], [7950, 510], [7950, 620], [7950, 740]] },                     // Hauptgasse Wittenberg
+  { t: 0, hw: 12, p: [[5860, 880], [6050, 940], [6300, 1000], [6600, 1040], [6900, 1060], [7200, 1050], [7500, 1010], [7750, 960], [7900, 940], [7950, 900], [7950, 840], [7950, 780], [7950, 730]] }, // Hohe Straße nach Schwanstedt
+  { t: 3, hw: 18, p: [[7950, 290], [7950, 400], [7950, 510], [7950, 620], [7950, 740]] },                     // Hauptgasse Schwanstedt
   { t: 3, hw: 15, p: [[7490, 510], [7720, 510], [7950, 510], [8180, 510], [8410, 510]] },                     // Collegienstraße
-  { t: 0, hw: 11, p: [[5470, 1634], [5600, 1566], [5800, 1500], [6100, 1452], [6500, 1460], [6800, 1480], [7050, 1490], [7230, 1500], [7300, 1540], [7300, 1600], [7300, 1660], [7310, 1720], [7380, 1800], [7520, 1900], [7660, 1980], [7740, 2030]] }, // Mainstraße nach Nürnberg
-  { t: 3, hw: 18, p: [[7740, 2030], [7740, 2230], [7740, 2400], [7740, 2580], [7740, 2750]] },                // Hauptgasse Nürnberg
+  { t: 0, hw: 11, p: [[5470, 1634], [5600, 1566], [5800, 1500], [6100, 1452], [6500, 1460], [6800, 1480], [7050, 1490], [7230, 1500], [7300, 1540], [7300, 1600], [7300, 1660], [7310, 1720], [7380, 1800], [7520, 1900], [7660, 1980], [7740, 2030]] }, // Furtbachstraße nach Burgfelden
+  { t: 3, hw: 18, p: [[7740, 2030], [7740, 2230], [7740, 2400], [7740, 2580], [7740, 2750]] },                // Hauptgasse Burgfelden
   { t: 3, hw: 14, p: [[7230, 2230], [7480, 2230], [7740, 2230], [8000, 2230], [8250, 2230]] },                // Sebalder Gasse
   { t: 3, hw: 14, p: [[7300, 2580], [7520, 2580], [7740, 2580], [7960, 2580], [8180, 2580]] },                // Lorenzer Gasse
-  { t: 0, hw: 11, p: [[5600, 2090], [5900, 2150], [6200, 2200], [6500, 2244], [6750, 2262], [6900, 2262], [7050, 2262], [7150, 2246], [7230, 2230]] }, // Auweg nach Nürnberg
-  { t: 0, hw: 12, p: [[7740, 2740], [7726, 2860], [7700, 2980], [7690, 3050], [7690, 3120], [7690, 3190], [7670, 3280], [7600, 3380], [7480, 3460], [7430, 3510]] }, // Reichsstraße nach Augsburg
-  { t: 1, hw: 8, p: [[7750, 3740], [7800, 3712], [7840, 3700], [7880, 3700], [7930, 3700], [8000, 3704], [8200, 3730], [8400, 3770]] },   // über den Lechsteg
-  { t: 3, hw: 18, p: [[7430, 3510], [7430, 3620], [7430, 3740], [7430, 3880], [7430, 4010]] },                // Hauptgasse Augsburg
-  { t: 3, hw: 14, p: [[7110, 3740], [7270, 3740], [7430, 3740], [7590, 3740], [7750, 3740]] },                // Quergasse Augsburg
-  { t: 0, hw: 11, p: [[4450, 3290], [4700, 3240], [5000, 3200], [5300, 3170], [5600, 3170], [5900, 3200], [6200, 3260], [6450, 3380], [6700, 3520], [6900, 3640], [7110, 3740]] }, // Salzstraße von der Schanze nach Augsburg
-  { t: 1, hw: 8, p: [[7430, 4010], [7420, 4120], [7404, 4260], [7390, 4420], [7380, 4560]] },                 // Pfad ins Lechfeld
+  { t: 0, hw: 11, p: [[5600, 2090], [5900, 2150], [6200, 2200], [6500, 2244], [6750, 2262], [6900, 2262], [7050, 2262], [7150, 2246], [7230, 2230]] }, // Auweg nach Burgfelden
+  { t: 0, hw: 12, p: [[7740, 2740], [7726, 2860], [7700, 2980], [7690, 3050], [7690, 3120], [7690, 3190], [7670, 3280], [7600, 3380], [7480, 3460], [7430, 3510]] }, // Königsstraße nach Goldbrunn
+  { t: 1, hw: 8, p: [[7750, 3740], [7800, 3712], [7840, 3700], [7880, 3700], [7930, 3700], [8000, 3704], [8200, 3730], [8400, 3770]] },   // über den Wildbachsteg
+  { t: 3, hw: 18, p: [[7430, 3510], [7430, 3620], [7430, 3740], [7430, 3880], [7430, 4010]] },                // Hauptgasse Goldbrunn
+  { t: 3, hw: 14, p: [[7110, 3740], [7270, 3740], [7430, 3740], [7590, 3740], [7750, 3740]] },                // Quergasse Goldbrunn
+  { t: 0, hw: 11, p: [[4450, 3290], [4700, 3240], [5000, 3200], [5300, 3170], [5600, 3170], [5900, 3200], [6200, 3260], [6450, 3380], [6700, 3520], [6900, 3640], [7110, 3740]] }, // Salzstraße von der Schanze nach Goldbrunn
+  { t: 1, hw: 8, p: [[7430, 4010], [7420, 4120], [7404, 4260], [7390, 4420], [7380, 4560]] },                 // Pfad ins Geisterfeld
   { t: 1, hw: 8, p: [[7200, 1030], [7150, 1180], [7100, 1330], [7060, 1490]] },                                // Heideweg
-  { t: 1, hw: 7, p: [[7420, 1840], [7700, 1820], [8000, 1800], [8300, 1830], [8520, 1880]] },                 // Pfad nach Gailingen
-  { t: 1, hw: 7, p: [[7740, 2740], [8000, 2810], [8300, 2850], [8600, 2840], [8900, 2780]] },                 // Pfad in den Reichswald
-  { t: 1, hw: 7, p: [[6700, 3520], [6680, 3400], [6640, 3300], [6560, 3200], [6440, 3100]] },                 // Pfad ins Donauried
+  { t: 1, hw: 7, p: [[7420, 1840], [7700, 1820], [8000, 1800], [8300, 1830], [8520, 1880]] },                 // Pfad nach Rabeneck
+  { t: 1, hw: 7, p: [[7740, 2740], [8000, 2810], [8300, 2850], [8600, 2840], [8900, 2780]] },                 // Pfad in den Königsforst
+  { t: 1, hw: 7, p: [[6700, 3520], [6680, 3400], [6640, 3300], [6560, 3200], [6440, 3100]] },                 // Pfad ins Silberried
   { t: 1, hw: 7, p: [[7900, 860], [8200, 900], [8500, 950], [8800, 1000]] }                                    // Elbpfad in die Heide
 ].map(r => ({ t: r.t, hw: r.hw, p: wo_spline(r.p.map(q => [q[0], q[1], r.hw]), 6) }));
 const wo_RSD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RT = new Uint8Array(wo_GW * wo_GH);
@@ -354,11 +354,11 @@ const wo_HILLS = [ // cx, cy, rx, ry, Höhe, Plateau
   [1900, 470, 440, 340, 1, .62], [3720, 1210, 270, 220, .55, .32], [3540, 440, 360, 290, .95, .55],
   [700, 340, 520, 380, .45, 0], [1180, 1060, 300, 260, .25, 0], [3220, 2960, 420, 200, .22, 0], [3000, 640, 300, 200, .3, 0],
   [5150, 560, 620, 380, .7, .12], [5900, 900, 320, 440, .55, .1], [4700, 560, 300, 260, .35, 0],
-  // Bergland: Hochgebirge, Erzberge um Annaberg, Schwarzwaldhöhen
+  // Bergland: Hochgebirge, Erzberge um Silberberg, Schwarztannhöhen
   [5400, 4330, 700, 380, 1.6, .2], [5920, 3900, 360, 440, 1.3, .15], [4700, 4470, 400, 200, 1.1, .1], [6020, 4460, 300, 260, 1.5, .2], [5050, 4560, 300, 140, 1.2, .1],
   [2300, 4300, 540, 280, .7, .1], [3500, 4360, 420, 240, .6, .1], [2900, 3550, 440, 360, .3, .55],
   [820, 4050, 700, 480, .55, 0], [300, 3320, 300, 260, .4, 0], [1500, 3500, 360, 260, .35, 0],
-  // Ostlande: Felsen von Gailingen, Fläming, Reichswaldhöhen, Alpen im Südosten
+  // Ostlande: Felsen von Rabeneck, Fläming, Königsforsthöhen, Alpen im Südosten
   [8650, 1890, 250, 160, .9, .5], [8600, 80, 520, 160, .3, 0], [8600, 2700, 520, 300, .25, 0], [7600, 1240, 380, 140, .12, 0],
   [8820, 4420, 620, 300, 1.45, .2], [6640, 4530, 480, 170, 1.15, .1], [9060, 3880, 300, 420, 1.15, .2], [8300, 4560, 300, 120, 1.0, .1]
 ];
@@ -404,7 +404,7 @@ const wo_ZR = new Uint8Array(wo_ZW * wo_ZH);
     if (Math.sqrt(sq) < Math.sqrt(bq) + wob) best = zst;
     const C = wo_CITY;
     if ((x > C.x0 - 50 && x < C.x1 + 50 && y > C.y0 - 70 && y < C.y1 + 40) || (x > C.x1 && x < wo_TJ.x + 230 && y > wo_TJ.y - 190 && y < wo_TJ.y + 120)) best = wo_ZI.stadt;   // Stadt und Turnierwiese
-    else if (x > wo_SPY.x0 - 60 && x < wo_SPY.x1 + 90 && y > wo_SPY.y0 - 70 && y < wo_yAt(wo_RIVER, x)) best = wo_ZI.speyer;   // Speyer bis an den Strom
+    else if (x > wo_SPY.x0 - 60 && x < wo_SPY.x1 + 90 && y > wo_SPY.y0 - 70 && y < wo_yAt(wo_RIVER, x)) best = wo_ZI.speyer;   // Altmünster bis an den Strom
     else if (wo_onIsle(x, y)) best = wo_ZI.piratennest;
     else if (x > wo_ANNA.x0 - 60 && x < wo_ANNA.x1 + 60 && y > wo_ANNA.y0 - 80 && y < wo_ANNA.y1 + 50) best = wo_ZI.annaberg;   // Bergstadt
     else if (x > wo_WIT.x0 - 70 && x < wo_WIT.x1 + 70 && y > wo_WIT.y0 - 90 && y < wo_WIT.y1 + 60) best = wo_ZI.wittenberg;   // Städte der Ostlande
@@ -654,7 +654,7 @@ const wo_HOUSES = [];     // Häuser für Rattenpunkte
 const wo_GRAVES = [];     // Gräber für Wiedergänger
 const wo_INNP = {};       // Gasthäuser
 
-/* ---------- Reichsburg ---------- */
+/* ---------- Königsburg ---------- */
 (function wo_castle(){
   const C = wo_CAST, gx = C.gx;
   const T = makeProp('burg_turm', 1), M = makeProp('burg_mauer', 1), G = makeProp('burg_tor', 1), BF = makeProp('bergfried', 1);
@@ -696,7 +696,7 @@ const wo_INNP = {};       // Gasthäuser
   }
 })();
 
-/* ---------- Reichsstadt ---------- */
+/* ---------- Königsstadt ---------- */
 (function wo_city(){
   const C = wo_CITY, R = rng(1356);
   const T = makeProp('stadt_turm', 1), M = makeProp('stadt_mauer', 1);
@@ -1016,7 +1016,7 @@ function wo_pier(x, w, y0, y1){
 /* Kahn auf dem Wasser (ohne Kollision; das Wasser sperrt ohnehin) */
 function wo_boat(x, y, v){ const P = makeProp('kahn', wo_seedFor('kahn', v)); return P ? wo_add('kahn', x, y, P, true) : null; }
 
-/* ---------- Reichsstadt Speyer am Rhein: Mauerring, Kaiserdom, Markt, Ratshof, Gasthaus Zum Anker, Hafen ---------- */
+/* ---------- Domstadt Altmünster am Strom: Mauerring, Dom, Markt, Ratshof, Gasthaus Zum Anker, Hafen ---------- */
 const wo_SPYP = {};   // besondere Bauten (Dom, Ratshof, Kran) für Leute und Geschichte
 (function wo_speyer(){
   const C = wo_SPY, R = rng(1526);
@@ -1040,7 +1040,7 @@ const wo_SPYP = {};   // besondere Bauten (Dom, Ratshof, Kran) für Leute und Ge
   wo_feat({ m: WM.YARD, sub: 0, x0: C.x0 + 12, y0: C.y0 + 2, x1: C.x1 - 12, y1: C.y1 - 4 });
   wo_reserve(C.gx - 24, C.y0, C.gx + 24, C.y1);                       // Hauptgasse
   wo_reserve(C.x0 + 14, 1364, C.x1 - 14, 1398);                       // Quergasse
-  // Kaiserdom im Osten der Stadt, davor der Domnapf
+  // Dom im Osten der Stadt, davor der Domnapf
   const dom = wo_put('dom', 5300, 1350, 1); wo_SPYP.dom = dom;
   wo_tryNear('becken', 5150, 1372, 1, 0, -40);
   // Marktplatz im Westen: Brunnen, Stände, Krempel
@@ -1075,7 +1075,7 @@ const wo_SPYP = {};   // besondere Bauten (Dom, Ratshof, Kran) für Leute und Ge
   for (let k = 0; k < 24; k++){ const x = C.x1 + 40 + R() * 160, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .4 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
 })();
 
-/* ---------- Fischerdorf Altrip am Ufer: Hütten, Netze, Steg, Kähne ---------- */
+/* ---------- Fischerdorf Weidenau am Ufer: Hütten, Netze, Steg, Kähne ---------- */
 const wo_ALTRIP = { x: 4440, y: 1600 };
 (function wo_altrip(){
   const R = rng(1529), { x: cx, y: cy } = wo_ALTRIP;
@@ -1089,7 +1089,7 @@ const wo_ALTRIP = { x: 4440, y: 1600 };
   for (let k = 0; k < 16; k++) wo_try(R() < .6 ? 'weide' : 'busch', 4220 + R() * 460, 1460 + R() * 220, wo_ns(), 8, 8);
 })();
 
-/* ---------- Weinberge über Speyer: Rebstücke am Hang, Winzerhöfe, Wallfahrtskapelle ---------- */
+/* ---------- Weinberge über Altmünster: Rebstücke am Hang, Winzerhöfe, Wallfahrtskapelle ---------- */
 (function wo_vines(){
   const R = rng(1527);
   // Rebstück: x, y (links oben), Segmente je Zeile, Zeilen
@@ -1242,7 +1242,7 @@ const wo_BERG = {};   // besondere Orte im Bergland (für Leute, Anführer und A
 const wo_addFit = (kind, x, y, P) => wo_fits(P, Math.round(x), Math.round(y), 0, 2) ? wo_add(kind, x, y, P) : null;   // eigene Bilder (Holzstoß) nur, wo Platz ist
 wo_bridgeV(2876, 48, 'stein', 3988, 3998);   // Steinbrücke am Revierweg
 wo_bridgeV(548, 36, 'holz', 4222, 4234);     // Steg zur Teufelsschlucht
-/* ---------- Bergstadt Annaberg: Mauerring, Kirche St. Annen, Gasthaus Zur Silbernen Kanne, Markt ---------- */
+/* ---------- Bergstadt Silberberg: Mauerring, Kirche St. Annen, Gasthaus Zur Silbernen Kanne, Markt ---------- */
 (function wo_annaberg(){
   const C = wo_ANNA, R = rng(1496), gy = C.gy;
   const T = makeProp('stadt_turm', 1), M = makeProp('stadt_mauer', 1);
@@ -1356,7 +1356,7 @@ wo_bridgeV(548, 36, 'holz', 4222, 4234);     // Steg zur Teufelsschlucht
     wo_try(wo_pick(R, ['busch', 'stein', 'toter_baum', 'spiesse', 'busch', 'birke', 'fichte']), x, y, wo_ns(), 8, 8);
   }
 })();
-/* ---------- Schwarzwald: dichter Tann, Lichtungen, Räuberlager, Teufelsschlucht ---------- */
+/* ---------- Schwarztann: dichter Tann, Lichtungen, Räuberlager, Teufelsschlucht ---------- */
 const wo_SWCLEAR = [[640, 3480, 150, 100], [1480, 4420, 170, 100], [940, 3600, 150, 100], [520, 4440, 140, 110], [1660, 3820, 140, 90], [260, 3980, 110, 80], [1200, 4300, 120, 80]];
 (function wo_schwarzwald(){
   const R = rng(1513), S = 30;
@@ -1438,15 +1438,15 @@ const wo_SWCLEAR = [[640, 3480, 150, 100], [1480, 4420, 170, 100], [940, 3600, 1
   }
 })();
 /* ============ Die Ostlande (Version 26) ============
-   Nach dem Bergland gebaut, damit alte Welt und Bergland genau so bleiben. Sachsen mit Wittenberg und der Dübener Heide,
-   Franken mit Nürnberg, dem Reichswald und Burg Gailingen, Schwaben mit Augsburg, dem Donauried und dem Lechfeld. */
+   Nach dem Bergland gebaut, damit alte Welt und Bergland genau so bleiben. Sachsen mit Schwanstedt und der Grauwalder Heide,
+   Franken mit Burgfelden, dem Königsforst und Burg Rabeneck, Schwaben mit Goldbrunn, dem Silberried und dem Geisterfeld. */
 const wo_OST = {};   // besondere Orte der Ostlande (für Leute, Anführer, Aufträge und Kriegszüge)
-wo_bridgeV(7950, 48, 'stein', 842, 846);     // Elbbrücke vor Wittenberg
-wo_bridgeV(7300, 48, 'stein', 1597, 1601);   // Mainbrücke
-wo_bridgeV(7740, 44, 'stein', 2400, 2404);   // Fleischbrücke über die Pegnitz
-wo_bridgeV(7690, 48, 'holz', 3117, 3121);    // Donaubrücke
-wo_bridgeH(2262, 40, 'holz', 6925, 6950);    // Steg über die Pegnitz am Auweg
-wo_bridgeH(3702, 40, 'holz', 7850, 7878);    // Lechsteg
+wo_bridgeV(7950, 48, 'stein', 842, 846);     // Elbbrücke vor Schwanstedt
+wo_bridgeV(7300, 48, 'stein', 1597, 1601);   // Furtbachbrücke
+wo_bridgeV(7740, 44, 'stein', 2400, 2404);   // Fleischbrücke über die Burgach
+wo_bridgeV(7690, 48, 'holz', 3117, 3121);    // Silberachbrücke
+wo_bridgeH(2262, 40, 'holz', 6925, 6950);    // Steg über die Burgach am Auweg
+wo_bridgeH(3702, 40, 'holz', 7850, 7878);    // Wildbachsteg
 /* Stadtmauer einer Stadt der Ostlande: Nord- und Südreihe nach Muster (T Turm, M Mauer, G Tor), Seitenmauern mit Durchlässen
    (gaps: [oben, unten] je Durchlass; Wasser fließt durch einen Durchlass ohne Weg) */
 function wo_ringWall(C, pat, gaps, sd){
@@ -1500,7 +1500,7 @@ function wo_gardens(C, R, n){
   for (let k = 0; k < n; k++){ const x = C.x1 + 40 + R() * 160, y = C.y0 + R() * (C.y1 - C.y0); wo_try(R() < .5 ? 'apfelbaum' : 'busch', x, y, wo_ns(), 8, 10); }
 }
 
-/* ---------- Wittenberg: Schloss und Schlosskirche im Westen, Markt mit Rathaus und Stadtkirche, Cranachhof, Universität, Lutherhaus im Osten ---------- */
+/* ---------- Schwanstedt: Schloss und Schlosskirche im Westen, Markt mit Rathaus und Stadtkirche, Cranachhof, Universität, Lutherhaus im Osten ---------- */
 (function wo_wittenberg(){
   const C = wo_WIT, R = rng(1517), gy = C.gy;
   wo_ringWall(C, 'TMMMTMMGMMTMMMT', [wo_gap(gy)], 31);
@@ -1522,7 +1522,7 @@ function wo_gardens(C, R, n){
   for (const x of [7820, 8100]) wo_boat(x, 806, 1);
 })();
 
-/* ---------- Nürnberg: Kaiserburg auf dem Felsen, Sebalder und Lorenzer Stadt beiderseits der Pegnitz, Hauptmarkt mit dem Schönen Brunnen ---------- */
+/* ---------- Burgfelden: Kaiserburg auf dem Felsen, Sebalder und Lorenzer Stadt beiderseits der Burgach, Hauptmarkt mit dem Schönen Brunnen ---------- */
 (function wo_nuernberg(){
   const C = wo_NUE, R = rng(1524), gy = C.gy, g2 = C.gy2;
   wo_ringWall(C, 'TMMTMMTMGMTMMTMMT', [wo_gap(gy), [2338, 2446], wo_gap(g2)], 41);
@@ -1534,7 +1534,7 @@ function wo_gardens(C, R, n){
   wo_OST.sinwell = wo_put('bergfried', 7400, 2120, 2); wo_put('burg_turm', 7300, 2130, 3); wo_put('burg_turm', 7560, 2130, 4);
   wo_OST.burgkapelle = wo_tryNear('kapelle', 7500, 2112, 3, -2, -40);
   wo_row(gy - 22, [['fachwerkhaus', 7640, 'duerer'], ['kirche', 7860, 'sebald'], ['stadthaus', 8000], ['stadthaus', 8085], ['stadthaus', 8170]], wo_OST);
-  // Hauptmarkt zwischen Sebalder Gasse und Pegnitz, Frauenkirche am Ostrand
+  // Hauptmarkt zwischen Sebalder Gasse und Burgach, Frauenkirche am Ostrand
   wo_market(7480, gy + 18, 8090, gy + 112, ['schoenerbrunnen', 7830, gy + 66, 1], [[7520, gy + 50, 1], [7580, gy + 52, 3], [7640, gy + 50, 5], [7900, gy + 52, 2], [7960, gy + 50, 0], [8020, gy + 52, 4], [7560, gy + 100, 2], [7980, gy + 102, 1]],
     [['fass', 7494, gy + 80], ['kisten', 8070, gy + 84], ['karren', 7660, gy + 98]]);
   wo_OST.frauenkirche = wo_tryNear('frauenkirche', 8160, gy + 112, 1, -2, -40);
@@ -1542,12 +1542,12 @@ function wo_gardens(C, R, n){
   wo_row(g2 - 22, [['stadthaus', 7340], ['stadthaus', 7425, 'plattner'], ['gasthaus_gloecklein', 7510, 'innN'], ['stadthaus', 7600], ['kirche', 7880, 'lorenz'], ['stadthaus', 8030, 'uhrmacher'], ['stadthaus', 8115]], wo_OST);
   if (wo_OST.innN) wo_INNP.gloecklein = wo_OST.innN;
   wo_row(C.y1 - 60, [['stadthaus', 7330], ['stadthaus', 7415, 'lebkuchen'], ['stadthaus', 7500], ['stadthaus', 7585], ['stadthaus', 7900], ['stadthaus', 7985], ['stadthaus', 8070], ['stadthaus', 8155]], wo_OST);
-  // Ufer der Pegnitz in der Stadt: Weiden, Fässer am Weinstadel
+  // Ufer der Burgach in der Stadt: Weiden, Fässer am Weinstadel
   for (const [k, x, y] of [['weide', 7290, 2440], ['weide', 8190, 2360], ['fass', 7410, 2366], ['fass', 7424, 2372], ['kisten', 7280, 2362]]) wo_try(k, x, y, wo_ns(), 0, -40);
   for (let k = 0; k < 16; k++) wo_try(wo_pick(R, ['fass', 'kisten', 'fass', 'karren']), C.x0 + 30 + R() * (C.x1 - C.x0 - 60), C.y0 + 30 + R() * (C.y1 - C.y0 - 60), wo_ns(), 4, 8);
   wo_try('wegweiser', C.gx + 40, C.y0 - 44, 8, 0, 2); wo_try('wegweiser', C.gx - 40, C.y1 + 50, 9, 0, 2);
   wo_gardens(C, R, 22);
-  // Knoblauchsland: Gemüsefelder nordwestlich der Stadt
+  // Krautland: Gemüsefelder nordwestlich der Stadt
   for (const [x0, y0, x1, y1] of [[6930, 1980, 7090, 2080], [7100, 1960, 7200, 2060], [6960, 2100, 7110, 2190], [7120, 2090, 7190, 2180]]){
     if (!wo_occFree(x0, y0, x1, y1)) continue;
     for (let p = x0; p < x1 - 10;){
@@ -1559,7 +1559,7 @@ function wo_gardens(C, R, n){
   for (const [x, y] of [[6900, 2060], [7210, 2010]]){ const h = wo_tryNear('fachwerkhaus', x, y, wo_ns(), 2, 4); if (h) wo_HOUSES.push(h); }
 })();
 
-/* ---------- Augsburg: Dom im Norden, Rathaus und Perlachturm, Weinmarkt, Fuggerhäuser, Fuggerei; Werbeplatz vor dem Tor, Donaulände ---------- */
+/* ---------- Goldbrunn: Dom im Norden, Rathaus und Perlachturm, Weinmarkt, Fuggerhäuser, Fuggerei; Werbeplatz vor dem Tor, Lände an der Silberach ---------- */
 (function wo_augsburg(){
   const C = wo_AUG, R = rng(1521), gy = C.gy;
   wo_ringWall(C, 'TMMTMGMTMMT', [wo_gap(gy)], 51);
@@ -1582,7 +1582,7 @@ function wo_gardens(C, R, n){
   wo_OST.werbung = { x: 7520, y: 3440 };
   wo_feat({ m: WM.YARD, sub: 3, e: [7540, 3446, 70, 36] });
   wo_tryNear('zelt', 7560, 3430, wo_seedFor('zelt', 2), 0, 2); wo_tryNear('banner', 7500, 3440, 9, 0, 2); wo_tryNear('banner', 7610, 3446, 10, 0, 2); wo_tryNear('fass', 7470, 3452, 3, 0, 2);
-  // Donaulände am Nordufer bei der Brücke: Stege, Ulmer Schachteln, Ladung
+  // Lände an der Silberach am Nordufer bei der Brücke: Stege, Ulmer Schachteln, Ladung
   wo_OST.laende = { x: 7600, y: 3050 };
   for (const px of [7560, 7820]) wo_pier(px, 30, 3064, 3122);
   wo_boat(7510, 3118, 1); wo_boat(7616, 3120, 2); wo_boat(7870, 3124, 0);
@@ -1590,7 +1590,7 @@ function wo_gardens(C, R, n){
   wo_try('wegweiser', C.gx + 40, C.y0 - 44, 10, 0, 2);
 })();
 
-/* ---------- Dübener Heide: Kiefern, Birken, Wacholder, Sandflecken, Weiher; Hünengrab (Hackelberg), Schäferei ---------- */
+/* ---------- Grauwalder Heide: Kiefern, Birken, Wacholder, Sandflecken, Weiher; Hünengrab (Hackelberg), Schäferei ---------- */
 (function wo_heide(){
   const R = rng(1532);
   wo_OST.huenengrab = { x: 8620, y: 1220 };
@@ -1609,7 +1609,7 @@ function wo_gardens(C, R, n){
   }
 })();
 
-/* ---------- Reichswald: dichter Wald aus Kiefern und Eichen, Lichtungen, Zeidlerhof mit Bienenstöcken, Köhler ---------- */
+/* ---------- Königsforst: dichter Wald aus Kiefern und Eichen, Lichtungen, Zeidlerhof mit Bienenstöcken, Köhler ---------- */
 const wo_RWCLEAR = [[8420, 2660, 150, 90], [7600, 2960, 130, 80], [8860, 2480, 120, 80], [6560, 2240, 130, 100], [8200, 2900, 110, 70]];
 (function wo_reichswald(){
   const R = rng(1527), S = 30;
@@ -1629,7 +1629,7 @@ const wo_RWCLEAR = [[8420, 2660, 150, 90], [7600, 2960, 130, 80], [8860, 2480, 1
   }
 })();
 
-/* ---------- Burg Gailingen auf dem Felsen: Ringmauer, Bergfried, Lager der Reisigen ---------- */
+/* ---------- Burg Rabeneck auf dem Felsen: Ringmauer, Bergfried, Lager der Reisigen ---------- */
 (function wo_gailingen(){
   const R = rng(1381), cx = 8650, cy = 1890;
   wo_OST.gailingen = { x: cx, y: cy };
@@ -1649,7 +1649,7 @@ const wo_RWCLEAR = [[8420, 2660, 150, 90], [7600, 2960, 130, 80], [8860, 2480, 1
   }
 })();
 
-/* ---------- Donauried: Weiden, Schilf und Tümpel an der jungen Donau, Fischerhütte ---------- */
+/* ---------- Silberried: Weiden, Schilf und Tümpel an der jungen Silberach, Fischerhütte ---------- */
 (function wo_donauried(){
   const R = rng(1533);
   wo_OST.weibchen = { x: 7040, y: 3060 };
@@ -1662,7 +1662,7 @@ const wo_RWCLEAR = [[8420, 2660, 150, 90], [7600, 2960, 130, 80], [8860, 2480, 1
   }
 })();
 
-/* ---------- Lechfeld: weite Ebene mit Hügelgräbern, Ulrichskapelle, Ungarnstein und alten Waffen ---------- */
+/* ---------- Geisterfeld: weite Ebene mit Hügelgräbern, Ulrichskapelle, Heidenstein und alten Waffen ---------- */
 (function wo_lechfeld(){
   const R = rng(955);
   wo_OST.ulrich = wo_tryNear('kapelle', 7200, 4380, 5, 2, 4);

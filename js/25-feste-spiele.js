@@ -5,8 +5,8 @@
 
 /* ============ Vier neue Feste (Version 27) ============
    An den freien Tagen jeder Jahreszeit: Ostern am ersten Frühlingstag in den Obstgärten, das Schützenfest am letzten Sommertag
-   auf der Turnierwiese, der Martinimarkt am letzten Herbsttag in Augsburg, die Fastnacht mit dem Schembartlauf am letzten
-   Wintertag in Nürnberg. Jedes hat einen Gastgeber mit Speis und Trank, Musik, Leute und ein eigenes Spiel (FG, Teil 14). */
+   auf der Turnierwiese, der Martinimarkt am letzten Herbsttag in Goldbrunn, die Fastnacht mit dem Schembartlauf am letzten
+   Wintertag in Burgfelden. Jedes hat einen Gastgeber mit Speis und Trank, Musik, Leute und ein eigenes Spiel (FG, Teil 14). */
 FESTS.push(
   { id:'ostern', sea:0, days:[0], extra:true, name:'Osterfest', where:'in den Obstgärten bei Lindach', tune:'ostern', game:'eier', gameName:'Ostereiersuche', prize:'Goldenes Osterei', c:[1700, 1020],
     host:{ name:'Bäuerin Walburg', at:[1650, 1052], o:{ robe:'long', hat:'tuch', apron:'linen' }, pal:{ 1:'#3a5a8a', 2:'#4a6ea6', 3:'#5e86c0', 4:'#7aa0d6', 5:'#a8801c', 6:'#c89c28', 7:'#e0b83a', 8:'#f0d460' },
@@ -15,18 +15,18 @@ FESTS.push(
     build(B){ const w = B.obj('feuerholz', 0, 1748, 996); B.fires.push({ x: w.x, y: w.y - 10 }); B.obj('festtisch', 0, 1640, 1070); B.obj('heuhaufen', 0, 1780, 1050); B.obj('banner', 0, 1606, 1000); } },
   { id:'schuetzen', sea:1, days:[3], extra:true, name:'Schützenfest', where:'auf der Turnierwiese vor dem Osttor', tune:'schuetzen', game:'schiessen', gameName:'Armbrustschießen', prize:'Silberner Schützenvogel', c:[3540, 2262],
     host:{ name:'Schützenmeister Lienhart', at:[3466, 2294], o:{ robe:'short', hat:'barett', parti:true, belt:true, beard:true, hair:['h', 'j'] }, pal:{ 1:'#1c4a24', 2:'#2a6a32', 3:'#3e8a44', 4:'#5aaa5a', 5:'#6a5010', 6:'#9a7a1c', 7:'#c8a030', 8:'#e6c44c' },
-      greet:['Willkommen zum Schützenfest! Wer die meisten Ringe schießt, ist ein Jahr lang Schützenkönig.', 'Die Augsburger haben neunzehnhundert Schützen zu ihrem Schießen geladen. Wir sind bescheidener, aber zielen genauer.', 'Fünfzig Schritt bis zur Scheibe. Haltet den Atem an, Herr Ritter.'] },
+      greet:['Willkommen zum Schützenfest! Wer die meisten Ringe schießt, ist ein Jahr lang Schützenkönig.', 'Die Goldbrunner haben neunzehnhundert Schützen zu ihrem Schießen geladen. Wir sind bescheidener, aber zielen genauer.', 'Fünfzig Schritt bis zur Scheibe. Haltet den Atem an, Herr Ritter.'] },
     gameText:'Fünf Bolzen auf die Scheibe. Das Fadenkreuz wandert mit Eurem Atem: Haltet den Hieb gedrückt, dann wird es ruhiger, aber nicht zu lange, sonst zittert die Hand. Lasst los, um zu schießen. Mit 38 Ringen werdet Ihr Schützenkönig.',
     build(B){ B.obj('scheibe', 0, 3604, 2262); B.obj('festtisch', 0, 3470, 2330); B.obj('fass', 0, 3500, 2336); for (const [x, y, v] of [[3440, 2244, 0], [3640, 2244, 1]]) B.obj('banner', v, x, y); } },
-  { id:'martini', sea:2, days:[3], extra:true, name:'Martinimarkt', where:'auf dem Markt in Augsburg', tune:'martini', game:'gans', gameName:'Gänsefangen', prize:'Silberne Martinsgans', c:[7440, 3795],
+  { id:'martini', sea:2, days:[3], extra:true, name:'Martinimarkt', where:'auf dem Markt in Goldbrunn', tune:'martini', game:'gans', gameName:'Gänsefangen', prize:'Silberne Martinsgans', c:[7440, 3795],
     host:{ name:'Gänsehirtin Els', at:[7420, 3816], o:{ robe:'long', hat:'tuch', apron:'linen', hairTop:false }, pal:{ 1:'#4a3a22', 2:'#64502e', 3:'#7e683c', 4:'#98804e', 5:'#7a2a1a', 6:'#9a3a22', 7:'#b8502e', 8:'#d06a40' },
       greet:['Sankt Martin hat seinen Mantel mit dem Bettler geteilt. Heute teilen wir die Gänse, gebraten.', 'Meine Gänse sind mir über den ganzen Markt davongelaufen! Helft Ihr mir?', 'Heute Abend ziehen die Kinder mit Laternen um den Markt.'] },
     gameText:'Sechs Martinsgänse sind der Hirtin über den Markt entwischt. Fangt sie alle in einer Minute und einer Viertelminute: Lauft ihnen nach, bis sie müde werden und sich hinsetzen, dann packt sie.',
     build(B){ const w = B.obj('feuerholz', 0, 7470, 3772); B.fires.push({ x: w.x, y: w.y - 10 }); B.obj('festtisch', 0, 7400, 3820);
       for (const [x, y] of [[7330, 3768], [7550, 3768], [7330, 3826], [7550, 3826]]){ const l = B.obj('laterne', 0, x, y); B.lights.push([l.x + 10, l.y - 60, 130, .9]); } } },
-  { id:'fastnacht', sea:3, days:[3], extra:true, name:'Fastnacht', where:'auf dem Hauptmarkt in Nürnberg', tune:'fastnacht', game:'moriske', gameName:'Moriskentanz', prize:'Schembartmaske', c:[7752, 2300],
+  { id:'fastnacht', sea:3, days:[3], extra:true, name:'Fastnacht', where:'auf dem Hauptmarkt in Burgfelden', tune:'fastnacht', game:'moriske', gameName:'Moriskentanz', prize:'Schembartmaske', c:[7752, 2300],
     host:{ name:'Schembarthauptmann Endres', at:[7800, 2330], o:{ robe:'short', hat:'narr', mask:true, parti:true, belt:true, hair:['h', 'j'] }, pal:{ 1:'#5a0e0e', 2:'#861a16', 3:'#ae2c22', 4:'#d0483a', 5:'#6a5010', 6:'#9a7a1c', 7:'#c8a030', 8:'#e6c44c' },
-      greet:['Der Schembartlauf! Seit hundert Jahren laufen die Metzger und ihre Freunde vermummt durch Nürnberg.', 'Am Ende stürmen wir die Hölle, einen Wagen voller Teufel und Narren. Aber erst wird getanzt!', 'Morgen ist Aschermittwoch. Heute ist alles erlaubt, fast alles.'] },
+      greet:['Der Schembartlauf! Seit hundert Jahren laufen die Metzger und ihre Freunde vermummt durch Burgfelden.', 'Am Ende stürmen wir die Hölle, einen Wagen voller Teufel und Narren. Aber erst wird getanzt!', 'Morgen ist Aschermittwoch. Heute ist alles erlaubt, fast alles.'] },
     gameText:'Der Vortänzer zeigt die Schritte des Moriskentanzes vor, Ihr tanzt sie nach: mit den Pfeiltasten oder dem Steuerkreuz, in derselben Reihenfolge. Fünf Runden, jede einen Schritt länger. Zweimal daneben, und die Narren lachen Euch aus.',
     build(B){ B.obj('festtisch', 0, 7716, 2342); for (const [x, y, v] of [[7560, 2250, 0], [7980, 2250, 1]]) B.obj('banner', v, x, y);
       for (const x of [7600, 7800]){ const l = B.obj('laterne', 0, x, 2336); B.lights.push([l.x + 10, l.y - 60, 130, .9]); } } }
@@ -73,11 +73,11 @@ Object.assign(TUNES, {
   for (const [x, y] of [[3470, 2236], [3500, 2232], [3530, 2236]]) add({ p: 'stand', t: ['buerger', 'buergerin', 'wache'], ...gNear(x, y), dir: 'right', n: [1, 1], fest: 'schuetzen' });
   add({ p: 'walk', t: G4, ...P(3540, 2300), r: 160, n: [4, 5], fest: 'schuetzen' });
   add({ p: 'stand', t: ['spielmann'], ...gNear(3600, 2318), dir: 'left', n: [1, 1], fest: 'schuetzen', music: true });
-  // Martini in Augsburg: Marktleute und der Laternenzug um den Markt
+  // Martini in Goldbrunn: Marktleute und der Laternenzug um den Markt
   add({ p: 'walk', t: G4, ...P(7440, 3795), r: 200, n: [3, 4], fest: 'martini' });
   add({ p: 'stand', t: ['spielmann'], ...gNear(7380, 3772), dir: 'down', n: [1, 1], fest: 'martini', music: true });
   parade([[7200, 3780], [7440, 3772], [7690, 3780], [7690, 3814], [7440, 3820], [7200, 3814]], ['knecht', 'magd', 'buergerin', 'buerger', 'magd', 'knecht'], 8, 'martini');
-  // Fastnacht in Nürnberg: Schembartlauf um den Hauptmarkt, Narrentanz am Brunnen
+  // Fastnacht in Burgfelden: Schembartlauf um den Hauptmarkt, Narrentanz am Brunnen
   parade([[7500, 2264], [7700, 2258], [8060, 2264], [8060, 2332], [7700, 2338], [7500, 2332]], ['schembart'], 9, 'fastnacht');
   add({ p: 'dance', t: ['schembart'], cx: P(7752, 2300).x, cy: P(7752, 2300).y + 6, x: P(7752, 2300).x, y: P(7752, 2300).y, r: 58, n: [5, 5], fest: 'fastnacht' });
   for (const x of [7640, 7766]) add({ p: 'stand', t: ['spielmann'], ...gNear(x, 2276), dir: 'down', n: [1, 1], fest: 'fastnacht', music: true });
@@ -331,11 +331,11 @@ function innMore(inn, npcs){
     { id:'schulmeister', key:'schulmeister_' + inn.id, name:'Schulmeister Ambrosius', role:'Mühle', x: 365, y: 235, art: INN_ART.schulmeister, fsGame: 'muehle',
       greet:['Eine Partie Mühle, Herr Ritter? Neun Steine, drei Reihen, ein klarer Kopf.', 'Ich lehre die Kinder Latein und Rechnen. Beim Mühlespiel lerne ich selbst noch dazu.', 'Wer drei Steine in eine Reihe bringt, darf dem anderen einen nehmen. So einfach, so schwer.'] },
     { id:'spielerin', key:'spielerin_' + inn.id, name:'Spielerin Kathrein', role:'Einunddreißig', x: 625, y: 251, art: INN_ART.spielerin, fsGame: 'karten',
-      greet:['Einunddreißig, Herr Ritter? Wer näher an die Einunddreißig kommt, gewinnt. Wer drüber kommt, verliert.', 'Die Karten sind aus Nürnberg, frisch gedruckt. Eicheln, Grün, Herz und Schellen.', 'Der Pfarrer sagt, Karten seien des Teufels Gebetbuch. Er spielt trotzdem jeden Freitag.'] },
+      greet:['Einunddreißig, Herr Ritter? Wer näher an die Einunddreißig kommt, gewinnt. Wer drüber kommt, verliert.', 'Die Karten sind aus Burgfelden, frisch gedruckt. Eicheln, Grün, Herz und Schellen.', 'Der Pfarrer sagt, Karten seien des Teufels Gebetbuch. Er spielt trotzdem jeden Freitag.'] },
     { id:'kegler', key:'kegler_' + inn.id, name:'Kegelbruder Kunz', role:'Kegeln', x: 215, y: 377, art: INN_ART.kegler, fsGame: 'kegeln',
       greet:['Hinten im Hof ist die Kegelbahn. Drei Würfe, wer mehr Kegel umwirft, gewinnt!', 'Alle Neune! Das hab ich zuletzt an Martini geschafft.', 'Zielen, Schwung holen, loslassen. Mehr ist es nicht. Eigentlich.'] },
     { id:'ringer', key:'ringer_' + inn.id, name:'Ringer Jörg', role:'Ringen', x: 486, y: 389, art: INN_ART.ringer, fsGame: 'ringen',
-      greet:['Ringen ohne Harnisch, Herr Ritter, Mann gegen Mann. Wer zweimal liegt, hat verloren.', 'Der Auerswald, der Ringmeister des Kurfürsten, hat mir drei Griffe gezeigt. Den vierten habe ich selbst erfunden.', 'Kraft ist gut. Das richtige Maß ist besser.'] });
+      greet:['Ringen ohne Harnisch, Herr Ritter, Mann gegen Mann. Wer zweimal liegt, hat verloren.', 'Meister Fabian, der Ringmeister des Herzogs, hat mir drei Griffe gezeigt. Den vierten habe ich selbst erfunden.', 'Kraft ist gut. Das richtige Maß ist besser.'] });
 }
 const FS_GAMES = {
   muehle: { label: 'Eine Partie Mühle spielen', foe: 'Der Schulmeister', intro: 'Mühle um einen Einsatz: Jeder hat neun Steine. Erst werden sie gesetzt, dann gezogen. Drei in einer Reihe sind eine Mühle, dann nehmt Ihr dem anderen einen Stein. Wer nur noch zwei hat oder nicht mehr ziehen kann, verliert. Ihr spielt Weiß und fangt an.' },

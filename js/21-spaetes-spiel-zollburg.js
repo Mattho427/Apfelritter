@@ -1,7 +1,7 @@
 "use strict";
 /* Der Apfelritter, Teil 21 von 27: Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Spätes Spiel: Ehrenstufen, Wochenprüfungen des Reiches, Ehrenzeichen, Trophäen, Wappen und Titel ============ */
+/* ============ Spätes Spiel: Ehrenstufen, Wochenprüfungen des Königreichs, Ehrenzeichen, Trophäen, Wappen und Titel ============ */
 const EH_CAP = 30;                                         // höchstens 30 Ehrenstufen zählen für Leben und Schaden (je 0,5 %)
 const ehNeed = n => 4000 + 400 * n;                        // Erfahrung bis zur nächsten Ehrenstufe
 const EH_LVL = 18;                                         // ab dieser Stufe zählen die Wochenprüfungen
@@ -53,9 +53,9 @@ const storyDone = h => (h.story ? h.story.c | 0 : 0);
 const ehHas = (T, k) => typeof k === 'string' && Object.prototype.hasOwnProperty.call(T, k);
 const TROPHIES = [
   { id: 'kaiser', n: 'Vivat Imperator', d: 'Stufe 30 erreicht', ok: h => h.lvl >= MAX_LVL, wa: 'kaiser' },
-  { id: 'kunz', n: 'Das Reichsschwert', d: 'Kunz den Schwarzen bezwungen', ok: h => h.bosses.raubritter > 0, wa: 'kunz', ic: () => UNIQUE_ICON.raubritter },
+  { id: 'kunz', n: 'Das Königsschwert', d: 'Kunz den Schwarzen bezwungen', ok: h => h.bosses.raubritter > 0, wa: 'kunz', ic: () => UNIQUE_ICON.raubritter },
   { id: 'lindwurm', n: 'Drachenschuppe', d: 'den Lindwurm im Moor erschlagen', ok: h => h.bosses.lindwurm > 0, wa: 'drache', ic: () => UNIQUE_ICON.lindwurm },
-  { id: 'tod', n: 'Der Reichsapfel', d: 'den Tod auf dem Schlachtfeld vertrieben', ok: h => h.bosses.tod > 0, wa: 'tod', ic: () => UNIQUE_ICON.tod },
+  { id: 'tod', n: 'Der Königsapfel', d: 'den Tod auf dem Schlachtfeld vertrieben', ok: h => h.bosses.tod > 0, wa: 'tod', ic: () => UNIQUE_ICON.tod },
   { id: 'rotbart', n: 'Rotbarts Entermesser', d: 'Hinrich Rotbart besiegt', ok: h => h.bosses.rotbart > 0, wa: 'strom', ic: () => UNIQUE_ICON.rotbart },
   { id: 'waller', n: 'Die Wallerperle', d: 'den Waller im Altwasser erlegt', ok: h => h.bosses.wels > 0, wa: 'waller', ic: () => UNIQUE_ICON.wels },
   { id: 'tatzelwurm', n: 'Tatzelwurmschuppe', d: 'den Tatzelwurm in der Teufelsschlucht erschlagen', ok: h => h.bosses.tatzelwurm > 0 },
@@ -63,25 +63,25 @@ const TROPHIES = [
   { id: 'feldhauptmann', n: 'Wüsts Bidenhänder', d: 'Feldhauptmann Balthasar Wüst in seiner Schanze besiegt', ok: h => h.bosses.feldhauptmann > 0 },
   { id: 'ruebezahl', n: 'Herr der Berge', d: 'Rübezahl auf seinem Felsenthron bezwungen', ok: h => h.bosses.ruebezahl > 0 },
   { id: 'hackelberg', n: 'Das Jagdhorn', d: 'Hackelberg, den Wilden Jäger, in der Heide gestellt', ok: h => h.bosses.hackelberg > 0 },
-  { id: 'eppelein', n: 'Die Nürnberger hängen keinen …', d: 'Eppelein von Gailingen auf seiner Burg besiegt', ok: h => h.bosses.eppelein > 0 },
-  { id: 'donauweibchen', n: 'Perlen der Donau', d: 'das Donauweibchen im Ried bezwungen', ok: h => h.bosses.donauweibchen > 0 },
-  { id: 'thesen', n: 'Fünfundneunzig Thesen', d: 'die Thesen an der Tür der Schlosskirche zu Wittenberg gelesen', ok: h => !!h.thesen },
-  { id: 'bulcsu', n: 'Sieger vom Lechfeld', d: 'Bulcsú und seine Geisterreiter zur Ruhe gebracht', ok: h => h.bosses.bulcsu > 0 },
-  { id: 'pavia', n: 'Sieger von Pavia', d: 'König Franz I. in der Schlacht bei Pavia gefangen genommen', ok: h => !!(h.kz && h.kz.pavia) },
-  { id: 'wien', n: 'Verteidiger von Wien', d: 'die Gegenminen vor Wien gehalten und den Aga der Janitscharen besiegt', ok: h => !!(h.kz && h.kz.wien) },
+  { id: 'eppelein', n: 'Die Burgfeldener hängen keinen …', d: 'Eppelein von Rabeneck auf seiner Burg besiegt', ok: h => h.bosses.eppelein > 0 },
+  { id: 'donauweibchen', n: 'Perlen der Silberach', d: 'das Riedweibchen im Ried bezwungen', ok: h => h.bosses.donauweibchen > 0 },
+  { id: 'thesen', n: 'Die Thesen an der Tür', d: 'die Thesen an der Tür der Schlosskirche zu Schwanstedt gelesen', ok: h => !!h.thesen },
+  { id: 'bulcsu', n: 'Sieger vom Geisterfeld', d: 'Gorm und seine Geisterreiter zur Ruhe gebracht', ok: h => h.bosses.bulcsu > 0 },
+  { id: 'pavia', n: 'Sieger von Rabenfurt', d: 'König Aldemar in der Schlacht bei Rabenfurt gefangen genommen', ok: h => !!(h.kz && h.kz.pavia) },
+  { id: 'wien', n: 'Verteidiger von Steinwacht', d: 'die Gegenminen vor Steinwacht gehalten und den Heerführer der Garde besiegt', ok: h => !!(h.kz && h.kz.wien) },
   { id: 'bergwerk', n: 'Glück auf!', d: 'die Truhe im verlassenen Bergwerk geöffnet', ok: h => !!(h.dg && h.dg.bergwerk), wa: 'bergwerk' },
   { id: 'zollburg', n: 'Krone des Nöck', d: 'den Nöck in der versunkenen Zollburg bezwungen', ok: h => !!(h.dg && h.dg.zollburg), wa: 'noeck' },
   { id: 'turnier', n: 'Turniersieger', d: 'ein Großes Turnier gewonnen', ok: h => (h.tw | 0) >= 1, wa: 'turnier' },
   { id: 'tjost', n: 'Meister der Schranke', d: 'alle drei Tjostgegner des Herolds besiegt', ok: h => !!(h.joust && h.joust.beat && h.joust.beat.konrad && h.joust.beat.bayard && h.joust.beat.goetz) },
   { id: 'fischbuch', n: 'Das volle Fischbuch', d: 'jede Fischart gefangen', ok: h => FISH_REAL.every(id => h.fb && h.fb[id]), wa: 'fischer', ic: () => WARE_ICON.f_stoer },
-  { id: 'muenze', n: 'Römisches Gold', d: 'eine römische Münze aus dem Wasser gezogen', ok: h => !!(h.fb && h.fb.muenze), ic: () => WARE_ICON.f_muenze },
+  { id: 'muenze', n: 'Altes Gold', d: 'eine alte Goldmünze aus dem Wasser gezogen', ok: h => !!(h.fb && h.fb.muenze), ic: () => WARE_ICON.f_muenze },
   { id: 'jaeger', n: 'Jägermeister', d: '100 Stück Wild erlegt', ok: h => (h.hunted | 0) >= 100, ic: () => WARE_ICON.geweih },
-  { id: 'story5', n: 'Bauernkrieg', d: 'die Hauptgeschichte bis 1525 erlebt', ok: h => storyDone(h) >= 5 },
-  { id: 'story8', n: 'Retter des Reiches', d: 'die Hauptgeschichte bis 1529 erlebt', ok: h => storyDone(h) >= 8, wa: 'reich' },
+  { id: 'story5', n: 'Bauernkrieg', d: 'die Hauptgeschichte bis zum fünften Kapitel erlebt', ok: h => storyDone(h) >= 5 },
+  { id: 'story8', n: 'Retter des Königreichs', d: 'die Hauptgeschichte bis zum Ende erlebt', ok: h => storyDone(h) >= 8, wa: 'reich' },
   { id: 'eh5', n: 'Fünffach geehrt', d: 'Ehrenstufe 5 erreicht', ok: h => h.eh && h.eh.n >= 5, wa: 'ehre5' },
   { id: 'eh10', n: 'Zehnfach geehrt', d: 'Ehrenstufe 10 erreicht', ok: h => h.eh && h.eh.n >= 10, wa: 'ehre10' },
-  { id: 'eh20', n: 'Legende des Reiches', d: 'Ehrenstufe 20 erreicht', ok: h => h.eh && h.eh.n >= 20, wa: 'ehre20' },
-  { id: 'pruef10', n: 'Zehn Prüfungen', d: 'zehn Wochenprüfungen des Reiches bestanden', ok: h => (h.wkN | 0) >= 10, wa: 'pruefung' },
+  { id: 'eh20', n: 'Legende des Königreichs', d: 'Ehrenstufe 20 erreicht', ok: h => h.eh && h.eh.n >= 20, wa: 'ehre20' },
+  { id: 'pruef10', n: 'Zehn Prüfungen', d: 'zehn Wochenprüfungen des Königreichs bestanden', ok: h => (h.wkN | 0) >= 10, wa: 'pruefung' },
   { id: 'ordenshaus', n: 'Prächtiges Ordenshaus', d: 'mit dem Orden das Ordenshaus auf Stufe 5 gebracht', ok: () => ASV.ord >= 5 }
 ];
 const TROPHY_BY = Object.fromEntries(TROPHIES.map(t => [t.id, t]));
@@ -90,17 +90,17 @@ const HT = {
   ehrenritter: { n: 'Ehrenritter', need: 'Ehrenstufe 1', ok: h => h.eh && h.eh.n >= 1 },
   bannerherr: { n: 'Bannerherr', need: 'Ehrenstufe 3', ok: h => h.eh && h.eh.n >= 3 },
   vlies: { n: 'Ritter vom Goldenen Vlies', need: 'Ehrenstufe 6', ok: h => h.eh && h.eh.n >= 6 },
-  paladin: { n: 'Paladin des Reiches', need: 'Ehrenstufe 10', ok: h => h.eh && h.eh.n >= 10 },
-  held: { n: 'Held des Reiches', need: 'Ehrenstufe 15', ok: h => h.eh && h.eh.n >= 15 },
+  paladin: { n: 'Paladin des Königreichs', need: 'Ehrenstufe 10', ok: h => h.eh && h.eh.n >= 10 },
+  held: { n: 'Held des Königreichs', need: 'Ehrenstufe 15', ok: h => h.eh && h.eh.n >= 15 },
   legende: { n: 'Legende', need: 'Ehrenstufe 20', ok: h => h.eh && h.eh.n >= 20 },
   piratenjaeger: { n: 'Piratenjäger', need: 'Rotbart dreimal besiegt', ok: h => (h.bosses.rotbart | 0) >= 3 },
   drachentoeter: { n: 'Drachentöter', need: 'Lindwurm und Bergdrache bezwungen', ok: h => h.bosses.lindwurm > 0 && !!(h.dg && h.dg.bergwerk) },
   meisterfischer: { n: 'Meisterfischer', need: 'das volle Fischbuch', ok: h => FISH_REAL.every(id => h.fb && h.fb[id]) },
   turnierkoenig: { n: 'Turnierkönig', need: 'drei Große Turniere gewonnen', ok: h => (h.tw | 0) >= 3 },
-  retter: { n: 'Retter des Reiches', need: 'die Hauptgeschichte bis 1529', ok: h => storyDone(h) >= 8 },
+  retter: { n: 'Retter des Königreichs', need: 'die Hauptgeschichte bis 1529', ok: h => storyDone(h) >= 8 },
   noeckbezwinger: { n: 'Bezwinger des Nöck', need: 'die versunkene Zollburg', ok: h => !!(h.dg && h.dg.zollburg) },
   jaegermeister: { n: 'Jägermeister', need: '100 Stück Wild', ok: h => (h.hunted | 0) >= 100 },
-  freund: { n: 'Freund des Kaisers', need: '15 Ehrenzeichen beim Reichsherold', ok: h => !!(h.htBuy && h.htBuy.freund), shop: 15 }
+  freund: { n: 'Freund des Königs', need: '15 Ehrenzeichen beim Königsherold', ok: h => !!(h.htBuy && h.htBuy.freund), shop: 15 }
 };
 const waOwned = (h, id) => { if (!ehHas(WAPPEN, id)) return false; const W = WAPPEN[id]; if (W.shop) return !!(h.waBuy && h.waBuy[id]); const t = TROPHIES.find(t => t.wa === id); return !!(t && h.trs && h.trs.includes(t.id)); };
 
@@ -119,7 +119,7 @@ function ehUp(){
   Sound.levelUp(); burst(k.x, k.y - KBODY, ['#ecd27a', '#ffffff', '#9cc8ff'], 30, 110, true);
   const t = Object.values(HT).find(x => x.need === 'Ehrenstufe ' + n);
   showBanner('Ehrenstufe ' + n, t ? 'Neuer Titel: ' + t.n : '+1 Ehrenzeichen, ' + gold + ' Gulden');
-  logLine('Ehrenstufe ' + n + ' erreicht: ein Ehrenzeichen und ' + gold + ' Gulden. ' + (n <= EH_CAP ? 'Leben und Schaden steigen um ein halbes Hundertstel.' : '') + (t ? ' Beim Reichsherold könnt Ihr den Titel „' + t.n + '“ wählen.' : ''), '#ecd27a');
+  logLine('Ehrenstufe ' + n + ' erreicht: ein Ehrenzeichen und ' + gold + ' Gulden. ' + (n <= EH_CAP ? 'Leben und Schaden steigen um ein halbes Hundertstel.' : '') + (t ? ' Beim Königsherold könnt Ihr den Titel „' + t.n + '“ wählen.' : ''), '#ecd27a');
 }
 
 /* ---------- Wochenprüfungen: drei Aufgaben je Woche, für alle Ritter dieselben ---------- */
@@ -154,7 +154,7 @@ function wkAdd(test){
   L.forEach((d, i) => {
     if (W.c[i] || W.p[i] >= d.need || !test(d)) return;
     W.p[i]++;
-    if (W.p[i] >= d.need){ Sound.quest(); showBanner('Prüfung bestanden', d.t); logLine('Wochenprüfung bestanden: ' + d.t + '. Der Reichsherold in Speyer hat Euren Lohn.', '#ecd27a'); }
+    if (W.p[i] >= d.need){ Sound.quest(); showBanner('Prüfung bestanden', d.t); logLine('Wochenprüfung bestanden: ' + d.t + '. Der Königsherold in Altmünster hat Euren Lohn.', '#ecd27a'); }
     markDirty();
   });
   renderTracker();
@@ -174,7 +174,7 @@ function wkClaim(i){
   if (W.c.every(Boolean)){
     HERO.ez += 3;
     const it = makeItem(pick(SLOTS), clamp(HERO.lvl + 1, 1, 32), Math.random() < .5 ? 4 : 3), j = HERO.inv.indexOf(null);
-    if (j >= 0){ HERO.inv[j] = it; logLine('Alle drei Prüfungen der Woche bestanden! Der Reichsherold überreicht 3 Ehrenzeichen und ' + it.n + '.', '#ecd27a'); }
+    if (j >= 0){ HERO.inv[j] = it; logLine('Alle drei Prüfungen der Woche bestanden! Der Königsherold überreicht 3 Ehrenzeichen und ' + it.n + '.', '#ecd27a'); }
     else { HERO.ez += 2; logLine('Alle drei Prüfungen der Woche bestanden! Der Rucksack ist voll, also gibt der Herold 5 Ehrenzeichen.', '#ecd27a'); }
     showBanner('Woche der Ehre', 'alle Prüfungen bestanden');
   }
@@ -192,7 +192,7 @@ function ehCheck(quiet){
     HERO.trs.push(t.id);
     if (!quiet && G && G.mode === 'play'){
       Sound.chime(); showBanner('Neue Trophäe', t.n);
-      logLine('Neue Trophäe im Trophäenbuch: „' + t.n + '“ (' + t.d + ')' + (t.wa ? '. Dazu ein Wappen beim Reichsherold.' : '.'), '#ffd98a');
+      logLine('Neue Trophäe im Trophäenbuch: „' + t.n + '“ (' + t.d + ')' + (t.wa ? '. Dazu ein Wappen beim Königsherold.' : '.'), '#ffd98a');
     }
     markDirty(); pushFame();
   }
@@ -232,7 +232,7 @@ function ehFameTab(box, rows){
   const me = cloud.uid || 'local';
   const L = rows.filter(r => (r.eh | 0) > 0 || (r.tc | 0) > 0).map(r => ({ id: r.id, nm: cleanName(r.nm) || 'Unbekannt', eh: clamp(r.eh | 0, 0, 999), tc: clamp(r.tc | 0, 0, 60), wa: ehHas(WAPPEN, r.wa) ? r.wa : null, ht: ehHas(HT, r.ht) ? r.ht : null }))
     .sort((a, b) => b.eh - a.eh || b.tc - a.tc).slice(0, 15);
-  if (!L.length){ box.append(el('li', 'empty', 'Noch hat kein Ritter Ehrenstufen oder Trophäen. Der Reichsherold in Speyer führt das Buch.')); return; }
+  if (!L.length){ box.append(el('li', 'empty', 'Noch hat kein Ritter Ehrenstufen oder Trophäen. Der Königsherold in Altmünster führt das Buch.')); return; }
   L.forEach((r, i) => {
     const li = el('li', r.id === me ? 'me' : ''), nm = el('span', 'fn');
     if (r.wa){ const im = el('img', 'forb'); im.src = urlOf(wappenImg(r.wa), 2); im.alt = ''; nm.append(im); }
@@ -245,13 +245,13 @@ function ehRows(box){
   if (!HERO || HERO.lvl < EH_LVL) return;
   const { W, L } = wkCur(), done = L.filter((d, i) => W.p[i] >= d.need).length, open = L.filter((d, i) => W.p[i] >= d.need && !W.c[i]).length;
   if (W.c.every(Boolean)) return;
-  const p = el('p', 'post'); p.append(el('b', null, 'Prüfungen: '), el('span', null, done + ' von 3' + (open ? ', Lohn beim Reichsherold' : ''))); box.append(p);
+  const p = el('p', 'post'); p.append(el('b', null, 'Prüfungen: '), el('span', null, done + ' von 3' + (open ? ', Lohn beim Königsherold' : ''))); box.append(p);
 }
 
-/* ---------- Reichsherold: Gesprächsansichten ---------- */
+/* ---------- Königsherold: Gesprächsansichten ---------- */
 function ehTalkOpts(n, opts){
   if (!n.ehre) return;
-  opts.append(btn('Wochenprüfungen des Reiches', () => renderTalk('ehPruef'), 'opt'), btn('Ehrenzeichen eintauschen (' + (HERO.ez | 0) + ')', () => renderTalk('ehLaden'), 'opt'),
+  opts.append(btn('Wochenprüfungen des Königreichs', () => renderTalk('ehPruef'), 'opt'), btn('Ehrenzeichen eintauschen (' + (HERO.ez | 0) + ')', () => renderTalk('ehLaden'), 'opt'),
     btn('Das Trophäenbuch (' + (HERO.trs || []).length + ' von ' + TROPHIES.length + ')', () => renderTalk('ehBuch'), 'opt'), btn('Wappen und Ehrentitel wählen', () => renderTalk('ehWahl'), 'opt'));
 }
 function ehView(view, body, opts){
@@ -259,8 +259,8 @@ function ehView(view, body, opts){
   const row = (icon, title, sub, button) => { const r = el('div', 'shoprow'), ic = el('img'); ic.src = icon; ic.alt = ''; const t = el('div', 'stx'); t.append(el('b', null, title), el('small', null, sub)); r.append(ic, t); if (button) r.append(button); body.append(r); return r; };
   if (view === 'ehPruef'){
     const { W, L } = wkCur(), left = Math.max(0, (orWeek() + 1) * 7 * 86400000 - Date.now() + 0);
-    $('talkText').textContent = HERO.lvl < EH_LVL ? 'Die Prüfungen des Reiches sind für erfahrene Ritter. Kommt wieder, wenn Ihr Stufe ' + EH_LVL + ' erreicht habt. Hier seht Ihr, was diese Woche verlangt wird.'
-      : 'Jede Woche stellt das Reich drei Prüfungen, für alle Ritter dieselben. Jede bestandene bringt 3 Ehrenzeichen, Gulden und Erfahrung; wer alle drei besteht, bekommt mehr.';
+    $('talkText').textContent = HERO.lvl < EH_LVL ? 'Die Prüfungen des Königreichs sind für erfahrene Ritter. Kommt wieder, wenn Ihr Stufe ' + EH_LVL + ' erreicht habt. Hier seht Ihr, was diese Woche verlangt wird.'
+      : 'Jede Woche stellt das Königreich drei Prüfungen, für alle Ritter dieselben. Jede bestandene bringt 3 Ehrenzeichen, Gulden und Erfahrung; wer alle drei besteht, bekommt mehr.';
     L.forEach((d, i) => {
       const done = W.p[i] >= d.need, got = W.c[i];
       const b = got ? null : btn(done ? 'Lohn holen' : W.p[i] + ' / ' + d.need, () => { wkClaim(i); renderTalk('ehPruef'); }, 'tbtn');
@@ -275,9 +275,9 @@ function ehView(view, body, opts){
     const buy = (cost, fn) => { if ((HERO.ez | 0) < cost) return; HERO.ez -= cost; fn(); Sound.coin(); updateHud(); markDirty(true); pushFame(); renderTalk('ehLaden'); };
     const lv = clamp(HERO.lvl + 2, 1, 32);
     for (const s of SLOTS){
-      const b = btn('12 Ehrenzeichen', () => buy(12, () => { const j = HERO.inv.indexOf(null); if (j < 0){ HERO.ez += 12; logLine('Euer Rucksack ist voll.', '#d8c69c'); return; } const it = makeItem(s, lv, 4, { name: BASES[s][clamp(Math.floor((lv - 1) / 4), 0, 4)] + ' des Reiches' }); HERO.inv[j] = it; logLine('Der Reichsherold überreicht Euch ' + it.n + '.', '#f4aa3c'); }), 'tbtn');
+      const b = btn('12 Ehrenzeichen', () => buy(12, () => { const j = HERO.inv.indexOf(null); if (j < 0){ HERO.ez += 12; logLine('Euer Rucksack ist voll.', '#d8c69c'); return; } const it = makeItem(s, lv, 4, { name: BASES[s][clamp(Math.floor((lv - 1) / 4), 0, 4)] + ' des Königreichs' }); HERO.inv[j] = it; logLine('Der Königsherold überreicht Euch ' + it.n + '.', '#f4aa3c'); }), 'tbtn');
       b.disabled = (HERO.ez | 0) < 12;
-      row(urlOf(ICONS[SLOT_ICON[s]], 3), 'Legendär: ' + SLOT_NAME[s], 'Stufe ' + lv + ', aus der Rüstkammer des Kaisers', b);
+      row(urlOf(ICONS[SLOT_ICON[s]], 3), 'Legendär: ' + SLOT_NAME[s], 'Stufe ' + lv + ', aus der Rüstkammer des Königs', b);
     }
     { const b = btn('2 Ehrenzeichen', () => buy(2, () => { HERO.potions = Math.min(20, HERO.potions + 10); logLine('Zehn Heiltränke aus der Hofapotheke.', '#9fe08a'); }), 'tbtn'); b.disabled = (HERO.ez | 0) < 2 || HERO.potions >= 20; row(urlOf(ICONS.potion, 3), 'Zehn Heiltränke', 'höchstens 20 im Gürtel', b); }
     for (const [id, W] of Object.entries(WAPPEN)) if (W.shop){
@@ -285,7 +285,7 @@ function ehView(view, body, opts){
       b.disabled = own || (HERO.ez | 0) < W.shop;
       row(urlOf(wappenImg(id), 3), 'Prunkwappen: ' + W.n, 'zu sehen neben Eurem Namen und in der Ruhmeshalle', b);
     }
-    { const T = HT.freund, own = T.ok(HERO), b = btn(own ? 'Euer Titel' : T.shop + ' Ehrenzeichen', () => buy(T.shop, () => { HERO.htBuy.freund = 1; HERO.ht = 'freund'; logLine('Ihr tragt nun den Titel „Freund des Kaisers“.', '#ffd98a'); sendPresence(true); }), 'tbtn'); b.disabled = own || (HERO.ez | 0) < T.shop; row(urlOf(ICONS.eagle, 3), 'Ehrentitel: Freund des Kaisers', 'über Eurem Namen für alle Ritter zu sehen', b); }
+    { const T = HT.freund, own = T.ok(HERO), b = btn(own ? 'Euer Titel' : T.shop + ' Ehrenzeichen', () => buy(T.shop, () => { HERO.htBuy.freund = 1; HERO.ht = 'freund'; logLine('Ihr tragt nun den Titel „Freund des Königs“.', '#ffd98a'); sendPresence(true); }), 'tbtn'); b.disabled = own || (HERO.ez | 0) < T.shop; row(urlOf(ICONS.eagle, 3), 'Ehrentitel: Freund des Königs', 'über Eurem Namen für alle Ritter zu sehen', b); }
     back(); body.append(opts); return;
   }
   if (view === 'ehBuch'){
@@ -458,7 +458,7 @@ for (const id of Object.keys(FISH).filter(id => !FISH[id].junk)){
   lazySrc(im, () => urlOf(WARE_ICON['f_' + id], 2)); im.alt = '';
   wh.append(el('small', null, F.cm[0] + ' bis ' + F.cm[1] + ' cm' + (F.r === 2 ? ', sehr selten' : F.r ? ', selten' : ''))); li.append(im, wh); $('fishNote').append(li);
 }
-for (const [icon, name, desc] of [[ICONS.eagle, 'Ehrenstufen', 'nach Stufe 30, je ' + ehNeed(0) + ' Erfahrung und mehr'], [ICONS.coin, 'Wochenprüfungen', 'drei Aufgaben je Woche beim Reichsherold in Speyer'],
+for (const [icon, name, desc] of [[ICONS.eagle, 'Ehrenstufen', 'nach Stufe 30, je ' + ehNeed(0) + ' Erfahrung und mehr'], [ICONS.coin, 'Wochenprüfungen', 'drei Aufgaben je Woche beim Königsherold in Altmünster'],
   [wappenImg('reich'), 'Wappen', Object.keys(WAPPEN).length + ' Wappen, aus Trophäen oder für Ehrenzeichen'], [UNIQUE_ICON.noeck, 'Trophäen', TROPHIES.length + ' Taten im Trophäenbuch'], [ICONS.sword, 'Ehrentitel', Object.keys(HT).length + ' Titel, vom Ehrenritter bis zur Legende']]){
   const li = el('li'), im = el('img'), wh = el('span', 'what', name);
   lazySrc(im, () => urlOf(icon, 2)); im.alt = ''; wh.append(el('small', null, desc)); li.append(im, wh); $('ehNote').append(li);

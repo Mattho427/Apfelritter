@@ -1,14 +1,14 @@
 "use strict";
 /* Der Apfelritter, Teil 26 von 27: Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld,
-   Stadtwachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Absberg; die Glaubensentscheidung in Augsburg.
+   Stadtwachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Schwarzeck; die Glaubensentscheidung in Goldbrunn.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Ansehen (Version 28) ============
    Vier Stände merken sich, was Ihr tut, von −100 bis 100. Das Ansehen ändert Preise und Lohn, bringt Vorrechte
    und spricht vor Gericht mit. */
 const RUF = [
-  { id: 'fuersten', n: 'Fürsten', bei: 'bei den Fürsten', d: 'Kaiser, Kurfürsten, Herzöge und ihre Vögte', c: '#e8c860' },
-  { id: 'staedte', n: 'Städte', bei: 'bei den Städten', d: 'Räte, Bürger und Händler der Reichsstädte', c: '#9cc8ff' },
+  { id: 'fuersten', n: 'Fürsten', bei: 'bei den Fürsten', d: 'König, Herzöge, Grafen und ihre Vögte', c: '#e8c860' },
+  { id: 'staedte', n: 'Städte', bei: 'bei den Städten', d: 'Räte, Bürger und Händler der Königsstädte', c: '#9cc8ff' },
   { id: 'bauern', n: 'Bauern', bei: 'bei den Bauern', d: 'Dörfer, Höfe, Wirte, Fuhrleute und Bergknappen', c: '#9fe08a' },
   { id: 'kirche', n: 'Kirche', bei: 'bei der Kirche', d: 'Priester, Klöster und Bischöfe', c: '#e8dcbc' }
 ];
@@ -58,7 +58,7 @@ const RUF_FEST = { advent: 'staedte', schuetzen: 'staedte', martini: 'staedte', 
 function rrFest(f){ rufAdd(RUF_FEST[f.id] || 'bauern', 2, f.gameName, 'fest:' + f.id); }
 const RUF_EV = { ueberfall: ['bauern', 5], pest: ['bauern', 4], brand: ['staedte', 5], jagd: ['kirche', 4], kaiser: ['fuersten', 6] };
 function rrEvent(id){ const e = RUF_EV[id]; if (e) rufAdd(e[0], e[1], EV_DEFS.find(d => d.id === id).name); }
-function rrKz(first){ rufAdd('fuersten', first ? 8 : 2, 'Kriegszug für den Kaiser'); }
+function rrKz(first){ rufAdd('fuersten', first ? 8 : 2, 'Kriegszug für den König'); }
 function rrChurch(what){
   const E = { segen: [1, 'Spende für den Segen', 'segen'], messe: [2, 'Messe', 'messe'], beichte: [1, 'Beichte', 'beichte'], kerze: [1, 'Kerze gestiftet', 'kerze'], ablass: [3, 'Ablassbrief'], pilger: [12, 'Wallfahrt'] }[what];
   if (E) rufAdd('kirche', E[0], E[1], E[2]);
@@ -70,18 +70,18 @@ const rrNoBless = () => rufLv('kirche') <= -2;
 /* ============ Recht: Diebstahl, Wilderei, Kopfgeld, Wachen, Gericht ============
    Wer erwischt wird, hat ein Kopfgeld am Hals. Die Wachen an den Toren und auf den Märkten halten jeden an, auf den eines
    ausgesetzt ist. Dann gibt es das Bußgeld, den Pranger, den Kerker, oder die Flucht. */
-const BANNFORST = { reichswald: 'des Kaisers', schwarzwald: 'des Herzogs' };
+const BANNFORST = { reichswald: 'des Königs', schwarzwald: 'des Herzogs' };
 const HOCHWILD = { hirsch: 'einen Hirsch', wildschwein: 'ein Wildschwein' };
 const jagdrecht = () => rufLv('fuersten') >= 2;
 /* Städte mit Wache und Gericht (Weltpixel): Pranger, draußen vor dem Tor, nach der Strafe; Burg und Bergstadt ohne Pranger */
 const RR_CITY = {
-  stadt: { n: 'der Reichsstadt', judge: 'Schultheiß Konrad Imhof', pr: [2900, 2290], prop: true, out: [2966, 2720] },
-  burg: { n: 'der Reichsburg', judge: 'Vogt Heinrich', out: [1900, 960] },
-  speyer: { n: 'Speyer', judge: 'Schultheiß Jörg Hammer', pr: [5040, 1420], out: [5100, 1050] },
-  annaberg: { n: 'Annaberg', judge: 'Bergrichter Hans Teufel', out: [2900, 3840] },
-  wittenberg: { n: 'Wittenberg', judge: 'Schultheiß Christian Beyer', pr: [7900, 560], out: [7950, 900] },
-  nuernberg: { n: 'Nürnberg', judge: 'Schultheiß Hans Imhoff', pr: [7860, 2300], out: [7740, 2820] },
-  augsburg: { n: 'Augsburg', judge: 'Stadtpfleger Ulrich Rehlinger', pr: [7380, 3790], out: [7430, 3300] }
+  stadt: { n: 'der Königsstadt', judge: 'Schultheiß Konrad Imhof', pr: [2900, 2290], prop: true, out: [2966, 2720] },
+  burg: { n: 'der Königsburg', judge: 'Vogt Heinrich', out: [1900, 960] },
+  speyer: { n: 'Altmünster', judge: 'Schultheiß Jörg Hammer', pr: [5040, 1420], out: [5100, 1050] },
+  annaberg: { n: 'Silberberg', judge: 'Bergrichter Hans Teufel', out: [2900, 3840] },
+  wittenberg: { n: 'Schwanstedt', judge: 'Schultheiß Christian Beyer', pr: [7900, 560], out: [7950, 900] },
+  nuernberg: { n: 'Burgfelden', judge: 'Schultheiß Hans Imhoff', pr: [7860, 2300], out: [7740, 2820] },
+  augsburg: { n: 'Goldbrunn', judge: 'Stadtpfleger Ulrich Rehlinger', pr: [7380, 3790], out: [7430, 3300] }
 };
 const rrCityOf = z => RR_CITY[z] ? z : null;
 const rrHere = () => gZone(G.knight.x, G.knight.y).id;   // sofort nach einem Sprung, G.zone folgt erst im nächsten Bild
@@ -217,7 +217,7 @@ function rrPillory(c){
   if (G.mode === 'menu') closePanel();
   if (riding()) dismount(true);
   k.x = p.x; k.y = p.y; k.dir = 'down';
-  showBanner('Am Pranger', 'auf dem Markt ' + (c === 'stadt' ? 'der Reichsstadt' : 'von ' + C.n));
+  showBanner('Am Pranger', 'auf dem Markt ' + (c === 'stadt' ? 'der Königsstadt' : 'von ' + C.n));
   logLine('Ihr steht am Pranger. Die Leute auf dem Markt zeigen mit dem Finger auf Euch.', '#d8c69c');
   Sound.bell(); renderTracker(); sendPresence(true); markDirty(true);
 }
@@ -329,17 +329,17 @@ const STB = [
   { id: 'falschmuenzer', nm: 'Mathes der Falschmünzer', k: 'armbrust', tint: 'bund', zone: 'lager', grp: 'staedte', city: 'stadt', crime: 'prägt falsche Pfennige im Landsknechtslager' },
   { id: 'schinder', nm: 'Barthel der Schinder', k: 'pluend', tint: 'fuersten', zone: 'wald', grp: 'bauern', city: 'stadt', crime: 'überfällt Köhler und Holzfäller im Finsterwald' },
   { id: 'brandstifter', nm: 'Jörg Brandstifter', k: 'pluend', tint: 'bund', zone: 'schlachtfeld', grp: 'bauern', city: 'stadt', crime: 'zündet Höfe an, wenn die Bauern nicht zahlen' },
-  { id: 'weinraeuber', nm: 'Hensel Schlaukopf', k: 'pluend', tint: 'gold', zone: 'weinberge', grp: 'staedte', city: 'speyer', crime: 'raubt die Weinfuhren nach Speyer' },
+  { id: 'weinraeuber', nm: 'Hensel Schlaukopf', k: 'pluend', tint: 'gold', zone: 'weinberge', grp: 'staedte', city: 'speyer', crime: 'raubt die Weinfuhren nach Altmünster' },
   { id: 'stockfisch', nm: 'Claus Stockfisch', k: 'pirat', tint: 'bauer', zone: 'auwald', grp: 'staedte', city: 'speyer', crime: 'lauert den Kähnen im Altarm auf' },
   { id: 'hackenbart', nm: 'Veit Hackenbart', k: 'wegelagerer', tint: 'fuersten', zone: 'schwarzwald', grp: 'bauern', city: 'annaberg', crime: 'plündert die Fuhren auf der Bergstraße' },
   { id: 'silberdieb', nm: 'Kunz Silberschmelzer', k: 'wegelagerer', tint: 'gold', zone: 'silberrevier', grp: 'fuersten', city: 'annaberg', crime: 'schmilzt gestohlenes Silber des Herzogs ein' },
   { id: 'fahnenflucht', nm: 'Wolf Fahnenflucht', k: 'doppelsoeldner', tint: 'bund', zone: 'schanze', grp: 'fuersten', city: 'annaberg', crime: 'ist mit der Soldkasse seines Fähnleins davon' },
-  { id: 'kohlhase', nm: 'Hans Kohlhase', k: 'strauchdieb', tint: 'fuersten', zone: 'heide', grp: 'bauern', city: 'wittenberg', crime: 'führt Fehde gegen ganz Sachsen, weil man ihm zwei Rappen nahm' },
-  { id: 'moenchsschreck', nm: 'Nickel Mönchsschreck', k: 'strauchdieb', tint: 'gold', zone: 'heide', grp: 'kirche', city: 'wittenberg', crime: 'überfällt Mönche und Studenten auf dem Weg nach Wittenberg' },
+  { id: 'kohlhase', nm: 'Hans Rosskamm', k: 'strauchdieb', tint: 'fuersten', zone: 'heide', grp: 'bauern', city: 'wittenberg', crime: 'führt Fehde gegen die ganze Nordmark, weil man ihm zwei Rappen nahm' },
+  { id: 'moenchsschreck', nm: 'Nickel Mönchsschreck', k: 'strauchdieb', tint: 'gold', zone: 'heide', grp: 'kirche', city: 'wittenberg', crime: 'überfällt Mönche und Studenten auf dem Weg nach Schwanstedt' },
   { id: 'goldstrasse', nm: 'Kaspar vom Hohlweg', k: 'strauchdieb', tint: 'bund', zone: 'reichswald', grp: 'staedte', city: 'nuernberg', crime: 'lauert den Prager Kaufleuten auf der Goldenen Straße auf' },
   { id: 'ohneland', nm: 'Fritz Ohneland', k: 'reisiger', tint: 'bauer', zone: 'gailingen', grp: 'staedte', city: 'nuernberg', crime: 'reitet mit den Leuten Eppeleins und brandschatzt die Dörfer' },
-  { id: 'schwarzsimon', nm: 'Simon der Schwarze', k: 'strauchdieb', tint: 'fuersten', zone: 'donauried', grp: 'staedte', city: 'augsburg', crime: 'raubt die Fuhren der Fugger im Ried' },
-  { id: 'feuerkopf', nm: 'Michel Feuerkopf', k: 'hakenschuetze', tint: 'bund', zone: 'lechfeld', grp: 'bauern', city: 'augsburg', crime: 'schießt auf die Bauern, die das Lechfeld bestellen' }
+  { id: 'schwarzsimon', nm: 'Simon der Schwarze', k: 'strauchdieb', tint: 'fuersten', zone: 'donauried', grp: 'staedte', city: 'augsburg', crime: 'raubt die Fuhren der Goldmanns im Ried' },
+  { id: 'feuerkopf', nm: 'Michel Feuerkopf', k: 'hakenschuetze', tint: 'bund', zone: 'lechfeld', grp: 'bauern', city: 'augsburg', crime: 'schießt auf die Bauern, die das Geisterfeld bestellen' }
 ];
 const STB_BY = Object.fromEntries(STB.map(s => [s.id, s]));
 const stbLv = s => Math.min(MAX_LVL, ZONE_LV[s.zone][1] + 1);
@@ -393,10 +393,10 @@ function stbTick(){
   if (d < 640 && G.mode === 'play' && !G.mons.some(m => m.stb === s.id)) stbSpawn(s);
 }
 
-/* ============ Die Fehde gegen Hans Thomas von Absberg ============
-   Der fränkische Raubritter überfällt seit Jahren Nürnberger Kaufleute. 1523 brach der Schwäbische Bund dreiundzwanzig Burgen
-   seiner Freunde, ihn selbst fing er nie. Pirckheimer bittet um Hilfe: erst seine Reisigen, dann seine Überfälle, dann er selbst. */
-MON.absberg = { name: 'Hans Thomas von Absberg', hp: 30, dmg: 2.5, xp: 12, spd: 60, r: 16, hr: 18 };
+/* ============ Die Fehde gegen Hans Thomas von Schwarzeck ============
+   Der Raubritter aus der Mittelmark überfällt seit Jahren Burgfeldener Kaufleute. Vor zwei Jahren brach der Bund der Herren dreiundzwanzig Burgen
+   seiner Freunde, ihn selbst fing er nie. Ratsherr Steinhauer bittet um Hilfe: erst seine Reisigen, dann seine Überfälle, dann er selbst. */
+MON.absberg = { name: 'Hans Thomas von Schwarzeck', hp: 30, dmg: 2.5, xp: 12, spd: 60, r: 16, hr: 18 };
 AI_KIND.absberg = 'raubritter'; MENSCHEN.absberg = 1;
 DEATH_COLORS.absberg = ['#1a1c20', '#c4cad0', '#a8241e', '#6e767e'];
 mo_lazy(MON_ART, 'absberg', () => Object.assign(mo_riderSet(mo_horseSpec(mo_RAPPE, 1.25, '#2a1a0a'), { C: {
@@ -404,21 +404,21 @@ mo_lazy(MON_ART, 'absberg', () => Object.assign(mo_riderSet(mo_horseSpec(mo_RAPP
   lea: mo_LK.lea, boo: mo_mat('#121316', '#24262a', '#3a3e44', '#5a6068'), hat: mo_LK.stl, hai: mo_LK.hai, stl: mo_LK.stl, wod: mo_LK.wod,
   clo: mo_mat('#0e0e10', '#1c1c20', '#2c2c32', '#3e3e46'), glv: mo_mat('#121316', '#24262a', '#3a3e44', '#5a6068'), str: mo_LK.lin, gld: mo_LK.och },
   hat: 'helm', plume: true, plumeC: mo_mat('#4a0e0e', '#7a1616', '#a8241e', '#c83a2a'), weapon: 'schwert', z: 1.25 }, 100, 92, 48, 88), { reach: 46 }));
-UNIQUES.absberg = { s: 'kleinod', n: 'Absbergs Fehdehandschuh', aff: ['str', 'crit', 'hp'] };
+UNIQUES.absberg = { s: 'kleinod', n: 'Schwarzecks Fehdehandschuh', aff: ['str', 'crit', 'hp'] };
 const FD_NEED = [0, 10, 3];
-const FD_CAMP = [8640, 2860];   // Absbergs Lager im Süden des Reichswalds (Weltpixel)
+const FD_CAMP = [8640, 2860];   // Schwarzecks Lager im Süden des Königsforsts (Weltpixel)
 const FD_ZONES = { reichswald: 1, gailingen: 1 };
 const fdLv = () => clamp(HERO.lvl + 1, 24, MAX_LVL);
 const fdStep = () => HERO && HERO.fehde ? HERO.fehde.st : 0;
 function fdStart(){
   HERO.fehde = { st: 1, n: 0 };
-  logLine('Ihr nehmt den Fehdebrief Nürnbergs an Hans Thomas von Absberg. Nach altem Recht ist die Fehde damit angesagt.', '#ecd27a');
-  rufAdd('staedte', 3, 'Fehde für Nürnberg'); rufAdd('fuersten', -2, 'Fehde gegen einen Ritter');
+  logLine('Ihr nehmt den Fehdebrief Burgfeldens an Hans Thomas von Schwarzeck. Nach altem Recht ist die Fehde damit angesagt.', '#ecd27a');
+  rufAdd('staedte', 3, 'Fehde für Burgfelden'); rufAdd('fuersten', -2, 'Fehde gegen einen Ritter');
   Sound.horn(); renderTracker(); markDirty(true);
 }
 function fdNext(){
   const F = HERO.fehde; F.st++; F.n = 0;
-  const T = { 2: ['Absbergs Reisige sind geschlagen', 'Jetzt lauert er Euch selbst auf'], 3: ['Drei Überfälle abgewehrt', 'Absberg sitzt in seinem Lager im Reichswald'], 4: ['Absberg ist geschlagen', 'Bringt die Nachricht zu Pirckheimer'] }[F.st];
+  const T = { 2: ['Schwarzecks Reisige sind geschlagen', 'Jetzt lauert er Euch selbst auf'], 3: ['Drei Überfälle abgewehrt', 'Schwarzeck sitzt in seinem Lager im Königsforst'], 4: ['Schwarzeck ist geschlagen', 'Bringt die Nachricht zu Ratsherr Steinhauer'] }[F.st];
   if (T){ showBanner(T[0], T[1]); logLine(T[0] + '. ' + T[1] + '.', '#ecd27a'); }
   Sound.quest(); renderTracker(); markDirty(true);
 }
@@ -428,11 +428,11 @@ function fdAmbush(){
   for (let i = 0; i < 4; i++){
     const p = gRandWalk(k.x, k.y, 230, 320) || { x: k.x + 240, y: k.y }, cap = i === 0;
     const m = createMonster(i === 3 ? 'armbrust' : 'reisiger', p.x, p.y, L, null);
-    m.fdA = id; m.nm = cap ? 'Absbergs Hauptmann' : 'Absbergs Reisiger'; m.zone = G.zone; m.hx = p.x; m.hy = p.y;
+    m.fdA = id; m.nm = cap ? 'Schwarzecks Hauptmann' : 'Schwarzecks Reisiger'; m.zone = G.zone; m.hx = p.x; m.hy = p.y;
     if (cap){ m.art = stArt('reisiger', 'fuersten'); m.hp = m.max = monHp('reisiger', L) * 3; }
     engage(m, true);
   }
-  showBanner('Überfall!', 'Absbergs Reiter lauern Euch auf'); logLine('Absbergs Hauptmann: „Für Absberg! Nürnberger Pfeffersäcke und ihre Knechte!“', '#ff9a8a');
+  showBanner('Überfall!', 'Schwarzecks Reiter lauern Euch auf'); logLine('Schwarzecks Hauptmann: „Für Schwarzeck! Burgfeldener Pfeffersäcke und ihre Knechte!“', '#ff9a8a');
   Sound.horn(); G.flash = .2;
 }
 function fdTick(dt){
@@ -446,8 +446,8 @@ function fdTick(dt){
     if (d < 640 && !G.mons.some(m => m.k === 'absberg')){
       const L = fdLv(), a = createMonster('absberg', c.x + 40, c.y + 30, L, null);
       a.fd = true; a.nm = MON.absberg.name; a.hx = c.x; a.hy = c.y; a.zone = gZone(c.x, c.y).id; a.hp = a.max = Math.round(monHp('absberg', L) * 1.6);
-      for (let i = 0; i < 3; i++){ const p = gRandWalk(c.x, c.y, 40, 140) || c, m = createMonster('reisiger', p.x, p.y, L - 1, null); m.fdA = -1; m.nm = 'Absbergs Reisiger'; m.hx = c.x; m.hy = c.y; m.zone = a.zone; }
-      showBanner(MON.absberg.name, 'Stufe ' + L + ' · Raubritter'); logLine('Absberg: „Ein Ritter im Sold der Krämer! Schämt Euch, Herr. Aber gut, Fehde ist Fehde.“', '#ff9a8a');
+      for (let i = 0; i < 3; i++){ const p = gRandWalk(c.x, c.y, 40, 140) || c, m = createMonster('reisiger', p.x, p.y, L - 1, null); m.fdA = -1; m.nm = 'Schwarzecks Reisiger'; m.hx = c.x; m.hy = c.y; m.zone = a.zone; }
+      showBanner(MON.absberg.name, 'Stufe ' + L + ' · Raubritter'); logLine('Schwarzeck: „Ein Ritter im Sold der Krämer! Schämt Euch, Herr. Aber gut, Fehde ist Fehde.“', '#ff9a8a');
       Sound.horn(); G.flash = .3;
     }
   }
@@ -457,10 +457,10 @@ function fdEnd(how){
   F.st = 5; F.e = how;
   const gold = Math.round((180 + HERO.lvl * 18) * (how === 'urfehde' ? 2.2 : 1)), xp = Math.round(xpNeed(Math.min(HERO.lvl, MAX_LVL - 1)) * .3);
   HERO.gold += gold; if (HERO.lvl < MAX_LVL) gainXp(xp);
-  if (how === 'bund'){ rufAdd('fuersten', 10, 'Absberg dem Bund ausgeliefert'); rufAdd('staedte', 6, 'Absberg gefangen'); }
-  else { rufAdd('staedte', 8, 'Absberg schwört Urfehde'); rufAdd('fuersten', -4, 'Absberg freigelassen'); }
+  if (how === 'bund'){ rufAdd('fuersten', 10, 'Schwarzeck dem Bund ausgeliefert'); rufAdd('staedte', 6, 'Schwarzeck gefangen'); }
+  else { rufAdd('staedte', 8, 'Schwarzeck schwört Urfehde'); rufAdd('fuersten', -4, 'Schwarzeck freigelassen'); }
   showBanner('Die Fehde ist zu Ende', gold + ' Gulden' + (how === 'urfehde' ? ' Sühnegeld' : ' vom Rat'));
-  logLine(how === 'bund' ? 'Der Schwäbische Bund holt Absberg in Ketten ab. Nürnberg zahlt Euch ' + gold + ' Gulden.' : 'Absberg schwört Urfehde: nie wieder Rache an Nürnberg. Er zahlt ' + gold + ' Gulden Sühne, und Ihr lasst ihn ziehen.', '#ffd98a');
+  logLine(how === 'bund' ? 'Der Bund der Herren holt Schwarzeck in Ketten ab. Burgfelden zahlt Euch ' + gold + ' Gulden.' : 'Schwarzeck schwört Urfehde: nie wieder Rache an Burgfelden. Er zahlt ' + gold + ' Gulden Sühne, und Ihr lasst ihn ziehen.', '#ffd98a');
   Sound.quest(); Sound.cheer(.8); renderTracker(); updateHud(); pushFame(); markDirty(true);
 }
 
@@ -484,12 +484,12 @@ function rrKill(m){
   }
 }
 
-/* ============ Glaube: das Augsburger Bekenntnis ============
-   Auf dem Reichstag zu Augsburg legt Melanchthon das Bekenntnis der Lutherischen vor, der päpstliche Legat Campeggio fordert die
+/* ============ Glaube: das Goldbrunner Bekenntnis ============
+   Auf dem Hoftag zu Goldbrunn legt Magister Philipp das Bekenntnis der neuen Lehre vor, der Legat Lorenzo fordert die
    Rückkehr zur alten Kirche. Wer die Thesen gelesen hat und Stufe 15 erreicht, entscheidet sich. Ein Wechsel kostet Ansehen. */
 const GLAUBE = {
   alt: { n: 'beim alten Glauben', eff: 'Der Segen der Kirche hält 30 statt 20 Minuten. Kirche +10, Fürsten +4.', ruf: [['kirche', 10], ['fuersten', 4]] },
-  neu: { n: 'beim Augsburger Bekenntnis', eff: 'Die Kleine Bibel stärkt mehr: schnellere Erholung, das Gebet heilt ein Viertel mehr. Kein Ablass mehr. Kirche −15, Städte +6, Bauern +6.', ruf: [['kirche', -15], ['staedte', 6], ['bauern', 6]] }
+  neu: { n: 'beim Goldbrunner Bekenntnis', eff: 'Die Kleine Bibel stärkt mehr: schnellere Erholung, das Gebet heilt ein Viertel mehr. Kein Ablass mehr. Kirche −15, Städte +6, Bauern +6.', ruf: [['kirche', -15], ['staedte', 6], ['bauern', 6]] }
 };
 const glaubeOk = () => HERO.lvl >= 15 && !!HERO.thesen;
 function glaubeWahl(id){
@@ -497,15 +497,15 @@ function glaubeWahl(id){
   const was = HERO.glaube;
   if (was) rufAll(-5, 'Wankelmut im Glauben');
   HERO.glaube = id;
-  for (const [g, n] of GLAUBE[id].ruf) rufAdd(g, n, id === 'alt' ? 'treu zur alten Kirche' : 'Augsburger Bekenntnis');
+  for (const [g, n] of GLAUBE[id].ruf) rufAdd(g, n, id === 'alt' ? 'treu zur alten Kirche' : 'Goldbrunner Bekenntnis');
   if (id === 'neu' && HERO.ablass){ HERO.ablass = false; logLine('Euer Ablassbrief ist Euch nun nichts mehr wert.', '#d8c69c'); }
-  showBanner(id === 'alt' ? 'Treu zur alten Kirche' : 'Das Augsburger Bekenntnis', GLAUBE[id].eff.split('. ')[0]);
+  showBanner(id === 'alt' ? 'Treu zur alten Kirche' : 'Das Goldbrunner Bekenntnis', GLAUBE[id].eff.split('. ')[0]);
   logLine('Ihr bekennt Euch ' + GLAUBE[id].n + '. ' + GLAUBE[id].eff, '#ffe9a0');
   burst(G.knight.x, G.knight.y - KBODY, ['#fff3c0', '#ecd27a', '#ffffff'], 24, 70, true); Sound.chime();
   refreshStats(); updateHud(); renderBuffs(); sendPresence(true); markDirty(true);
 }
 
-/* ============ Leute: Büttel in sechs Städten, Melanchthon und Campeggio in Augsburg ============ */
+/* ============ Leute: Büttel in sechs Städten, Magister Philipp und Kardinal Lorenzo in Goldbrunn ============ */
 NPC_ART.buettel = np_frames({ robe: 'short', hat: 'filz', parti: true, belt: true, beard: true, halberd: true, hair: ['h', 'j'] },
   { 1: '#1a1c22', 2: '#2a2e36', 3: '#3c424c', 4: '#545c68', 5: '#6a1414', 6: '#9a2420', 7: '#c03a2c', 8: '#de5a44', R: '#e0c040' });
 NPC_ART.melanchthon = np_frames({ robe: 'long', hat: 'barett', fur: true, belt: true, beard: true, hair: ['h', 'j'] },
@@ -523,10 +523,10 @@ const RR_NPC = [
 for (const n of RR_NPC){ Object.assign(n, { role: 'Steckbriefe und Gericht', hub: n.city, art: 'buettel', buettel: true,
   greet: ['Steckbriefe, frisch gesiegelt! Wer einen Räuber stellt, bekommt das Kopfgeld vom Rat.', 'Wer stiehlt oder im Bannforst wildert, dem sitzt bald die Wache im Nacken. Und dann kommt er zu mir.', 'Der Pranger steht nicht zum Schmuck auf dem Markt, Herr Ritter.'] }); }
 RR_NPC.push(
-  { id: 'melanchthon', name: 'Magister Philipp Melanchthon', role: 'Das Augsburger Bekenntnis', hub: 'augsburg', at: gNear(7290, 3700), glaube: 'neu',
-    greet: ['Auf diesem Reichstag legen wir dem Kaiser unser Bekenntnis vor: achtundzwanzig Artikel, was wir glauben und warum.', 'Doktor Luther darf nicht nach Augsburg kommen, er ist in der Reichsacht. So rede ich für uns alle, so sanft ich kann.', 'Der Mensch wird gerecht durch den Glauben, nicht durch Werke und schon gar nicht durch gekaufte Briefe.'] },
-  { id: 'campeggio', name: 'Kardinal Lorenzo Campeggio', role: 'Päpstlicher Legat', hub: 'augsburg', at: gNear(7400, 3744), glaube: 'alt',
-    greet: ['Seine Heiligkeit hat mich über die Alpen geschickt, damit die Deutschen in den Schoß der Kirche zurückfinden.', 'Ein Bekenntnis! Als ob man die Lehre von fünfzehnhundert Jahren mit achtundzwanzig Artikeln umstoßen könnte.', 'Der Kaiser steht zur Kirche, Herr Ritter. Wer klug ist, tut es ihm gleich.'] });
+  { id: 'melanchthon', name: 'Magister Philipp', role: 'Das Goldbrunner Bekenntnis', hub: 'augsburg', at: gNear(7290, 3700), glaube: 'neu',
+    greet: ['Auf diesem Hoftag legen wir dem König unser Bekenntnis vor: achtundzwanzig Artikel, was wir glauben und warum.', 'Bruder Elias darf nicht nach Goldbrunn kommen, er ist in der Acht. So rede ich für uns alle, so sanft ich kann.', 'Der Mensch wird gerecht durch den Glauben, nicht durch Werke und schon gar nicht durch gekaufte Briefe.'] },
+  { id: 'campeggio', name: 'Kardinal Lorenzo', role: 'Legat des Heiligen Vaters', hub: 'augsburg', at: gNear(7400, 3744), glaube: 'alt',
+    greet: ['Seine Heiligkeit hat mich über die Berge geschickt, damit dieses Königreich in den Schoß der Kirche zurückfindet.', 'Ein Bekenntnis! Als ob man die Lehre vieler Jahrhunderte mit achtundzwanzig Artikeln umstoßen könnte.', 'Der König steht zur Kirche, Herr Ritter. Wer klug ist, tut es ihm gleich.'] });
 for (const n of RR_NPC){ n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.art || n.id]; n.key = n.id; NPCS.push(n); }
 const rrBuettelOf = c => NPCS.find(n => n.buettel && n.city === c);
 /* Wachen auf Streife über die Märkte */
@@ -556,8 +556,8 @@ function rrTalkOpts(n, opts){
     opts.append(btn('Was ist verboten?', () => renderTalk('rrRecht'), 'opt'));
   }
   if (n.id === 'pirckheimer'){
-    if (!F && HERO.lvl >= 22 && HERO.done.includes('n6')) opts.append(btn('Von Absberg hören (Fehde, ab Stufe 22)', () => renderTalk('rrFehde'), 'opt new'));
-    else if (F && F.st === 4) opts.append(btn('Absberg ist geschlagen', () => renderTalk('rrFehdeEnde'), 'opt ready'));
+    if (!F && HERO.lvl >= 22 && HERO.done.includes('n6')) opts.append(btn('Von Schwarzeck hören (Fehde, ab Stufe 22)', () => renderTalk('rrFehde'), 'opt new'));
+    else if (F && F.st === 4) opts.append(btn('Schwarzeck ist geschlagen', () => renderTalk('rrFehdeEnde'), 'opt ready'));
     else if (F && F.st < 4) opts.append(btn('Wie steht die Fehde?', () => renderTalk('rrFehde'), 'opt'));
   }
   if (n.id === 'vogt' && rufLv('fuersten') >= 3){
@@ -566,7 +566,7 @@ function rrTalkOpts(n, opts){
   }
   if (n.glaube){
     const cur = HERO.glaube === n.glaube;
-    opts.append(btn(cur ? (n.glaube === 'alt' ? 'Ihr steht zur alten Kirche' : 'Ihr steht zum Bekenntnis') : n.glaube === 'alt' ? (HERO.glaube ? 'Zur alten Kirche zurückkehren' : 'Beim alten Glauben bleiben') : 'Das Augsburger Bekenntnis annehmen', () => renderTalk('rrGlaube'), 'opt' + (!HERO.glaube && glaubeOk() ? ' new' : '')));
+    opts.append(btn(cur ? (n.glaube === 'alt' ? 'Ihr steht zur alten Kirche' : 'Ihr steht zum Bekenntnis') : n.glaube === 'alt' ? (HERO.glaube ? 'Zur alten Kirche zurückkehren' : 'Beim alten Glauben bleiben') : 'Das Goldbrunner Bekenntnis annehmen', () => renderTalk('rrGlaube'), 'opt' + (!HERO.glaube && glaubeOk() ? ' new' : '')));
   }
 }
 function rrView(view, body, opts){
@@ -615,37 +615,37 @@ function rrView(view, body, opts){
     return back();
   }
   if (view === 'rrRecht'){
-    say('Wer einem Händler etwas wegnimmt und erwischt wird, hat ein Kopfgeld am Hals. Ebenso, wer in den Bannforsten Hochwild schießt: im Reichswald und im Schwarzwald gehören Hirsch und Sau dem Landesherrn. Die Wachen an den Toren und auf den Märkten halten jeden an, auf den ein Kopfgeld steht. Wer zahlt, ist frei. Wer nicht zahlen kann, steht am Pranger oder sitzt im Kerker. Wer flieht, dem wird es teurer.');
+    say('Wer einem Händler etwas wegnimmt und erwischt wird, hat ein Kopfgeld am Hals. Ebenso, wer in den Bannforsten Hochwild schießt: im Königsforst und im Schwarztann gehören Hirsch und Sau dem Landesherrn. Die Wachen an den Toren und auf den Märkten halten jeden an, auf den ein Kopfgeld steht. Wer zahlt, ist frei. Wer nicht zahlen kann, steht am Pranger oder sitzt im Kerker. Wer flieht, dem wird es teurer.');
     if (rrWanted()) body.append(el('p', 'hint', 'Auf Euch sind ' + rrBounty() + ' Gulden ausgesetzt: ' + HERO.acht.w.join(', ') + '.'));
     return back();
   }
   if (view === 'rrFehde'){
     const F = HERO.fehde;
     if (!F){
-      say('Hans Thomas von Absberg, ein fränkischer Ritter, führt seit Jahren Fehde gegen Nürnberg. Er überfällt unsere Kaufleute, schlägt ihnen die Hände ab und verlangt Lösegeld. 1523 hat der Schwäbische Bund dreiundzwanzig Burgen seiner Freunde gebrochen, ihn selbst haben sie nie gefangen. Wollt Ihr dem Rat den Fehdebrief überbringen und die Sache zu Ende bringen?');
+      say('Hans Thomas von Schwarzeck, ein Ritter aus der Mittelmark, führt seit Jahren Fehde gegen Burgfelden. Er überfällt unsere Kaufleute, schlägt ihnen die Hände ab und verlangt Lösegeld. Vor zwei Jahren hat der Bund der Herren dreiundzwanzig Burgen seiner Freunde gebrochen, ihn selbst haben sie nie gefangen. Wollt Ihr dem Rat den Fehdebrief überbringen und die Sache zu Ende bringen?');
       opts.append(btn('Den Fehdebrief übernehmen', () => { fdStart(); renderTalk('rrFehde'); }, 'opt new'));
       return back();
     }
-    say(['', 'Absbergs Reisige streifen im Reichswald und um Burg Gailingen. Schlagt zehn von ihnen, dann muss er selbst aus seinem Loch.',
-      'Absberg weiß nun, wer Ihr seid. Seine Reiter werden Euch im Reichswald und bei Gailingen auflauern. Wehrt drei Überfälle ab.',
-      'Er hat sich im Süden des Reichswalds verschanzt, in einem Lager zwischen den Kiefern. Der goldene Pfeil zeigt Euch den Weg.',
-      'Ihr habt ihn? Dann sagt mir, was mit ihm geschehen soll.', 'Die Fehde ist vorbei. Nürnberg dankt Euch.'][F.st] + (F.st < 3 ? ' (' + F.n + ' / ' + FD_NEED[F.st] + ')' : ''));
+    say(['', 'Schwarzecks Reisige streifen im Königsforst und um Burg Rabeneck. Schlagt zehn von ihnen, dann muss er selbst aus seinem Loch.',
+      'Schwarzeck weiß nun, wer Ihr seid. Seine Reiter werden Euch im Königsforst und bei Rabeneck auflauern. Wehrt drei Überfälle ab.',
+      'Er hat sich im Süden des Königsforsts verschanzt, in einem Lager zwischen den Kiefern. Der goldene Pfeil zeigt Euch den Weg.',
+      'Ihr habt ihn? Dann sagt mir, was mit ihm geschehen soll.', 'Die Fehde ist vorbei. Burgfelden dankt Euch.'][F.st] + (F.st < 3 ? ' (' + F.n + ' / ' + FD_NEED[F.st] + ')' : ''));
     return back();
   }
   if (view === 'rrFehdeEnde'){
-    say('Absberg liegt verwundet in Ketten. Der Schwäbische Bund will ihn haben und richten. Er selbst bietet Sühnegeld und schwört Urfehde, wenn Ihr ihn ziehen lasst. Was soll geschehen?');
-    opts.append(btn('Dem Schwäbischen Bund ausliefern (Fürsten +10, Städte +6)', () => { fdEnd('bund'); renderTalk('main'); }, 'opt'),
+    say('Schwarzeck liegt verwundet in Ketten. Der Bund der Herren will ihn haben und richten. Er selbst bietet Sühnegeld und schwört Urfehde, wenn Ihr ihn ziehen lasst. Was soll geschehen?');
+    opts.append(btn('Dem Bund der Herren ausliefern (Fürsten +10, Städte +6)', () => { fdEnd('bund'); renderTalk('main'); }, 'opt'),
       btn('Urfehde schwören lassen, Sühnegeld nehmen (mehr Gulden, Städte +8, Fürsten −4)', () => { fdEnd('urfehde'); renderTalk('main'); }, 'opt'));
     return back();
   }
   if (view === 'rrGlaube'){
     const id = n.glaube, G0 = GLAUBE[id];
-    if (!glaubeOk()){ say(HERO.thesen ? 'Kommt wieder, wenn Ihr mehr von der Welt gesehen habt (ab Stufe 15).' : 'Habt Ihr die Thesen an der Tür der Schlosskirche in Wittenberg gelesen? Lest sie erst, dann reden wir.'); return back(); }
+    if (!glaubeOk()){ say(HERO.thesen ? 'Kommt wieder, wenn Ihr mehr von der Welt gesehen habt (ab Stufe 15).' : 'Habt Ihr die Thesen an der Tür der Schlosskirche in Schwanstedt gelesen? Lest sie erst, dann reden wir.'); return back(); }
     if (HERO.glaube === id){ say(id === 'alt' ? 'Gott segne Euch, mein Sohn. Bleibt standhaft.' : 'Wir bleiben beim Wort, Herr Ritter. Das genügt.'); body.append(el('p', 'hint', G0.eff)); return back(); }
     say((id === 'alt' ? 'Die Kirche hat die Schlüssel des Himmelreichs seit Petrus. Kehrt um, Herr Ritter, und bleibt beim Glauben Eurer Väter.' : 'Lest selbst, Herr Ritter: Wir lehren nichts, was nicht in der Schrift steht. Wollt Ihr Euch zu unserem Bekenntnis stellen?')
       + (HERO.glaube ? ' Wer den Glauben wechselt, verliert bei allen Ständen an Ansehen.' : ''));
     body.append(el('p', 'hint', G0.eff));
-    opts.append(btn(id === 'alt' ? 'Ich bleibe beim alten Glauben' : 'Ich bekenne mich zum Augsburger Bekenntnis', () => { glaubeWahl(id); renderTalk('main'); }, 'opt'));
+    opts.append(btn(id === 'alt' ? 'Ich bleibe beim alten Glauben' : 'Ich bekenne mich zum Goldbrunner Bekenntnis', () => { glaubeWahl(id); renderTalk('main'); }, 'opt'));
     return back();
   }
 }
@@ -690,16 +690,16 @@ function rrRows(box){
   else if (R && R.flee) row('Auf der Flucht:', 'raus aus ' + RR_CITY[R.flee.c].n, 'ev');
   else if (rrWanted()) row('Gesucht:', rrBounty() + ' Gulden Kopfgeld', 'ev');
   const S = HERO.stb; if (S){ const s = STB_BY[S.id]; if (s) row(s.nm, S.st ? 'zum Büttel' : ZONE_BY_ID[s.zone].name, S.st ? 'done' : ''); }
-  const F = HERO.fehde; if (F && F.st < 5) row('Fehde:', ['', 'Absbergs Reisige ' + F.n + ' / ' + FD_NEED[1], 'Überfälle ' + F.n + ' / ' + FD_NEED[2], 'Absbergs Lager', 'zu Pirckheimer'][F.st], F.st === 4 ? 'done' : '');
+  const F = HERO.fehde; if (F && F.st < 5) row('Fehde:', ['', 'Schwarzecks Reisige ' + F.n + ' / ' + FD_NEED[1], 'Überfälle ' + F.n + ' / ' + FD_NEED[2], 'Schwarzecks Lager', 'zu Steinhauer'][F.st], F.st === 4 ? 'done' : '');
 }
 function rrTarget(){
   if (!HERO || G.inside) return null;
   const S = HERO.stb;
   if (S){ const s = STB_BY[S.id]; if (s){ if (S.st){ const b = NPCS.filter(n => n.buettel).sort((a, c) => Math.hypot(a.x - G.knight.x, a.y - G.knight.y) - Math.hypot(c.x - G.knight.x, c.y - G.knight.y))[0]; if (b) return { x: b.x, y: b.y, label: b.name }; } else return { x: S.x, y: S.y, label: s.nm }; } }
   const F = HERO.fehde;
-  if (F && F.st === 3){ const c = gNear(FD_CAMP[0], FD_CAMP[1]); return { x: c.x, y: c.y, label: 'Absbergs Lager' }; }
-  if (F && F.st === 4){ const p = NPCS.find(n => n.id === 'pirckheimer'); return { x: p.x, y: p.y, label: 'Pirckheimer' }; }
-  if (F && F.st < 3 && !FD_ZONES[G.zone]){ const z = ZONE_BY_ID.reichswald; return { x: z.label.x * WS, y: z.label.y * WS, label: 'Fehde: Reichswald' }; }
+  if (F && F.st === 3){ const c = gNear(FD_CAMP[0], FD_CAMP[1]); return { x: c.x, y: c.y, label: 'Schwarzecks Lager' }; }
+  if (F && F.st === 4){ const p = NPCS.find(n => n.id === 'pirckheimer'); return { x: p.x, y: p.y, label: 'Steinhauer' }; }
+  if (F && F.st < 3 && !FD_ZONES[G.zone]){ const z = ZONE_BY_ID.reichswald; return { x: z.label.x * WS, y: z.label.y * WS, label: 'Fehde: Königsforst' }; }
   return null;
 }
 function rrMap(g, P){
@@ -719,11 +719,11 @@ function rrQuestCard(box){
     row.append(nm, bar, el('span', 'rufrang', RUF_RANG[lv + 2] + ' (' + (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + ')'));
     card.append(row, el('p', 'rufeff', rufEff(r.id, lv).join(', ')));
   }
-  if (HERO.glaube) card.append(el('p', 'qgoal', 'Glaube: ' + (HERO.glaube === 'alt' ? 'beim alten Glauben' : 'Augsburger Bekenntnis')));
+  if (HERO.glaube) card.append(el('p', 'qgoal', 'Glaube: ' + (HERO.glaube === 'alt' ? 'beim alten Glauben' : 'Goldbrunner Bekenntnis')));
   if (rrWanted()) card.append(el('p', 'qgoal bad', 'Gesucht: ' + rrBounty() + ' Gulden Kopfgeld (' + HERO.acht.w.join(', ') + ')'));
   box.append(card);
 }
-/* im Bild: Pranger in Städten ohne eigenen, Absbergs Lager, fliegendes Obst */
+/* im Bild: Pranger in Städten ohne eigenen, Schwarzecks Lager, fliegendes Obst */
 const RR_PROPS = {};
 function rrProp(key, kind, wx, wy, seed){
   let o = RR_PROPS[key];
@@ -771,15 +771,15 @@ function rrHero(h){
 /* Trophäen */
 TROPHIES.splice(TROPHIES.findIndex(t => t.id === 'turnier'), 0,
   { id: 'kopfjaeger', n: 'Kopfgeldjäger', d: 'zehn Gesuchte zur Strecke gebracht', ok: h => (h.stbN | 0) >= 10 },
-  { id: 'fehde', n: 'Die Absberger Fehde', d: 'die Fehde gegen Hans Thomas von Absberg zu Ende gebracht', ok: h => !!(h.fehde && h.fehde.st >= 5) },
+  { id: 'fehde', n: 'Die Schwarzecker Fehde', d: 'die Fehde gegen Hans Thomas von Schwarzeck zu Ende gebracht', ok: h => !!(h.fehde && h.fehde.st >= 5) },
   { id: 'verehrt', n: 'Verehrt', d: 'bei Fürsten, Städten, Bauern oder Kirche verehrt', ok: h => !!(h.ruf && Object.values(h.ruf).some(v => v >= 80)) },
-  { id: 'bekenntnis', n: 'Bekenntnis', d: 'sich in Augsburg zu einem Glauben bekannt', ok: h => !!h.glaube });
+  { id: 'bekenntnis', n: 'Bekenntnis', d: 'sich in Goldbrunn zu einem Glauben bekannt', ok: h => !!h.glaube });
 for (const id of ['kopfjaeger', 'fehde', 'verehrt', 'bekenntnis']) TROPHY_BY[id] = TROPHIES.find(t => t.id === id);
 /* Bestiarium */
 (() => {
   const li = el('li'), im = el('img'), wh = el('span', 'what', MON.absberg.name), v = el('span', 'val bad', 'Fehde');
   lazySrc(im, () => urlOf(artOf('absberg').idle.r[0].img, 2)); im.alt = '';
-  wh.append(el('small', null, 'Raubritter in schwarzem Harnisch auf einem Rappen; die Fehde für Nürnberg, im Lager im Süden des Reichswalds')); li.append(im, wh, v); $('beasts').append(li);
+  wh.append(el('small', null, 'Raubritter in schwarzem Harnisch auf einem Rappen; die Fehde für Burgfelden, im Lager im Süden des Königsforsts')); li.append(im, wh, v); $('beasts').append(li);
 })();
 /* Tafel: Recht und Ruf */
 (() => {
@@ -788,12 +788,12 @@ for (const id of ['kopfjaeger', 'fehde', 'verehrt', 'bekenntnis']) TROPHY_BY[id]
   }
   const Q = $('rechtList'); if (Q){
     for (const [t, d, v] of [['Diebstahl', 'bei jedem Händler; je mehr Wachen in der Nähe, desto eher fliegt es auf. Erwischt: Kopfgeld, Städte −8, der Händler ist zehn Minuten lang verstimmt.', 'Kopfgeld'],
-      ['Wilderei', 'Hirsche und Wildschweine im Reichswald und im Schwarzwald gehören dem Landesherrn. Fast jeder zweite Schuss wird gesehen: Kopfgeld, Fürsten −5. Wer bei den Fürsten geehrt ist, hat das Jagdrecht.', 'Kopfgeld'],
+      ['Wilderei', 'Hirsche und Wildschweine im Königsforst und im Schwarztann gehören dem Landesherrn. Fast jeder zweite Schuss wird gesehen: Kopfgeld, Fürsten −5. Wer bei den Fürsten geehrt ist, hat das Jagdrecht.', 'Kopfgeld'],
       ['Festnahme', 'Die Wachen an den Toren und auf den Märkten halten jeden an, auf den ein Kopfgeld steht: zahlen, vor Gericht treten oder fliehen. Wer flieht und aus der Stadt kommt, zahlt künftig ein Viertel mehr.', ''],
       ['Gericht', 'Bußgeld, Pranger auf dem Markt (30 bis 60 Sekunden) oder Kerker (45 bis 120 Sekunden, Bestechung oder Ausbruch). Wer sich beim Büttel selbst stellt, dem wird ein Viertel erlassen.', ''],
-      ['Steckbriefe', 'Die Büttel in der Reichsstadt, in Speyer, Annaberg, Wittenberg, Nürnberg und Augsburg zahlen für gesuchte Räuber. Jeder wartet mit zwei Spießgesellen in seinem Versteck.', STB.length + ' Gesuchte'],
-      ['Die Absberger Fehde', 'Ab Stufe 22 bei Pirckheimer in Nürnberg, nach Eppelein: Absbergs Reisige, seine Überfälle, dann er selbst in seinem Lager im Reichswald.', 'Stufe 22'],
-      ['Glaube', 'Ab Stufe 15, wer die Thesen in Wittenberg gelesen hat: Melanchthon und Kardinal Campeggio in Augsburg. Alter Glaube: längerer Segen. Bekenntnis: stärkere Bibel, kein Ablass.', 'Stufe 15']]){
+      ['Steckbriefe', 'Die Büttel in der Königsstadt, in Altmünster, Silberberg, Schwanstedt, Burgfelden und Goldbrunn zahlen für gesuchte Räuber. Jeder wartet mit zwei Spießgesellen in seinem Versteck.', STB.length + ' Gesuchte'],
+      ['Die Schwarzecker Fehde', 'Ab Stufe 22 bei Ratsherr Steinhauer in Burgfelden, nach Eppelein: Schwarzecks Reisige, seine Überfälle, dann er selbst in seinem Lager im Königsforst.', 'Stufe 22'],
+      ['Glaube', 'Ab Stufe 15, wer die Thesen in Schwanstedt gelesen hat: Magister Philipp und Kardinal Lorenzo in Goldbrunn. Alter Glaube: längerer Segen. Bekenntnis: stärkere Bibel, kein Ablass.', 'Stufe 15']]){
       const li = el('li'), wh = el('span', 'what', t); wh.append(el('small', null, d)); li.append(wh, el('span', 'val', v)); Q.append(li);
     }
   }

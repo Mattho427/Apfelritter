@@ -1,9 +1,9 @@
 // Hauptgeschichte von Anfang bis Ende durchspielen. Aufruf: node ts1.mjs <Plan> (a, b oder c)
 import { launch, wait, OUT } from './harness.mjs';
 const PLANS = {
-  a: { 1: 0, 2: 0, 'sick': 0, 3: 0, 4: 0, 5: 2, 6: 2, 7: 0, 8: 2, shotPrefix: 'sa' },   // brand, kampf, Sickingen, Gnade, rede, frieden (gn = Gnade + rede = 2)
+  a: { 1: 0, 2: 0, 'sick': 0, 3: 0, 4: 0, 5: 2, 6: 2, 7: 0, 8: 2, shotPrefix: 'sa' },   // brand, kampf, Eberhard vom Stein, Gnade, rede, frieden (gn = Gnade + rede = 2)
   b: { 1: 1, 2: 1, 'sick': 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1, shotPrefix: 'sb' },   // weigern, still, Fürsten, recht, schwert, herren
-  c: { 1: 1, 2: 0, 'sick': 0, 3: 1, 4: 2, 5: 0, 6: 0, 7: 2, 8: 0, shotPrefix: 'sc' }    // weigern, kampf, Sickingen, Lösegeld, brand, bauern
+  c: { 1: 1, 2: 0, 'sick': 0, 3: 1, 4: 2, 5: 0, 6: 0, 7: 2, 8: 0, shotPrefix: 'sc' }    // weigern, kampf, Eberhard vom Stein, Lösegeld, brand, bauern
 };
 const plan = PLANS[process.argv[2] || 'a'];
 const H = await launch(1, { init: { fn: () => { window.__wx = 'klar'; }, arg: 0 } });
@@ -30,7 +30,7 @@ for (let i = 0; i < 2400; i++){
   if (s.mode === 'scene'){
     const tag = 'k' + (s.c + 1) + 's' + s.s;
     if (s.line && !shots.has(tag) && /[a-z]/.test(s.line)){ shots.add(tag); await cab(tag + (s.stage ? '_stage' : '')); }
-    if (s.stage && !shots.has('worms2') && /Hier stehe ich/.test(s.line)){ shots.add('worms2'); await cab('worms_hier'); }
+    if (s.stage && !shots.has('worms2') && /Ich bleibe dabei/.test(s.line)){ shots.add('worms2'); await cab('worms_hier'); }
     if (/Aleander:.*Fackel/.test(s.line) && !shots.has('fackel')){ shots.add('fackel'); await cab('fackel'); }
     if (/^jaeck:.*Flammen/.test(s.line) && !shots.has('nacht')){ shots.add('nacht'); await cab('nacht'); }
     if (/Seht, wie sie brennt/.test(s.line) && !shots.has('brand')){ shots.add('brand'); await cab('scheune'); }

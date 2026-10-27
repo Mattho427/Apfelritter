@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jacquard+24&family=UnifrakturMaguntia&family=VT323&display=swap">
 <style>
-/* Layout: Reichsland unter grauem Himmel. Ein schwarzes Steinkabinett mit Goldrahmen, darunter Pergamenttafeln (Früchte, Bestiarium, Rangordnung, Steuerung) */
+/* Layout: Königsland unter grauem Himmel. Ein schwarzes Steinkabinett mit Goldrahmen, darunter Pergamenttafeln (Früchte, Bestiarium, Rangordnung, Steuerung) */
 :root{
   --night:#1f1d24; --soot:#29262e; --stone:#3a3540; --stone-hi:#554d58; --stone-lo:#26232b;
   --gold:#c9a227; --gold-hi:#ecd27a; --gold-lo:#7d6414;
@@ -656,9 +656,9 @@ body{margin:0; padding:0;}
 <main class="wrap">
   <header class="masthead" aria-hidden="false">
     <img class="seal" id="sealTop" alt="">
-    <p class="eyebrow">Anno Domini MDXX · Sacrum Romanum Imperium</p>
+    <p class="eyebrow">Ein Ritterspiel aus unruhigen Zeiten</p>
     <h1>Der Apfelritter</h1>
-    <p class="lede">Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre von Luthers Auftritt in Worms bis zum Bauernkrieg und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den Kaiser, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der kaiserlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Landes.</p>
+    <p class="lede">Ein Königreich in unruhigen Zeiten. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter vom Haus des Adlers, der Lilie, der Löwen oder der Türme durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre vom Wanderprediger auf dem Hoftag bis zum Aufstand der Bauern und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum König auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den König, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der königlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Hauses.</p>
   </header>
 
   <section class="cabinet" aria-label="Spiel">
@@ -689,7 +689,7 @@ body{margin:0; padding:0;}
     </div>
     <div class="field">
       <div class="stagebox" id="stageBox"><div class="stage" id="stage">
-        <canvas id="game" width="960" height="540" aria-label="Spielfeld: das Reichsland um die Reichsburg"></canvas>
+        <canvas id="game" width="960" height="540" aria-label="Spielfeld: das Königsland um die Königsburg"></canvas>
         <div class="boss" id="bossBar" hidden>
           <span id="bossName">Raubritter</span>
           <div class="bossbar" aria-hidden="true"><span id="bossFill"></span></div>
@@ -724,14 +724,14 @@ body{margin:0; padding:0;}
     <div class="overlay" id="ovStart">
       <div class="panel wide">
         <img class="seal" alt="" data-seal>
-        <h2>Das Reichsland ruft</h2>
+        <h2>Das Königsland ruft</h2>
         <div id="startNew"><form id="formNew" class="newhero" autocomplete="off">
-          <p>Monster bringen Erfahrung und Beute, Burg und Stadt geben Aufträge. Wählt Eure Herkunft und Euren Namen.</p>
-          <div class="factions" id="factionPick" role="radiogroup" aria-label="Herkunft des Ritters"></div>
+          <p>Monster bringen Erfahrung und Beute, Burg und Stadt geben Aufträge. Wählt Euer Haus und Euren Namen.</p>
+          <div class="factions" id="factionPick" role="radiogroup" aria-label="Haus des Ritters"></div>
           <p class="fdesc" id="factionDesc"></p>
           <input id="heroName" maxlength="16" placeholder="Euer Name" aria-label="Name des Ritters" enterkeyhint="go">
           <p class="hint" id="nameHint" hidden>Ein Ritter braucht einen Namen.</p>
-          <button class="btn" type="submit">Ins Reichsland</button>
+          <button class="btn" type="submit">Ins Königsland</button>
         </form></div>
         <div id="startCont" hidden>
           <p>Willkommen zurück, <b id="contName"></b>.</p>
@@ -792,7 +792,7 @@ body{margin:0; padding:0;}
 
     <div class="overlay" id="ovMap" hidden>
       <div class="panel map">
-        <h2>Karte des Reichslandes</h2>
+        <h2>Karte des Königslandes</h2>
         <div class="mapbox"><canvas id="mapCv" width="1152" height="576" aria-label="Übersichtskarte"></canvas><div class="maplabels" id="mapLabels"></div></div>
         <p class="hint">Gelb: Ihr · Grün: Leute · Rot: Anführer · Blau: andere Ritter · Hellgrün: Eure Gruppe · Kreis: Ziel eines Auftrags · Goldene Raute: Hauptgeschichte · Rote Fahne: Weltereignis</p>
         <button class="btn" id="btnMapClose" type="button">Zurück</button>
@@ -840,7 +840,7 @@ body{margin:0; padding:0;}
         <img class="seal" alt="" data-seal>
         <h2>Gefallen</h2>
         <p id="deadText">Eure Ausrüstung bleibt Euch.</p>
-        <button class="btn" id="btnRespawn" type="button">In der Reichsburg erwachen</button>
+        <button class="btn" id="btnRespawn" type="button">In der Königsburg erwachen</button>
       </div>
     </div>
 
@@ -853,23 +853,23 @@ body{margin:0; padding:0;}
           <section class="notes" id="notes">
             <div class="note" id="noteIntro">
               <h3>Über das Spiel</h3>
-              <p>Das Reich im Jahre 1520. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter des Reiches, Frankreichs, Englands oder Spaniens durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre von Luthers Auftritt in Worms bis zum Bauernkrieg und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum Kaiser auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den Kaiser, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der kaiserlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Landes.</p>
+              <p>Ein Königreich in unruhigen Zeiten. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter vom Haus des Adlers, der Lilie, der Löwen oder der Türme durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre vom Wanderprediger auf dem Hoftag bis zum Aufstand der Bauern und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum König auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den König, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der königlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Hauses.</p>
               <p class="tip">Diese Tafeln findet Ihr jederzeit im Menü (oben rechts) unter „Tafeln und Hilfe“.</p>
             </div>
             <div class="note">
               <h3>Die Ritter Europas um 1520</h3>
               <ul class="knights" id="knightList"></ul>
-              <p class="tip">Die Herkunft wählt Ihr beim Anlegen eines Ritters. Sie bestimmt Wappenrock, Helm, Schild und Schlachtruf und gibt einen kleinen Vorteil.</p>
+              <p class="tip">Das Haus wählt Ihr beim Anlegen eines Ritters. Sie bestimmt Wappenrock, Helm, Schild und Schlachtruf und gibt einen kleinen Vorteil.</p>
             </div>
             <div class="note">
-              <h3>Das Reichsland</h3>
+              <h3>Das Königsland</h3>
               <ul class="zones" id="zoneList"></ul>
               <p class="tip">Unten rechts zeigt die kleine Karte die Umgebung, mit K siehst du das ganze Land. Monster wachsen an ihren Lagern nach. Wer ihnen zu weit davonläuft, den lassen sie ziehen.</p>
             </div>
             <div class="note">
               <h3>Beute und Ausrüstung</h3>
               <ul class="rarity" id="rarityList"></ul>
-              <p class="tip">Jedes Monster kann Gulden, Heiltränke oder Ausrüstung fallen lassen: Waffe, Helm, Rüstung, Schild, Beine und ein Kleinod. Seltene Stücke leuchten am Boden. Der Name über einem Monster zeigt seine Stufe: rot ist gefährlich, grau bringt keine Erfahrung mehr. Im Bergland gibt es Ausrüstung bis Stufe 32 mit neuen Grundformen (bis zum Prunkharnisch und Kaiserschwert) und neuen Zusätzen: mehr Erfahrung, mehr Gulden, Schaden gegen Untote und Lebensraub.</p>
+              <p class="tip">Jedes Monster kann Gulden, Heiltränke oder Ausrüstung fallen lassen: Waffe, Helm, Rüstung, Schild, Beine und ein Kleinod. Seltene Stücke leuchten am Boden. Der Name über einem Monster zeigt seine Stufe: rot ist gefährlich, grau bringt keine Erfahrung mehr. Im Bergland gibt es Ausrüstung bis Stufe 32 mit neuen Grundformen (bis zum Prunkharnisch und Königsschwert) und neuen Zusätzen: mehr Erfahrung, mehr Gulden, Schaden gegen Untote und Lebensraub.</p>
             </div>
             <div class="note">
               <h3>Gasthäuser</h3>
@@ -879,29 +879,29 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Waffenarten</h3>
               <ul class="list" id="wtList"></ul>
-              <p class="tip">Waffen gibt es als Beute und beim Zeugmeister in der Reichsstadt, gleich neben dem Schmied. Hellebarde, Zweihänder und Armbrust brauchen beide Hände: Wer eine davon führt, legt den Schild ab und verliert dessen Rüstung und Abwehr. Mit der Waffe ändern sich die Fähigkeiten R und F. Die Armbrust zielt von selbst auf den nächsten Gegner in Blickrichtung. Eine kleine Bibel findet Ihr bei den Untoten; sie kommt in die Nebenhand statt des Schildes.</p>
+              <p class="tip">Waffen gibt es als Beute und beim Zeugmeister in der Königsstadt, gleich neben dem Schmied. Hellebarde, Zweihänder und Armbrust brauchen beide Hände: Wer eine davon führt, legt den Schild ab und verliert dessen Rüstung und Abwehr. Mit der Waffe ändern sich die Fähigkeiten R und F. Die Armbrust zielt von selbst auf den nächsten Gegner in Blickrichtung. Eine kleine Bibel findet Ihr bei den Untoten; sie kommt in die Nebenhand statt des Schildes.</p>
             </div>
             <div class="note">
               <h3>Kirche und Glaube</h3>
               <ul class="list" id="chList"></ul>
-              <p class="tip">Kirchen betretet Ihr wie Gasthäuser; drinnen seid Ihr sicher und kommt wieder zu Kräften. Die Geistlichen spenden gegen eine kleine Gabe den Segen (20 Minuten mehr Leben, schnellere Erholung, +15 % Schaden gegen Untote), hören die Beichte (danach gute Laune) und nehmen Kerzen an. Um 9 Uhr Spielzeit läuten die Glocken, um 10 Uhr beginnt die Messe: Wer bis zum Segen bleibt, bekommt ihn umsonst und dazu Erfahrung (einmal am Tag). Der Burgkaplan stellt Pilgerbriefe aus: Wer alle fünf Wallfahrtsorte besucht, erhält die Jakobsmuschel. Im Kaiserdom verkauft ein Ablassprediger Ablassbriefe, die beim nächsten Fall das Gold bewahren. Um 1520 war der Ablass heftig umstritten: Martin Luther hatte 1517 seine 95 Thesen dagegen geschrieben.</p>
+              <p class="tip">Kirchen betretet Ihr wie Gasthäuser; drinnen seid Ihr sicher und kommt wieder zu Kräften. Die Geistlichen spenden gegen eine kleine Gabe den Segen (20 Minuten mehr Leben, schnellere Erholung, +15 % Schaden gegen Untote), hören die Beichte (danach gute Laune) und nehmen Kerzen an. Um 9 Uhr Spielzeit läuten die Glocken, um 10 Uhr beginnt die Messe: Wer bis zum Segen bleibt, bekommt ihn umsonst und dazu Erfahrung (einmal am Tag). Der Burgkaplan stellt Pilgerbriefe aus: Wer alle fünf Wallfahrtsorte besucht, erhält die Jakobsmuschel. Im Dom verkauft ein Ablassprediger Ablassbriefe, die beim nächsten Fall das Gold bewahren. Der Ablass ist heftig umstritten: Bruder Elias aus Schwanstedt hat seine Thesen dagegen an die Tür der Schlosskirche geschlagen.</p>
             </div>
             <div class="note">
               <h3>Pferde und Schmied</h3>
               <ul class="list" id="horseList"></ul>
-              <p class="tip">Pferde verkauft der Stallmeister in der Reichsburg. Mit H sitzt Ihr auf und ab. Im Sattel wird der Hieb zum Lanzenstoß: Das Pferd stürmt vor, die Lanze trifft hart und betäubt. Trifft Euch ein Monster, werft es Euch aus dem Sattel. Der Schmied Wolf am Markt der Reichsstadt härtet Waffen und Rüstungen bis +5.</p>
+              <p class="tip">Pferde verkauft der Stallmeister in der Königsburg. Mit H sitzt Ihr auf und ab. Im Sattel wird der Hieb zum Lanzenstoß: Das Pferd stürmt vor, die Lanze trifft hart und betäubt. Trifft Euch ein Monster, werft es Euch aus dem Sattel. Der Schmied Wolf am Markt der Königsstadt härtet Waffen und Rüstungen bis +5.</p>
             </div>
             <div class="note">
               <h3>Harnisch und Turnier</h3>
               <ul class="list" id="gearList"></ul>
               <p class="tip">Was Ihr tragt, sieht man: Die Güte des Harnischs bestimmt seinen Glanz, ein guter Helm trägt einen Federbusch in seiner Farbe, ein guter Schild einen Rand aus Silber oder Gold, und mit besseren Waffen wird die Klinge länger.</p>
               <ul class="list" id="joustList"></ul>
-              <p class="tip">Vor dem Osttor der Reichsstadt ruft Herold Kaspar zum Tjost. Drei Durchgänge an der Schranke: Kurz vor dem Zusammenprall wandert das Ziel über den Gegner, mit dem Hieb senkt Ihr die Lanze. Helm zwei Punkte, Schild einer, wer aus dem Sattel fällt, verliert. Stehen zwei Ritter auf der Wiese, kann einer den anderen fordern.</p>
+              <p class="tip">Vor dem Osttor der Königsstadt ruft Herold Kaspar zum Tjost. Drei Durchgänge an der Schranke: Kurz vor dem Zusammenprall wandert das Ziel über den Gegner, mit dem Hieb senkt Ihr die Lanze. Helm zwei Punkte, Schild einer, wer aus dem Sattel fällt, verliert. Stehen zwei Ritter auf der Wiese, kann einer den anderen fordern.</p>
             </div>
             <div class="note">
               <h3>Tag, Nacht und Wetter</h3>
               <ul class="list" id="dayList"></ul>
-              <p class="tip">Ein Tag im Reichsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu.</p>
+              <p class="tip">Ein Tag im Königsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu.</p>
             </div>
             <div class="note">
               <h3>Jahreszeiten</h3>
@@ -921,7 +921,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Hauptgeschichte: Unruhige Zeiten</h3>
               <ul class="list" id="stList"></ul>
-              <p class="tip">Die Geschichte beginnt ab Stufe 2 beim Vogt in der Reichsburg. Oben links steht das nächste Ziel, der goldene Pfeil und die goldene Raute auf der Karte zeigen den Weg. Eure Entscheidungen verändern die späteren Kapitel und das Ende: Wer Gnade zeigt und auf sein Gewissen hört, dem vertrauen am Ende beide Seiten. In Zwischenszenen blättern E, Leertaste oder Tippen weiter, Esc überspringt. Die Chronik Eurer Taten steht im Auftragsbuch (L).</p>
+              <p class="tip">Die Geschichte beginnt ab Stufe 2 beim Vogt in der Königsburg. Oben links steht das nächste Ziel, der goldene Pfeil und die goldene Raute auf der Karte zeigen den Weg. Eure Entscheidungen verändern die späteren Kapitel und das Ende: Wer Gnade zeigt und auf sein Gewissen hört, dem vertrauen am Ende beide Seiten. In Zwischenszenen blättern E, Leertaste oder Tippen weiter, Esc überspringt. Die Chronik Eurer Taten steht im Auftragsbuch (L).</p>
             </div>
             <div class="note">
               <h3>Mit anderen Rittern</h3>
@@ -939,14 +939,14 @@ body{margin:0; padding:0;}
               <p class="tip">Über eine Treppe steigt Ihr hinab. Unten ist es dunkel, nur Fackeln und Kohlebecken geben Licht. Am Ende bewacht ein Anführer eine Truhe, die sich jeden Tag neu füllt; beim ersten Mal liegt ein episches Stück darin. Wer unten fällt, erwacht an seinem Rastplatz.</p>
             </div>
             <div class="note">
-              <h3>Speyer und der Strom</h3>
+              <h3>Altmünster und der Strom</h3>
               <ul class="list" id="fishNote"></ul>
-              <p class="tip">Östlich des Reichslands fließt der Strom. An ihm liegen die Reichsstadt Speyer mit Kaiserdom und Hafen und das Fischerdorf Altrip, nördlich die Weinberge an der Weinstraße, südlich der Auwald, und auf der Insel im Altarm hausen die Flusspiraten des Hinrich Rotbart. Der Fährmann an der Steinbrücke, der Fischer in Altrip und der Hafenmeister in Speyer setzen Euch über. Beim Fischer gibt es eine Angel: Stellt Euch ans Wasser und drückt E, beim Biss noch einmal. Fische kauft der Krämer, der Wirt zahlt mehr. Der Stadtschreiber in Speyer hat Aufträge ab Stufe 15.</p>
+              <p class="tip">Östlich des Königslands fließt der Strom. An ihm liegen die Domstadt Altmünster mit Dom und Hafen und das Fischerdorf Weidenau, nördlich die Weinberge an der Weinstraße, südlich der Auwald, und auf der Insel im Altarm hausen die Flusspiraten des Hinrich Rotbart. Der Fährmann an der Steinbrücke, der Fischer in Weidenau und der Hafenmeister in Altmünster setzen Euch über. Beim Fischer gibt es eine Angel: Stellt Euch ans Wasser und drückt E, beim Biss noch einmal. Fische kauft der Krämer, der Wirt zahlt mehr. Der Stadtschreiber in Altmünster hat Aufträge ab Stufe 15.</p>
             </div>
             <div class="note">
               <h3>Das Bergland</h3>
               <ul class="list" id="blList"></ul>
-              <p class="tip">Südlich der Reichsstadt führt die Bergstraße hinauf nach Annaberg. Die Bergstadt ist sicher: Der Bergmeister vergibt Aufträge für Stufe 19 bis 30, im Gasthaus Zur Silbernen Kanne und in der St. Annenkirche könnt Ihr rasten und beten, Krämerin, Schmied und Stallmeister sind da. Kobolde, Wölfe und Bären lassen manchmal Silbererz, Pelze und Federn fallen, die die Krämerin kauft. Ganz selten fallen Fundstücke und Teile der Rüstungssätze.</p>
+              <p class="tip">Südlich der Königsstadt führt die Bergstraße hinauf nach Silberberg. Die Bergstadt ist sicher: Der Bergmeister vergibt Aufträge für Stufe 19 bis 30, im Gasthaus Zur Silbernen Kanne und in der St. Annenkirche könnt Ihr rasten und beten, Krämerin, Schmied und Stallmeister sind da. Kobolde, Wölfe und Bären lassen manchmal Silbererz, Pelze und Federn fallen, die die Krämerin kauft. Ganz selten fallen Fundstücke und Teile der Rüstungssätze.</p>
               <h3>Meisterschaften</h3>
               <ul class="list" id="meisterList"></ul>
               <p class="tip">Ab Stufe 20 dürft Ihr alle zwei Stufen eine von drei Meisterschaften wählen: im Rucksack unter „Meisterschaften“. In einer Stadt oder einem Gasthaus könnt Ihr sie gegen Gulden neu ordnen.</p>
@@ -956,7 +956,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Die Ostlande</h3>
               <ul class="list" id="ostList"></ul>
-              <p class="tip">Östlich von Speyer und dem Bergland liegen Sachsen, Franken und Schwaben mit den sicheren Städten Wittenberg, Nürnberg und Augsburg. In jeder vergibt ein Ratsherr Aufträge, es gibt Gasthäuser, Kirchen, Händler und Schmiede, und Ihr könnt dort rasten. Die Fuhrleute in der Reichsstadt, in Speyer, in Annaberg und in den drei Städten fahren Euch gegen Gulden zu jeder anderen großen Stadt. An der Tür der Schlosskirche in Wittenberg hängen die Thesen.</p>
+              <p class="tip">Östlich von Altmünster und dem Bergland liegen die Nordmark, die Mittelmark und die Südmark mit den sicheren Städten Schwanstedt, Burgfelden und Goldbrunn. In jeder vergibt ein Ratsherr Aufträge, es gibt Gasthäuser, Kirchen, Händler und Schmiede, und Ihr könnt dort rasten. Die Fuhrleute in der Königsstadt, in Altmünster, in Silberberg und in den drei Städten fahren Euch gegen Gulden zu jeder anderen großen Stadt. An der Tür der Schlosskirche in Schwanstedt hängen die Thesen.</p>
               <h3>Kriegszüge</h3>
               <ul class="list" id="kzList"></ul>
               <p class="tip">Kriegszüge sind für Gruppen gedacht, man schafft sie aber auch allein, wenn man stark genug ist. Die Stufe richtet sich nach dem stärksten Gefährten. Gefährten im selben Kriegszug teilen offene Tore und gelöschte Lunten. Der erste Sieg bringt viel Erfahrung, ein Einzelstück und einen Eintrag im Trophäenbuch; die Kriegskasse füllt sich jeden Tag neu.</p>
@@ -972,7 +972,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Ehre und Trophäen</h3>
               <ul class="list" id="ehNote"></ul>
-              <p class="tip">Nach Stufe 30 geht die Erfahrung in Ehrenstufen: Jede bringt ein Ehrenzeichen, Gulden und ein halbes Hundertstel mehr Leben und Schaden (bis Ehrenstufe 30). Ab Stufe 18 stellt der Reichsherold in Speyer jede Woche drei Prüfungen, für alle Ritter dieselben; jede bestandene bringt drei Ehrenzeichen. Dafür gibt es beim Herold legendäre Rüstung, Prunkwappen und Ehrentitel. Große Taten kommen ins Trophäenbuch, viele bringen ein Wappen. Wappen und Titel sehen alle Ritter neben Eurem Namen.</p>
+              <p class="tip">Nach Stufe 30 geht die Erfahrung in Ehrenstufen: Jede bringt ein Ehrenzeichen, Gulden und ein halbes Hundertstel mehr Leben und Schaden (bis Ehrenstufe 30). Ab Stufe 18 stellt der Königsherold in Altmünster jede Woche drei Prüfungen, für alle Ritter dieselben; jede bestandene bringt drei Ehrenzeichen. Dafür gibt es beim Herold legendäre Rüstung, Prunkwappen und Ehrentitel. Große Taten kommen ins Trophäenbuch, viele bringen ein Wappen. Wappen und Titel sehen alle Ritter neben Eurem Namen.</p>
             </div>
             <div class="note">
               <h3>Jagd</h3>
@@ -984,7 +984,7 @@ body{margin:0; padding:0;}
               <ul class="list" id="beasts"></ul>
             </div>
             <div class="note">
-              <h3>Leben im Reichsland</h3>
+              <h3>Leben im Königsland</h3>
               <ul class="list" id="lifeList"></ul>
               <p class="tip">Leute und Hoftiere kämpfen nicht. Das Wild flieht vor Euch, Hühner flattern auf, Tauben fliegen davon. Bürger, Mägde und Wachen grüßen, wenn Ihr vorbeikommt, und die Händler rufen ihre Ware aus. Auf den Straßen ziehen Pilger, Händler und Bauern.</p>
             </div>
@@ -993,13 +993,13 @@ body{margin:0; padding:0;}
               <ul class="list" id="skillList"></ul>
             </div>
             <div class="note">
-              <h3>Stände des Reiches</h3>
+              <h3>Stände des Königreichs</h3>
               <ol class="ranks" id="rankList"></ol>
               <p class="tip">Jede Stufe bringt mehr Leben und Schaden. Höchste Stufe: 30, danach steigen die Ehrenstufen. Ab Stufe 20 bringt jede zweite Stufe eine Meisterschaft (im Rucksack wählen).</p>
             </div>
             <div class="note">
               <h3>Ruhmeshalle</h3>
-              <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="ehre" aria-selected="false">Ehre</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button><button type="button" role="tab" data-ft="laender" aria-selected="false">Länder</button></div>
+              <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="ehre" aria-selected="false">Ehre</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button><button type="button" role="tab" data-ft="laender" aria-selected="false">Häuser</button></div>
               <ol class="fame" id="fameList"></ol>
               <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Ehre“ Ehrenstufen, Trophäen, Wappen und Titel, unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Feste“ die besten Festspiele.</p>
             </div>

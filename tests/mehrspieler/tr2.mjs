@@ -7,7 +7,7 @@ let fehl = 0;
 const T = (name, r, ok) => { const gut = ok(r); if (!gut) fehl++; console.log((gut ? 'ok   ' : 'FEHL ') + name.padEnd(20), JSON.stringify(r)); };
 for (const [p, dx] of [[A, 0], [B, 90]]) await p.evaluate(dx => { window.__skyShift = (12 / 24 * DAY_LEN) - (Date.now() / 1000 % DAY_LEN); const q = gNear(2930, 2330), k = G.knight; k.x = q.x + dx; k.y = q.y + 40; updateZone(true); $('banner').hidden = true; }, dx);
 await wait(1500);
-await A.evaluate(() => { rrS().cool = nowS() + 999; rrCrime(50, 'Diebstahl in der Reichsstadt'); });
+await A.evaluate(() => { rrS().cool = nowS() + 999; rrCrime(50, 'Diebstahl in der Königsstadt'); });
 await wait(1500);
 T('Gesucht', await B.evaluate(() => { const q = [...PEERS.values()][0]; return q && q.rr; }), r => r === 'g');
 await (await B.$('canvas')).screenshot({ path: OUT + 'tr2_gesucht.png' });

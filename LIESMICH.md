@@ -28,7 +28,7 @@ in getrennten Browserfenstern, die über einen nachgebauten Raum verbunden sind 
 - `bash tests/alle.sh` – alle Tests nacheinander (etwa 52 Minuten), zeigt je Test die Ergebniszeilen.
 - `tests/einzel/` – Einzelspieler: Welt, Kampf, Gewölbe, Jagd, Feste, Tastatur, Jahreszeiten, Tjost.
 - `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen, zwei Ritter im Kriegszug, Kopfgeld und Pranger unter Rittern.
-- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Annaberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Pavia und Wien, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Absberger Fehde, Glaube).
+- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Silberberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Rabenfurt und Steinwacht, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Schwarzecker Fehde, Glaube).
 - `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden, `karte.mjs` speichert die Weltkarte, `orte.mjs name:x,y …` Bilder an Weltorten, `gegnerbilder.mjs art …` einen Bildbogen der Gegner, `bauten.mjs art …` einen Bogen der Bauten und Dinge.
 
 Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
@@ -48,19 +48,19 @@ Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 | `js/09-regeln-beute-waffen.js` | Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole |
 | `js/10-leute-tiere.js` | Leute in Burg und Stadt, Tiere, Leute unterwegs |
 | `js/11-held-auftraege-gasthaeuser.js` | Aufträge, der Held, Erscheinungsorte, Gasthäuser |
-| `js/12-leben-tag-nacht.js` | Leben im Reichsland, Tag und Nacht, Wetter |
+| `js/12-leben-tag-nacht.js` | Leben im Königsland, Tag und Nacht, Wetter |
 | `js/13-spiel-kampf.js` | Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung |
 | `js/14-turnier-gewoelbe-feste.js` | Tjost, Gewölbe, Feste im Jahreslauf |
 | `js/15-zeichnen.js` | Zeichnen des Spielbilds |
 | `js/16-oberflaeche.js` | Pferd, Schmied, Wegweiser, Oberfläche |
 | `js/17-speichern-mehrspieler.js` | Speichern, Ruhmeshalle, andere Ritter, Mehrspieler |
 | `js/18-ereignisse-orden-turnier.js` | Weltereignisse, Ritterorden, Großes Turnier, Start |
-| `js/19-hauptgeschichte.js` | Hauptgeschichte 1520–1529 |
-| `js/20-post-markt-speyer.js` | Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Speyer und Fluss |
+| `js/19-hauptgeschichte.js` | Hauptgeschichte in acht Kapiteln |
+| `js/20-post-markt-speyer.js` | Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Altmünster und Fluss |
 | `js/21-spaetes-spiel-zollburg.js` | Spätes Spiel (Ehre, Prüfungen, Wappen), die versunkene Zollburg |
 | `js/22-kirchen.js` | Kirchen, Priester und Glaube: Innenräume, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe |
-| `js/23-bergland.js` | Das Bergland: Annaberg, Bergmeister und seine Aufträge, Meisterschaften, Tafel |
-| `js/24-ostlande.js` | Die Ostlande: Leute in Wittenberg, Nürnberg und Augsburg, Aufträge, Fuhrmann, Thesen, Kriegszüge nach Pavia und Wien, Tafel |
+| `js/23-bergland.js` | Das Bergland: Silberberg, Bergmeister und seine Aufträge, Meisterschaften, Tafel |
+| `js/24-ostlande.js` | Die Ostlande: Leute in Schwanstedt, Burgfelden und Goldbrunn, Aufträge, Fuhrmann, Thesen, Kriegszüge nach Rabenfurt und Steinwacht, Tafel |
 | `js/25-feste-spiele.js` | Feste und Spiele: Ostern, Schützenfest, Martini, Fastnacht mit ihren Spielen; Mühle, Einunddreißig, Kegeln und Ringen im Gasthaus |
-| `js/26-recht-ruf.js` | Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld, Wachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Absberg; die Glaubensentscheidung in Augsburg |
+| `js/26-recht-ruf.js` | Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld, Wachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Schwarzeck; die Glaubensentscheidung in Goldbrunn |
 | `js/27-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |

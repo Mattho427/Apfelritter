@@ -48,7 +48,7 @@ Object.assign(Sound, {
 });
 
 const MAX_LVL = 30;
-const TITLES = [[1, 'Knappe'], [3, 'Ritter'], [5, 'Freiherr'], [7, 'Graf'], [9, 'Landgraf'], [11, 'Markgraf'], [13, 'Pfalzgraf'], [15, 'Herzog'], [18, 'Erzherzog'], [21, 'Kurfürst'], [25, 'König'], [30, 'Kaiser']];
+const TITLES = [[1, 'Knappe'], [3, 'Ritter'], [5, 'Freiherr'], [7, 'Graf'], [9, 'Landgraf'], [11, 'Markgraf'], [13, 'Burggraf'], [15, 'Herzog'], [18, 'Erzherzog'], [21, 'Großherzog'], [25, 'König'], [30, 'Großkönig']];
 const titleOf = lvl => TITLES.reduce((t, [l, n]) => lvl >= l ? n : t, 'Knappe');
 const xpNeed = lvl => Math.round(30 * Math.pow(lvl, 1.55) + 50);
 const SKILLS = [
@@ -76,8 +76,8 @@ const ZONE_MOBS = {
 };
 const ZONE_INFO = {
   obstgarten:'Unter der Burg. Wiedergänger und Plünderer, gut für den Anfang.',
-  burg:'Die Reichsburg. Der Vogt vergibt Aufträge, die Krämerin handelt. Kein Monster wagt sich herein.',
-  stadt:'Die Reichsstadt. Der Bürgermeister braucht Hilfe, der Krämer kauft Beute. Hier bist du sicher.',
+  burg:'Die Königsburg. Der Vogt vergibt Aufträge, die Krämerin handelt. Kein Monster wagt sich herein.',
+  stadt:'Die Königsstadt. Der Bürgermeister braucht Hilfe, der Krämer kauft Beute. Hier bist du sicher.',
   fluss:'Mühle und Brücken. Pestratten und Moorleichen am Ufer.',
   dorf:'Verbrannte Höfe. Ratten und Plünderer.',
   friedhof:'Kapelle und Kloster. Die Toten finden keine Ruhe, Raben kreisen.',
@@ -88,24 +88,24 @@ const ZONE_INFO = {
   moor:'Nebel, Moorleichen und Irrlichter. Im Sumpf haust der Lindwurm.',
   ruine:'Die Raubritterburg auf dem Felsen. Kunz der Schwarze und seine Bande.',
   weiler:'Höfe, Gärten und Felder am Fuß der Burg. Markt am Anger unter der Linde, Vieh auf der Weide. Hier seid Ihr sicher.',
-  speyer:'Die Reichsstadt am Rhein mit dem Kaiserdom, dem Hafen und dem Ratshof, in dem die Reichstage tagen. Hier seid Ihr sicher.',
+  speyer:'Die Königsstadt am Strom mit dem Dom, dem Hafen und dem Ratshof, in dem die Hoftage tagen. Hier seid Ihr sicher.',
   fischerdorf:'Fischerhütten, Netze und Kähne am Ufer. Der Fischer verkauft Angeln und kauft jeden Fang. Hier seid Ihr sicher.',
-  weinberge:'Rebhänge über Speyer. Landsknechte, die aus Italien heimkehren, plündern die Winzerhöfe.',
+  weinberge:'Rebhänge über Altmünster. Landsknechte, die aus den Kriegen jenseits der Berge heimkehren, plündern die Winzerhöfe.',
   auwald:'Weiden, Altwasser und Nebel am Strom. Nöcke lauern im Wasser, Wölfe im Dickicht.',
-  piratennest:'Die Insel im Altarm. Hinrich Rotbart und seine Flusspiraten überfallen von hier die Rheinschiffe.',
+  piratennest:'Die Insel im Altarm. Hinrich Rotbart und seine Flusspiraten überfallen von hier die Stromschiffe.',
   schwarzwald:'Dunkler Tann voller Fichten. Wölfe jagen in Rudeln, Waldschrate wandeln zwischen den Stämmen, in der Teufelsschlucht haust der Tatzelwurm.',
   annaberg:'Die Bergstadt am Silberbach, erst vor wenigen Jahren gegründet und schon reich vom Silber. Kirche St. Annen, Gasthaus und Bergamt. Hier seid Ihr sicher.',
   silberrevier:'Halden, Göpel und Stollen. In den alten Gruben hausen Kobolde und die Geister verschütteter Knappen; im Altenberg-Stollen wandelt der Bergmönch.',
   schanze:'Ein Heer von Landsknechten ohne Sold hat sich hinter Schanzkörben verschanzt. Doppelsöldner und Hakenbüchsenschützen, angeführt von ihrem Feldhauptmann.',
   hochgebirge:'Fels, Geröll und ewiger Schnee. Bären und Bartgeier, Eislichter über den Gletschern, und auf seinem Felsenthron Rübezahl, der Herr der Berge.',
-  wittenberg:'Die kurfürstliche Residenz an der Elbe mit Schloss, Schlosskirche und Universität. Hier lehrt Doktor Martin Luther, hier malt Meister Cranach. Hier seid Ihr sicher.',
-  heide:'Sand, Heidekraut und Kiefern zwischen Elbe und Main. Kreuzottern im Kraut, Strauchdiebe auf den Wegen, Irrwische über den Weihern; nachts jagt Hackelberg, der Wilde Jäger.',
-  nuernberg:'Die größte Reichsstadt im Reich, mit der Kaiserburg auf dem Felsen, dem Schönen Brunnen am Markt und den besten Plattnern der Welt. Hier seid Ihr sicher.',
+  wittenberg:'Die Residenz des Herzogs an der Schwane mit Schloss, Schlosskirche und Hoher Schule. Hier predigt Bruder Elias, hier malt Meister Lukas. Hier seid Ihr sicher.',
+  heide:'Sand, Heidekraut und Kiefern zwischen Schwane und Furtbach. Kreuzottern im Kraut, Strauchdiebe auf den Wegen, Irrwische über den Weihern; nachts jagt Hackelberg, der Wilde Jäger.',
+  nuernberg:'Die größte Handelsstadt im Königreich, mit der Burg auf dem Felsen, dem Schönen Brunnen am Markt und den besten Plattnern der Welt. Hier seid Ihr sicher.',
   reichswald:'Kiefern und Eichen, so weit man reitet. Keiler brechen durchs Unterholz, Moosweiblein huschen zwischen den Stämmen, und auf den Wegen lauern Strauchdiebe.',
-  gailingen:'Die Raubburg des Eppelein von Gailingen auf ihrem Felsen. Seine Reisigen überfallen die Nürnberger Kaufleute auf der Straße nach Norden.',
-  donauried:'Schilf, Tümpel und Nebel an der jungen Donau. Riesenkrebse im Schlamm, Moorleichen und Irrwische, und im Fluss singt das Donauweibchen.',
-  augsburg:'Die reiche Reichsstadt am Lech: Fuggerhäuser, Perlachturm und die Fuggerei, in der die Armen für einen Gulden im Jahr wohnen. Hier seid Ihr sicher.',
-  lechfeld:'Die weite Ebene südlich von Augsburg, auf der vor fast sechshundert Jahren die Ungarn geschlagen wurden. Nachts reiten ihre Geister wieder.'
+  gailingen:'Die Raubburg des Eppelein von Rabeneck auf ihrem Felsen. Seine Reisigen überfallen die Burgfeldener Kaufleute auf der Straße nach Norden.',
+  donauried:'Schilf, Tümpel und Nebel an der jungen Silberach. Riesenkrebse im Schlamm, Moorleichen und Irrwische, und im Fluss singt das Riedweibchen.',
+  augsburg:'Die reiche Kaufmannsstadt am Wildbach: die Häuser der Goldmanns, der Stadtturm und die Stiftsgasse, in der die Armen für einen Gulden im Jahr wohnen. Hier seid Ihr sicher.',
+  lechfeld:'Die weite Ebene südlich von Goldbrunn, auf der vor vielen hundert Jahren ein Reiterheer aus der Steppe geschlagen wurde. Nachts reiten seine Geister wieder.'
 };
 const zoneLvText = id => ZONE_LV[id] ? 'Stufe ' + ZONE_LV[id][0] + '–' + ZONE_LV[id][1] : SAFE[id] ? 'sicher' : '';
 
@@ -154,18 +154,18 @@ const MON = {
   geisterreiter:  { name:'Geisterreiter', hp:4.4, dmg:1.7, xp:1.6, spd:74, r:14, hr:16 },
   geisterbogner:  { name:'Geisterbogner', hp:3.2, dmg:1.6, xp:1.5, spd:60, r:14, hr:16 },
   hackelberg:     { name:'Hackelberg, der Wilde Jäger', hp:52, dmg:2.5, xp:17, spd:70, r:16, hr:18, boss:true },
-  eppelein:       { name:'Eppelein von Gailingen', hp:60, dmg:2.8, xp:21, spd:62, r:16, hr:18, boss:true },
-  donauweibchen:  { name:'Das Donauweibchen', hp:64, dmg:2.8, xp:23, spd:0, r:16, hr:24, boss:true, wade:true },
-  bulcsu:         { name:'Bulcsú, der Geisterfürst', hp:86, dmg:3.3, xp:29, spd:70, r:18, hr:22, boss:true },
-  // Kriegszüge: Pavia 1525 und Wien 1529 (nur dort, Anführer als Wächter des Gewölbes mit fünffachem Leben)
-  schweizer:      { name:'Schweizer Reisläufer', hp:4.2, dmg:1.7, xp:1.5, spd:46, r:9, hr:11 },
+  eppelein:       { name:'Eppelein von Rabeneck', hp:60, dmg:2.8, xp:21, spd:62, r:16, hr:18, boss:true },
+  donauweibchen:  { name:'Das Riedweibchen', hp:64, dmg:2.8, xp:23, spd:0, r:16, hr:24, boss:true, wade:true },
+  bulcsu:         { name:'Gorm, der Geisterfürst', hp:86, dmg:3.3, xp:29, spd:70, r:18, hr:22, boss:true },
+  // Kriegszüge: Rabenfurt 1525 und Steinwacht 1529 (nur dort, Anführer als Wächter des Gewölbes mit fünffachem Leben)
+  schweizer:      { name:'Reisläufer', hp:4.2, dmg:1.7, xp:1.5, spd:46, r:9, hr:11 },
   arkebusier:     { name:'Arkebusier des Königs', hp:2.6, dmg:1.65, xp:1.4, spd:40, r:9, hr:11 },
-  gendarm:        { name:'Französischer Gendarm', hp:5, dmg:1.8, xp:1.7, spd:70, r:14, hr:16 },
-  franz:          { name:'König Franz I. von Frankreich', hp:6, dmg:2, xp:2.4, spd:64, r:16, hr:20 },
-  janitschar:     { name:'Janitschar', hp:4, dmg:1.7, xp:1.5, spd:48, r:9, hr:11 },
-  tuefekci:       { name:'Büchsenschütze der Janitscharen', hp:2.6, dmg:1.65, xp:1.4, spd:40, r:9, hr:11 },
-  mineur:         { name:'Osmanischer Mineur', hp:3.4, dmg:1.5, xp:1.3, spd:50, r:9, hr:11 },
-  aga:            { name:'Der Aga der Janitscharen', hp:6, dmg:2.1, xp:2.4, spd:50, r:10, hr:12 }
+  gendarm:        { name:'Lanzenreiter', hp:5, dmg:1.8, xp:1.7, spd:70, r:14, hr:16 },
+  franz:          { name:'König Aldemar der Stolze', hp:6, dmg:2, xp:2.4, spd:64, r:16, hr:20 },
+  janitschar:     { name:'Gardekrieger', hp:4, dmg:1.7, xp:1.5, spd:48, r:9, hr:11 },
+  tuefekci:       { name:'Büchsner der Garde', hp:2.6, dmg:1.65, xp:1.4, spd:40, r:9, hr:11 },
+  mineur:         { name:'Mineur', hp:3.4, dmg:1.5, xp:1.3, spd:50, r:9, hr:11 },
+  aga:            { name:'Der Heerführer der Garde', hp:6, dmg:2.1, xp:2.4, spd:50, r:10, hr:12 }
 };
 const artOf = k => MON_ART[k] || BOSS_ART[k];
 const monHp = (k, L) => Math.round((1.5 + MON[k].hp * .9) * (6 + 2.7 * L));
@@ -205,8 +205,8 @@ const BOSSES = {
 const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder', rotbart:'pirat', wels:'nix', tatzelwurm:'wolf', bergmoench:'grubengeist', feldhauptmann:'doppelsoeldner', ruebezahl:'eislicht',
   hackelberg:'wolf', eppelein:'reisiger', donauweibchen:'riesenkrebs', bulcsu:'geisterreiter' };
 const BIND = { burg: gNear(1900, 456), stadt: gNear(2972, 2380), speyer: gNear(5060, 1420) };
-const HUB_NAME = { burg:'Reichsburg', stadt:'Reichsstadt', weiler:'Dorf Lindach', speyer:'Reichsstadt Speyer', fischerdorf:'Fischerdorf Altrip', annaberg:'Bergstadt Annaberg',
-  wittenberg:'Wittenberg', nuernberg:'Reichsstadt Nürnberg', augsburg:'Reichsstadt Augsburg' };
+const HUB_NAME = { burg:'Königsburg', stadt:'Königsstadt', weiler:'Dorf Lindach', speyer:'Domstadt Altmünster', fischerdorf:'Fischerdorf Weidenau', annaberg:'Bergstadt Silberberg',
+  wittenberg:'Schwanstedt', nuernberg:'Handelsstadt Burgfelden', augsburg:'Kaufmannsstadt Goldbrunn' };
 const hubArt = z => z === 'weiler' || z === 'fischerdorf' ? 'das ' : z === 'wittenberg' ? '' : 'die ';   // Artikel vor dem Ortsnamen
 
 /* ============ Beute: Seltenheit, Grundformen, Zusätze ============ */
@@ -220,8 +220,8 @@ const RARITY = [
 const SLOTS = ['waffe', 'helm', 'ruestung', 'schild', 'beine', 'kleinod'];
 const SLOT_NAME = { waffe:'Waffe', helm:'Helm', ruestung:'Rüstung', schild:'Schild', beine:'Beine', kleinod:'Kleinod' };
 const BASES = {
-  waffe: ['Kurzschwert', 'Reitschwert', 'Ritterschwert', 'Langschwert', 'Anderthalbhänder', 'Panzerstecher', 'Kurschwert', 'Kaiserschwert'],
-  helm: ['Lederhaube', 'Eisenhut', 'Beckenhaube', 'Schaller', 'Armet', 'Burgunderhelm', 'Riefelhelm', 'Prunkhelm'],
+  waffe: ['Kurzschwert', 'Reitschwert', 'Ritterschwert', 'Langschwert', 'Anderthalbhänder', 'Panzerstecher', 'Kurschwert', 'Königsschwert'],
+  helm: ['Lederhaube', 'Eisenhut', 'Beckenhaube', 'Schaller', 'Armet', 'Visierhelm', 'Riefelhelm', 'Prunkhelm'],
   ruestung: ['Gambeson', 'Kettenhemd', 'Brigantine', 'Halbharnisch', 'Plattenharnisch', 'Feldharnisch', 'Riefelharnisch', 'Prunkharnisch'],
   schild: ['Holzschild', 'Rundschild', 'Tartsche', 'Dreiecksschild', 'Pavese', 'Rondartsche', 'Stechtartsche', 'Prunkschild'],
   beine: ['Lederstiefel', 'Reitstiefel', 'Kettenhosen', 'Beinröhren', 'Beinharnisch', 'Kuhmaulschuhe', 'Riefelbeinzeug', 'Prunkbeinzeug'],
@@ -237,15 +237,15 @@ const AFFIX = {
   block: { suf:'der Wacht',  v: il => 3 + il * .5,  fmt: v => '+' + v + ' % Abwehr', only:'schild' },
   // Bergland (ab Gegenstandsstufe 15)
   xp:    { suf:'des Gelehrten', v: il => 1 + il * .12, fmt: v => '+' + v + ' % Erfahrung', only:'kleinod', min: 15 },
-  gold:  { suf:'des Fuggers', v: il => 2 + il * .25, fmt: v => '+' + v + ' % Gulden', only:'kleinod', min: 15 },
+  gold:  { suf:'des Kaufherrn', v: il => 2 + il * .25, fmt: v => '+' + v + ' % Gulden', only:'kleinod', min: 15 },
   holy:  { suf:'des heiligen Georg', v: il => 3 + il * .4, fmt: v => '+' + v + ' % gegen Untote', only:'waffe', min: 15 },
   leech: { suf:'des Blutegels', v: il => 1 + il * .07, fmt: v => '+' + v + ' % Lebensraub', only:'waffe', min: 15 }
 };
-const EPIC_PRE = ['Barbarossas', 'Rolands', 'Siegfrieds', 'Dietrichs', 'Hildebrands', 'Wielands', 'Ottos', 'Rudolfs', 'Maximilians'];
+const EPIC_PRE = ['Rolands', 'Siegfrieds', 'Dietrichs', 'Hildebrands', 'Wielands', 'Parzivals', 'Iweins', 'Tristans', 'Gawans'];
 /* ---------- Kleine Bibel: in der Nebenhand statt des Schildes ----------
    Liegt im Platz des Schildes (nh: 'bibel'), hat keine Rüstung und keine Abwehr. Dafür gibt sie mehr Leben, schnellere Erholung
    und mehr Schaden gegen Untote und Geister, und F wird zum Gebet, das heilt. */
-const BIB_BASES = ['Abgegriffene kleine Bibel', 'Kleine Bibel', 'Kleine Bibel mit Messingschließe', 'Kleine Bibel mit Goldschnitt', 'Kleine Prachtbibel', 'Kleine Bibel mit Silberbeschlag', 'Kleine Bibel mit Edelsteinen', 'Kaiserliche Prachtbibel'];
+const BIB_BASES = ['Abgegriffene kleine Bibel', 'Kleine Bibel', 'Kleine Bibel mit Messingschließe', 'Kleine Bibel mit Goldschnitt', 'Kleine Prachtbibel', 'Kleine Bibel mit Silberbeschlag', 'Kleine Bibel mit Edelsteinen', 'Königliche Prachtbibel'];
 const BIB_UNDEAD = 25, BIB_HEAL = 30, BIB_CD = 15;
 const UNDEAD = { wieder: 1, moor: 1, irrlicht: 1, tod: 1, nix: 1, noeck: 1, grubengeist: 1, eislicht: 1, bergmoench: 1, irrwisch: 1, moosweib: 1, geisterreiter: 1, geisterbogner: 1, hackelberg: 1, donauweibchen: 1, bulcsu: 1 };   // Untote und Geister
 const isBib = it => !!(it && it.s === 'schild' && it.nh === 'bibel');
@@ -289,7 +289,7 @@ const WT_BY_CODE = { s: 'schwert', h: 'hellebarde', z: 'zweihaender', a: 'armbru
 const WT_BASES = {
   hellebarde: ['Bauernspieß', 'Partisane', 'Glefe', 'Hellebarde', 'Rossschinder', 'Ahlspieß', 'Luzerner Hammer', 'Prunkhellebarde'],
   zweihaender: ['Schlachtschwert', 'Bidenhänder', 'Zweihänder', 'Flamberg', 'Paratschwert', 'Gassenhauer', 'Ritterbidenhänder', 'Prunkzweihänder'],
-  armbrust: ['Jagdarmbrust', 'Hornbogenarmbrust', 'Stahlarmbrust', 'Windenarmbrust', 'Prunkarmbrust', 'Wallarmbrust', 'Meisterarmbrust', 'Kaiserliche Armbrust']
+  armbrust: ['Jagdarmbrust', 'Hornbogenarmbrust', 'Stahlarmbrust', 'Windenarmbrust', 'Prunkarmbrust', 'Wallarmbrust', 'Meisterarmbrust', 'Königliche Armbrust']
 };
 const wtOf = it => it && it.s === 'waffe' && it.wt && WT[it.wt] ? it.wt : 'schwert';
 const baseName = it => it.s === 'waffe' && it.wt && WT_BASES[it.wt] ? WT_BASES[it.wt][it.b] : isBib(it) ? BIB_BASES[it.b] : BASES[it.s][it.b];
@@ -326,9 +326,9 @@ const wtSkUrl = (w, id) => WT_SKICON[w] && WT_SKICON[w][id] ? WT_SKURL[w + id] |
 const WT_URL = {};
 const wtUrl = w => WT_URL[w] || (WT_URL[w] = urlOf(WT_ICON[w], 3));
 const UNIQUES = {
-  raubritter: { s:'waffe', n:'Das Reichsschwert', aff:['str', 'crit', 'spd'] },
+  raubritter: { s:'waffe', n:'Das Königsschwert', aff:['str', 'crit', 'spd'] },
   lindwurm:   { s:'schild', n:'Drachenschuppenschild', aff:['block', 'arm', 'hp'] },
-  tod:        { s:'kleinod', n:'Der Reichsapfel', aff:['hp', 'str', 'crit'] },
+  tod:        { s:'kleinod', n:'Der Königsapfel', aff:['hp', 'str', 'crit'] },
   rotbart:    { s:'waffe', n:'Rotbarts Entermesser', aff:['crit', 'spd', 'str'] },
   wels:       { s:'kleinod', n:'Die Wallerperle', aff:['hp', 'block', 'crit'] },
   tatzelwurm: { s:'beine', n:'Tatzelwurmstiefel', aff:['spd', 'hp', 'arm'] },
@@ -337,21 +337,21 @@ const UNIQUES = {
   ruebezahl:  { s:'ruestung', n:'Rübezahls Bergharnisch', aff:['hp', 'arm', 'str'] },
   hackelberg: { s:'kleinod', n:'Hackelbergs Jagdhorn', aff:['spd', 'crit', 'xp'] },
   eppelein:   { s:'waffe', n:'Eppeleins Reiterschwert', aff:['str', 'crit', 'spd'] },
-  donauweibchen: { s:'kleinod', n:'Die Perlenkette des Donauweibchens', aff:['hp', 'block', 'holy'] },
-  bulcsu:     { s:'helm', n:'Die Fürstenkrone Bulcsús', aff:['hp', 'arm', 'str'] },
+  donauweibchen: { s:'kleinod', n:'Die Perlenkette des Riedweibchens', aff:['hp', 'block', 'holy'] },
+  bulcsu:     { s:'helm', n:'Die Fürstenkrone Gorms', aff:['hp', 'arm', 'str'] },
   // Fundstücke: sehr selten, bei jedem Gegner ab Stufe 20 (fd: true)
   eisenhand:  { s:'kleinod', n:'Die eiserne Hand', aff:['str', 'crit', 'leech'], fd: true },
-  kurhut:     { s:'helm', n:'Der Kurfürstenhut', aff:['hp', 'arm', 'xp'], fd: true },
-  fuggerkette:{ s:'kleinod', n:'Die Goldkette der Fugger', aff:['gold', 'hp', 'crit'], fd: true },
+  kurhut:     { s:'helm', n:'Der Fürstenhut', aff:['hp', 'arm', 'xp'], fd: true },
+  fuggerkette:{ s:'kleinod', n:'Die Goldkette der Goldmanns', aff:['gold', 'hp', 'crit'], fd: true },
   georgsspiess:{ s:'waffe', wt:'hellebarde', n:'Der Georgsspieß', aff:['holy', 'str', 'crit'], fd: true },
-  maxharnisch:{ s:'ruestung', n:'Kaiser Maximilians Turnierharnisch', aff:['hp', 'arm', 'spd'], fd: true },
-  stechschild:{ s:'schild', n:'Die Stechtartsche des Kaisers', aff:['block', 'arm', 'hp'], fd: true },
+  maxharnisch:{ s:'ruestung', n:'Des alten Königs Turnierharnisch', aff:['hp', 'arm', 'spd'], fd: true },
+  stechschild:{ s:'schild', n:'Die Stechtartsche des Königs', aff:['block', 'arm', 'hp'], fd: true },
   obersten:   { s:'beine', n:'Die Kuhmaulschuhe des Feldobersten', aff:['spd', 'hp', 'arm'], fd: true }
 };
 const FUNDE = Object.keys(UNIQUES).filter(k => UNIQUES[k].fd);
 /* ---------- Rüstungssätze: Teile mit gleichem Satz geben gemeinsam Boni ---------- */
 const SETS = {
-  riefel: { n: 'Riefelharnisch', d: 'der geriefelte Harnisch im Stil Kaiser Maximilians', parts: { helm: 'Riefelhelm des Kaisers', ruestung: 'Riefelbrust des Kaisers', beine: 'Riefelbeinzeug des Kaisers', schild: 'Riefelrondartsche des Kaisers' },
+  riefel: { n: 'Riefelharnisch', d: 'der geriefelte Harnisch im Stil des alten Königs', parts: { helm: 'Riefelhelm des Königs', ruestung: 'Riefelbrust des Königs', beine: 'Riefelbeinzeug des Königs', schild: 'Riefelrondartsche des Königs' },
     bon: [[2, 'arm', 12, '+12 % Rüstung'], [4, 'hp', 8, '+8 % Leben'], [4, 'dmg', 5, '+5 % Schaden']] },
   landsknecht: { n: 'Landsknechtstracht', d: 'geschlitzt und gepufft, wie es die Doppelsöldner tragen', parts: { helm: 'Federbarett des Doppelsöldners', ruestung: 'Geschlitztes Wams', beine: 'Pluderhosen des Doppelsöldners', waffe: 'Katzbalger des Doppelsöldners' },
     bon: [[2, 'spd', 6, '+6 % Hiebtempo'], [4, 'crit', 6, '+6 % Volltreffer'], [4, 'dmg', 8, '+8 % Schaden']] }

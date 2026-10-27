@@ -1,7 +1,7 @@
 "use strict";
-/* Der Apfelritter, Teil 12 von 27: Leben im Reichsland, Tag und Nacht, Wetter.
+/* Der Apfelritter, Teil 12 von 27: Leben im Königsland, Tag und Nacht, Wetter.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Leben im Reichsland: Tiere, Leute, Vögel ============
+/* ============ Leben im Königsland: Tiere, Leute, Vögel ============
    Lebensorte aus der Welt; nahe beim Ritter entstehen ihre Bewohner, weit weg verschwinden sie wieder.
    Nichts davon kämpft: Tiere fliehen vor Ritter und Kampf, Leute gehen ihren Geschäften nach und grüßen. */
 const LIFE_KIND = {
@@ -28,20 +28,20 @@ const LIFE_KIND = {
 };
 /* Leute: Sprüche je Stand */
 const VK_SAY = {
-  buerger: ['Gott zum Gruße, Herr Ritter.', 'Der Rat zahlt gut für jedes erschlagene Untier.', 'Habt Ihr vom Lindwurm im Moor gehört?', 'Der Zoll an der Steinbrücke ist wieder gestiegen.', 'Man sagt, ein Fugger sei durch die Stadt gereist.'],
+  buerger: ['Gott zum Gruße, Herr Ritter.', 'Der Rat zahlt gut für jedes erschlagene Untier.', 'Habt Ihr vom Lindwurm im Moor gehört?', 'Der Zoll an der Steinbrücke ist wieder gestiegen.', 'Man sagt, ein Goldmann sei durch die Stadt gereist.'],
   buergerin: ['Grüß Gott, edler Herr!', 'Kommt Ihr auch zum Markt?', 'Die Eier sind teuer, seit die Plünderer die Höfe heimsuchen.', 'Meine Schwester hat Irrlichter im Moor gesehen.'],
   magd: ['Grüß Gott, Herr Ritter!', 'Ich muss zum Brunnen, die Herrin wartet.', 'Seit der Tod umgeht, legen die Hühner nicht.', 'Habt Ihr Hunger? Die Wirtin kocht heute Kraut.'],
   baeuerin: ['Gott zum Gruße!', 'Die Gänse haben wieder den Kohl gefressen.', 'Schaut nach den Feldern, wenn Ihr vorbeireitet, Herr.'],
   bauer: ['Das Korn steht gut dieses Jahr.', 'Hütet Euch vor dem Finsterwald, Herr.', 'Der Zehnt frisst uns die halbe Ernte.', 'Nachts heulen drüben die Werwölfe.', 'Die Landsknechte im Lager nehmen, was sie wollen.'],
   knecht: ['Schwer, so ein Sack Mehl.', 'Der Müller zahlt schlecht, aber er zahlt.', 'Gott zum Gruße.'],
-  moench: ['Pax vobiscum.', 'Betet für die armen Seelen auf dem Friedhof.', 'Ora et labora, mein Sohn.', 'Der Abt hat Bücher aus Mainz kommen lassen. Gedruckt!'],
-  wache: ['Halt! … ach, Ihr seid es, Herr Ritter.', 'Alles ruhig am Tor.', 'Plünderer auf der Reichsstraße. Seid wachsam.', 'Ohne Passierschein kommt hier keiner rein. Ihr natürlich schon.'],
-  pilger: ['Ich ziehe nach Santiago de Compostela.', 'Der Weg nach Rom ist weit.', 'Gott schütze Euch auf Euren Wegen.', 'Habt Ihr ein Stück Brot für einen Pilger?'],
-  bettler: ['Ein Almosen, edler Herr?', 'Gott vergelt’s.', 'Ich war Landsknecht bei Marignano, wisst Ihr.'],
+  moench: ['Pax vobiscum.', 'Betet für die armen Seelen auf dem Friedhof.', 'Ora et labora, mein Sohn.', 'Der Abt hat Bücher aus der Druckerei in Altmünster kommen lassen. Gedruckt!'],
+  wache: ['Halt! … ach, Ihr seid es, Herr Ritter.', 'Alles ruhig am Tor.', 'Plünderer auf der Königsstraße. Seid wachsam.', 'Ohne Passierschein kommt hier keiner rein. Ihr natürlich schon.'],
+  pilger: ['Ich ziehe zum Grab des Apostels, weit im Westen.', 'Der Weg zur Heiligen Stadt ist weit.', 'Gott schütze Euch auf Euren Wegen.', 'Habt Ihr ein Stück Brot für einen Pilger?'],
+  bettler: ['Ein Almosen, edler Herr?', 'Gott vergelt’s.', 'Ich war Landsknecht, damals, im großen Krieg.'],
   hirte: ['Meine Schafe sind mein ganzer Reichtum.', 'Der Fuchs hat mir zwei Lämmer gerissen.', 'Gott zum Gruße, Herr.'],
   haendler: ['Kauft, Leute, kauft!', 'Gute Ware, ehrlicher Preis!']
 };
-const VK_WARE = [['Frisches Brot! Brezeln!', 'Brot vom Bäcker, noch warm!'], ['Feines Tuch aus Flandern!', 'Leinen und Barchent aus Augsburg!'], ['Töpfe und Krüge, gut gebrannt!', 'Krüge für Bier und Wein!'],
+const VK_WARE = [['Frisches Brot! Brezeln!', 'Brot vom Bäcker, noch warm!'], ['Feines Tuch aus dem Norden!', 'Leinen und Barchent aus Goldbrunn!'], ['Töpfe und Krüge, gut gebrannt!', 'Krüge für Bier und Wein!'],
   ['Kohl und Rüben, frisch vom Feld!', 'Zwiebeln, Rüben, Kraut!'], ['Fisch aus dem Fluss, heute gefangen!', 'Hecht und Karpfen!'], ['Äpfel aus den Obstgärten!', 'Süße Äpfel, saure Äpfel!']];
 VK_TYPES.spielmann = { o: { robe:'short', hat:'barett', parti:true, lute:true, belt:true },
   pals: [['#6a1414', '#9a2420', '#c03a2c', '#de5a44', '#7a5a10', '#a88220', '#d2a83a', '#ecca5c'], ['#1c2a5a', '#2a3e7e', '#3e56a0', '#5a74bc', '#6a1414', '#9a2420', '#c03a2c', '#de5a44']] };
@@ -69,7 +69,7 @@ const LIFE_SPOTS = (() => {
     if (p.kind === 'muehle') add({ p: 'walk', t: ['knecht'], x: p.x - 80, y: p.y + 60, r: 80, n: [1, 1] });
     if (p.kind === 'kirche' && z === 'stadt') add({ k: 'taube', x: p.x + 40, y: p.y + 80, r: 50, n: [4, 6] });
   }
-  // Reichsstadt: Bürger auf Gassen und Markt, Wachen an den Toren, Schweine, Hunde, Tauben
+  // Königsstadt: Bürger auf Gassen und Markt, Wachen an den Toren, Schweine, Hunde, Tauben
   const C = wo_CITY;
   for (const [x, y, r, n] of [[2980, 2310, 200, 4], [2966, 2160, 160, 2], [2966, 2480, 160, 2], [2720, 2366, 180, 2], [3240, 2366, 180, 2], [2780, 2136, 160, 1], [3160, 2136, 160, 1]])
     add({ p: 'walk', t: ['buerger', 'buergerin', 'magd', 'buergerin', 'knecht', 'moench', 'bettler'], ...P(x, y), r: r * WS, n: [n, n + 1] });
@@ -78,7 +78,7 @@ const LIFE_SPOTS = (() => {
   add({ k: 'taube', ...P(2990, 2330), r: 120, n: [5, 8] }); add({ k: 'taube', ...P(2930, 2180), r: 80, n: [3, 5] });
   add({ k: 'hund', ...P(2900, 2420), r: 260, n: [1, 1] }); add({ k: 'hund', ...P(3100, 2180), r: 220, n: [1, 1] });
   add({ k: 'katze', ...P(2700, 2200), r: 100, n: [1, 1] }); add({ k: 'katze', ...P(3280, 2500), r: 100, n: [1, 1] });
-  // Reichsburg: Gesinde, Wachen, Hühner, Hund, Pferde beim Stallmeister
+  // Königsburg: Gesinde, Wachen, Hühner, Hund, Pferde beim Stallmeister
   const B = wo_CAST;
   add({ p: 'walk', t: ['magd', 'knecht', 'magd', 'buerger', 'moench'], ...P(1910, 520), r: 260, n: [3, 4] });
   for (const [x, y] of [[B.gx - 34, B.y1 + 26], [B.gx + 34, B.y1 + 26], [B.gx - 30, B.y1 - 40], [B.gx + 30, B.y1 - 40]]) add({ p: 'stand', t: ['wache'], ...near(x, y), dir: 'down', n: [1, 1] });
@@ -93,7 +93,7 @@ const LIFE_SPOTS = (() => {
   add({ k: 'gans', ...P(H.x + 40, H.y + 34), r: 90, n: [4, 5] }); add({ k: 'ziege', ...P(2540, 430), r: 80, n: [2, 2] });
   add({ k: 'hund', ...P(H.x - 20, H.y + 30), r: 220, n: [1, 1] });
   add({ p: 'walk', t: ['hirte'], ...P(2440, 280), r: 120, n: [1, 1] }); add({ k: 'schaf', ...P(2440, 280), r: 140, n: [6, 8] });
-  // Bergstadt Annaberg: Bürger, Knappen, Wachen; Knappen an den Göpeln; Wild im Schwarzwald
+  // Bergstadt Silberberg: Bürger, Knappen, Wachen; Knappen an den Göpeln; Wild im Schwarztann
   const A = wo_ANNA;
   for (const [x, y, r, n] of [[2920, A.gy + 50, 180, 3], [2900, A.gy - 120, 120, 1], [2900, A.gy + 160, 120, 1], [2760, A.gy, 140, 1], [3060, A.gy, 140, 1]])
     add({ p: 'walk', t: ['buerger', 'buergerin', 'knappe', 'magd', 'knappe', 'knecht'], ...P(x, y), r: r * WS, n: [n, n + 1] });
@@ -139,7 +139,7 @@ const LIFE_SPOTS = (() => {
         dir: 'down', n: [0, R() < .3 ? 1 : 0], crowd: true, sy: TB.y + 1 - row * .1 });
     for (const dx of [-206, 206]) add({ p: 'stand', t: ['knecht'], ...gNear((TB.x + dx) / WS, (TB.y + 34) / WS), dir: dx < 0 ? 'right' : 'left', n: [1, 1] });
   }
-  // Ostlande (Version 26): Bürger, Studenten und Mönche in Wittenberg, Handwerker in Nürnberg, Kaufleute in Augsburg, Wachen an den Toren
+  // Ostlande (Version 26): Bürger, Studenten und Mönche in Schwanstedt, Handwerker in Burgfelden, Kaufleute in Goldbrunn, Wachen an den Toren
   for (const [C, types, spots] of [
     [wo_WIT, ['buerger', 'buergerin', 'moench', 'buerger', 'magd', 'knecht'], [[7950, 560, 200, 3], [7700, 520, 160, 2], [8200, 520, 160, 2], [7950, 380, 120, 1]]],
     [wo_NUE, ['buerger', 'buergerin', 'knecht', 'magd', 'buerger', 'moench', 'bettler'], [[7800, 2290, 220, 4], [7740, 2500, 140, 2], [7500, 2600, 160, 2], [8000, 2600, 160, 2], [7980, 2180, 140, 1], [7500, 2230, 140, 1]]],
@@ -149,7 +149,7 @@ const LIFE_SPOTS = (() => {
     add({ k: 'taube', ...P(C.gx + 40, C.gy + 50), r: 100, n: [4, 6] }); add({ k: 'hund', ...P(C.gx - 80, C.gy + 40), r: 200, n: [1, 1] }); add({ k: 'katze', ...P(C.gx + 120, C.gy - 50), r: 90, n: [1, 1] });
   }
   add({ k: 'schwein', ...P(7600, 2650), r: 120, n: [2, 3] }); add({ k: 'huhn', ...P(7560, 3920), r: 60, n: [3, 4], mix: 'hahn' });
-  // Schafe in der Heide, Hirsche im Reichswald, Wildschweine (Jagd) und Hasen auf dem Land
+  // Schafe in der Heide, Hirsche im Königsforst, Wildschweine (Jagd) und Hasen auf dem Land
   if (wo_OST.schaeferei){ const h = wo_OST.schaeferei; add({ p: 'walk', t: ['hirte'], ...P(h.x + 60, h.y + 120), r: 160, n: [1, 1] }); add({ k: 'schaf', ...P(h.x + 60, h.y + 140), r: 200, n: [8, 11] }); }
   for (const [cx, cy] of wo_RWCLEAR) add({ k: R() < .35 ? 'hirsch' : 'reh', ...P(cx, cy), r: 200, n: [1, 3] });
   const wildE = (zones, k, n, cnt, r) => {
@@ -342,7 +342,7 @@ function lifeSound(snd, e){
   const d = Math.hypot(G.knight.x - e.x, G.knight.y - e.y), v = clamp(1.2 - d / 420, 0, 1);
   if (v > .05) Sound[snd](v);
 }
-/* Reisende auf Burgweg, Reichsstraße, Brückenweg und Dorfweg */
+/* Reisende auf Burgweg, Königsstraße, Brückenweg und Dorfweg */
 const LIFE_ROADS = wo_ROADS.filter(r => r.t === 0 || r.t === 3).map(r => r.p.map(q => [q[0] * WS, q[1] * WS]));
 const LIFE_ROADZ = { obstgarten: 1, fluss: 1, burg: 1, stadt: 1, weiler: 1 };
 function lifeTraveler(){

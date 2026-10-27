@@ -17,19 +17,19 @@ await T('Erreichbar', () => { const out = {}; for (const [n, x, y] of [['wittenb
 await T('Gasthäuser', () => ['schwan', 'gloecklein', 'lamm'].map(id => { const i = INN_BY[id]; return i ? i.name + ' ' + gZone(i.x, i.y).id + (BIND[id] ? ' Rast' : '') : id + ' fehlt'; }), r => r.length === 3 && r.every(x => / (wittenberg|nuernberg|augsburg) Rast$/.test(x)));
 await T('Kirchen', () => ['schlosskirche', 'wbkirche', 'sebald', 'lorenz', 'frauenkirche', 'augsdom', 'ulrichskapelle'].map(id => CH_BY[id] ? id + ':' + gZone(CH_BY[id].x, CH_BY[id].y).id : id + ' fehlt'), r => r.length === 7 && !r.some(x => /fehlt/.test(x)));
 await T('Leute', () => NPCS.filter(n => ['wittenberg', 'nuernberg', 'augsburg'].includes(n.hub)).map(n => n.id + ':' + gZone(n.x, n.y).id), r => r.length >= 12 && r.every(x => /:(wittenberg|nuernberg|augsburg)$/.test(x)));
-// Fuhrmann: von der Reichsstadt nach Nürnberg, dann nach Augsburg
+// Fuhrmann: von der Königsstadt nach Burgfelden, dann nach Goldbrunn
 await T('Fuhrmann', () => { const n = NPCS.find(q => q.id === 'fuhrmann_s'), k = G.knight; k.x = n.x; k.y = n.y + 24; updateZone(true); openTalk(n); [...$('talkBody').querySelectorAll('button')].find(x => /Fuhrwerk/.test(x.textContent)).click(); return [...$('talkBody').querySelectorAll('button')].map(x => x.textContent); },
-  r => r.length >= 5 && r.some(t => /^Nürnberg \(\d+ Gulden\)/.test(t)));
-await T('Fahrt nach Nürnberg', () => { const g = HERO.gold; [...$('talkBody').querySelectorAll('button')].find(x => /^Nürnberg/.test(x.textContent)).click(); return { zone: gZone(G.knight.x, G.knight.y).id, kosten: g - HERO.gold, mode: G.mode }; }, r => r.zone === 'nuernberg' && r.kosten > 0 && r.mode === 'play');
+  r => r.length >= 5 && r.some(t => /^Burgfelden \(\d+ Gulden\)/.test(t)));
+await T('Fahrt nach Burgfelden', () => { const g = HERO.gold; [...$('talkBody').querySelectorAll('button')].find(x => /^Burgfelden/.test(x.textContent)).click(); return { zone: gZone(G.knight.x, G.knight.y).id, kosten: g - HERO.gold, mode: G.mode }; }, r => r.zone === 'nuernberg' && r.kosten > 0 && r.mode === 'play');
 await p.waitForTimeout(1500);
 await (await p.$('canvas')).screenshot({ path: OUT + 'ost_nuernberg.png' });
-// Aufträge in Nürnberg
-await T('Pirckheimer', () => { const n = NPCS.find(q => q.id === 'pirckheimer'), k = G.knight; k.x = n.x; k.y = n.y + 24; updateZone(true); openTalk(n); return [...$('talkBody').querySelectorAll('button')].map(x => x.textContent); },
-  r => r.some(t => /Keiler im Reichswald/.test(t)) && r.some(t => /Hier rasten/.test(t)));
-await T('Auftrag annehmen', () => { [...$('talkBody').querySelectorAll('button')].find(x => /Keiler im Reichswald/.test(x.textContent)).click(); $('talkBody').querySelector('button.btn').click(); return HERO.quests.map(q => q.id); }, r => r.includes('n1'));
-await T('Rasten in Nürnberg', () => { [...$('talkBody').querySelectorAll('button')].find(x => /Hier rasten/.test(x.textContent)).click(); return HERO.bind; }, r => r === 'nuernberg');
+// Aufträge in Burgfelden
+await T('Steinhauer', () => { const n = NPCS.find(q => q.id === 'pirckheimer'), k = G.knight; k.x = n.x; k.y = n.y + 24; updateZone(true); openTalk(n); return [...$('talkBody').querySelectorAll('button')].map(x => x.textContent); },
+  r => r.some(t => /Keiler im Königsforst/.test(t)) && r.some(t => /Hier rasten/.test(t)));
+await T('Auftrag annehmen', () => { [...$('talkBody').querySelectorAll('button')].find(x => /Keiler im Königsforst/.test(x.textContent)).click(); $('talkBody').querySelector('button.btn').click(); return HERO.quests.map(q => q.id); }, r => r.includes('n1'));
+await T('Rasten in Burgfelden', () => { [...$('talkBody').querySelectorAll('button')].find(x => /Hier rasten/.test(x.textContent)).click(); return HERO.bind; }, r => r === 'nuernberg');
 await T('Händlerin', () => { closePanel(); const n = NPCS.find(q => q.id === 'lebkuechnerin'); openTalk(n); [...$('talkBody').querySelectorAll('button')].find(x => /kaufen/.test(x.textContent)).click(); return [...$('talkBody').querySelectorAll('.shoprow')].length; }, r => r >= 4);
-// Thesen in Wittenberg
+// Thesen in Schwanstedt
 await T('Thesen', () => { closePanel(); const xp = HERO.xp + HERO.lvl * 1e7; const c = CH_BY.schlosskirche, k = G.knight; k.x = c.dx; k.y = c.y + 14; k.dir = 'up'; updateNear(true); talk(); const room = chRoom(G.inside); openTalk(room.clergyN[0]);
   const bt = [...$('talkBody').querySelectorAll('button')].find(x => /Thesen/.test(x.textContent)); if (!bt) return 'kein Knopf'; bt.click();
   return { inside: G.inside && G.inside.id, n: $('talkBody').querySelectorAll('.thesen p').length, thesen: HERO.thesen, mehr: HERO.xp + HERO.lvl * 1e7 > xp, ehre: TROPHY_BY.thesen.ok(HERO) }; },

@@ -1,4 +1,4 @@
-// Kriegszug zu zweit: beide ziehen nach Pavia; feuert Hans die Kanone, geht die Mauer auch bei Grete auf. In Wien zählen die Lunten
+// Kriegszug zu zweit: beide ziehen nach Rabenfurt; feuert Hans die Kanone, geht die Mauer auch bei Grete auf. In Steinwacht zählen die Lunten
 // beider zusammen, und die Stufe richtet sich nach dem stärkeren Gefährten.
 import { launch, wait, OUT } from './harness.mjs';
 const H = await launch(2);
@@ -16,7 +16,7 @@ await B.evaluate(() => { if (NET.inbox[0]) netAnswer(NET.inbox[0], true); }); aw
 T('Gruppe', await A.evaluate(() => partyList().map(q => q.nm)), r => r.includes('Grete'));
 for (const [p, l] of [[A, 28], [B, 25]]) await p.evaluate(l => { HERO.lvl = l; refreshStats(); sendPresence(true); }, l);
 await wait(1500);
-T('Pavia', [await zu(A, 'pavia', 28), await zu(B, 'pavia', 25)], r => r[0] === 'pavia' && r[1] === 'pavia');
+T('Rabenfurt', [await zu(A, 'pavia', 28), await zu(B, 'pavia', 25)], r => r[0] === 'pavia' && r[1] === 'pavia');
 await wait(1200);
 T('Stufe', await B.evaluate(() => DG_ON.lvl), r => r[0] >= 28);
 await A.evaluate(() => kzPull(0)); await wait(1500);
@@ -27,8 +27,8 @@ await (await B.$('canvas')).screenshot({ path: OUT + 'tk2_b.png' });
 await B.evaluate(() => { let n = 0; for (const m of G.mons.slice()) if (!m.elite && n < 14){ m.hp = 1; kill(m); n++; } }); await wait(1500);
 T('Palisade bei Hans', await A.evaluate(() => ({ step: DG_ON.kz.step, offen: DG_ON.gates[1].open })), r => r.step === 2 && r.offen);
 for (const p of [A, B]) await p.evaluate(() => leaveDungeon(true));
-// Wien: jeder löscht Lunten, die des anderen zählen mit
-T('Wien', [await zu(A, 'wien', 28), await zu(B, 'wien', 28)], r => r[0] === 'wien' && r[1] === 'wien');
+// Steinwacht: jeder löscht Lunten, die des anderen zählen mit
+T('Steinwacht', [await zu(A, 'wien', 28), await zu(B, 'wien', 28)], r => r[0] === 'wien' && r[1] === 'wien');
 await wait(1000);
 await A.evaluate(() => { kzPull(0); kzPull(1); }); await wait(1200);
 await B.evaluate(() => kzPull(2)); await wait(1500);

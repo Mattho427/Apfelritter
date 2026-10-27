@@ -1,7 +1,7 @@
 "use strict";
 /* Der Apfelritter, Teil 2 von 27: Der Ritter (Herkunft, Harnisch, Schwert, Aussehen) und die Pferde.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Der Ritter: Reichsritter in Schaller und gelbem Wappenrock mit Reichsadler ============ */
+/* ============ Der Ritter: Adlerritter in Schaller und gelbem Wappenrock mit dem Adler ============ */
 const kn_PAL = {
   K:'#22252b', D:'#434952', M:'#6c747e', L:'#98a1ab', H:'#c5ccd3', G:'#eef1f3',   // blankes Eisen
   O:'#6f4a12', o:'#b07c1c', y:'#dfae2e', Y:'#f2d256',                            // gelbes Tuch
@@ -39,7 +39,7 @@ function kn_line(g, x0, y0, x1, y1, ch){
 function kn_tone(t, lift){ const nx = 2 * t - 1, l = -nx * .55 + Math.sqrt(Math.max(0, 1 - nx * nx)) * .75 + (lift || 0); return l > .86 ? 'Y' : l > .45 ? 'y' : l > .05 ? 'o' : 'O'; }
 function kn_cloth(g, y, x0, x1, lift){ for (let x = x0; x <= x1; x++) kn_px(g, x, y, kn_tone((x - x0 + .5) / (x1 - x0 + 1), lift)); }
 
-/* Reichsadler für den Schild: 9 breit von vorn, 7 breit schräg gesehen */
+/* Königsadler für den Schild: 9 breit von vorn, 7 breit schräg gesehen */
 const kn_EAGLE7 = [
   're...er',
   '.ee.ee.',
@@ -405,7 +405,7 @@ function drawSword(g, x, y, angle, rots){
 }
 const SWORD_ICON = kn_sword(2).img;
 
-/* ---------- Die Ritter Europas um 1520 ----------
+/* ---------- Die Ritter der vier Häuser ----------
    Jede Herkunft legt fest: Tuchfarben des Wappenrocks, Abzeichen auf Brust, Rücken und Ärmel,
    Helmform (vorn, hinten, seitlich), Federbusch und das Wappen im Schild. */
 const kn_RED = '5678';
@@ -458,7 +458,7 @@ const kn_ARMET_S = [
   '...AaMLHHHHLLMD.',
   '....ADLHHHLLMD..',
   '......KDLLLMD...'];
-/* geschlossener Helm aus Greenwich: hoher Kamm, Visier mit zwei Sehschlitzen */
+/* geschlossener Helm: hoher Kamm, Visier mit zwei Sehschlitzen */
 const kn_CLOSE_F = [
   '......H......',
   '.....LGM.....',
@@ -526,7 +526,7 @@ const kn_BORG_S = [
   'LLLMLHHHHHLDqzZ.',
   '..KDLLHHHLLDzZ..',
   '.......KDLLDZ...'];
-/* Burgunderkreuz: zwei gekreuzte Äste mit Aststummeln */
+/* Astkreuz: zwei gekreuzte Äste mit Aststummeln */
 function kn_markSaltire(g){
   for (let i = 0; i <= 40; i++){
     const t = i / 40, y = Math.round(10 + t * 17), a = 9.5 + t * 9, b = 18.5 - t * 9;
@@ -544,39 +544,39 @@ function kn_markCross(g){
 }
 const KN_FACTIONS = {
   reich: {
-    name:'Heiliges Römisches Reich', knight:'Reichsritter', ruler:'Kaiser Karl V.', cry:'Für Kaiser und Reich!',
+    name:'Haus vom Adler', knight:'Adlerritter', ruler:'Herzogin Mechthild vom Adler', cry:'Für Adler und Krone!',
     bonus:{ hpPct:5 }, bonusText:'+5 % Leben',
-    desc:'Ritter Kaiser Karls V., 1519 gewählt und 1520 in Aachen gekrönt. Gelber Wappenrock mit dem schwarzen Doppeladler, deutsche Schaller mit Bart und ein Dreiecksschild mit dem Reichsadler.',
+    desc:'Das älteste Haus des Königreichs, treu zur Krone seit vielen Geschlechtern. Gelber Wappenrock mit dem schwarzen Doppeladler, Schaller mit Bart und ein Dreiecksschild mit dem Adler.',
     cloth:{}, field: () => 'or', rim:'or',
     charge(g, x0, y0, w, h, top, dark){ const E = w >= 9 ? kn_EAGLE9 : kn_EAGLE7; kn_art(g, Math.round(x0 + w / 2 - E[0].length / 2), y0 + 2, dark ? E.map(r => r.replace(/E/g, 'e')) : E); },
     chestF:{ x:9, y:12, rows:kn_EAGLE_F }, chestB:{ x:9, y:11, rows:kn_EAGLE_F }, sleeve:kn_EAGLE_SL,
     helmF:kn_HELM_F, helmB:kn_HELM_B, helmS:kn_HELM_S
   },
   frankreich: {
-    name:'Königreich Frankreich', knight:'Chevalier de France', ruler:'König Franz I.', cry:'Montjoie Saint-Denis!',
+    name:'Haus der Lilie', knight:'Lilienritter', ruler:'Graf Amaury von der Lilie', cry:'Lilie und Licht!',
     bonus:{ dmgPct:5 }, bonusText:'+5 % Schaden',
-    desc:'Gendarm einer Ordonnanzkompanie König Franz’ I., des Siegers von Marignano 1515. Blauer Rock mit den goldenen Lilien Frankreichs, geschlossener Armet mit weißem Federbusch.',
+    desc:'Die schweren Reiter des Hauses der Lilie stürmen in geschlossener Reihe. Blauer Rock mit goldenen Lilien, geschlossener Armet mit weißem Federbusch.',
     cloth:{ O:'#141e48', o:'#22357a', y:'#3452a8', Y:'#5a7ad0' }, field: () => 'az', rim:'az',
     charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_LILY3, kn_LILY3, null, null, kn_LILY3]); },
     chestF:{ x:10, y:11, rows:kn_LILY_F }, chestB:{ x:10, y:10, rows:kn_LILY_F }, sleeve:kn_LILY3,
     helmF:kn_ARMET_F, helmB:kn_ARMET_B, helmS:kn_ARMET_S
   },
   england: {
-    name:'Königreich England', knight:'Knight of England', ruler:'König Heinrich VIII.', cry:'Saint George!',
+    name:'Haus der Löwen', knight:'Löwenritter', ruler:'Fürst Edwin der Löwe', cry:'Mit Löwenmut!',
     bonus:{ crit:3 }, bonusText:'+3 % Volltreffer',
-    desc:'Ritter König Heinrichs VIII., der 1520 auf dem Feld des Güldenen Tuches Franz I. traf. Weißer Rock mit dem roten Georgskreuz, geschlossener Helm aus der Plattnerei von Greenwich; im Schild die Leoparden Englands und die Lilien Frankreichs.',
+    desc:'Das Haus der Löwen hält die Küsten im Westen und schickt seine Ritter auf jedes Turnier. Weißer Rock mit rotem Kreuz, geschlossener Helm mit hohem Kamm; im Schild vier goldene Löwen.',
     cloth:{ O:'#7e7a70', o:'#aeaa9c', y:'#d8d4c6', Y:'#f6f2e6' }, field: (left, up) => left === up ? 'az' : 'gu', rim:'gu',
-    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_LILY3, kn_LION3, kn_LION3, kn_LILY3]); },
+    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_LION3, kn_LION3, kn_LION3, kn_LION3]); },
     mark: kn_markCross, sleeve:['.7.', '878', '.7.'],
     helmF:kn_CLOSE_F, helmB:kn_CLOSE_B, helmS:kn_CLOSE_S
   },
   spanien: {
-    name:'Kastilien und Aragón', knight:'Caballero de Castilla', ruler:'König Karl I. (zugleich Kaiser Karl V.)', cry:'¡Santiago!',
+    name:'Haus der Türme', knight:'Turmritter', ruler:'Markgraf Rodrigo von den Türmen', cry:'Stein und Stahl!',
     bonus:{ spd:5 }, bonusText:'+5 % Hiebtempo',
-    desc:'Caballero König Karls I. von Kastilien und Aragón, der zugleich Kaiser ist. Weißer Rock mit dem roten Burgunderkreuz, dem Feldzeichen der spanischen Truppen; offene Borgoñota mit rotem Busch, im Schild Burg und Löwe von Kastilien und León.',
+    desc:'Das Haus der Türme bewacht die Pässe im Süden, seine Ritter weichen keinen Schritt. Weißer Rock mit dem roten Astkreuz, offene Sturmhaube mit rotem Busch, im Schild vier Türme.',
     cloth:{ O:'#7e7a70', o:'#aeaa9c', y:'#d8d4c6', Y:'#f6f2e6' }, pal:{ F:'#5a1012', f:'#b8302a', g:'#e8705e' },
     field: (left, up) => left === up ? 'gu' : 'ar', rim:'gu',
-    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_CASTLE3, kn_LIONP3, kn_LIONP3, kn_CASTLE3]); },
+    charge(g, x0, y0, w, h, top){ kn_quarters(g, x0, y0, w, h, top, [kn_CASTLE3, kn_CASTLE3, kn_CASTLE3, kn_CASTLE3]); },
     mark: kn_markSaltire, sleeve:['7.7', '.8.', '7.7'],
     helmF:kn_BORG_F, helmB:kn_BORG_B, helmS:kn_BORG_S
   }
@@ -1058,10 +1058,10 @@ function drawMounted(g, hid, fid, dir, x, y, f, alpha){
 }
 
 const KNIGHT_NOTES = [
-  'Der Ritter trägt den Wappenrock des Reiches: gelbes Tuch mit dem schwarzen Doppeladler auf Brust, Rücken und Ärmeln. So erkannte man im Getümmel, für wen er kämpfte.',
+  'Der Ritter trägt den Wappenrock des Königreichs: gelbes Tuch mit dem schwarzen Doppeladler auf Brust, Rücken und Ärmeln. So erkannte man im Getümmel, für wen er kämpfte.',
   'Auf dem Kopf sitzt eine Schaller mit Visier und schmalem Sehschlitz, hinten läuft sie in einen langen Nackenschirm aus. Kinn und Kehle deckt der Bart, eine gewölbte Platte vor dem Hals.',
   'Unter dem Rock steckt er in einem Plattenharnisch: Armröhren mit Armkacheln, eiserne Handschuhe, darunter schaut der Kettenschurz hervor. Das Beinzeug hat Kniebuckel mit Muscheln und spitze Eisenschuhe.',
-  'Am linken Arm hängt ein Dreiecksschild aus Holz, mit Leder bezogen und bemalt, wieder mit dem Reichsadler.',
+  'Am linken Arm hängt ein Dreiecksschild aus Holz, mit Leder bezogen und bemalt, wieder mit dem Königsadler.',
   'Seine Waffe ist ein langes Schwert mit gerader Parierstange und Scheibenknauf, gut 1,3 Meter lang. Er führt es mit einer Hand, denn die andere hält den Schild.',
-  'Schaller und Dreiecksschild stammen aus dem 15. Jahrhundert. Um 1520 galt so eine Rüstung schon als altmodisch, doch mancher Ritter im Reich trug noch, was sein Vater getragen hatte.'
+  'Schaller und Dreiecksschild stammen aus dem 15. Jahrhundert. Um 1520 galt so eine Rüstung schon als altmodisch, doch mancher Ritter im Königreich trug noch, was sein Vater getragen hatte.'
 ];

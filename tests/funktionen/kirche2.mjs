@@ -45,7 +45,7 @@ await T('Wallfahrt vollenden', () => {
 }, r => r.done === 1 && r.item && r.item.s === 'kleinod' && r.mehrEP);
 await T('Nach der Wallfahrt', () => __sprich(0).filter(x => /Wallfahrt|Pilger/.test(x)), r => r.length === 0);
 
-await T('Domherr', () => { __geh('kaiserdom'); const k = __sprich(0); return { k, t: __knopf('Ablass') }; }, r => /Luther/.test(r.t) && !r.k.includes('Erzählt weiter'));
+await T('Domherr', () => { __geh('kaiserdom'); const k = __sprich(0); return { k, t: __knopf('Ablass') }; }, r => /Bruder Elias/.test(r.t) && !r.k.includes('Erzählt weiter'));
 await T('Ablassbrief', () => {
   const k = __sprich(1), g = HERO.gold, t = __knopf('Ablassbrief kaufen');
   return { k, t, gold: g - HERO.gold, preis: chAblassPreis(), ablass: HERO.ablass, chips: [...$('buffs').querySelectorAll('.buff')].map(c => c.textContent) };

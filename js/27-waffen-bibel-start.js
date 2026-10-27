@@ -103,11 +103,11 @@ function thrustGp(k, wt){
   return { x: gp.x + fx * e, y: gp.y + fy * e * .7 };
 }
 
-/* ---------- Zeugmeister in der Reichsstadt: Waffen jeder Art und ein Rat dazu ---------- */
+/* ---------- Zeugmeister in der Königsstadt: Waffen jeder Art und ein Rat dazu ---------- */
 NPC_ART.zeugmeister = np_frames({ robe: 'short', hat: 'filz', beard: true, belt: true, apron: 'linen', hair: ['h', 'j'] }, { 1: '#3a2418', 2: '#523424', 3: '#6c4632', 4: '#885a40', 5: '#2a2a30', 6: '#3a3a42', 7: '#4e4e58', 8: '#62626e' });
 { const at = gNear(3060, 2392);
   NPCS.push({ id: 'zeugmeister', key: 'zeugmeister', name: 'Zeugmeister Wolf Behaim', role: 'Waffen', hub: 'stadt', x: at.x, y: at.y, art: NPC_ART.zeugmeister, zeug: true,
-    greet: ['Im Zeughaus der Reichsstadt liegt alles, was ein Kriegsmann braucht: Spieße, Hellebarden, Zweihänder und Armbrüste.', 'Die Schweizer schwören auf die Hellebarde, die Landsknechte auf den Zweihänder. Und die Jäger auf die Armbrust.', 'Ein Zweihänder will zwei Hände, Herr Ritter. Den Schild lasst dann im Rucksack.'] }); }
+    greet: ['Im Zeughaus der Königsstadt liegt alles, was ein Kriegsmann braucht: Spieße, Hellebarden, Zweihänder und Armbrüste.', 'Die Reisläufer schwören auf die Hellebarde, die Landsknechte auf den Zweihänder. Und die Jäger auf die Armbrust.', 'Ein Zweihänder will zwei Hände, Herr Ritter. Den Schild lasst dann im Rucksack.'] }); }
 function wtTalkOpts(n, opts){
   if (!n.zeug) return;
   opts.append(btn('Waffen kaufen', () => renderTalk('wtLaden'), 'opt'), btn('Welche Waffe passt zu mir?', () => renderTalk('wtInfo'), 'opt'));
@@ -157,7 +157,7 @@ for (const w of ['schwert', 'hellebarde', 'zweihaender', 'armbrust']){
 /* ============ Kleine Bibel: Gebet, Fund beim ersten Wiedergänger, Tafel ============ */
 function bibPray(){
   const k = G.knight; if (k.bashT > 0) return;
-  const heal = Math.round(ST.hp * BIB_HEAL / 100 * (HERO.glaube === 'neu' ? 1.25 : 1));   // mit dem Augsburger Bekenntnis heilt das Gebet mehr
+  const heal = Math.round(ST.hp * BIB_HEAL / 100 * (HERO.glaube === 'neu' ? 1.25 : 1));   // mit dem Goldbrunner Bekenntnis heilt das Gebet mehr
   k.hp = Math.min(ST.hp, k.hp + heal); k.slowT = 0;
   G.cd.stoss = cdT(BIB_CD, 'sturm', 3);
   floatText(k.x, k.y - KS.ay - 2, '+' + heal, '#ffe9a0', 1);
@@ -207,21 +207,21 @@ for (const [src, name, desc] of [[orBanner([3, 7, 0]), 'Ritterorden', 'beim Hero
   wh.append(el('small', null, desc)); li.append(im, wh); $('mpList').append(li);
 }
 });
-/* Nachmittags im Dreitagewechsel (Bilder: Eimer, Rattenkönig, Kaiser) */
+/* Nachmittags im Dreitagewechsel (Bilder: Eimer, Rattenkönig, König) */
 queueMicrotask(() => {   // Eimer und Rattenbild sind weiter unten erklärt
   const BK = canvasOf(14, 17); BK.getContext('2d').drawImage(BUCKET, 0, 0);
-  for (const [src, name, desc] of [[BK, 'Brand der Reichsstadt', 'jeden dritten Spieltag um 15 Uhr: Acht Häuser fangen nacheinander Feuer. Füllt am Brunnen einen Eimer (E) und löscht am brennenden Haus; je mehr Ritter, desto mehr Eimer braucht ein Feuer.'],
+  for (const [src, name, desc] of [[BK, 'Brand der Königsstadt', 'jeden dritten Spieltag um 15 Uhr: Acht Häuser fangen nacheinander Feuer. Füllt am Brunnen einen Eimer (E) und löscht am brennenden Haus; je mehr Ritter, desto mehr Eimer braucht ein Feuer.'],
     [null, 'Der Rattenkönig', 'am folgenden Spieltag um 15 Uhr im Dorf am Fluss: Pestratten in Scharen, dann kriecht der Rattenkönig aus dem Kornspeicher. Sein Leben teilen sich alle Kämpfer.'],
-    [() => knightSet('reich', '44444').icon, 'Der Kaiser kommt', 'am dritten Spieltag um 15 Uhr: Kaiser Karl zieht mit zwei Reichsrittern von der Reichsburg in die Reichsstadt. An drei Stellen lauern Strauchdiebe, der Zug wartet, bis sie vertrieben sind.']]){
+    [() => knightSet('reich', '44444').icon, 'Der König kommt', 'am dritten Spieltag um 15 Uhr: König Albrecht zieht mit zwei Rittern der Garde von der Königsburg in die Königsstadt. An drei Stellen lauern Strauchdiebe, der Zug wartet, bis sie vertrieben sind.']]){
     const li = el('li'), im = el('img'), wh = el('span', 'what', name);
     lazySrc(im, () => urlOf(typeof src === 'function' ? src() : src || MON_ART.ratte.idle.r[0].img, src === BK ? 3 : 2)); im.alt = '';
     wh.append(el('small', null, desc)); li.append(im, wh); $('evList').append(li);
   } });
 /* Tafel unter dem Spiel */
 queueMicrotask(() => {
-  for (const [img, name, desc] of [[NPC_ART.postmeister.frames[0], 'Kaiserliche Post', 'beim Postmeister in der Reichsstadt oder beim Postreiter in der Reichsburg: Briefe an jeden Ritter, auch wenn er gerade nicht spielt, mit bis zu ' + POST_GOLD + ' Gulden und einem Gegenstand als Beilage. Porto ' + PORTO + ' Gulden.'],
-    [NPC_ART.marktvogt.frames[0], 'Marktplatz', 'beim Marktvogt in der Reichsstadt: Waren für andere Ritter einstellen und ihre Angebote kaufen. Wer zuerst zahlt, bekommt die Ware; der Verkäufer erhält sein Geld beim nächsten Besuch, die Stadt behält ein Zwanzigstel.'],
-    [() => knightSet('england').icon, 'Länderwettstreit', 'jede Woche: Alles, was ein Ritter vollbringt, bringt seinem Land Punkte. Die Ritter des Siegerlandes haben in der folgenden Woche +5 % Erfahrung und Gulden und holen beim Herold einen Wochenlohn ab.'],
+  for (const [img, name, desc] of [[NPC_ART.postmeister.frames[0], 'Königliche Post', 'beim Postmeister in der Königsstadt oder beim Postreiter in der Königsburg: Briefe an jeden Ritter, auch wenn er gerade nicht spielt, mit bis zu ' + POST_GOLD + ' Gulden und einem Gegenstand als Beilage. Porto ' + PORTO + ' Gulden.'],
+    [NPC_ART.marktvogt.frames[0], 'Marktplatz', 'beim Marktvogt in der Königsstadt: Waren für andere Ritter einstellen und ihre Angebote kaufen. Wer zuerst zahlt, bekommt die Ware; der Verkäufer erhält sein Geld beim nächsten Besuch, die Stadt behält ein Zwanzigstel.'],
+    [() => knightSet('england').icon, 'Wettstreit der Häuser', 'jede Woche: Alles, was ein Ritter vollbringt, bringt seinem Haus Punkte. Die Ritter des Siegerhauses haben in der folgenden Woche +5 % Erfahrung und Gulden und holen beim Herold einen Wochenlohn ab.'],
     [NPC_ART.kaemmerer.frames[0], 'Ordenshaus', 'beim Ordenskämmerer neben dem Herold: Die Ritter eines Ordens spenden Gulden und bauen ihr Haus in fünf Stufen aus, jede bringt allen einen Vorteil.']]){
     const li = el('li'), im = el('img'), wh = el('span', 'what', name);
     lazySrc(im, () => { const c = typeof img === 'function' ? img() : img; return urlOf(c, c.width > 20 ? 2 : 3); }); im.alt = '';

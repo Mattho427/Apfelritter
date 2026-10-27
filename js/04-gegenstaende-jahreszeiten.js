@@ -1,7 +1,7 @@
 "use strict";
 /* Der Apfelritter, Teil 4 von 27: Gegenstände und Symbole, Weltgrafiken, Jahreszeiten.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
-/* ============ Gegenstände: Äpfel, Reichsapfel, Herz, Adler, Siegel, Symbole, Geschosse ============ */
+/* ============ Gegenstände: Äpfel, Königsapfel, Herz, Adler, Siegel, Symbole, Geschosse ============ */
 const bi_I = {
   red: bi_mat('#3c0e12', '#64171d', '#8c2225', '#b2352c', '#d05a40', '#e8946c'),   // roter Apfel
   ylw: bi_mat('#5a4a14', '#8a7424', '#b49a3a', '#d4bc5a'),                         // gelbgrüner Grund
@@ -56,7 +56,7 @@ function bi_apple(kind){
   }
   return c;
 }
-/* Reichsapfel 14 × 18: Goldkugel, Edelsteinband um den Gleicher und über den Scheitel, Kreuz */
+/* Königsapfel 14 × 18: Goldkugel, Edelsteinband um den Gleicher und über den Scheitel, Kreuz */
 function bi_orbArt(){
   const I = bi_I, P = bi_buf(14, 18, 0, 0), cx = 7, cy = 11.6, r = 5.6;
   const band = u => .2 + .26 * Math.sqrt(Math.max(0, 1 - u * u));
@@ -96,7 +96,7 @@ function bi_heartArt(){
   bi_put(P, 2, 2, I.wht, 1); bi_put(P, 3, 2, I.hrt, 5); bi_put(P, 2, 3, I.hrt, 5);
   return bi_img(P).img;
 }
-/* Reichsadler 32 × 28: schwarzer Doppeladler, golden nimbiert, rot gezungt und bewehrt.
+/* Königsadler 32 × 28: schwarzer Doppeladler, golden nimbiert, rot gezungt und bewehrt.
    Linke Hälfte wird gemalt und gespiegelt (Wappenbild ist symmetrisch). */
 const bi_EAP = { a: '#100e13', b: '#1c1a21', c: '#2a2730', d: '#3c3844', e: '#575262', r: '#8e1a1a', R: '#cc3a2c', k: '#5a1010',
   w: '#e8d8a0', g: '#6e5012', h: '#a8821e', i: '#d8b440', j: '#f2de8a' };
@@ -140,7 +140,7 @@ function bi_eagleArt(){
   g.drawImage(makeSprite(rows, bi_EAP, null, 0), 0, 0);
   return c;
 }
-/* Siegel 40 × 40: goldene Bulle mit Perlrand, Rautengrund und Reichsadler */
+/* Siegel 40 × 40: goldene Bulle mit Perlrand, Rautengrund und Königsadler */
 function bi_sealArt(eagle){
   const I = bi_I, P = bi_buf(40, 40, 0, 0);
   bi_part(P, 1);
@@ -268,7 +268,7 @@ const ITEM_ART = (() => {
     eagle, seal: bi_sealArt(eagle), icons: bi_iconsArt(), bolt: bi_boltArt(), fire: bi_fireArt() };
 })();
 
-/* ============ Weltgrafiken: Bäume, Häuser, Kirche, Burg, Kleinkram (Reich um 1520) ============ */
+/* ============ Weltgrafiken: Bäume, Häuser, Kirche, Burg, Kleinkram (Königreich um 1520) ============ */
 /* Alles prozedural in einen Pixelpuffer (Uint32, ABGR), am Ende ein putImageData je Bild. */
 
 /* ---------- Farben ---------- */
@@ -1286,7 +1286,7 @@ function wp_chimney(B, x, yb, w, h, s){
   return { x: x + w / 2, y: yb - h - 3 };
 }
 
-/* ---------- Reichsadler (schwarzer Doppeladler, rote Zungen und Fänge, goldener Nimbus) ---------- */
+/* ---------- Königsadler (schwarzer Doppeladler, rote Zungen und Fänge, goldener Nimbus) ---------- */
 const wp_EAGLE = {
   // 15 x 13
   m: [

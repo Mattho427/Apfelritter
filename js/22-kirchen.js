@@ -5,7 +5,7 @@
 /* ============ Kirchen, Priester und Glaube ============
    Sechs Kirchen lassen sich betreten, genau wie die Gasthäuser (G.inside, Raum 960 × 540, Tür unten in der Mitte; Mitspieler
    sehen einander drinnen). In jeder wirkt ein Geistlicher: Segen gegen eine Spende, Beichte, Kerzen. Der Burgkaplan schickt
-   auf Wallfahrt zu fünf heiligen Orten, im Kaiserdom verkauft ein Ablassprediger Ablassbriefe. Jeden Spieltag um 10 Uhr ist Messe. */
+   auf Wallfahrt zu fünf heiligen Orten, im Dom verkauft ein Ablassprediger Ablassbriefe. Jeden Spieltag um 10 Uhr ist Messe. */
 const CH_SEGEN = 1200, CH_MESSE = [10, 11.5], CH_MESSE_NEED = 40;   // Segen 20 Minuten; Messe 10 bis 11:30 Uhr; so lange dabei sein
 const chBlessed = () => !!(HERO && HERO.bless && HERO.bless.t > 0);
 const chDay = () => Math.floor(skyNow() / DAY_LEN);
@@ -29,13 +29,13 @@ const CH_ART = {
 };
 /* die Kirchen: Lage in Weltpixeln (nächster Bau dieser Art), Tür relativ zur Mitte, Innenraum-Stil, Geistliche */
 const CH_DEF = [
-  { id: 'burgkapelle', name: 'Burgkapelle St. Georg', kind: 'kapelle', at: [1730, 470], door: -18, style: 'kapelle', where: 'in der Reichsburg', pilg: true,
+  { id: 'burgkapelle', name: 'Burgkapelle St. Georg', kind: 'kapelle', at: [1730, 470], door: -18, style: 'kapelle', where: 'in der Königsburg', pilg: true,
     clergy: [{ id: 'kaplan', art: 'kaplan', name: 'Burgkaplan Ambrosius', role: 'Burgkaplan', segen: true, beichte: true, kerze: true, wallfahrt: true,
-      greet: ['Gott zum Gruße, Herr Ritter. Auch der stärkste Arm braucht den Segen des Herrn.', 'Der heilige Georg ist der Schutzpatron der Ritter. Er bezwang den Drachen, Ihr bezwingt das Böse im Reichsland.', 'Wer zu den fünf heiligen Orten des Reichslandes pilgert, kehrt verwandelt heim, sagt man.'] }],
+      greet: ['Gott zum Gruße, Herr Ritter. Auch der stärkste Arm braucht den Segen des Herrn.', 'Der heilige Georg ist der Schutzpatron der Ritter. Er bezwang den Drachen, Ihr bezwingt das Böse im Königsland.', 'Wer zu den fünf heiligen Orten des Königslandes pilgert, kehrt verwandelt heim, sagt man.'] }],
     pray: ['magd', 'bauer'] },
-  { id: 'stadtkirche', name: 'Stadtkirche St. Marien', kind: 'kirche', at: [2716, 2322], door: 7, style: 'kirche', where: 'in der Reichsstadt', pilg: true,
+  { id: 'stadtkirche', name: 'Stadtkirche St. Marien', kind: 'kirche', at: [2716, 2322], door: 7, style: 'kirche', where: 'in der Königsstadt', pilg: true,
     clergy: [{ id: 'pfarrer', art: 'pfarrer', name: 'Pfarrer Johannes Faber', role: 'Stadtpfarrer', segen: true, beichte: true, kerze: true, messe: true,
-      greet: ['Friede sei mit Euch. Die Messe ist jeden Tag um zehn Uhr.', 'Die Bürger streiten über die neue Lehre aus Wittenberg. Ich bete, dass die Kirche nicht zerbricht.', 'Eine Kerze für die Verstorbenen kostet wenig und wiegt doch schwer.'] }],
+      greet: ['Friede sei mit Euch. Die Messe ist jeden Tag um zehn Uhr.', 'Die Bürger streiten über die neue Lehre aus Schwanstedt. Ich bete, dass die Kirche nicht zerbricht.', 'Eine Kerze für die Verstorbenen kostet wenig und wiegt doch schwer.'] }],
     pray: ['buerger', 'buergerin', 'magd', 'baeuerin'] },
   { id: 'klosterkirche', name: 'Klosterkirche St. Benedikt', kind: 'kirche', at: [1270, 2790], door: 7, style: 'kloster', where: 'beim Kloster', pilg: true,
     clergy: [{ id: 'prior', art: 'prior', name: 'Prior Bernhard', role: 'Prior des Klosters', segen: true, beichte: true, kerze: true,
@@ -49,44 +49,44 @@ const CH_DEF = [
     clergy: [{ id: 'einsiedler', art: 'einsiedler', name: 'Einsiedler Konrad', role: 'Einsiedler', segen: true, kerze: true,
       greet: ['Seid gegrüßt, Pilger. Viele steigen den Berg herauf, um hier zu beten.', 'Die Muttergottes von der Weinstraße hat schon manchen getröstet.', 'Ich habe der Welt entsagt. Nur die Winzer bringen mir Brot und Wein.'] }],
     pray: ['bauer', 'baeuerin'] },
-  { id: 'kaiserdom', name: 'Kaiserdom zu Speyer', kind: 'dom', at: [5300, 1350], style: 'dom', where: 'in Speyer', pilg: true,
+  { id: 'kaiserdom', name: 'Dom zu Altmünster', kind: 'dom', at: [5300, 1350], style: 'dom', where: 'in Altmünster', pilg: true,
     clergy: [{ id: 'domherr', art: 'domherr', name: 'Domherr Philipp', role: 'Domherr', segen: true, beichte: true, kerze: true, messe: true, ablassRede: true,
-      greet: ['Willkommen im Dom zu Speyer. Hier ruhen acht Kaiser und Könige.', 'Auf dem Reichstag in dieser Stadt wird heftig um den Glauben gestritten.', 'Seit über vierhundert Jahren steht dieser Dom. Er wird auch uns überdauern.'] },
+      greet: ['Willkommen im Dom zu Altmünster. Hier ruhen acht Könige und ihre Königinnen.', 'Auf dem Hoftag in dieser Stadt wird heftig um den Glauben gestritten.', 'Seit über vierhundert Jahren steht dieser Dom. Er wird auch uns überdauern.'] },
       { id: 'ablass', art: 'ablass', name: 'Bruder Tilman', role: 'Ablassprediger', ablass: true, x: 330,
-      greet: ['Sobald das Geld im Kasten klingt, die Seele aus dem Fegefeuer springt!', 'Ein Ablassbrief, Herr Ritter! Für Euch und Eure Lieben.', 'Der Papst selbst hat den Ablass gewährt. Wer zahlt, dem wird die Strafe erlassen.'] }],
+      greet: ['Sobald das Geld im Kasten klingt, die Seele aus dem Fegefeuer springt!', 'Ein Ablassbrief, Herr Ritter! Für Euch und Eure Lieben.', 'Der Heilige Vater selbst hat den Ablass gewährt. Wer zahlt, dem wird die Strafe erlassen.'] }],
     pray: ['buerger', 'buergerin', 'magd', 'buerger', 'buergerin', 'baeuerin'] },
-  { id: 'annenkirche', name: 'St. Annenkirche', kind: 'kirche', at: [3050, 3532], door: 7, style: 'kirche', where: 'in Annaberg', pilg: false,
+  { id: 'annenkirche', name: 'St. Annenkirche', kind: 'kirche', at: [3050, 3532], door: 7, style: 'kirche', where: 'in Silberberg', pilg: false,
     clergy: [{ id: 'pfarrer2', art: 'pfarrer', name: 'Pfarrer Wolfgang Silbermann', role: 'Stadtpfarrer', segen: true, beichte: true, kerze: true, messe: true,
       greet: ['Die Knappen bauen an dieser Kirche, sooft das Silber es erlaubt. Eines Tages wird sie die schönste im Gebirge sein.', 'Die heilige Anna ist die Schutzpatronin der Bergleute. Betet zu ihr, ehe Ihr in die Gruben steigt.', 'Im Altenberg-Stollen geht der Bergmönch um. Die Knappen meiden ihn wie der Teufel das Weihwasser.'] }],
     pray: ['bauer', 'baeuerin', 'buerger', 'magd'] },
   // Ostlande (Version 26)
-  { id: 'schlosskirche', name: 'Schlosskirche Allerheiligen', kind: 'schlosskirche', at: [7630, 488], door: 12, style: 'kirche', where: 'in Wittenberg', pilg: false,
+  { id: 'schlosskirche', name: 'Schlosskirche Allerheiligen', kind: 'schlosskirche', at: [7630, 488], door: 12, style: 'kirche', where: 'in Schwanstedt', pilg: false,
     clergy: [{ id: 'stiftsherr', art: 'domherr', name: 'Stiftsherr Georg', role: 'Stiftsherr zu Allerheiligen', segen: true, beichte: true, kerze: true,
-      greet: ['Hier bewahrt unser Kurfürst Friedrich seinen Heiltumsschatz: neunzehntausend Reliquien, sagt man.', 'An dieser Tür schlug Doktor Luther vor drei Jahren seine fünfundneunzig Thesen an. Seither redet das ganze Reich davon.', 'Die Universität hat aus Wittenberg eine Stadt der Gelehrten gemacht. Früher war hier nur Sand und Heide.'] }],
+      greet: ['Hier bewahrt unser Herzog seinen Heiltumsschatz: neunzehntausend Reliquien, sagt man.', 'An dieser Tür schlug Bruder Elias vor drei Jahren seine Thesen gegen den Ablass an. Seither redet das ganze Königreich davon.', 'Die Hohe Schule hat aus Schwanstedt eine Stadt der Gelehrten gemacht. Früher war hier nur Sand und Heide.'] }],
     pray: ['buerger', 'buergerin', 'magd'] },
-  { id: 'wbkirche', name: 'Stadtkirche St. Marien zu Wittenberg', kind: 'kirche', at: [8080, 488], door: 7, style: 'kirche', where: 'in Wittenberg', pilg: false,
-    clergy: [{ id: 'luther', art: 'prior', name: 'Doktor Martin Luther', role: 'Prediger an der Stadtkirche', segen: true, beichte: true, messe: true,
-      greet: ['Ein Christenmensch ist ein freier Herr über alle Dinge und niemand untertan, und doch ein dienstbarer Knecht aller Dinge.', 'Der Gerechte wird aus Glauben leben. Kein Ablassbrief kauft Euch die Gnade Gottes.', 'Ich schreibe die Schrift ins Deutsche, damit jeder Bauer und jeder Ritter sie selbst lesen kann.'] }],
+  { id: 'wbkirche', name: 'Stadtkirche St. Marien zu Schwanstedt', kind: 'kirche', at: [8080, 488], door: 7, style: 'kirche', where: 'in Schwanstedt', pilg: false,
+    clergy: [{ id: 'luther', art: 'prior', name: 'Bruder Elias', role: 'Prediger an der Stadtkirche', segen: true, beichte: true, messe: true,
+      greet: ['Ein Christ ist frei durch den Glauben, und doch dient er seinem Nächsten in Liebe.', 'Der Gerechte wird aus Glauben leben. Kein Ablassbrief kauft Euch die Gnade Gottes.', 'Ich übertrage die Schrift in die Sprache des Volkes, damit jeder Bauer und jeder Ritter sie selbst lesen kann.'] }],
     pray: ['buerger', 'buergerin', 'bauer', 'baeuerin'] },
-  { id: 'sebald', name: 'St. Sebald', kind: 'kirche', at: [7860, 2208], door: 7, style: 'kirche', where: 'in Nürnberg', pilg: false,
+  { id: 'sebald', name: 'St. Sebald', kind: 'kirche', at: [7860, 2208], door: 7, style: 'kirche', where: 'in Burgfelden', pilg: false,
     clergy: [{ id: 'propst', art: 'pfarrer', name: 'Propst Melchior', role: 'Propst von St. Sebald', segen: true, beichte: true, kerze: true, messe: true,
-      greet: ['Hier ruht der heilige Sebald in seinem Grab aus Messing. Meister Vischer gießt daran schon seit Jahren.', 'Nürnberg ist des Reiches Schatzkästlein. Die Reichskleinodien liegen im Heilig-Geist-Spital.', 'Die Kaiserburg wacht über uns, und die Mauern sind die stärksten im ganzen Reich.'] }],
+      greet: ['Hier ruht der heilige Sebald in seinem Grab aus Messing. Meister Peter der Gießer arbeitet daran schon seit Jahren.', 'Burgfelden ist des Königreichs Schatzkästlein. Die Kronschätze des Königs liegen im Heilig-Geist-Spital.', 'Die Burg auf dem Felsen wacht über uns, und die Mauern sind die stärksten im ganzen Königreich.'] }],
     pray: ['buerger', 'buergerin', 'magd', 'buerger'] },
-  { id: 'lorenz', name: 'St. Lorenz', kind: 'kirche', at: [7880, 2558], door: 7, style: 'kirche', where: 'in Nürnberg', pilg: false,
+  { id: 'lorenz', name: 'St. Lorenz', kind: 'kirche', at: [7880, 2558], door: 7, style: 'kirche', where: 'in Burgfelden', pilg: false,
     clergy: [{ id: 'prediger', art: 'pfarrer', name: 'Prediger Andreas', role: 'Prediger von St. Lorenz', segen: true, beichte: true, kerze: true,
-      greet: ['Seht Ihr das Sakramentshaus? Meister Adam Kraft hat es aus Stein gehauen, so fein wie Spitze.', 'Der Englische Gruß von Meister Veit Stoß hängt seit drei Jahren hier im Chor.', 'Die Lorenzer Seite der Stadt ist die der Handwerker: Plattner, Rotschmiede, Zirkelschmiede.'] }],
+      greet: ['Seht Ihr das Sakramentshaus? Meister Adam hat es aus Stein gehauen, so fein wie Spitze.', 'Der Engelsgruß von Meister Veit hängt seit drei Jahren hier im Chor.', 'Die Lorenzer Seite der Stadt ist die der Handwerker: Plattner, Rotschmiede, Zirkelschmiede.'] }],
     pray: ['bauer', 'baeuerin', 'buerger'] },
-  { id: 'frauenkirche', name: 'Frauenkirche', kind: 'frauenkirche', at: [8160, 2342], door: 0, style: 'kapelle', where: 'am Nürnberger Hauptmarkt', pilg: false,
+  { id: 'frauenkirche', name: 'Frauenkirche', kind: 'frauenkirche', at: [8160, 2342], door: 0, style: 'kapelle', where: 'am Burgfeldener Hauptmarkt', pilg: false,
     clergy: [{ id: 'kaplan2', art: 'kaplan', name: 'Kaplan Sebastian', role: 'Kaplan der Frauenkirche', segen: true, kerze: true,
-      greet: ['Jeden Mittag ziehen über dem Portal die Kurfürsten um den Kaiser. Das Männleinlaufen, so nennen es die Kinder.', 'Kaiser Karl der Vierte ließ diese Kirche bauen, wo früher die Synagoge stand. Darüber spricht man nicht gern.', 'Der Markt vor der Tür ist der größte in Franken.'] }],
+      greet: ['Jeden Mittag ziehen über dem Portal die sieben Fürsten um den König. Das Männleinlaufen, so nennen es die Kinder.', 'Ein König ließ diese Kirche vor langer Zeit mitten auf dem Markt stiften.', 'Der Markt vor der Tür ist der größte in der Mittelmark.'] }],
     pray: ['magd', 'buergerin'] },
-  { id: 'augsdom', name: 'Dom St. Maria zu Augsburg', kind: 'kirche', at: [7230, 3718], door: 7, style: 'kirche', where: 'in Augsburg', pilg: false,
+  { id: 'augsdom', name: 'Dom St. Maria zu Goldbrunn', kind: 'kirche', at: [7230, 3718], door: 7, style: 'kirche', where: 'in Goldbrunn', pilg: false,
     clergy: [{ id: 'domprediger', art: 'domherr', name: 'Domprediger Urban', role: 'Domprediger', segen: true, beichte: true, kerze: true, messe: true,
-      greet: ['Augsburg ist reich, Herr Ritter. Aber Reichtum macht nicht fromm.', 'Die Fugger stiften Altäre und Kapellen. Ob sie damit den Himmel kaufen, weiß Gott allein.', 'Vor sechshundert Jahren rettete der heilige Ulrich diese Stadt vor den Ungarn auf dem Lechfeld.'] }],
+      greet: ['Goldbrunn ist reich, Herr Ritter. Aber Reichtum macht nicht fromm.', 'Die Goldmanns stiften Altäre und Kapellen. Ob sie damit den Himmel kaufen, weiß Gott allein.', 'Vor vielen hundert Jahren rettete der heilige Ulrich diese Stadt vor den Steppenreitern auf dem Geisterfeld.'] }],
     pray: ['buerger', 'buergerin', 'magd', 'baeuerin'] },
-  { id: 'ulrichskapelle', name: 'Ulrichskapelle auf dem Lechfeld', kind: 'kapelle', at: [7200, 4380], door: -18, style: 'kapelle', where: 'auf dem Lechfeld', pilg: false,
+  { id: 'ulrichskapelle', name: 'Ulrichskapelle auf dem Geisterfeld', kind: 'kapelle', at: [7200, 4380], door: -18, style: 'kapelle', where: 'auf dem Geisterfeld', pilg: false,
     clergy: [{ id: 'eremit', art: 'einsiedler', name: 'Bruder Notker', role: 'Einsiedler', segen: true, kerze: true,
-      greet: ['Hier betete der heilige Ulrich vor der Schlacht. Nachts reiten die Geister der Ungarn um diese Kapelle.', 'Eine Kerze, Herr Ritter. Gegen die Geister hilft nur Licht und Gebet.', 'Bulcsú hieß ihr Fürst. Man hängte ihn in Regensburg. Seine Seele fand keine Ruhe.'] }],
+      greet: ['Hier betete der heilige Ulrich vor der Schlacht. Nachts reiten die Geister der Steppenreiter um diese Kapelle.', 'Eine Kerze, Herr Ritter. Gegen die Geister hilft nur Licht und Gebet.', 'Gorm hieß ihr Fürst. Man hängte ihn am Galgen vor der Stadt. Seine Seele fand keine Ruhe.'] }],
     pray: ['bauer'] }
 ];
 const CHURCHES = CH_DEF.map((d, i) => {
@@ -100,9 +100,9 @@ const CHURCHES = CH_DEF.map((d, i) => {
 const CH_BY = Object.fromEntries(CHURCHES.map(c => [c.id, c]));
 const PILG = CHURCHES.filter(c => c.pilg).map(c => c.id);
 for (const c of CHURCHES){
-  HUB_NAME[c.id] = c.name; HUB_IN[c.id] = 'in der ' + c.name.replace(/^Kaiserdom/, 'Kaiserdom');
-  if (c.id === 'kaiserdom') HUB_IN[c.id] = 'im Kaiserdom zu Speyer';
-  else if ({ sebald: 1, lorenz: 1, augsdom: 1 }[c.id]) HUB_IN[c.id] = c.id === 'augsdom' ? 'im Dom zu Augsburg' : 'in ' + c.name;
+  HUB_NAME[c.id] = c.name; HUB_IN[c.id] = 'in der ' + c.name.replace(/^Dom/, 'Dom');
+  if (c.id === 'kaiserdom') HUB_IN[c.id] = 'im Dom zu Altmünster';
+  else if ({ sebald: 1, lorenz: 1, augsdom: 1 }[c.id]) HUB_IN[c.id] = c.id === 'augsdom' ? 'im Dom zu Goldbrunn' : 'in ' + c.name;
   if (c.id !== 'kaiserdom' && !(c.x > WW0 * WS && c.id !== 'ulrichskapelle')) MAP_LABELS.push({ x: c.dx / WS, y: c.y / WS - (c.kind === 'kirche' ? 250 : 120), name: c.name.replace(/ (St\.|Unserer).*$/, '') });
 }
 
@@ -290,12 +290,12 @@ function chEnter(ch){
     P.v[ch.id] = 1; const n = PILG.filter(id => P.v[id]).length;
     logLine('Pilgerzeichen: ' + ch.name + ' (' + n + ' von ' + PILG.length + ').', '#ffd98a');
     showBanner('Pilgerzeichen', ch.name + ' · ' + n + ' von ' + PILG.length);
-    if (n >= PILG.length) logLine('Alle heiligen Orte besucht. Kehrt zum Burgkaplan in der Reichsburg zurück.', '#ffd98a');
+    if (n >= PILG.length) logLine('Alle heiligen Orte besucht. Kehrt zum Burgkaplan in der Königsburg zurück.', '#ffd98a');
     Sound.coin(); markDirty(true); renderTracker();
   }
 }
 const SERMON = ['In nomine Patris et Filii et Spiritus Sancti.', 'Dominus vobiscum.', 'Kyrie eleison. Christe eleison.', 'Selig sind die Friedfertigen, denn sie werden Gottes Kinder heißen.',
-  'Gloria in excelsis Deo.', 'Liebet eure Feinde, tut Gutes denen, die euch hassen.', 'Gebt dem Kaiser, was des Kaisers ist, und Gott, was Gottes ist.',
+  'Gloria in excelsis Deo.', 'Liebet eure Feinde, tut Gutes denen, die euch hassen.', 'Gebt dem König, was des Königs ist, und Gott, was Gottes ist.',
   'Was ihr getan habt einem unter meinen geringsten Brüdern, das habt ihr mir getan.', 'Agnus Dei, qui tollis peccata mundi, miserere nobis.', 'Ite, missa est. Gehet hin in Frieden.'];
 function chUpdate(dt){   // aus updateInn, solange man in einer Kirche ist
   const ch = G.inside, rm = chRoom(ch), on = chMesseNow(), M = G.messe || (G.messe = { day: -1, t: 0 });
@@ -316,7 +316,7 @@ function chHour(hr){   // Glocken: eine Stunde vor der Messe in Städten, Burg u
   const k = G.knight, near = CHURCHES.find(c => Math.hypot(c.dx - k.x, c.dy - k.y) < 1600);
   if (!near && !SAFE[G.zone]) return;
   Sound.chime(); setTimeout(() => Sound.chime(), 900);
-  if (near) logLine('Die Glocken läuten: Um 10 Uhr ist Messe in der ' + near.name.replace(/^Kaiserdom zu Speyer$/, 'Domkirche') + '. Wer dabei ist, empfängt den Segen.', '#ffd98a');
+  if (near) logLine('Die Glocken läuten: Um 10 Uhr ist Messe in der ' + near.name.replace(/^Dom zu Altmünster$/, 'Domkirche') + '. Wer dabei ist, empfängt den Segen.', '#ffd98a');
 }
 /* Segen: mehr Leben, schnellere Erholung, mehr Schaden gegen Untote */
 function chBless(t, msg){
@@ -401,7 +401,7 @@ function chView(view, body, opts){
   if (view === 'chPilger'){
     if (!HERO.pilg || !HERO.pilg.on){ HERO.pilg = { on: 1, v: {}, done: 0 }; chEnter(G.inside); markDirty(true); }
     const P = HERO.pilg;
-    say('Fünf heilige Orte hat das Reichsland. Besucht jeden und betet dort, dann kehrt mit dem Pilgerbrief zu mir zurück.');
+    say('Fünf heilige Orte hat das Königsland. Besucht jeden und betet dort, dann kehrt mit dem Pilgerbrief zu mir zurück.');
     for (const id of PILG){ const c = CH_BY[id], r = el('p', 'hint', (P.v[id] ? '✓ ' : '· ') + c.name + ' ' + c.where); body.append(r); }
     return back();
   }
@@ -417,10 +417,10 @@ function chView(view, body, opts){
     return back();
   }
   if (view === 'chMesse'){ say('Jeden Tag um zehn Uhr läuten die Glocken zur Messe. Wer bis zum Segen bleibt, geht gesegnet hinaus, und der Segen kostet dann nichts.'); return back(); }
-  if (view === 'chLore'){ say('Manche sagen, die Gnade Gottes lasse sich nicht kaufen. Ein Mönch aus Wittenberg, Martin Luther, schrieb fünfundneunzig Thesen gegen den Ablasshandel. Andere halten den Ablass für ein frommes Werk. Entscheidet selbst, Herr Ritter.'); return back(); }
+  if (view === 'chLore'){ say('Manche sagen, die Gnade Gottes lasse sich nicht kaufen. Ein Mönch aus Schwanstedt, Bruder Elias, schrieb Thesen gegen den Ablasshandel. Andere halten den Ablass für ein frommes Werk. Entscheidet selbst, Herr Ritter.'); return back(); }
   if (view === 'chAblass'){
     const p = chAblassPreis();
-    if (HERO.glaube === 'neu'){ say('Ein Lutherischer will einen Ablassbrief? Geht mir aus den Augen!'); return back(); }
+    if (HERO.glaube === 'neu'){ say('Ein Anhänger der neuen Lehre will einen Ablassbrief? Geht mir aus den Augen!'); return back(); }
     if (HERO.ablass || HERO.gold < p){ say(HERO.ablass ? 'Ihr tragt doch schon einen Ablassbrief, Herr Ritter!' : 'Ohne Geld kein Ablass. So ist es nun einmal.'); return back(); }
     HERO.gold -= p; HERO.ablass = true; updateHud(); renderBuffs(); markDirty(true); rrChurch('ablass');
     say('Hier ist Euer Ablassbrief, gesiegelt und gültig. Fallt Ihr im Kampf, so bewahrt er Euer Gold. Und nun: Wer ist der Nächste?');

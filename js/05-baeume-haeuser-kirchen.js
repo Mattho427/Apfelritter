@@ -1498,7 +1498,7 @@ function wp_kChristbaum(s){
 
 /* ============ Schnittstelle ============ */
 /* Art -> [Zeichner, Anzahl Varianten]. Varianten werden erst bei Bedarf gezeichnet und behalten. */
-/* ============ Stromland: Kähne, Tretkran, Netze, Palisade, Rebzeilen, Kaiserdom ============ */
+/* ============ Stromland: Kähne, Tretkran, Netze, Palisade, Rebzeilen, Dom ============ */
 const wp_CU = wp_rmp(['#173029', '#21413a', '#2c5249', '#386458', '#477768', '#5a8a79', '#71a08d']);   // Kupfer mit Grünspan
 const wp_VINE = [
   wp_rmp(['#1a2a12', '#26391a', '#334b21', '#425d29', '#527031', '#64833b', '#789646']),   // Frühling
@@ -1506,7 +1506,7 @@ const wp_VINE = [
   wp_rmp(['#2a1a0c', '#42260e', '#5c3412', '#764418', '#90561e', '#a86a28', '#bc8034']),   // Herbst
   null
 ];
-/* Rheinkahn (Nachen); v: 0 mit Riemen, 1 beladen, 2 Lastkahn mit Mast, 3 an Land gezogen */
+/* Stromkahn (Nachen); v: 0 mit Riemen, 1 beladen, 2 Lastkahn mit Mast, 3 an Land gezogen */
 function wp_kKahn(s, v){
   const L = v === 2 ? 46 : 38, land = v === 3;
   const B = wp_img(2 * L + 18, v === 2 ? 96 : 50, v === 2 ? 88 : 42), cx = B.ax, ay = B.ay, R = rng(s);
@@ -1698,7 +1698,7 @@ function wp_dwarfGallery(B, x0, x1, yT, h, Rf){
   }
   wp_cornice(B, x0, x1, yT - 2, Rf, 2);
 }
-/* Kaiserdom zu Speyer: Westbau mit zwei Türmen, Langhaus mit Obergaden und Zwerggalerie, Vierungsturm mit Kuppel, Ostturm und Apsis */
+/* Dom zu Altmünster: Westbau mit zwei Türmen, Langhaus mit Obergaden und Zwerggalerie, Vierungsturm mit Kuppel, Ostturm und Apsis */
 function wp_bDom(s, v){
   const W = 300, B = wp_img(W, 300, 292), R = rng(s), ax = B.ax, ay = B.ay;
   const RS = wp_P.red, Y2 = wp_P.ochre;
@@ -1817,7 +1817,7 @@ function wp_kThron(s){
     if (y < top) return 0;
     return st(x, y, y < top + 1.5 || dx > 16.5 ? .72 : .5 - (x - ax) * .008);
   });
-  // eingemeißelte Welle, darüber das vergoldete Reichswappen, verwittert
+  // eingemeißelte Welle, darüber das vergoldete Königswappen, verwittert
   for (let x = ax - 12; x <= ax + 12; x++){ const y = Math.round(ay - 33 + Math.sin((x - ax) * .55) * 1.5); wp_set(B, x, y, wp_P.stone[1]); wp_set(B, x, y + 1, wp_P.stone[4]); }
   wp_rect(B, ax - 5, ay - 48, ax + 5, ay - 38, (x, y) => { const dx = Math.abs(x - ax), yy = y - (ay - 48); return yy < 5 || dx < 5 - (yy - 5) * .9 ? wp_tone(wp_P.gold, .45 - (x - ax) * .04 + (wp_h(x * 2, y * 2, s + 3) < .3 ? -.25 : 0), x, y) : 0; });
   // Armlehnen und Sitz
@@ -1987,7 +1987,7 @@ function wp_tWacholder(s){
   return { img: wp_canvas(B), ax, ay, foot: [[-4, -4, 4, 1]], occl: null, extra: {} };
 }
 
-/* ---------- Schlosskirche zu Wittenberg: verputztes Langhaus, runder Schlossturm mit Kegeldach, an der Tür die Thesen ---------- */
+/* ---------- Schlosskirche zu Schwanstedt: verputztes Langhaus, runder Schlossturm mit Kegeldach, an der Tür die Thesen ---------- */
 function wp_bSchlosskirche(s, v){
   const W = 184, B = wp_img(W, 250, 246), R = rng(s), ax = B.ax, ay = B.ay;
   const PL = wp_P.plaster, ST = wp_P.stone;
@@ -2045,7 +2045,7 @@ function wp_bSchlosskirche(s, v){
   return wp_res(B, [[-86, -84, 88, 2]], [-90, -236, 90, -8], { smoke: [], door: { x: nX0 + 51 } });
 }
 
-/* ---------- Schöner Brunnen in Nürnberg: achteckiges Becken mit Gitter, darüber eine bunte gotische Turmspitze ---------- */
+/* ---------- Schöner Brunnen in Burgfelden: achteckiges Becken mit Gitter, darüber eine bunte gotische Turmspitze ---------- */
 function wp_kSchoenerBrunnen(s){
   const B = wp_img(64, 136, 132), cx = B.ax, ay = B.ay, R = rng(s), ST = wp_P.stone;
   wp_groundShadow(B, cx + 8, ay + 1, 30, 5);
@@ -2111,7 +2111,7 @@ function wp_bFuggerhaus(s, v){
   return wp_res(B, [[-33, -26, 33, 2]], [-34, -80, 34, -8], { smoke: [{ x: Math.round(ch.x - ax), y: Math.round(ch.y - ay) }] });
 }
 
-/* ---------- Perlachturm in Augsburg: schlanker Stadtturm mit Uhr, Glockenstube und Spitzhelm ---------- */
+/* ---------- Perlachturm in Goldbrunn: schlanker Stadtturm mit Uhr, Glockenstube und Spitzhelm ---------- */
 function wp_bPerlach(s){
   const B = wp_img(60, 200, 196), R = rng(s), ax = B.ax, ay = B.ay, ST = wp_P.stone;
   const x0 = ax - 17, x1 = ax + 17, top = ay - 140;
@@ -2146,7 +2146,7 @@ function wp_kBienenstand(s){
   return wp_res(B, [[-26, -10, 26, 2]], null);
 }
 
-/* ---------- Frauenkirche am Nürnberger Hauptmarkt: Staffelgiebel, Vorhalle, darüber das Chörlein mit der Uhr (Männleinlaufen) ---------- */
+/* ---------- Frauenkirche am Burgfeldener Hauptmarkt: Staffelgiebel, Vorhalle, darüber das Chörlein mit der Uhr (Männleinlaufen) ---------- */
 function wp_bFrauenkirche(s){
   const W = 120, B = wp_img(W, 200, 196), R = rng(s), ax = B.ax, ay = B.ay;
   const RS = wp_P.red;
@@ -2210,7 +2210,7 @@ const wp_K = {
   kahn: [(s, v) => wp_kKahn(s, v), 4], kran: [(s, v) => wp_kKran(s), 1], netze: [(s, v) => wp_kNetze(s), 2], palisade: [(s, v) => wp_kPalisade(s, v), 3],
   rebzeile: [(s, v) => wp_kRebzeile(s, v), 3], dom: [(s, v) => wp_bDom(s, v), 1], gasthaus_anker: [(s, v) => wp_bStadthaus(s + 77, 0, 'anker'), 1],
   gasthaus_adler: [(s, v) => wp_bStadthaus(s + 31, 0, 'adler'), 1], gasthaus_krone: [(s, v) => wp_bHaus(s + 17, 1, 'krone'), 1], gasthaus_ochse: [(s, v) => wp_bHaus(s + 5, 3, 'ochse'), 1],
-  // Bergland: Göpel, Kanone, Schanzkorb, Klippe, Gasthaus in Annaberg; im Hochgebirge liegt immer Schnee
+  // Bergland: Göpel, Kanone, Schanzkorb, Klippe, Gasthaus in Silberberg; im Hochgebirge liegt immer Schnee
   goepel: [(s, v) => wp_kGoepel(s), 1], kanone: [(s, v) => wp_kKanone(s, v), 2], schanzkorb: [(s, v) => wp_kSchanzkorb(s), 3], klippe: [(s, v) => wp_kKlippe(s, v), 4],
   gasthaus_kanne: [(s, v) => wp_bStadthaus(s + 53, 0, 'kanne'), 1],
   gasthaus_schwan: [(s, v) => wp_bStadthaus(s + 61, 0, 'schwan'), 1], gasthaus_gloecklein: [(s, v) => wp_bStadthaus(s + 67, 0, 'gloecklein'), 1], gasthaus_lamm: [(s, v) => wp_bStadthaus(s + 73, 0, 'lamm'), 1],

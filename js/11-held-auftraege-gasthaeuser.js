@@ -21,7 +21,7 @@ const QUESTS = [
   { id:'v8', giver:'vogt', lvl:11, kind:'armbrust', zone:'wald', need:8, t:'Schützen im Tann', after:'v7',
     d:'Wilderer mit Armbrüsten schießen im Wald auf alles, was sich regt. Acht von ihnen, dann ist Ruhe.' },
   { id:'v9', giver:'vogt', lvl:17, boss:'raubritter', zone:'ruine', need:1, t:'Kunz der Schwarze', after:'v8',
-    d:'Kunz der Schwarze hält die Raubritterburg und lacht über des Kaisers Landfrieden. Reitet hin und macht dem ein Ende.' },
+    d:'Kunz der Schwarze hält die Raubritterburg und lacht über des Königs Landfrieden. Reitet hin und macht dem ein Ende.' },
   { id:'b1', giver:'buerger', lvl:3, kind:'ratte', zone:'dorf', need:8, t:'Pest vor den Toren',
     d:'Aus dem verbrannten Dorf schleppen die Ratten die Pest bis an unsere Mauern. Erschlagt acht von ihnen.' },
   { id:'b2', giver:'buerger', lvl:5, kind:'wieder', zone:'friedhof', need:8, t:'Unruhige Gräber', after:'b1',
@@ -47,8 +47,8 @@ const QUESTS = [
 ];
 const QDEF = Object.fromEntries(QUESTS.map(q => [q.id, q]));
 const NPC_TEXT = {
-  vogt: ['Gott zum Gruße, Ritter. Das Land braucht starke Arme.', 'Ihr seid zurück. Gibt es Neues aus dem Reichsland?', 'Der Kaiser ist fern, aber wir sind hier.'],
-  buerger: ['Willkommen in der Reichsstadt. Wir sind nur dem Kaiser untertan.', 'Die Stadt dankt Euch für jeden Dienst.', 'Handel braucht sichere Wege, Ritter.'],
+  vogt: ['Gott zum Gruße, Ritter. Das Land braucht starke Arme.', 'Ihr seid zurück. Gibt es Neues aus dem Königsland?', 'Der König ist fern, aber wir sind hier.'],
+  buerger: ['Willkommen in der Königsstadt. Wir sind nur dem König untertan.', 'Die Stadt dankt Euch für jeden Dienst.', 'Handel braucht sichere Wege, Ritter.'],
   kraemerin: ['Heiltränke, frisch gebraut! Und ich kaufe, was Ihr da draußen findet.', 'Was darf es sein?'],
   kraemer: ['Gute Ware zu ehrlichen Preisen. Meistens jedenfalls.', 'Zeigt her, was Ihr erbeutet habt.']
 };
@@ -203,7 +203,7 @@ const NPCS = [
   { id:'schmied', name:'Schmied Wolf', role:'Schmied', hub:'stadt', at: gNear(3000, 2372), smith:true,
     greet:['Gebt her, ich schlage Euch das Eisen härter.', 'Gute Klingen brauchen gute Hämmer.', 'Wer bei mir arbeiten lässt, kehrt öfter heim.'] },
   { id:'herold', name:'Herold Kaspar', role:'Turnier', hub:'stadt', at: gNear(wo_TJ.x - 64, wo_TJ.y + 44), joust:true,
-    greet:['Hört, hört! Wer bricht heute eine Lanze vor der Reichsstadt?', 'Ein Ritter zeigt sich im Turnier, nicht nur im Wald.', 'Die Damen auf der Tribüne warten schon, Herr Ritter.'] }
+    greet:['Hört, hört! Wer bricht heute eine Lanze vor der Königsstadt?', 'Ein Ritter zeigt sich im Turnier, nicht nur im Wald.', 'Die Damen auf der Tribüne warten schon, Herr Ritter.'] }
 ];
 NPCS.forEach(n => { n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.id]; n.key = n.id; });
 
@@ -219,22 +219,22 @@ const FARE = [
   { id:'kapaun', kind:'speise', n:'Gebratener Kapaun mit Mandelmus', fx:{ hpPct:18, dmgPct:6 }, base:14, icon:'braten', only:'adler' },
   { id:'forelle', kind:'speise', n:'Gesottene Forelle aus dem Fluss', fx:{ hpPct:12, regen:3 }, base:8, icon:'fisch', only:'krone' },
   { id:'ochsen', kind:'speise', n:'Ochsenbraten nach Art des Hauses', fx:{ hpPct:20 }, base:11, icon:'braten', only:'ochse' },
-  { id:'salm', kind:'speise', n:'Rheinsalm mit Kräutern', fx:{ hpPct:16, regen:3 }, base:12, icon:'fisch', only:'anker' },
+  { id:'salm', kind:'speise', n:'Stromsalm mit Kräutern', fx:{ hpPct:16, regen:3 }, base:12, icon:'fisch', only:'anker' },
   { id:'pfaelzer', kind:'trank', n:'Wein vom Haardtrand', fx:{ spd:9, dmgPct:3 }, base:6, icon:'wein', only:'anker' },
   { id:'knappenbrot', kind:'speise', n:'Bergmannsbrot mit Speck und Zwiebeln', fx:{ hpPct:16, regen:2 }, base:10, icon:'brot', only:'kanne' },
   { id:'forellebach', kind:'speise', n:'Forelle aus dem Silberbach', fx:{ hpPct:14, dmgPct:5 }, base:11, icon:'fisch', only:'kanne' },
-  { id:'bergbier', kind:'trank', n:'Dunkles Bergbier aus Annaberg', fx:{ crit:5, dmgPct:4 }, base:6, icon:'krug', only:'kanne' },
-  { id:'zander', kind:'speise', n:'Zander aus der Elbe mit Petersilie', fx:{ hpPct:15, regen:3 }, base:11, icon:'fisch', only:'schwan' },
-  { id:'torgauer', kind:'trank', n:'Torgauer Bier, wie es Doktor Luther liebt', fx:{ crit:6, regen:2 }, base:6, icon:'krug', only:'schwan' },
-  { id:'rostbrat', kind:'speise', n:'Sechs Nürnberger Rostbratwürste mit Kren', fx:{ hpPct:14, dmgPct:7 }, base:10, icon:'wurst', only:'gloecklein' },
+  { id:'bergbier', kind:'trank', n:'Dunkles Bergbier aus Silberberg', fx:{ crit:5, dmgPct:4 }, base:6, icon:'krug', only:'kanne' },
+  { id:'zander', kind:'speise', n:'Zander aus der Schwane mit Petersilie', fx:{ hpPct:15, regen:3 }, base:11, icon:'fisch', only:'schwan' },
+  { id:'torgauer', kind:'trank', n:'Dunkelbier, wie es Bruder Elias liebt', fx:{ crit:6, regen:2 }, base:6, icon:'krug', only:'schwan' },
+  { id:'rostbrat', kind:'speise', n:'Sechs Burgfeldener Rostbratwürste mit Kren', fx:{ hpPct:14, dmgPct:7 }, base:10, icon:'wurst', only:'gloecklein' },
   { id:'lebkuechner', kind:'speise', n:'Lebkuchen frisch vom Lebküchner', fx:{ hpPct:10, crit:4 }, base:6, icon:'brot', only:'gloecklein' },
-  { id:'huchen', kind:'speise', n:'Huchen aus dem Lech', fx:{ hpPct:16, dmgPct:5 }, base:12, icon:'fisch', only:'lamm' },
-  { id:'weizen', kind:'trank', n:'Weizenbier aus Augsburg', fx:{ spd:8, crit:4 }, base:6, icon:'krug', only:'lamm' },
+  { id:'huchen', kind:'speise', n:'Huchen aus dem Wildbach', fx:{ hpPct:16, dmgPct:5 }, base:12, icon:'fisch', only:'lamm' },
+  { id:'weizen', kind:'trank', n:'Weizenbier aus Goldbrunn', fx:{ spd:8, crit:4 }, base:6, icon:'krug', only:'lamm' },
   { id:'kofent', kind:'trank', n:'Dünnbier (Kofent)', fx:{ crit:2 }, base:1, icon:'krug' },
   { id:'bier', kind:'trank', n:'Bier nach dem Reinheitsgebot von 1516', fx:{ crit:5 }, base:3, icon:'krug' },
-  { id:'wein', kind:'trank', n:'Frankenwein', fx:{ spd:8 }, base:4, icon:'wein' },
+  { id:'wein', kind:'trank', n:'Landwein', fx:{ spd:8 }, base:4, icon:'wein' },
   { id:'met', kind:'trank', n:'Met mit Honig', fx:{ dmgPct:6 }, base:4, icon:'krug' },
-  { id:'malvasier', kind:'trank', n:'Malvasier aus Venedig', fx:{ spd:10, crit:3 }, base:10, icon:'wein', only:'adler' },
+  { id:'malvasier', kind:'trank', n:'Malvasier aus dem Süden', fx:{ spd:10, crit:3 }, base:10, icon:'wein', only:'adler' },
   // nur bei den Festen
   { id:'maiwein', kind:'trank', n:'Maiwein mit Waldmeister', fx:{ crit:4, regen:2 }, base:3, icon:'wein', fest:'mai' },
   { id:'hefezopf', kind:'speise', n:'Hefezopf vom Maifest', fx:{ hpPct:8, regen:2 }, base:3, icon:'brot', fest:'mai' },
@@ -243,7 +243,7 @@ const FARE = [
   { id:'federweisser', kind:'trank', n:'Federweißer vom neuen Wein', fx:{ spd:8, crit:2 }, base:3, icon:'wein', fest:'ernte' },
   { id:'zwiebelkuchen', kind:'speise', n:'Zwiebelkuchen zur Ernte', fx:{ hpPct:12, dmgPct:3 }, base:4, icon:'brot', fest:'ernte' },
   { id:'gluehwein', kind:'trank', n:'Heißer Würzwein (Glühwein)', fx:{ dmgPct:5, regen:2 }, base:3, icon:'wein', fest:'advent' },
-  { id:'lebkuchen', kind:'speise', n:'Nürnberger Lebkuchen', fx:{ hpPct:10, crit:3 }, base:3, icon:'brot', fest:'advent' }
+  { id:'lebkuchen', kind:'speise', n:'Burgfeldener Lebkuchen', fx:{ hpPct:10, crit:3 }, base:3, icon:'brot', fest:'advent' }
 ];
 const FARE_BY = Object.fromEntries(FARE.map(f => [f.id, f]));
 const FARE_MIN = 15;                                  // Minuten Spielzeit, die eine Mahlzeit vorhält
@@ -274,14 +274,14 @@ Object.assign(ICONS, {
 
 /* Leute im Gasthaus */
 const INN_INFO = {
-  adler: { name:'Zum Goldenen Adler', where:'in der Reichsstadt', host:'Wirtin Margarethe', role:'Wirtin', wall:wp_P.ochre, seed:31 },
+  adler: { name:'Zum Goldenen Adler', where:'in der Königsstadt', host:'Wirtin Margarethe', role:'Wirtin', wall:wp_P.ochre, seed:31 },
   krone: { name:'Zur Krone', where:'an der Steinbrücke', host:'Wirt Konrad', role:'Wirt', wall:wp_P.plaster, seed:47 },
   ochse: { name:'Zum Roten Ochsen', where:'am Burgweg', host:'Wirt Bartholomäus', role:'Wirt', wall:wp_P.pink, seed:59 },
-  anker: { name:'Zum Anker', where:'in Speyer am Hafen', host:'Wirt Ruprecht', role:'Wirt', wall:wp_P.ochre, seed:71 },
-  kanne: { name:'Zur Silbernen Kanne', where:'in der Bergstadt Annaberg', host:'Wirtin Walburga', role:'Wirtin', wall:wp_P.plaster, seed:83 },
-  schwan: { name:'Zum Weißen Schwan', where:'in Wittenberg', host:'Wirt Melchior', role:'Wirt', wall:wp_P.ochre, seed:97 },
-  gloecklein: { name:'Zum Bratwurstglöcklein', where:'in Nürnberg', host:'Wirtin Kunigunde', role:'Wirtin', wall:wp_P.pink, seed:101 },
-  lamm: { name:'Zum Weißen Lamm', where:'in Augsburg', host:'Wirt Ulrich', role:'Wirt', wall:wp_P.plaster, seed:109 }
+  anker: { name:'Zum Anker', where:'in Altmünster am Hafen', host:'Wirt Ruprecht', role:'Wirt', wall:wp_P.ochre, seed:71 },
+  kanne: { name:'Zur Silbernen Kanne', where:'in der Bergstadt Silberberg', host:'Wirtin Walburga', role:'Wirtin', wall:wp_P.plaster, seed:83 },
+  schwan: { name:'Zum Weißen Schwan', where:'in Schwanstedt', host:'Wirt Melchior', role:'Wirt', wall:wp_P.ochre, seed:97 },
+  gloecklein: { name:'Zum Bratwurstglöcklein', where:'in Burgfelden', host:'Wirtin Kunigunde', role:'Wirtin', wall:wp_P.pink, seed:101 },
+  lamm: { name:'Zum Weißen Lamm', where:'in Goldbrunn', host:'Wirt Ulrich', role:'Wirt', wall:wp_P.plaster, seed:109 }
 };
 const INN_ART = {
   wirt: np_frames({ robe:'short', apron:'linen', belt:true, beard:true, hairSide:true, hair:['j', 'h'] },
@@ -297,11 +297,11 @@ const INN_ART = {
 };
 const INN_LORE = {
   spielmann: [
-    'Habt Ihr gehört? In Aachen hat man den jungen Karl zum Kaiser gekrönt.',
-    'Im Juni trafen sich der König von England und der König von Frankreich bei Calais, auf einem Feld voller goldener Zelte.',
-    'Aus Wittenberg erzählt man, ein Mönch namens Luther streite mit dem Papst. Das gibt noch Ärger, sag ich Euch.',
-    'Die Fugger in Augsburg haben die Kaiserwahl bezahlt. Gold öffnet jede Tür, auch die der Kurfürsten.',
-    'Ein Portugiese namens Magellan segelt für Spanien nach Westen, um die Welt herum, heißt es.',
+    'Habt Ihr gehört? In der Krönungsstadt hat man den jungen Albrecht zum König gekrönt.',
+    'Im Juni trafen sich die Häupter der vier großen Häuser auf einem Feld voller goldener Zelte. Ein Turnier jagte das andere.',
+    'Aus Schwanstedt erzählt man, ein Mönch namens Elias streite mit dem Heiligen Vater. Das gibt noch Ärger, sag ich Euch.',
+    'Die Goldmanns in Goldbrunn haben die Königswahl bezahlt. Gold öffnet jede Tür, auch die der Fürsten.',
+    'Ein Seefahrer aus dem Westen will um die ganze Welt segeln, heißt es. Ob er je wiederkommt?',
     'Wer in die Raubritterburg will, sollte vorher hier gut essen. Mit leerem Magen kämpft es sich schlecht.'
   ],
   bauer: [
@@ -309,7 +309,7 @@ const INN_LORE = {
     'Auf dem alten Schlachtfeld geht der Tod um. Ohne Heiltränke geht da keiner hin.',
     'Im Moor haust der Lindwurm. Sein Feuer brennt durch jede Rüstung.',
     'Kunz der Schwarze lacht über jeden Ritter unter Stufe 17. Glaubt es mir.',
-    'Die Würste hier sind die besten im ganzen Reichsland. Esst eine, dann schlagt Ihr kräftiger zu.'
+    'Die Würste hier sind die besten im ganzen Königsland. Esst eine, dann schlagt Ihr kräftiger zu.'
   ]
 };
 
@@ -319,7 +319,7 @@ const INNS = Object.entries(wo_INNP).map(([id, p]) => {
   return Object.assign({ id, x: p.x * WS, y: p.y * WS, dx: p.door * WS, dy: p.y * WS + 12, top: pr ? pr.y - pr.ay : p.y * WS - 200 }, INN_INFO[id]);
 });
 const INN_BY = Object.fromEntries(INNS.map(i => [i.id, i]));
-const HUB_IN = { burg:'in der Reichsburg', stadt:'in der Reichsstadt', speyer:'in Speyer', annaberg:'in der Bergstadt Annaberg', wittenberg:'in Wittenberg', nuernberg:'in Nürnberg', augsburg:'in Augsburg' };
+const HUB_IN = { burg:'in der Königsburg', stadt:'in der Königsstadt', speyer:'in Altmünster', annaberg:'in der Bergstadt Silberberg', wittenberg:'in Schwanstedt', nuernberg:'in Burgfelden', augsburg:'in Goldbrunn' };
 for (const inn of INNS){
   BIND[inn.id] = { x: inn.dx, y: inn.dy + 2 };
   HUB_NAME[inn.id] = 'Gasthaus ' + inn.name;
@@ -454,7 +454,7 @@ function innRoom(inn){
     { id:'spielmann', key:'spielmann_' + inn.id, name:'Spielmann Veit', role:'Spielmann', x: 480, y: 168, art: INN_ART.spielmann, lore: INN_LORE.spielmann },
     { id:'bauer', key:'bauer_' + inn.id, name:'Bauer Hinz', role:'Gast', x: 112, y: 247, art: INN_ART.bauer, lore: INN_LORE.bauer },
     { id:'landsknecht', key:'landsknecht_' + inn.id, name:'Landsknecht Utz', role:'Würfelspieler', x: 760, y: 371, art: INN_ART.landsknecht, dice: true,
-      greet:['Lust auf ein Spielchen, Herr Ritter? Drei Würfel, ehrliche Würfel.', 'Bei Marignano hab ich meinen Sold verspielt. Heute hol ich ihn mir wieder.', 'Wer nicht wagt, der nicht gewinnt. Setzt Ihr?'] }
+      greet:['Lust auf ein Spielchen, Herr Ritter? Drei Würfel, ehrliche Würfel.', 'Im letzten Feldzug hab ich meinen Sold verspielt. Heute hol ich ihn mir wieder.', 'Wer nicht wagt, der nicht gewinnt. Setzt Ihr?'] }
   ];
   innMore(inn, npcs);   // Mühle, Einunddreißig, Kegeln, Ringen (Teil 25)
   return (inn.room = { bg, light, items, rects, npcs, candles, fire: { x: kx, y: FL + 8 } });

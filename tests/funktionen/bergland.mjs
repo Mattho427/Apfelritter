@@ -1,4 +1,4 @@
-// Bergland: Annaberg (Leute, Gasthaus, Kirche, Rast), Aufträge des Bergmeisters, neue Gebiete und Gegner
+// Bergland: Silberberg (Leute, Gasthaus, Kirche, Rast), Aufträge des Bergmeisters, neue Gebiete und Gegner
 import { chromium, OUT, PAGE } from '../pfad.mjs';
 const b = await chromium.launch(), p = await (await b.newContext({ viewport: { width: 1400, height: 860 } })).newPage(), errs = [];
 p.on('pageerror', e => errs.push(e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' ')));
@@ -17,8 +17,8 @@ await T('Kirche St. Annen', () => { const c = CH_BY.annenkirche; return c && { n
 await T('Leute', () => NPCS.filter(n => n.hub === 'annaberg').map(n => n.id + ':' + gZone(n.x, n.y).id), r => r.length >= 5 && r.some(x => x.startsWith('fuhrmann_an:')) && r.every(x => x.endsWith(':annaberg')));
 // zum Bergmeister gehen, Aufträge ansehen, annehmen, rasten
 await T('Bergmeister', () => { const n = NPCS.find(q => q.id === 'bergmeister'), k = G.knight; k.x = n.x; k.y = n.y + 24; updateZone(true); openTalk(n); return [...$('talkBody').querySelectorAll('button')].map(x => x.textContent); },
-  r => r.some(t => /Wölfe im Schwarzwald/.test(t)) && r.some(t => /Hier rasten/.test(t)) && r.some(t => /Kopfgeld: Der Schwarzwald/.test(t)));
-await T('Auftrag annehmen', () => { [...$('talkBody').querySelectorAll('button')].find(x => /Wölfe im Schwarzwald/.test(x.textContent)).click(); $('talkBody').querySelector('button.btn').click(); return HERO.quests.map(q => q.id); }, r => r.includes('g1'));
+  r => r.some(t => /Wölfe im Schwarztann/.test(t)) && r.some(t => /Hier rasten/.test(t)) && r.some(t => /Kopfgeld: Der Schwarztann/.test(t)));
+await T('Auftrag annehmen', () => { [...$('talkBody').querySelectorAll('button')].find(x => /Wölfe im Schwarztann/.test(x.textContent)).click(); $('talkBody').querySelector('button.btn').click(); return HERO.quests.map(q => q.id); }, r => r.includes('g1'));
 await T('Rasten', () => { [...$('talkBody').querySelectorAll('button')].find(x => /Hier rasten/.test(x.textContent)).click(); return HERO.bind; }, r => r === 'annaberg');
 await T('Kirche betreten', () => { closePanel(); const c = CH_BY.annenkirche, k = G.knight; k.x = c.dx; k.y = c.y + 14; k.dir = 'up'; updateNear(true); talk(); return G.inside && G.inside.id; }, r => r === 'annenkirche');
 await T('Gasthaus betreten', () => { leaveInn(); const i = INN_BY.kanne, k = G.knight; k.x = i.dx; k.y = i.dy; updateNear(true); talk(); return G.inside && G.inside.id; }, r => r === 'kanne');

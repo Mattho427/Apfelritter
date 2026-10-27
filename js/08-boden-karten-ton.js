@@ -1042,11 +1042,11 @@ const FULLMAP = (() => {
 })();
 const MAP_LABELS = ZONES.map(z => ({ x: z.label.x, y: z.label.y, name: z.name })).concat([
   { x: 2470, y: 1640, name: 'Mühle' }, { x: 620, y: 1160, name: 'Köhlerei' }, { x: 1360, y: 2640, name: 'Kloster' }, { x: 2966, y: 1810, name: 'Steinbrücke' },
-  { x: 5300, y: 1000, name: 'Kaiserdom' }, { x: 5230, y: 1780, name: 'Hafen' }, { x: 5000, y: 1830, name: 'Schiffbrücke' }, { x: 5900, y: 1630, name: 'Zollturm' }, { x: 5300, y: 250, name: 'Wallfahrtskapelle' },
+  { x: 5300, y: 1000, name: 'Dom' }, { x: 5230, y: 1780, name: 'Hafen' }, { x: 5000, y: 1830, name: 'Schiffbrücke' }, { x: 5900, y: 1630, name: 'Zollturm' }, { x: 5300, y: 250, name: 'Wallfahrtskapelle' },
   { x: 1700, y: 4010, name: 'Silberbach' }, { x: 4960, y: 4100, name: 'Quellsee' }, { x: 520, y: 4300, name: 'Teufelsschlucht' }, { x: 940, y: 3520, name: 'Räuberlager' },
   { x: 2300, y: 4470, name: 'Altenberg-Stollen' }, { x: 5720, y: 4200, name: 'Rübezahls Thron' }, { x: 5180, y: 3800, name: 'Almhütte' },
-  { x: 8620, y: 1170, name: 'Hünengrab' }, { x: 6560, y: 1590, name: 'Der Main' }, { x: 8740, y: 960, name: 'Die Elbe' }, { x: 8480, y: 2610, name: 'Zeidlerhof' }, { x: 6990, y: 2110, name: 'Knoblauchsland' },
-  { x: 7620, y: 3000, name: 'Donaulände' }, { x: 6380, y: 2980, name: 'Donauquelle' }, { x: 8700, y: 3220, name: 'Die Donau' }, { x: 7720, y: 4530, name: 'Ungarnstein' }
+  { x: 8620, y: 1170, name: 'Hünengrab' }, { x: 6560, y: 1590, name: 'Der Furtbach' }, { x: 8740, y: 960, name: 'Die Schwane' }, { x: 8480, y: 2610, name: 'Zeidlerhof' }, { x: 6990, y: 2110, name: 'Krautland' },
+  { x: 7620, y: 3000, name: 'Lände an der Silberach' }, { x: 6380, y: 2980, name: 'Silberachquelle' }, { x: 8700, y: 3220, name: 'Die Silberach' }, { x: 7720, y: 4530, name: 'Heidenstein' }
 ]);
 
 /* Startbereich vorbereiten, damit das erste Bild nicht stockt */
