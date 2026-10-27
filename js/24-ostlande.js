@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 24 von 27: Die Ostlande: Schwanstedt, Burgfelden und Goldbrunn, ihre Leute, Aufträge, der Fuhrmann, die Thesen.
+/* Der Apfelritter, Teil 24 von 28: Die Ostlande: Schwanstedt, Burgfelden und Goldbrunn, ihre Leute, Aufträge, der Fuhrmann, die Thesen.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Die Ostlande (Version 26) ============

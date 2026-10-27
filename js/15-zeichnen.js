@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 15 von 27: Zeichnen des Spielbilds.
+/* Der Apfelritter, Teil 15 von 28: Zeichnen des Spielbilds.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Zeichnen ============ */
 function shadow(x, y, w, a){

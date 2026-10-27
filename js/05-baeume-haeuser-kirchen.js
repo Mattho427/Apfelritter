@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 5 von 27: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
+/* Der Apfelritter, Teil 5 von 28: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Bäume ============ */
 wp_P.sbark = wp_rmp(['#1d1613', '#2e241e', '#40322a', '#544237', '#685446']);                  // Fichtenrinde
@@ -2218,8 +2218,16 @@ const wp_K = {
   // Ostlande
   kiefer: [(s, v) => wp_tKiefer(s), 6], wacholder: [(s, v) => wp_tWacholder(s), 4], schlosskirche: [(s, v) => wp_bSchlosskirche(s, v), 1], schoenerbrunnen: [(s, v) => wp_kSchoenerBrunnen(s), 1],
   fuggerhaus: [(s, v) => wp_bFuggerhaus(s, v), 3], perlach: [(s, v) => wp_bPerlach(s), 1], bienenstand: [(s, v) => wp_kBienenstand(s), 2], frauenkirche: [(s, v) => wp_bFrauenkirche(s), 1],
-  lilienbanner: [(s, v) => wp_kLilien(s), 1], scheibe: [(s, v) => wp_kScheibe(s), 1]
+  lilienbanner: [(s, v) => wp_kLilien(s), 1], scheibe: [(s, v) => wp_kScheibe(s), 1],
+  // Burgen der vier Häuser (Version 31)
+  lilienbeet: [(s, v) => wp_kLilienbeet(s, v), 3]
 };
+for (const [key, fid] of [['adler', 'reich'], ['lilie', 'frankreich'], ['loewe', 'england'], ['turm', 'spanien']]) Object.assign(wp_K, {
+  [key + '_mauer']: [(s, v) => wp_house(fid, () => wp_cMauer(s, v)), 3], [key + '_turm']: [(s, v) => wp_house(fid, () => wp_cTurm(s, v)), 2],
+  [key + '_vturm']: [(s, v) => wp_house(fid, () => wp_cVTurm(s, v)), 2], [key + '_tor']: [(s, v) => wp_house(fid, () => wp_cTor(s)), 1],
+  [key + '_bergfried']: [(s, v) => wp_house(fid, () => wp_cBergfried(s)), 1], [key + '_banner']: [(s, v) => wp_house(fid, () => wp_kBanner(s)), 2],
+  [key + '_palas']: [(s, v) => wp_house(fid, () => wp_bStadthaus(s, v)), 4], [key + '_kapelle']: [(s, v) => wp_house(fid, () => wp_bKapelle(s, v)), 2]
+});
 const WP_KINDS = Object.keys(wp_K);
 /* Bilder je Jahreszeit: Bäume in allen vier, alles andere im Sommer- und im Winterbild */
 const SEA_TREE = { apfelbaum: 1, eiche: 1, buche: 1, birke: 1, weide: 1, busch: 1, fichte: 1, toter_baum: 1, rebzeile: 1 };

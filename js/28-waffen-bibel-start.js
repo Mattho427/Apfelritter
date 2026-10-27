@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 27 von 27: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
+/* Der Apfelritter, Teil 28 von 28: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Waffenarten im Kampf: Bolzen, Fähigkeiten je Waffe, Zeugmeister ============
    Die Armbrust schießt statt zu hauen; jeder Schuss zählt wie ein Hieb (sw), Mitspieler erzeugen den Bolzen daraus selbst und

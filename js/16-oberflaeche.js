@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 27: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 28: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -524,6 +524,7 @@ function renderBuffs(){
     box.append(chip);
   }
   chBuffs(box);
+  hbBuffs(box);
   asBuffs(box);
 }
 const cdShown = {};
@@ -821,6 +822,7 @@ function renderTalk0(view){
     ostTalkOpts(n, opts);
     fsTalkOpts(n, opts);
     rrTalkOpts(n, opts);
+    hbTalkOpts(n, opts);
     opts.append(btn(n.rrWache ? 'Weggehen' : 'Lebt wohl', closePanel, 'opt'));
     body.append(opts);
   } else if (view.q){
@@ -896,6 +898,8 @@ function renderTalk0(view){
     fsView(view, body, opts);
   } else if (typeof view === 'string' && /^rr[A-Z]/.test(view)){
     rrView(view, body, opts);
+  } else if (typeof view === 'string' && /^hb[A-Z]/.test(view)){
+    hbView(view, body, opts);
   } else if (view === 'joust'){
     $('talkText').textContent = 'Drei Durchgänge an der Schranke, ich stelle Euch Turnierpferd und Lanze. Kurz vor dem Zusammenprall wandert Euer Ziel über den Gegner: Senkt die Lanze mit dem Hieb, wenn es auf Helm oder Schild steht. '
       + 'Der Helm zählt zwei Punkte, der Schild einen. Wer aus dem Sattel fällt, hat verloren. Ihr habt ' + HERO.gold + ' Gulden.';

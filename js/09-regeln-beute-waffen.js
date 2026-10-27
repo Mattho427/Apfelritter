@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 9 von 27: Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole.
+/* Der Apfelritter, Teil 9 von 28: Regeln, Beute, Kleine Bibel, Waffenarten, Pixelschrift, Symbole.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielwelt in Feinpixeln: Spielkoordinaten = Weltpixel × WS ============ */
 const GW = WW * WS, GH = WH * WS;
@@ -65,7 +65,8 @@ const ZONE_LV = { obstgarten:[1, 3], fluss:[2, 4], dorf:[3, 6], friedhof:[5, 8],
   weinberge:[15, 18], auwald:[16, 19], piratennest:[18, 21],
   schwarzwald:[19, 22], silberrevier:[21, 24], schanze:[23, 26], hochgebirge:[26, 30],
   heide:[10, 14], reichswald:[14, 18], gailingen:[18, 22], donauried:[22, 26], lechfeld:[27, 30] };
-const SAFE = { burg:true, stadt:true, weiler:true, speyer:true, fischerdorf:true, annaberg:true, wittenberg:true, nuernberg:true, augsburg:true };
+const SAFE = { burg:true, stadt:true, weiler:true, speyer:true, fischerdorf:true, annaberg:true, wittenberg:true, nuernberg:true, augsburg:true,
+  adlerhorst:true, lilienthal:true, loewenburg:true, turmfeste:true };
 const ZONE_MOBS = {
   obstgarten:['wieder', 'pluend'], fluss:['ratte', 'moor'], dorf:['ratte', 'pluend'], friedhof:['wieder', 'rabe'],
   lager:['pluend', 'armbrust'], galgen:['rabe', 'wieder'], wald:['werwolf', 'armbrust', 'rabe'],
@@ -105,7 +106,11 @@ const ZONE_INFO = {
   gailingen:'Die Raubburg des Eppelein von Rabeneck auf ihrem Felsen. Seine Reisigen überfallen die Burgfeldener Kaufleute auf der Straße nach Norden.',
   donauried:'Schilf, Tümpel und Nebel an der jungen Silberach. Riesenkrebse im Schlamm, Moorleichen und Irrwische, und im Fluss singt das Riedweibchen.',
   augsburg:'Die reiche Kaufmannsstadt am Wildbach: die Häuser der Goldmanns, der Stadtturm und die Stiftsgasse, in der die Armen für einen Gulden im Jahr wohnen. Hier seid Ihr sicher.',
-  lechfeld:'Die weite Ebene südlich von Goldbrunn, auf der vor vielen hundert Jahren ein Reiterheer aus der Steppe geschlagen wurde. Nachts reiten seine Geister wieder.'
+  lechfeld:'Die weite Ebene südlich von Goldbrunn, auf der vor vielen hundert Jahren ein Reiterheer aus der Steppe geschlagen wurde. Nachts reiten seine Geister wieder.',
+  adlerhorst:'Die Burg des Hauses vom Adler auf ihrem Felsen zwischen der Raubritterburg und den Weinbergen. Herzogin Mechthild hält hier Hof, rote Adler wehen auf goldenem Grund. Hier seid Ihr sicher.',
+  lilienthal:'Das weiße Schloss des Hauses der Lilie mit grünen Kupferdächern, Lilienbeeten und einem Garten vor dem Tor, südlich des Klosters. Graf Amaury empfängt hier seine Ritter. Hier seid Ihr sicher.',
+  loewenburg:'Die Backsteinburg des Hauses der Löwen auf einer Lichtung im Finsterwald, im Westen an der Grenze des Königreichs. Fürst Edwin übt hier seine Ritter. Hier seid Ihr sicher.',
+  turmfeste:'Die dunkle Festung des Hauses der Türme auf einem Hügel an der Hohen Straße, wo sie aus dem Königsland in die Heide der Ostlande führt, Turm an Turm. Markgraf Rodrigo bewacht von hier die Grenze. Hier seid Ihr sicher.'
 };
 const zoneLvText = id => ZONE_LV[id] ? 'Stufe ' + ZONE_LV[id][0] + '–' + ZONE_LV[id][1] : SAFE[id] ? 'sicher' : '';
 
@@ -206,8 +211,9 @@ const BOSS_MINION = { raubritter:'pluend', lindwurm:'moor', tod:'wieder', rotbar
   hackelberg:'wolf', eppelein:'reisiger', donauweibchen:'riesenkrebs', bulcsu:'geisterreiter' };
 const BIND = { burg: gNear(1900, 456), stadt: gNear(2972, 2380), speyer: gNear(5060, 1420) };
 const HUB_NAME = { burg:'Königsburg', stadt:'Königsstadt', weiler:'Dorf Lindach', speyer:'Domstadt Altmünster', fischerdorf:'Fischerdorf Weidenau', annaberg:'Bergstadt Silberberg',
-  wittenberg:'Schwanstedt', nuernberg:'Handelsstadt Burgfelden', augsburg:'Kaufmannsstadt Goldbrunn' };
-const hubArt = z => z === 'weiler' || z === 'fischerdorf' ? 'das ' : z === 'wittenberg' ? '' : 'die ';   // Artikel vor dem Ortsnamen
+  wittenberg:'Schwanstedt', nuernberg:'Handelsstadt Burgfelden', augsburg:'Kaufmannsstadt Goldbrunn',
+  adlerhorst:'Adlerhorst', lilienthal:'Schloss Lilienthal', loewenburg:'Löwenburg', turmfeste:'Turmfeste' };
+const hubArt = z => z === 'weiler' || z === 'fischerdorf' ? 'das ' : z === 'wittenberg' || z === 'lilienthal' ? '' : z === 'adlerhorst' ? 'den ' : 'die ';   // Artikel vor dem Ortsnamen
 
 /* ============ Beute: Seltenheit, Grundformen, Zusätze ============ */
 const RARITY = [

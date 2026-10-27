@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 20 von 27: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Altmünster und Fluss.
+/* Der Apfelritter, Teil 20 von 28: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Altmünster und Fluss.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Mehrspieler über die Zeit: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus ============
    Jeder Ritter schreibt nur in sein eigenes Dokument der Ruhmeshalle (heroes/<id>), alle anderen lesen es mit.
@@ -209,8 +209,9 @@ function ohGive(n){
   Sound.coin(); logLine('Ihr spendet ' + n + ' Gulden für das Ordenshaus des „' + HERO.or.nm + '“.', '#ffd98a');
   updateHud(); markDirty(true); fameNow(); asTick();
 }
-const asXpBonus = () => (ASV.glory ? .05 : 0) + (ASV.ord >= 2 ? .05 : 0);
-const asGoldBonus = () => (ASV.glory ? .05 : 0) + (ASV.ord >= 1 ? .05 : 0);
+const asGunst = () => HERO && HERO.gunst && HERO.gunst.t > 0 ? .1 : 0;   // Gunst des Hauses (Teil 27)
+const asXpBonus = () => (ASV.glory ? .05 : 0) + (ASV.ord >= 2 ? .05 : 0) + asGunst();
+const asGoldBonus = () => (ASV.glory ? .05 : 0) + (ASV.ord >= 1 ? .05 : 0) + asGunst();
 
 /* ---------- Abgleich: Zustellung, Auszahlung, Kaufentscheid, Hinweise ---------- */
 function asTick(fromSub){

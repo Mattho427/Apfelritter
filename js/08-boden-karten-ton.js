@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 8 von 27: Boden, Karten, Ton und Musik.
+/* Der Apfelritter, Teil 8 von 28: Boden, Karten, Ton und Musik.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Boden ============ */
 /* Paletten je Bodenart: 4 Kanäle zu je 12 Tönen (dunkel..hell) */
@@ -20,7 +20,8 @@ const wo_PAL = [
 ].map(chs => chs.map(k => wo_ramp(k, 12)));
 const wo_ZB = ZONES.map(z => ({ obstgarten: 0, burg: 0, stadt: 0, dorf: 6, wald: 1, moor: 2, friedhof: 5, galgen: 3, schlachtfeld: 4, lager: 0, ruine: 3, fluss: 0, weiler: 6, speyer: 0, fischerdorf: 6, weinberge: 6, auwald: 1, piratennest: 7,
   schwarzwald: 1, annaberg: 0, silberrevier: 3, schanze: 7, hochgebirge: 9,
-  wittenberg: 6, heide: 11, nuernberg: 6, reichswald: 12, gailingen: 3, donauried: 2, augsburg: 6, lechfeld: 3 })[z.id]);
+  wittenberg: 6, heide: 11, nuernberg: 6, reichswald: 12, gailingen: 3, donauried: 2, augsburg: 6, lechfeld: 3,
+  adlerhorst: 0, lilienthal: 0, loewenburg: 0, turmfeste: 3 })[z.id]);
 
 /* Bodentexturen 256 × 256 Feinpixel (Periode 128 Weltpixel): Kanal << 4 | Ton */
 function wo_tex(kind, seed){
@@ -923,14 +924,15 @@ function wo_mapClass(x, y){
   return ZONES[wo_zid(x, y)].id;
 }
 const wo_TREEK = { eiche: 1, buche: 1, fichte: 1, schneefichte: 1, birke: 1, weide: 1, apfelbaum: 1, toter_baum: 1, kiefer: 1 };
-const wo_BUILDK = { dom: 1, kran: 1, gasthaus_anker: 1, fachwerkhaus: 1, fachwerkhaus_ruine: 1, stadthaus: 1, kirche: 1, kapelle: 1, kloster: 1, muehle: 1, burg_mauer: 1, burg_turm: 1, burg_tor: 1, bergfried: 1, stadt_mauer: 1, stadt_turm: 1, stadt_tor: 1, ruine_mauer: 1, ruine_turm: 1, mauer: 1, zelt: 1, tribuene: 1, gasthaus_kanne: 1, schlosskirche: 1, frauenkirche: 1, fuggerhaus: 1, perlach: 1, gasthaus_schwan: 1, gasthaus_gloecklein: 1, gasthaus_lamm: 1, gasthaus_adler: 1, gasthaus_krone: 1, gasthaus_ochse: 1, goepel: 1 };
+const wo_BUILDK = { dom: 1, kran: 1, gasthaus_anker: 1, fachwerkhaus: 1, fachwerkhaus_ruine: 1, stadthaus: 1, kirche: 1, kapelle: 1, kloster: 1, muehle: 1, burg_mauer: 1, burg_turm: 1, burg_tor: 1, bergfried: 1, stadt_mauer: 1, stadt_turm: 1, stadt_tor: 1, ruine_mauer: 1, ruine_turm: 1, mauer: 1, zelt: 1, tribuene: 1, gasthaus_kanne: 1, schlosskirche: 1, frauenkirche: 1, fuggerhaus: 1, perlach: 1, gasthaus_schwan: 1, gasthaus_gloecklein: 1, gasthaus_lamm: 1, gasthaus_adler: 1, gasthaus_krone: 1, gasthaus_ochse: 1, goepel: 1 , adler_mauer: 1, adler_turm: 1, adler_vturm: 1, adler_tor: 1, adler_bergfried: 1, lilie_mauer: 1, lilie_turm: 1, lilie_vturm: 1, lilie_tor: 1, lilie_bergfried: 1, loewe_mauer: 1, loewe_turm: 1, loewe_vturm: 1, loewe_tor: 1, loewe_bergfried: 1, turm_mauer: 1, turm_turm: 1, turm_vturm: 1, turm_tor: 1, turm_bergfried: 1, adler_palas: 1, adler_kapelle: 1, lilie_palas: 1, lilie_kapelle: 1, loewe_palas: 1, loewe_kapelle: 1, turm_palas: 1, turm_kapelle: 1 };
 const MINIMAP = (() => {
   const MW = WW >> 5, MH = WH >> 5, c = canvasOf(MW, MH), g = c.getContext('2d'), id = g.createImageData(MW, MH), D = new Uint32Array(id.data.buffer);
   const col = { w: '#3c5560', b: '#8a7458', r: '#8a7450', p: '#7a7468', obstgarten: '#5c6a3c', burg: '#5f6840', stadt: '#6a6448', dorf: '#6e6a40', wald: '#2c3a22', moor: '#41452f',
     friedhof: '#46523a', galgen: '#6e6646', schlachtfeld: '#5a4c34', lager: '#66603e', ruine: '#605c4a', fluss: '#566a40', weiler: '#6e6a40',
     speyer: '#6a6448', fischerdorf: '#66684a', weinberge: '#5e6a36', auwald: '#33442a', piratennest: '#5e5440',
     schwarzwald: '#1f2c1a', annaberg: '#6a6448', silberrevier: '#625c4a', schanze: '#5e5640', hochgebirge: '#76767a',
-    wittenberg: '#6a6448', heide: '#6a5a4a', nuernberg: '#6a6448', reichswald: '#2e3420', gailingen: '#625c4a', donauried: '#45492f', augsburg: '#6a6448', lechfeld: '#6e6a48' };
+    wittenberg: '#6a6448', heide: '#6a5a4a', nuernberg: '#6a6448', reichswald: '#2e3420', gailingen: '#625c4a', donauried: '#45492f', augsburg: '#6a6448', lechfeld: '#6e6a48',
+    adlerhorst: '#6a6448', lilienthal: '#6a6448', loewenburg: '#6a6448', turmfeste: '#6a6448' };
   for (let j = 0; j < MH; j++) for (let i = 0; i < MW; i++){
     let k = wo_mapClass(i * 32 + 16, j * 32 + 16);
     let w = 0; for (const [dx, dy] of [[6, 6], [26, 6], [6, 26], [26, 26]]) if (wo_wsd(i * 32 + dx, j * 32 + dy) < 0) w++;

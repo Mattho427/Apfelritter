@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 18 von 27: Weltereignisse, Ritterorden, Großes Turnier, Start.
+/* Der Apfelritter, Teil 18 von 28: Weltereignisse, Ritterorden, Großes Turnier, Start.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltereignisse: für alle Ritter zur selben Stunde ============
    Die Uhr der Welt bestimmt, wann etwas geschieht: um 9 Uhr überfallen Raubritter das Dorf Lindach, um 22 Uhr zieht

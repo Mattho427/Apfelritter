@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 6 von 27: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
+/* Der Apfelritter, Teil 6 von 28: Weltgrafiken Teil 2: Burg, Stadtmauer, Ruine, Kleinteile.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltgrafiken, Teil 2: Burg, Stadtmauer, Ruine, Kleinteile ============ */
 /* Licht von links: lx = -1 (Kante links) .. 1 (rechts) */
@@ -51,14 +51,16 @@ const wp_xSlit = (B, x, y, h) => {
   for (let j = -1; j <= h; j++){ wp_dk(B, x - 1, y + j, 1.14); wp_dk(B, x + 1, y + j, .78); }
   wp_rect(B, x, y, x + 1, y + h, wp_P.dark[0]); wp_rect(B, x - 1, m, x + 2, m + 1, wp_P.dark[0]);
 };
+/* Fahnentuch: Königsfahne (Gold mit Adler) oder, beim Malen einer Hausburg, Tuch und Wappentier des Hauses */
 function wp_xFlagCloth(B, x, y, w, h, s){
+  const H = wp_HST, R = H ? H.cloth : wp_P.gold;
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++){
     const wave = Math.round(Math.sin(i * .35 + s) * 1.2), X = x + i, Y = y + j + wave;
     const t = .62 + Math.sin(i * .35 + s + 1.2) * .2 - j / h * .1 + (i === w - 1 && j % 4 === 0 ? -.4 : 0);
     if (i > w - 3 && (j % 5 === 2)) continue;
-    wp_set(B, X, Y, wp_tone(wp_P.gold, t, X, Y));
+    wp_set(B, X, Y, wp_tone(R, t, X, Y));
   }
-  wp_eagle(B, x + (w >> 1) - 7, y + (h >> 1) - 6, 'm');
+  if (H) wp_arms(B, x + w / 2, y + h / 2, H); else wp_eagle(B, x + (w >> 1) - 7, y + (h >> 1) - 6, 'm');
 }
 
 /* ---------- Königsburg ---------- */
@@ -112,9 +114,9 @@ function wp_cTor(s){
   wp_rect(B, ax0 + 2, ay - ah - 2, ax0 + aw - 2, ay - ah - 1, wp_P.iron[1]);
   // Bogenkeilsteine
   for (let k = 0; k <= 12; k++){ const a = Math.PI * (k / 12), x = cx - Math.cos(a) * (aw / 2 + 2), y = ay - ah - Math.sin(a) * 10; wp_rect(B, x - 1, y - 2, x + 2, y + 1, wp_tone(wp_P.stone, k % 2 ? .75 : .55, x | 0, y | 0)); }
-  // Königswappen über dem Tor
-  wp_rect(B, cx - 10, top - 26, cx + 10, top - 6, (x, y) => wp_tone(wp_P.gold, .55 - (x - cx) * .02 + (y === top - 26 ? .3 : 0), x, y));
-  wp_eagle(B, cx - 7, top - 22, 'm');
+  // Wappen über dem Tor: der Königsadler oder das Wappentier des Hauses
+  wp_rect(B, cx - 10, top - 26, cx + 10, top - 6, (x, y) => wp_tone(wp_HST ? wp_HST.cloth : wp_P.gold, .55 - (x - cx) * .02 + (y === top - 26 ? .3 : 0), x, y));
+  if (wp_HST) wp_arms(B, cx, top - 16, wp_HST); else wp_eagle(B, cx - 7, top - 22, 'm');
   wp_xSlit(B, 8, top + 14, 9); wp_xSlit(B, 95, top + 14, 9); wp_xSlit(B, cx - 20, top - 22, 6); wp_xSlit(B, cx + 20, top - 22, 6);
   wp_shade(B, 0, ay - 3, 104, ay, .25);
   wp_outline(B, true);
@@ -144,6 +146,72 @@ function wp_cBergfried(s){
   wp_shade(B, x0, ay - 3, x1, ay, .25);
   wp_outline(B, true);
   return { img: wp_canvas(B), ax: cx, ay, foot: [[-46, -46, 46, 2]], occl: [-48, -174, 48, -44], extra: {} };
+}
+
+/* ---------- Burgen der vier Häuser (Version 31): Bauteile der Königsburg in Stein, Dach und Fahne des Hauses ----------
+   wp_house(fid, fn) malt fn mit dem Stein (wp_P.stone), den Dächern (wp_P.slate, wp_P.tile) und dem Fahnentuch des Hauses. */
+const wp_HS = {
+  reich:      { stone: wp_rmp(['#3a2e1e', '#57452c', '#75603c', '#937b4e', '#ad9462', '#c4ab78']), roof: wp_P.tile,
+                cloth: wp_P.gold, art: kn_EAGLE9 },
+  frankreich: { stone: wp_rmp(['#4a4a46', '#6a6a64', '#8a8a82', '#a8a79e', '#c4c2b8', '#dcdad0']), roof: wp_rmp(['#1a3530', '#24493f', '#30604f', '#3e7660', '#4f8c72', '#64a286']),
+                cloth: wp_rmp(['#10301a', '#184426', '#215a32', '#2c723f', '#3a8a4e', '#4ea062']), art: kn_LILY9 },
+  england:    { stone: wp_rmp(['#2e140f', '#4a2016', '#66301f', '#7e3f29', '#955035', '#a86244']), roof: wp_rmp(['#24130f', '#3a1d16', '#4e271c', '#603226', '#723e30', '#844b3b']),
+                cloth: wp_rmp(['#3a0c0c', '#5a1414', '#7a1e1a', '#982a22', '#b23a2e', '#c85040']), art: kn_LION9, flat: true },
+  spanien:    { stone: wp_rmp(['#141518', '#1f2125', '#2c2e33', '#3a3d43', '#4a4e55', '#5c6068']), roof: wp_P.slate,
+                cloth: wp_rmp(['#121216', '#1c1c22', '#26262e', '#30303a', '#3c3c48', '#4a4a56']), art: kn_TOWER_C, tall: true }
+};
+/* Farben der Wappentiere (Zeichen wie beim Ritter): Gold 1–4, Rot 5–8, Silber S s T t */
+const wp_ARMPAL = { 1: wp_c('#6f4a12'), 2: wp_c('#b07c1c'), 3: wp_c('#dfae2e'), 4: wp_c('#f2d256'), 5: wp_c('#4e0c0e'), 6: wp_c('#8e1c1c'), 7: wp_c('#b8302a'), 8: wp_c('#d85448'),
+  S: wp_c('#7e7a70'), s: wp_c('#aeaa9c'), T: wp_c('#d8d4c6'), t: wp_c('#f6f2e6'), O: wp_c('#16301c') };
+let wp_HST = null;   // Haus, für das gerade gemalt wird
+function wp_house(fid, fn){
+  const keep = { stone: wp_P.stone, slate: wp_P.slate, tile: wp_P.tile }, h0 = wp_HST, H = wp_HS[fid];
+  wp_P.stone = H.stone; wp_P.slate = H.roof; wp_P.tile = H.roof; wp_HST = H;
+  try { return fn(); } finally { Object.assign(wp_P, keep); wp_HST = h0; }
+}
+/* Wappentier in Feinpixeln, je Bildpunkt anderthalb Weltpunkte, mittig um (cx, cy) */
+function wp_arms(B, cx, cy, H){
+  const A = H.art, S = B.S, k = Math.max(1, Math.round(1.5 * S)), w = A[0].length * k, h = A.length * k;
+  const X0 = Math.round(cx * S - w / 2), Y0 = Math.round(cy * S - h / 2);
+  A.forEach((r, j) => { for (let i = 0; i < r.length; i++){ const c = wp_ARMPAL[r[i]]; if (!c) continue; for (let b = 0; b < k; b++) for (let a = 0; a < k; a++) wp_sf(B, X0 + i * k + a, Y0 + j * k + b, c); } });
+}
+/* Vierecksturm aus Quadern: bei den Löwen mit Zinnenkranz und Fahne, sonst mit hohem Zeltdach (bei den Türmen noch höher) */
+function wp_cVTurm(s, v){
+  const H = wp_HST || wp_HS.spanien, B = wp_img(68, 150, 146), ay = B.ay, cx = B.ax, x0 = cx - 24, x1 = cx + 24, top = ay - (H.tall ? 96 : 78), R = rng(s);
+  wp_groundShadow(B, cx + 5, ay + 1, 28, 4);
+  wp_xMason(B, x0, top, x1, ay, { s: 120 + v, lit: (x) => wp_xLit(x, x0, x1, .32), more: { buckel: !!H.flat, stain: .5 } });
+  for (const ex of [x0, x1 - 4]) wp_rect(B, ex, top, ex + 4, ay, (x, y) => wp_tone(wp_P.stone, (ex === x0 ? .74 : .32) + ((y - top) % 10 < 5 ? .1 : -.05), x, y));   // Eckquader
+  if (H.flat){
+    wp_rect(B, x0 - 3, top - 5, x1 + 3, top, (x, y) => wp_tone(wp_P.stone, .62 + wp_xLit(x, x0, x1, .3), x, y));
+    for (let x = x0 - 1; x < x1 + 1; x += 7) wp_rect(B, x, top, x + 3, top + 4, (X, Y) => wp_tone(wp_P.stone, .5 - (Y - top) * .07, X, Y));   // Konsolen
+    wp_xCren(B, x0 - 3, x1 + 3, top - 5, 9, 6, 10, { s: 121 });
+    wp_seg(B, cx, top - 12, cx, top - 40, 1.3, wp_P.iron[3]); wp_set(B, cx, top - 41, wp_P.gold[5]);
+    wp_xFlagCloth(B, cx + 1, top - 39, 20, 15, s % 5);
+  } else {
+    wp_xPyramid(B, cx, top + 1, 30, H.tall ? 44 : 36, wp_P.slate, s);
+    for (const sx of [-1, 1]) wp_rect(B, cx + sx * 30 - 2, top - 3, cx + sx * 30 + 2, top + 1, (x, y) => wp_tone(wp_P.stone, .5, x, y));
+  }
+  wp_window(B, cx - 4, top + 12, 8, 10, { s, kreuz: true, frame: wp_P.stone });
+  wp_xSlit(B, cx - 11, top + 36, 8); wp_xSlit(B, cx + 11, top + 36, 8);
+  if (H.tall) wp_window(B, cx - 3, top + 54, 6, 8, { s: s + 1, dark: true, frame: wp_P.stone });
+  for (let i = 0; i < 2; i++) wp_crack(B, x0 + 6 + (R() * 34 | 0), top + 24 + (R() * 30 | 0), 7, s + i, (x, y) => wp_op(B, x, y));
+  wp_shade(B, x0, ay - 3, x1, ay, .25);
+  wp_outline(B, true);
+  return { img: wp_canvas(B), ax: cx, ay, foot: [[-26, -26, 26, 2]], occl: [-30, -146, 30, -24], extra: {} };
+}
+/* Lilienbeet im Schlossgarten: Buchsrand, weiße Lilien auf grünen Stängeln */
+function wp_kLilienbeet(s, v){
+  const B = wp_img(40, 26, 22), ax = B.ax, ay = B.ay, R = rng(s + v);
+  wp_groundShadow(B, ax + 1, ay + 1, 18, 3);
+  wp_rect(B, ax - 18, ay - 6, ax + 18, ay, (x, y) => wp_tone(wp_P.earth, .45 + (wp_h(x, y, s) - .5) * .3, x, y));
+  for (let x = ax - 19; x <= ax + 19; x++){ wp_set(B, x, ay - 7, wp_tone(wp_LEAF.busch, .55 + (x & 1) * .1, x, 0)); wp_set(B, x, ay, wp_tone(wp_LEAF.busch, .35, x, 0)); }
+  for (let k = 0; k < 9; k++){
+    const x = ax - 15 + k * 3.7 + (R() - .5) * 1.5, h = 7 + (R() * 5 | 0), yb = ay - 3;
+    wp_seg(B, x, yb, x, yb - h, 1, wp_LEAF.busch[3]);
+    wp_set(B, x - 1, yb - h + 3, wp_LEAF.busch[5]); wp_set(B, x + 1, yb - h + 4, wp_LEAF.busch[4]);
+    wp_set(B, x - 1, yb - h, wp_c('#f4f2e8')); wp_set(B, x + 1, yb - h, wp_c('#e6e2d4')); wp_set(B, x, yb - h - 1, wp_c('#fbfaf4')); wp_set(B, x, yb - h, wp_c('#e8c860'));
+  }
+  return wp_xRes(B, [[-18, -6, 18, 1]], null);
 }
 
 /* ---------- Stadtmauer ---------- */

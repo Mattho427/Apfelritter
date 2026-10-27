@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 2 von 27: Der Ritter (Haus, Harnisch, Schwert, Aussehen) und die Pferde.
+/* Der Apfelritter, Teil 2 von 28: Der Ritter (Haus, Harnisch, Schwert, Aussehen) und die Pferde.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Der Ritter: Harnisch, Wappenrock in der Farbe seines Hauses, Helm mit Helmzier, Dreiecksschild ============ */
 const kn_PAL = {
@@ -533,7 +533,7 @@ const KN_FACTIONS = {
   spanien: {
     name:'Haus der Türme', knight:'Turmritter', ruler:'Markgraf Rodrigo von den Türmen', cry:'Stein und Stahl!',
     bonus:{ spd:5 }, bonusText:'+5 % Hiebtempo',
-    desc:'Das Haus der Türme bewacht die Pässe im Süden, seine Ritter weichen keinen Schritt. Schwarzer Wappenrock mit dem silbernen Turm, offener Helm mit Zinnenkrone, im Schild der Turm auf Schwarz.',
+    desc:'Das Haus der Türme bewacht die Hohe Straße an der Grenze zu den Ostlanden, seine Ritter weichen keinen Schritt. Schwarzer Wappenrock mit dem silbernen Turm, offener Helm mit Zinnenkrone, im Schild der Turm auf Schwarz.',
     cloth:{ O:'#1a1a20', o:'#2e2e36', y:'#46464f', Y:'#66666f' }, rim:'gu',
     chest:kn_TOWER_C, sleeve:['t.T.s', 'tTTTs', '.T5s.', '.TTs.'], s9:kn_TOWER_C, s7:kn_TOWER7,
     helmF:kn_CROWN_F, helmB:kn_CROWN_B, helmS:kn_CROWN_S

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 19 von 27: Hauptgeschichte „Unruhige Zeiten“.
+/* Der Apfelritter, Teil 19 von 28: Hauptgeschichte „Unruhige Zeiten“.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Hauptgeschichte: Unruhige Zeiten ============
    Fünf Kapitel, jedes eine Folge von Schritten: sprechen (talk), hingehen (goto), kämpfen (kill), geleiten (escort),

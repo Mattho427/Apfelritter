@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 11 von 27: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
+/* Der Apfelritter, Teil 11 von 28: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */
@@ -93,7 +93,11 @@ function cleanHero(h){
   if (!HORSES[h.horse]) h.horse = null;
   if (h.festDone){ const ks = Object.keys(h.festDone).slice(-12), o = {}; for (const kk of ks) o[kk] = true; h.festDone = o; }
   h.mood = h.mood && h.mood.t > 0 ? { t: Math.min(600, +h.mood.t || 0) } : null;
-  h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(h.glaube === 'alt' ? 1800 : 1200, +h.bless.t || 0) } : null;   // beim alten Glauben 30 Minuten (Teil 26) h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
+  h.bless = h.bless && h.bless.t > 0 ? { t: Math.min(h.glaube === 'alt' ? 1800 : 1200, +h.bless.t || 0) } : null;   // beim alten Glauben 30 Minuten (Teil 26)
+  h.ablass = !!h.ablass; h.thesen = h.thesen ? 1 : 0;
+  h.gunst = h.gunst && h.gunst.t > 0 ? { t: Math.min(1800, +h.gunst.t || 0) } : null; h.gunstD = h.gunstD | 0;   // Burgen der Häuser (Teil 27)
+  h.hbt = h.hbt && typeof h.hbt === 'object' ? { d: h.hbt.d | 0, n: clamp(h.hbt.n | 0, 0, 3) } : null;
+  h.hbv = h.hbv && typeof h.hbv === 'object' ? Object.fromEntries(Object.keys(KN_FACTIONS).filter(f => h.hbv[f]).map(f => [f, 1])) : {};
   h.kz = h.kz && typeof h.kz === 'object' ? { pavia: Math.max(0, h.kz.pavia | 0), wien: Math.max(0, h.kz.wien | 0) } : {};
   h.fsw = h.fsw && typeof h.fsw === 'object' ? Object.fromEntries(['muehle', 'karten', 'kegeln', 'ringen'].map(k => [k, Math.max(0, h.fsw[k] | 0)])) : {};
   h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};
@@ -319,7 +323,8 @@ const INNS = Object.entries(wo_INNP).map(([id, p]) => {
   return Object.assign({ id, x: p.x * WS, y: p.y * WS, dx: p.door * WS, dy: p.y * WS + 12, top: pr ? pr.y - pr.ay : p.y * WS - 200 }, INN_INFO[id]);
 });
 const INN_BY = Object.fromEntries(INNS.map(i => [i.id, i]));
-const HUB_IN = { burg:'in der Königsburg', stadt:'in der Königsstadt', speyer:'in Altmünster', annaberg:'in der Bergstadt Silberberg', wittenberg:'in Schwanstedt', nuernberg:'in Burgfelden', augsburg:'in Goldbrunn' };
+const HUB_IN = { burg:'in der Königsburg', stadt:'in der Königsstadt', speyer:'in Altmünster', annaberg:'in der Bergstadt Silberberg', wittenberg:'in Schwanstedt', nuernberg:'in Burgfelden', augsburg:'in Goldbrunn',
+  adlerhorst:'auf dem Adlerhorst', lilienthal:'auf Schloss Lilienthal', loewenburg:'auf der Löwenburg', turmfeste:'in der Turmfeste' };
 for (const inn of INNS){
   BIND[inn.id] = { x: inn.dx, y: inn.dy + 2 };
   HUB_NAME[inn.id] = 'Gasthaus ' + inn.name;
@@ -545,7 +550,7 @@ function renderInn(){
 }
 /* Stärkung durch Speis und Trank: läuft in Spielzeit ab */
 function tickBuffs(dt){
-  chTick(dt);
+  chTick(dt); hbTick(dt);
   if (HERO.mood){ HERO.mood.t -= dt; if (HERO.mood.t <= 0){ HERO.mood = null; renderBuffs(); logLine('Die gute Laune ist verflogen.', '#d8c69c'); } else if (Math.floor(HERO.mood.t / 60) !== Math.floor((HERO.mood.t + dt) / 60)) renderBuffs(); }
   for (const key of ['food', 'drink']){
     const b = HERO[key]; if (!b) continue;

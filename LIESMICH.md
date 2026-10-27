@@ -63,4 +63,5 @@ Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 | `js/24-ostlande.js` | Die Ostlande: Leute in Schwanstedt, Burgfelden und Goldbrunn, Aufträge, Fuhrmann, Thesen, Kriegszüge nach Rabenfurt und Steinwacht, Tafel |
 | `js/25-feste-spiele.js` | Feste und Spiele: Ostern, Schützenfest, Martini, Fastnacht mit ihren Spielen; Mühle, Einunddreißig, Kegeln und Ringen im Gasthaus |
 | `js/26-recht-ruf.js` | Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld, Wachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Schwarzeck; die Glaubensentscheidung in Goldbrunn |
-| `js/27-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |
+| `js/27-hausburgen.js` | Die Burgen der vier Häuser: Oberhäupter, Torwachen, Kämmerer, Gunst des Hauses, Tribut, Tafel |
+| `js/28-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |

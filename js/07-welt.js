@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 7 von 27: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
+/* Der Apfelritter, Teil 7 von 28: Die Welt: Gebiete, Gewässer, Wege, Höhen, Kollision, Platzierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Die Welt: das Königsland 6144 × 4608, im Süden das Bergland (Gelände, Gebiete, Fluss, Wege, Platzierung, Kollision, Karten) ============ */
 const wo_T0 = performance.now();
@@ -110,7 +110,12 @@ const ZONES = [
   { id: 'gailingen', name: 'Burg Rabeneck', monsters: ['reisiger', 'armbrust', 'strauchdieb'], label: { x: 8650, y: 1760 } },
   { id: 'donauried', name: 'Das Silberried', monsters: ['riesenkrebs', 'moor', 'irrwisch'], label: { x: 6720, y: 3300 } },
   { id: 'augsburg', name: 'Die Kaufmannsstadt Goldbrunn', monsters: [], label: { x: 7430, y: 3440 } },
-  { id: 'lechfeld', name: 'Das Geisterfeld', monsters: ['geisterreiter', 'geisterbogner', 'wieder'], label: { x: 7400, y: 4300 } }
+  { id: 'lechfeld', name: 'Das Geisterfeld', monsters: ['geisterreiter', 'geisterbogner', 'wieder'], label: { x: 7400, y: 4300 } },
+  // Die Burgen der vier Häuser (Version 31)
+  { id: 'adlerhorst', name: 'Der Adlerhorst', monsters: [], label: { x: 4300, y: 200 } },
+  { id: 'lilienthal', name: 'Schloss Lilienthal', monsters: [], label: { x: 2264, y: 3020 } },
+  { id: 'loewenburg', name: 'Die Löwenburg', monsters: [], label: { x: 410, y: 1590 } },
+  { id: 'turmfeste', name: 'Die Turmfeste', monsters: [], label: { x: 6285, y: 380 } }
 ];
 const wo_ZI = {}; ZONES.forEach((z, i) => { wo_ZI[z.id] = i; });
 /* Gebietskerne: Ellipsen [cx, cy, rx, ry] */
@@ -147,6 +152,16 @@ const wo_CAST = { x0: 1626, x1: 2174, y0: 300, y1: 640, gx: 1900 };
 const wo_WIT = { x0: 7500, x1: 8400, y0: 300, y1: 720, gx: 7950, gy: 510 };
 const wo_NUE = { x0: 7238, x1: 8242, y0: 2050, y1: 2730, gx: 7740, gy: 2230, gy2: 2580 };
 const wo_AUG = { x0: 7108, x1: 7752, y0: 3520, y1: 4000, gx: 7430, gy: 3740 };
+/* Burgen der vier Häuser (Version 31): Torachse gx, Nordmauer y0, Südmauer mit Tor y1; Bauteile der Süd- und Nordmauer von links nach rechts
+   (T Rundturm, V Vierecksturm, M Mauer, G Tor, B Bergfried in der Lücke des Tors) */
+const wo_HAUS = {
+  reich:      { key: 'adler', zone: 'adlerhorst', gx: 4300, y0: 300, y1: 560, S: 'TMMGMMT', N: 'TMMBMMT' },
+  frankreich: { key: 'lilie', zone: 'lilienthal', gx: 2264, y0: 3090, y1: 3330, S: 'TMMMGMMMT', N: 'TMMMBMMMT' },
+  england:    { key: 'loewe', zone: 'loewenburg', gx: 410, y0: 1680, y1: 1920, S: 'VMVGVMV', N: 'VMVBVMV' },
+  spanien:    { key: 'turm', zone: 'turmfeste', gx: 6285, y0: 470, y1: 690, S: 'VMVMGMVMV', N: 'VMVMBMVMV' }
+};
+const wo_HW = { T: 60, V: 52, M: 64, G: 104, B: 104 };
+for (const H of Object.values(wo_HAUS)){ const w = [...H.S].reduce((a, c) => a + wo_HW[c], 0); H.x0 = H.gx - w / 2; H.x1 = H.gx + w / 2; }
 
 /* ============ Gewässer ============ */
 /* Fluss von Ost nach West: x, y, halbe Breite */
@@ -343,7 +358,13 @@ const wo_ROADS = [
   { t: 1, hw: 7, p: [[7420, 1840], [7700, 1820], [8000, 1800], [8300, 1830], [8520, 1880]] },                 // Pfad nach Rabeneck
   { t: 1, hw: 7, p: [[7740, 2740], [8000, 2810], [8300, 2850], [8600, 2840], [8900, 2780]] },                 // Pfad in den Königsforst
   { t: 1, hw: 7, p: [[6700, 3520], [6680, 3400], [6640, 3300], [6560, 3200], [6440, 3100]] },                 // Pfad ins Silberried
-  { t: 1, hw: 7, p: [[7900, 860], [8200, 900], [8500, 950], [8800, 1000]] }                                    // Elbpfad in die Heide
+  { t: 1, hw: 7, p: [[7900, 860], [8200, 900], [8500, 950], [8800, 1000]] },                                   // Elbpfad in die Heide
+  // Burgen der vier Häuser (Version 31)
+  { t: 0, hw: 10, p: [[3430, 600], [3620, 640], [3820, 646], [4020, 630], [4200, 612], [4300, 610], [4300, 572]] },   // Adlerweg von der Raubritterburg
+  { t: 1, hw: 8, p: [[4300, 612], [4440, 640], [4580, 672], [4720, 700]] },                                   // Adlerpfad zu den Weinbergen
+  { t: 0, hw: 10, p: [[2944, 3100], [2830, 3190], [2720, 3290], [2640, 3400], [2570, 3500], [2440, 3548], [2300, 3550], [2264, 3520], [2264, 3342]] }, // Lilienweg von der Bergstraße durch den Schlossgarten
+  { t: 0, hw: 10, p: [[800, 1950], [700, 1972], [580, 1974], [470, 1966], [410, 1960], [410, 1932]] },        // Löwenweg vom Furtweg
+  { t: 0, hw: 10, p: [[6300, 1000], [6292, 920], [6286, 840], [6285, 760], [6285, 702]] }                    // Turmweg von der Hohen Straße
 ].map(r => ({ t: r.t, hw: r.hw, p: wo_spline(r.p.map(q => [q[0], q[1], r.hw]), 6) }));
 const wo_RSD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RD = new Float32Array(wo_GW * wo_GH).fill(120), wo_RT = new Uint8Array(wo_GW * wo_GH);
 for (const r of wo_ROADS) wo_stamp(wo_RSD, wo_RD, wo_RT, r.t, r.p, 26, r.t === 3 ? null : (x, y) => (wo_fin(x, y) - .5) * (r.t === 1 ? 2.6 : 1.6));
@@ -1718,6 +1739,86 @@ const wo_RWCLEAR = [[8420, 2660, 150, 90], [7600, 2960, 130, 80], [8860, 2480, 1
     if (!wo_occFree(x - w / 2 - 6, y - hh - 6, x + w / 2 + 6, y + 6) || wo_wsd(x, y) < 8 || wo_rsd(x, y) < 10) continue;
     wo_GOBJ.push({ k: log ? 'log' : 'stump', x: Math.round(x), y: Math.round(y), len, s: k + 19000, birch: z === 'donauried' });
     wo_mark(wo_COL, x - w / 2, y - hh + 1, x + w / 2, y + 1, 1); wo_markAny(wo_OCC, x - w / 2 - 2, y - hh - 2, x + w / 2 + 2, y + 3, 1);
+  }
+})();
+
+/* ============ Die Burgen der vier Häuser (Version 31) ============
+   Erst nach allem anderen gebaut: Bäume, Steine und Stümpfe auf dem Bauplatz werden entfernt, sonst bleibt die Welt, wie sie war. */
+const wo_HAUSP = {};   // besondere Orte je Haus (Bergfried, Hof, Tor) für Leute
+function wo_clear(x0, y0, x1, y1){
+  const hit = r => r[2] > x0 && r[0] < x1 && r[3] > y0 && r[1] < y1, gone = new Set();
+  for (const q of wo_PI) if (q.feet.length ? q.feet.some(hit) : hit([q.p.x - 8, q.p.y - 6, q.p.x + 8, q.p.y + 2])) gone.add(q.p);
+  for (let i = PROPS.length - 1; i >= 0; i--) if (gone.has(PROPS[i])) PROPS.splice(i, 1);
+  for (let i = wo_PI.length - 1; i >= 0; i--) if (gone.has(wo_PI[i].p)) wo_PI.splice(i, 1);
+  for (let i = wo_GOBJ.length - 1; i >= 0; i--){ const o = wo_GOBJ[i]; if (o.x > x0 - 30 && o.x < x1 + 30 && o.y > y0 - 8 && o.y < y1 + 8) wo_GOBJ.splice(i, 1); }
+  const c0 = Math.max(0, x0 >> 3), c1 = Math.min(wo_CW - 1, x1 >> 3), r0 = Math.max(0, y0 >> 3), r1 = Math.min(wo_CH - 1, y1 >> 3);
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++){ const i = r * wo_CW + c; if (wo_COL[i] === 1) wo_COL[i] = 0; wo_OCC[i] = 0; }
+  for (const q of wo_PI) for (const f of q.feet) if (f[2] > x0 - 8 && f[0] < x1 + 8 && f[3] > y0 - 8 && f[1] < y1 + 8){ wo_mark(wo_COL, f[0], f[1], f[2], f[3], 1); wo_markAny(wo_OCC, f[0], f[1], f[2], f[3], 1); }
+}
+function wo_hausWall(H, row, y){
+  let x = H.x0;
+  for (const c of H[row]){
+    const w = wo_HW[c], cx = x + w / 2, k = H.key;
+    if (c === 'T') wo_put(k + '_turm', cx, y + 1, wo_ns());
+    else if (c === 'V') wo_put(k + '_vturm', cx, y + 1, wo_ns());
+    else if (c === 'M') wo_put(k + '_mauer', cx, y, wo_ns());
+    else if (c === 'G') H.tor = wo_put(k + '_tor', cx, y, 1);
+    else if (c === 'B') H.keep = wo_put(k + '_bergfried', cx, y + 2, 1);
+    x += w;
+  }
+}
+(function wo_houses(){
+  for (const fid in wo_HAUS){
+    const H = wo_HAUS[fid], k = H.key, gx = H.gx, R = rng(3100 + k.length * 7 + gx);
+    const xl = H.x0 + wo_HW[H.S[0]] / 2, xr = H.x1 - wo_HW[H.S[0]] / 2;   // Mitten der Ecktürme
+    wo_clear(H.x0 - 40, H.y0 - 70, H.x1 + 40, H.y1 + (fid === 'frankreich' ? 170 : 60));
+    wo_reserve(gx - 18, H.y1 - 70, gx + 18, H.y1 + 40);
+    wo_hausWall(H, 'S', H.y1); wo_hausWall(H, 'N', H.y0);
+    // Seitenmauern (von oben) im Stein des Hauses
+    const T = makeProp(k + '_' + (H.S[0] === 'T' ? 'turm' : 'vturm'), 1), th = T.foot[0][3] - T.foot[0][1], yN = H.y0 + 2, yS = H.y1 - th + 2;
+    const SR = wo_ramp(wp_HS[fid].stone.map(c => wo_hex(c)), 6);
+    wo_add('mauer', xl, yS, wo_wallNS(xl, yN, yS, 28, 54, SR, true, 3, false));
+    wo_add('mauer', xr, yS, wo_wallNS(xr, yN, yS, 28, 54, SR, false, 5, false));
+    wo_feat({ m: WM.SHADOW, x0: xr + 15, x1: xr + 24, y0: yN, y1: yS + 8 });
+    wo_feat({ m: WM.SHADOW, x0: xl + 15, x1: xl + 22, y0: yN, y1: yS });
+    wo_feat({ m: WM.YARD, sub: 2, x0: xl + 14, y0: H.y0, x1: xr - 14, y1: H.y1 - 10 });   // gepflasterter Hof
+    const ym = (H.y0 + H.y1) / 2 + 10;
+    wo_HAUSP[fid] = { keep: { x: gx, y: H.y0 + 30 }, hof: { x: gx, y: ym }, tor: { x: gx, y: H.y1 + 26 } };
+    // gemeinsam: Feuerschalen am Tor, Banner davor und am Bergfried, Brunnen im Hof
+    wo_put('feuerschale', gx - 44, H.y1 - 34, 1); wo_put('feuerschale', gx + 44, H.y1 - 34, 2);
+    wo_put(k + '_banner', gx - 64, H.y1 + 24, 1); wo_put(k + '_banner', gx + 64, H.y1 + 24, 2);
+    wo_put(k + '_banner', gx - 70, H.y0 + 62, 3); wo_put(k + '_banner', gx + 70, H.y0 + 62, 4);
+    wo_put('brunnen', gx + 96, ym + 6, 1);
+    if (fid === 'reich'){            // Adlerhorst: Palas und Kapelle, Wagen und Fässer; Felsen am Burgberg
+      wo_put(k + '_palas', H.x0 + 96, ym - 18, 21); wo_put(k + '_kapelle', H.x1 - 92, ym - 4, 5);
+      wo_put('karren', gx - 110, ym + 52, 3); wo_put('fass', gx + 140, H.y1 - 40, 1); wo_put('kisten', gx + 160, H.y1 - 46, 2);
+      for (let i = 0; i < 70; i++){ const a = R() * Math.PI * 2, r = .7 + R() * .35, x = gx + Math.cos(a) * 320 * r, y = (H.y0 + H.y1) / 2 + Math.sin(a) * 240 * r;
+        if (Math.sin(a) > .5 && Math.abs(Math.cos(a)) < .55) continue; wo_try(R() < .45 ? 'fels' : 'stein', x, y, wo_ns(), 6, 10); }
+    } else if (fid === 'frankreich'){   // Schloss Lilienthal: Kapelle und Schloss, Lilienbeete im Hof, Garten vor dem Tor
+      wo_put(k + '_kapelle', H.x0 + 100, ym - 6, 7); wo_put(k + '_palas', H.x1 - 100, ym - 20, 23);
+      for (const dx of [-150, -96, 96, 150]) wo_put('lilienbeet', gx + dx, H.y1 - 36, wo_ns());
+      for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++){ const x = gx + (i < 2 ? -230 + i * 70 : 90 + (i - 2) * 70), y = H.y1 + 60 + j * 52;
+        wo_feat({ m: WM.HERB, x0: x, y0: y, x1: x + 52, y1: y + 34, s: i * 5 + j }); wo_put('lilienbeet', x + 26, y + 30, wo_ns()); }
+      wo_put('brunnen', gx, H.y1 + 104, 2);
+      for (const dx of [-260, -200, 200, 260]) wo_try('apfelbaum', gx + dx, H.y1 + 150, wo_ns(), 4, 6);
+      for (let x = H.x0; x < H.x1; x += 34) if (Math.abs(x - gx) > 40) wo_try('busch', x, H.y1 + 168, wo_ns(), 2, 6);
+    } else if (fid === 'england'){      // Löwenburg: Palas, Übungsplatz mit Scheibe und Spießen, Zelt
+      wo_put(k + '_palas', H.x0 + 92, ym - 18, 25); wo_put('zelt', H.x1 - 96, ym + 10, 2);
+      wo_put('scheibe', gx - 120, ym + 40, 1); wo_put('spiesse', gx - 60, H.y0 + 92, 1); wo_put('spiesse', gx + 150, ym + 48, 2);
+      wo_put('fass', gx + 40, H.y1 - 44, 3); wo_put('kisten', gx - 150, H.y1 - 44, 4);
+    } else {                            // Turmfeste: Palas, Geschütze, Schanzkörbe, Pulverfässer; Felsen am Grenzhügel
+      wo_put(k + '_palas', H.x0 + 104, ym - 18, 27); wo_put('kanone', gx - 150, ym + 46, 1); wo_put('kanone', gx + 160, ym + 46, 2);
+      wo_put('schanzkorb', H.x1 - 110, ym - 30, 1); wo_put('schanzkorb', H.x1 - 80, ym - 20, 2); wo_put('fass', gx - 60, H.y1 - 44, 2); wo_put('fass', gx - 44, H.y1 - 40, 4);
+      for (let i = 0; i < 60; i++){ const a = R() * Math.PI * 2, r = .75 + R() * .3, x = gx + Math.cos(a) * 380 * r, y = (H.y0 + H.y1) / 2 + Math.sin(a) * 230 * r;
+        if (Math.sin(a) > .45 && Math.abs(Math.cos(a)) < .5) continue; wo_try(R() < .5 ? 'fels' : 'stein', x, y, wo_ns(), 8, 12); }
+    }
+    // Gebiet der Burg: Mauerring und ein breites Vorfeld, damit keine Monster vor dem Tor lauern
+    const z = wo_ZI[H.zone], zy1 = H.y1 + (fid === 'frankreich' ? 300 : 220);
+    const towns = ['burg', 'stadt', 'weiler', 'speyer', 'fischerdorf', 'annaberg', 'wittenberg', 'nuernberg', 'augsburg'].map(id => wo_ZI[id]);   // Städte bleiben, wie sie sind
+    for (let y = H.y0 - 170; y < zy1; y += 16) for (let x = H.x0 - 170; x < H.x1 + 170; x += 16){
+      const i = clamp(y >> 4, 0, wo_ZH - 1) * wo_ZW + clamp(x >> 4, 0, wo_ZW - 1);
+      if (!towns.includes(wo_ZR[i])) wo_ZR[i] = z;
+    }
   }
 })();
 
