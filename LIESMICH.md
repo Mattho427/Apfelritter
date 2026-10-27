@@ -25,10 +25,10 @@ Das Spiel ist ein einziges Artefakt (gleicher Link, gleiche Spielstände), beste
 Die Tests steuern das Spiel in einem echten Browser (Playwright mit Chromium). Mehrspieler-Tests öffnen mehrere Ritter
 in getrennten Browserfenstern, die über einen nachgebauten Raum verbunden sind (`tests/mehrspieler/harness.mjs`).
 
-- `bash tests/alle.sh` – alle Tests nacheinander (etwa 52 Minuten), zeigt je Test die Ergebniszeilen.
+- `bash tests/alle.sh` – alle Tests nacheinander (etwa 53 Minuten), zeigt je Test die Ergebniszeilen.
 - `tests/einzel/` – Einzelspieler: Welt, Kampf, Gewölbe, Jagd, Feste, Tastatur, Jahreszeiten, Tjost.
 - `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen, zwei Ritter im Kriegszug, Kopfgeld und Pranger unter Rittern.
-- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Silberberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Rabenfurt und Steinwacht, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Schwarzecker Fehde, Glaube).
+- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Silberberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Rabenfurt und Steinwacht, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Schwarzecker Fehde, Glaube), die Burgen der vier Häuser (Oberhaupt, Gunst, Tribut, Rasten, Gäste).
 - `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden, `karte.mjs` speichert die Weltkarte, `orte.mjs name:x,y …` Bilder an Weltorten, `gegnerbilder.mjs art …` einen Bildbogen der Gegner, `bauten.mjs art …` einen Bogen der Bauten und Dinge.
 
 Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
