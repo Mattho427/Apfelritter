@@ -101,7 +101,7 @@ await T('Steckbrief annehmen', () => { const n = goN('buettel_s'); openTalk(n); 
   r => r.mark === '!' && r.rows.length === 5 && r.stb === 'rossdieb' && /Ott der Rossdieb/.test(r.tr) && r.ziel === 'Ott der Rossdieb');
 await panel('recht_steckbriefe.png');
 await T('Versteck', async () => { closePanel(); const S = HERO.stb, k = G.knight; k.x = S.x - 300; k.y = S.y; updateZone(true); G.mons.length = 0; await new Promise(r => setTimeout(r, 600));
-  const o = G.mons.find(m => m.stb === 'rossdieb'); return { da: !!o, nm: o && o.nm, hp: o && o.max, normal: monHp('pluend', o ? o.lvl : 1), gesellen: G.mons.filter(m => m.stbH).length, zone: G.zone }; },
+  const o = G.mons.find(m => m.stb === 'rossdieb'); return { da: !!o, nm: o && o.nm, hp: o && o.max, normal: monHp('pluend', o ? o.lvl : 1), gesellen: G.mons.filter(m => m.stbH).length, zone: gZone(S.x, S.y).id }; },   // das Versteck liegt in der Flussaue
   r => r.da && r.nm === 'Ott der Rossdieb' && r.hp === r.normal * 4 && r.gesellen === 2 && r.zone === 'fluss');
 await shot('recht_versteck.png');
 await T('Gesuchter fällt', async () => { const o = G.mons.find(m => m.stb === 'rossdieb'); o.hp = 1; kill(o); await new Promise(r => setTimeout(r, 300));
