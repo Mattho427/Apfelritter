@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 25 von 28: Feste und Spiele: Ostern, Schützenfest, Martini und Fastnacht mit ihren Spielen;
+/* Der Apfelritter, Teil 25 von 29: Feste und Spiele: Ostern, Schützenfest, Martini und Fastnacht mit ihren Spielen;
    Mühle, Einunddreißig, Kegeln und Ringen im Gasthaus.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 

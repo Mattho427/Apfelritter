@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 28 von 28: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
+/* Der Apfelritter, Teil 29 von 29: Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Waffenarten im Kampf: Bolzen, Fähigkeiten je Waffe, Zeugmeister ============
    Die Armbrust schießt statt zu hauen; jeder Schuss zählt wie ein Hieb (sw), Mitspieler erzeugen den Bolzen daraus selbst und
@@ -71,6 +71,7 @@ function kbTick(dt){
     const b = L[i];
     b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
     let gone = b.life <= 0 || b.x < 0 || b.y < 0 || b.x > GW || b.y > GH || gBlocked(b.x - 1, b.y + b.h - 2, b.x + 1, b.y + b.h, true);
+    if (!gone && zkBolt(b) && !b.pierce) gone = true;   // Bolzen im Zweikampf (Teil 28)
     if (!gone) for (const m of G.mons.slice()){
       if (b.hit.has(m) || !vulnerable(m)) continue;
       if (!bodyCircles(m).some(c => Math.hypot(c.x - b.x, c.y - b.y) < c.hr + 4)) continue;

@@ -1,6 +1,6 @@
 "use strict";
-/* Der Apfelritter, Teil 27 von 28: Die Burgen der vier Häuser: Adlerhorst, Schloss Lilienthal, Löwenburg und Turmfeste mit ihren Oberhäuptern,
-   Torwachen und Kämmerern; Gunst des Hauses, Tribut für den Wettstreit, Rasten, Besuch aller vier Burgen, Tafel.
+/* Der Apfelritter, Teil 27 von 29: Die Burgen der vier Häuser: Adlerhorst, Schloss Lilienthal, Löwenburg und Turmfeste mit ihren Oberhäuptern,
+   Torwachen und Kämmerern; Gunst des Hauses, Tribut für den Wettstreit, Rasten, Besuch aller vier Burgen, Belagerung, Tafel.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Die Burgen der vier Häuser (Version 31) ============
@@ -77,8 +77,12 @@ for (const [fid, B] of Object.entries(HB)){
   NPC_ART['hbk_' + fid] = np_frames(B.keeperArt, B.pal);
   NPC_ART['hbw_' + fid] = hbGuardArt(fid);
   HB_NPC.push(lord, keeper);
-  for (const sx of [-1, 1]) HB_NPC.push({ id: 'hbw_' + fid + (sx < 0 ? 'l' : 'r'), name: F.knight, role: 'Torwache', hb: fid, hub: B.zone, at: gNear(P.tor.x + sx * 36, P.tor.y + 14), art: 'hbw_' + fid,
-    greet: [F.cry + ' Willkommen ' + B.im + '.', 'Wir halten das Tor, Herr Ritter. Das Oberhaupt empfängt Euch vor dem Bergfried.', 'Im Hof seid Ihr sicher. Draußen nicht.'] });
+  for (const sx of [-1, 1]){
+    const w = { id: 'hbw_' + fid + (sx < 0 ? 'l' : 'r'), name: F.knight, role: 'Torwache', hb: fid, hub: B.zone, at: gNear(P.tor.x + sx * 36, P.tor.y + 14), art: 'hbw_' + fid };
+    const calm = [F.cry + ' Willkommen ' + B.im + '.', 'Wir halten das Tor, Herr Ritter. Das Oberhaupt empfängt Euch vor dem Bergfried.', 'Im Hof seid Ihr sicher. Draußen nicht.'];
+    Object.defineProperty(w, 'greet', { get: () => hbSiegeOn(fid) ? [F.cry + ' Die Schwarze Schar steht vor dem Tor! Helft uns, Herr Ritter!', 'Schlagt die Söldner zurück, wir halten das Tor so lange!'] : calm });
+    HB_NPC.push(w);
+  }
 }
 for (const n of HB_NPC){ n.x = n.at.x; n.y = n.at.y; n.art = NPC_ART[n.art]; n.key = n.id; NPCS.push(n); }
 for (const fid in HB){ const n = HB_NPC.find(q => q.id === 'hb_' + fid); if (n) BIND[HB[fid].zone] = { x: n.x, y: n.y + 30 }; }
@@ -110,7 +114,7 @@ function hbTick(dt){
   if (f && !G.inside && !(HERO.hbv && HERO.hbv[f])){
     HERO.hbv = Object.assign({}, HERO.hbv, { [f]: 1 });
     const n = Object.keys(HERO.hbv).length;
-    logLine((f === HERO.f ? 'Ihr seid zum ersten Mal in der Burg Eures Hauses: ' : 'Ihr besucht als Gast ') + (f === 'frankreich' ? '' : f === 'reich' ? 'den ' : 'die ') + HB[f].burg + '. (' + n + ' von 4 Hausburgen besucht)', '#9fe08a');
+    logLine((f === HERO.f ? 'Ihr seid zum ersten Mal in der Burg Eures Hauses: ' + HB_GR[f][0] : 'Ihr besucht als Gast ' + HB_GR[f][3]) + '. (' + n + ' von 4 Hausburgen besucht)', '#9fe08a');
     markDirty(true);
   }
 }
@@ -151,9 +155,62 @@ function hbView(view, body, opts){
   }
 }
 
-/* ---------- Trophäe und Tafel ---------- */
-TROPHIES.splice(TROPHIES.findIndex(t => t.id === 'turnier'), 0, { id: 'hausburgen', n: 'Gast aller Häuser', d: 'alle vier Burgen der Häuser besucht: Adlerhorst, Schloss Lilienthal, Löwenburg und Turmfeste', ok: h => !!h.hbv && Object.keys(HB).every(f => h.hbv[f]) });
-TROPHY_BY.hausburgen = TROPHIES.find(t => t.id === 'hausburgen');
+/* ============ Belagerung der Hausburgen (Version 32) ============
+   Im Morgengrauen (4 bis 8 Uhr) berennt die Schwarze Schar, eine Kompanie von Söldnern, eine der vier Burgen, an jedem Spieltag eine
+   andere. Das ist ein Weltereignis wie der Überfall auf Lindach (Teil 18): Die Söldner sammeln sich vor dem Tor, alle Ritter schlagen
+   sie gemeinsam zurück, dann stellt sich ihr Hauptmann. Solange gestürmt wird, ist auch die Burg nicht sicher. Ritter des belagerten
+   Hauses bekommen doppelte Punkte im Wettstreit und die Gunst ihres Hauses, Gäste den Dank des Oberhaupts in Gulden. */
+const HB_GR = {   // wer, wem, wessen, wen
+  reich: ['der Adlerhorst', 'dem Adlerhorst', 'des Adlerhorsts', 'den Adlerhorst'],
+  frankreich: ['Schloss Lilienthal', 'Schloss Lilienthal', 'von Schloss Lilienthal', 'Schloss Lilienthal'],
+  england: ['die Löwenburg', 'der Löwenburg', 'der Löwenburg', 'die Löwenburg'],
+  spanien: ['die Turmfeste', 'der Turmfeste', 'der Turmfeste', 'die Turmfeste']
+};
+const HB_SIEGE = {
+  reich: { boss: 'Hauptmann Ruprecht Eisenfaust', prize: 'Ehrenspange vom Adlerhorst', acc: 'die Ehrenspange vom Adlerhorst', aff: ['hp', 'arm', 'str'] },
+  frankreich: { boss: 'Hauptmann Kunz Brandner', prize: 'Lilienbrosche von Lilienthal', acc: 'die Lilienbrosche von Lilienthal', aff: ['spd', 'crit', 'hp'] },
+  england: { boss: 'Hauptmann Veit Wolfsbart', prize: 'Löwenring der Löwenburg', acc: 'den Löwenring der Löwenburg', aff: ['str', 'crit', 'hp'] },
+  spanien: { boss: 'Hauptmann Hagen Sturmbock', prize: 'Turmsiegel der Turmfeste', acc: 'das Turmsiegel der Turmfeste', aff: ['arm', 'hp', 'str'] }
+};
+const HB_SIEGE_PTS = 15;
+const cap1 = s => s[0].toUpperCase() + s.slice(1);
+Object.keys(HB).forEach((fid, i) => {
+  const P = wo_HAUSP[fid], B = HB[fid], S = HB_SIEGE[fid], [wer, wem, wessen, wen] = HB_GR[fid];
+  if (!P) return;
+  const x = P.tor.x, y = P.tor.y;
+  EV_DEFS.push({ id: 'belagerung_' + fid, kind: 'raid', siege: fid, zone: B.zone, name: 'Belagerung ' + wessen, at: 4, len: 4, cyc: [4, i],
+    boss: 'feldhauptmann', bossName: S.boss, bossSub: 'Der Hauptmann der Schwarzen Schar stellt sich', bossLine: 'Die Söldner weichen vom Tor! Da tritt ihr Hauptmann vor: ', where: 'vor ' + wem, siteAt: [x, y + 60, B.burg], bossAt: [x, y + 96], goal: [x, y + 70, 220, 70],
+    ins: [[x - 70, y + 300], [x + 70, y + 320], [x - 190, y + 240], [x + 190, y + 250]], wave: [6, 22, 14], need: [24, 8, 64], hpf: .55, lvOff: -1, unit: 'Söldnern zurückgeschlagen',
+    pick: R => R() < .3 ? 'hakenschuetze' : 'doppelsoeldner', mobs: { doppelsoeldner: 'Söldner der Schwarzen Schar', hakenschuetze: 'Büchsenschütze der Schar' },
+    soon: 'Ein Sturmhorn tönt vor ' + wem + ': Die Schwarze Schar zieht im Morgengrauen heran!',
+    start: 'Die Schwarze Schar berennt ' + wen + '! Werft die Söldner vor dem Tor zurück, dann stellt sich ihr Hauptmann.',
+    won: cap1(wer) + ' hält stand', lost: 'Die Söldner brennen das Vorwerk ' + wessen + ' nieder und ziehen mit ihrer Beute ab.',
+    prize: S.prize, prizeAcc: S.acc, aff: S.aff, unsafe: 'Die Burg wird belagert!', enter: 'Ihr erreicht ' + wen + '. Die Schwarze Schar stürmt das Tor!' });
+  RUF_EV['belagerung_' + fid] = ['fuersten', 4];
+});
+const hbSiegeOn = fid => !!(EVT.cur && !EVT.cur.over && EVT.cur.d.siege === fid);
+{ const li = el('li'), im = el('img'), wh = el('span', 'what', 'Belagerung der Hausburgen');   // Tafel: Weltereignisse
+  lazySrc(im, () => urlOf(artOf('doppelsoeldner').idle.r[0].img, 2)); im.alt = '';
+  wh.append(el('small', null, 'jeden Spieltag um 4 Uhr im Morgengrauen, im Wechsel Adlerhorst, Schloss Lilienthal, Löwenburg und Turmfeste: Die Schwarze Schar berennt das Tor, die Burg ist dann nicht sicher. Sind genug Söldner zurückgeschlagen, stellt sich ihr Hauptmann. Die Ritter des belagerten Hauses bekommen doppelte Punkte im Wettstreit und die Gunst ihres Hauses, Gäste den Dank des Oberhaupts in Gulden.'));
+  li.append(im, wh); $('evList').append(li); }
+/* Lohn obendrauf, wenn die Belagerung zurückgeschlagen ist (aus evEnd, Teil 18) */
+function hbSiegeWon(d){
+  const fid = d.siege, own = HERO.f === fid;
+  HERO.hbs = { n: ((HERO.hbs && HERO.hbs.n) | 0) + 1, own: ((HERO.hbs && HERO.hbs.own) | 0) + (own ? 1 : 0) };
+  if (own){
+    lwAdd(HB_SIEGE_PTS);
+    HERO.gunst = { t: HB_GUNST_T }; renderBuffs();
+    logLine('Ihr habt die Burg Eures Hauses verteidigt! +' + HB_SIEGE_PTS + ' Punkte mehr im Wettstreit, und ' + KN_FACTIONS[fid].ruler + ' schenkt Euch die Gunst des Hauses (30 Minuten).', '#ffe9a0');
+  } else {
+    const g = 20 + HERO.lvl * 3; HERO.gold += g;
+    logLine(KN_FACTIONS[fid].ruler + ' dankt Euch, dass Ihr als Gast für ' + lwIn(fid) + ' gefochten habt: ' + g + ' Gulden.', '#ffd98a');
+  }
+}
+
+/* ---------- Trophäen und Tafel ---------- */
+TROPHIES.splice(TROPHIES.findIndex(t => t.id === 'turnier'), 0, { id: 'hausburgen', n: 'Gast aller Häuser', d: 'alle vier Burgen der Häuser besucht: Adlerhorst, Schloss Lilienthal, Löwenburg und Turmfeste', ok: h => !!h.hbv && Object.keys(HB).every(f => h.hbv[f]) },
+  { id: 'burgwacht', n: 'Burgverteidiger', d: 'die Burg des eigenen Hauses gegen die Schwarze Schar gehalten', ok: h => !!h.hbs && h.hbs.own > 0 });
+TROPHY_BY.hausburgen = TROPHIES.find(t => t.id === 'hausburgen'); TROPHY_BY.burgwacht = TROPHIES.find(t => t.id === 'burgwacht');
 (() => {
   const L = $('hbList'); if (!L) return;
   const where = { reich: 'im Norden zwischen der Raubritterburg und den Weinbergen', frankreich: 'südlich des Klosters, an der Bergstraße nach Silberberg',

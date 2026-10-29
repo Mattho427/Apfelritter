@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 15 von 28: Zeichnen des Spielbilds.
+/* Der Apfelritter, Teil 15 von 29: Zeichnen des Spielbilds.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Zeichnen ============ */
 function shadow(x, y, w, a){
@@ -320,6 +320,7 @@ function render(){
   const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 44 : 26) : 18;
   if (!title) shadow(k.x, k.y - 1, shW(k), .42);
   for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, shW(p), .38);
+  if (!title) zkRing(cam);
   for (const n of NPCS) if (inView(n.x, n.y, cam)) shadow(n.x, n.y - 1, 14, .38);
   const lifeL = lifeEnts(cam, []);
   for (const e of lifeL) lifeShadow(e);
@@ -344,10 +345,10 @@ function render(){
   for (const m of G.mons) if (!MON[m.k].fly && inView(m.x, m.y, cam, 120)) list.push({ y: m.y + .1, d: () => drawMon(m) });
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });
   for (const e of lifeL) list.push({ y: (e.sy || e.y) + .05, d: () => drawLife(e) });
-  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => { drawKnightAt(p, knightSet(p.f, p.lk), p.dead, 1); if (p.bk) drawBucket(p.x - 14, p.y - 14); } });
-  evList(cam, list); stList(cam, list); asList(cam, list); fishList(cam, list); rrList(cam, list);
+  for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) list.push({ y: p.y + .18, d: () => { geWrap(p, () => drawKnightAt(p, knightSet(p.f, p.lk), p.dead, 1)); if (p.bk) drawBucket(p.x - 14, p.y - 14); } });
+  evList(cam, list); olList(cam, list); stList(cam, list); asList(cam, list); fishList(cam, list); rrList(cam, list);
   if (G.bucket && !title) list.push({ y: k.y + .21, d: () => drawBucket(k.x - 14, k.y - 14) });
-  if (!title) list.push({ y: k.y + .2, d: drawKnight });
+  if (!title) list.push({ y: k.y + .2, d: () => geWrap(k, drawKnight) });
   festList(cam, list);
   list.sort((p, q) => p.y - q.y);
   for (const it of list) it.d();
@@ -407,6 +408,7 @@ function render(){
       if (pal){ const x0 = Math.round(p.x - 12), y0 = Math.round(p.y - KS.ay - 3 - up); ctx.fillStyle = OUT; ctx.fillRect(x0, y0, 24, 4); ctx.fillStyle = '#3a1416'; ctx.fillRect(x0 + 1, y0 + 1, 22, 2); ctx.fillStyle = '#7fd65f'; ctx.fillRect(x0 + 1, y0 + 1, Math.round(22 * p.hp / 100), 2); }
       if (p.say && nowS() < p.sayT) drawBubble(p.x, p.y - KS.ay - 11 - up, p.say);
     }
+    olDraw(cam, k);
     if (G.say && nowS() < G.sayT) drawBubble(k.x, k.y - KS.ay - 4 - (k.ride ? 15 : 0), G.say);
   }
   for (const f of G.floats){

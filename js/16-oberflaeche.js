@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 28: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 29: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -415,12 +415,12 @@ function updateZone(entered){
   if (G.inside){ el2.textContent = G.inside.name; el2.append(el('small', null, (G.inside.church ? 'Kirche ' : 'Gasthaus ') + G.inside.where + ' · sicher')); }
   else {
     el2.textContent = z ? z.name : '';
-    if (z && G.zone === 'weiler' && EVT.raid) el2.append(el('small', null, 'Raubritter im Dorf!'));
+    if (z && evUnsafe(G.zone)) el2.append(el('small', null, evUnsafe(G.zone).unsafe));
     else if (z && STY.unsafe === G.zone) el2.append(el('small', null, G.zone === 'weiler' ? 'Kampf im Dorf!' : 'Kampf in der Stadt!'));
     else if (z && zoneLvText(z.id)) el2.append(el('small', null, zoneLvText(z.id)));
   }
   if (entered && !RM){ el2.style.animation = 'none'; void el2.offsetWidth; el2.style.animation = 'zonein 1.2s steps(6)'; }
-  if (entered && !G.inside && G.zone === 'weiler' && EVT.raid) logLine('Ihr betretet Lindach. Raubritter plündern das Dorf!', '#ff9a8a');
+  if (entered && !G.inside && evUnsafe(G.zone)) logLine(evUnsafe(G.zone).enter, '#ff9a8a');
   else if (entered && !G.inside && SAFE[G.zone] && !isSafe(G.zone)) logLine('Ihr betretet ' + (G.zone === 'weiler' ? 'das Dorf Lindach' : hubArt(G.zone) + HUB_NAME[G.zone]) + '. Hier wird gekämpft!', '#ff9a8a');
   else if (entered && !G.inside && SAFE[G.zone]) logLine('Ihr betretet ' + hubArt(G.zone) + HUB_NAME[G.zone] + '. Hier seid Ihr sicher.', '#9fe08a');
   if (entered && G.inside) logLine(G.inside.church ? 'Ihr tretet ein: ' + G.inside.name + '. Hier ist es still und kühl.' : 'Ihr tretet ein: ' + G.inside.name + '. ' + G.inside.host + ' hat Speis und Trank.', '#ffd98a');
@@ -461,7 +461,7 @@ function renderTracker(){
   box.textContent = '';
   if (!HERO) return;
   if (G && G.watch){ const p = el('p', 'ev'); p.append(el('b', null, 'Tjost: '), G.watch); box.append(p); }
-  rrRows(box); stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); kzRows(box); partyRows(box);
+  rrRows(box); stRows(box); asRows(box); ehRows(box); evRows(box); tnRows(box); chRows(box); kzRows(box); zkRows(box); partyRows(box);
   for (const q of HERO.quests){
     const d = qInfo(q); if (!d) continue;
     const done = q.n >= d.need, p = el('p', done ? 'done' : '');
@@ -1305,6 +1305,7 @@ addEventListener('keydown', e => {
   else if (e.code === 'KeyL'){ if (G.mode === 'menu' && !$('ovQuests').hidden) closePanel(); else openQuests(); }
   else if (e.code === 'KeyK'){ if (G.mode === 'menu' && !$('ovMap').hidden) closePanel(); else openMap(); }
   else if (e.code === 'KeyT'){ if (G.mode === 'menu' && G.talk && G.talk.key === 'party') closePanel(); else openParty(); }
+  else if (e.code === 'KeyO' && cloud.room){ if (G.mode === 'menu' && G.talk && G.talk.key === 'ritter') closePanel(); else openRitter(); }
   else if (e.code === 'KeyP' || e.code === 'Escape'){
     if (G.mode === 'menu') closePanel();
     else if (G.mode === 'play') pauseGame(); else if (G.mode === 'pause') resumeGame();

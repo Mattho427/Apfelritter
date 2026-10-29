@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 23 von 28: Das Bergland: Bergstadt Silberberg, ihre Leute, die Aufträge des Bergmeisters.
+/* Der Apfelritter, Teil 23 von 29: Das Bergland: Bergstadt Silberberg, ihre Leute, die Aufträge des Bergmeisters.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Das Bergland (Version 25) ============

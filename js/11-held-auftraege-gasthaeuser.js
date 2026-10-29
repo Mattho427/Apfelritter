@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 11 von 28: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
+/* Der Apfelritter, Teil 11 von 29: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */
@@ -98,6 +98,10 @@ function cleanHero(h){
   h.gunst = h.gunst && h.gunst.t > 0 ? { t: Math.min(1800, +h.gunst.t || 0) } : null; h.gunstD = h.gunstD | 0;   // Burgen der Häuser (Teil 27)
   h.hbt = h.hbt && typeof h.hbt === 'object' ? { d: h.hbt.d | 0, n: clamp(h.hbt.n | 0, 0, 3) } : null;
   h.hbv = h.hbv && typeof h.hbv === 'object' ? Object.fromEntries(Object.keys(KN_FACTIONS).filter(f => h.hbv[f]).map(f => [f, 1])) : {};
+  h.hbs = h.hbs && typeof h.hbs === 'object' ? { n: Math.max(0, h.hbs.n | 0), own: Math.max(0, h.hbs.own | 0) } : null;   // Belagerungen zurückgeschlagen (Teil 27)
+  h.zk = h.zk && typeof h.zk === 'object' ? { e: clamp((h.zk.e | 0) || 1000, 100, 3000), w: Math.max(0, h.zk.w | 0), l: Math.max(0, h.zk.l | 0), d: Math.max(0, h.zk.d | 0) } : null;   // Zweikampf (Teil 28)
+  h.zkd = h.zkd && typeof h.zkd === 'object' ? { d: h.zkd.d | 0, n: clamp(h.zkd.n | 0, 0, 99) } : null;
+  h.frd = Array.isArray(h.frd) ? h.frd.filter(f => f && typeof f === 'object' && cleanName(f.nm)).slice(-30).map(f => ({ id: typeof f.id === 'string' ? f.id.slice(0, 200) : '', nm: cleanName(f.nm), f: KN_FACTIONS[f.f] ? f.f : 'reich', lv: clamp(f.lv | 0, 1, MAX_LVL), at: Math.max(0, +f.at || 0) })) : [];   // Freunde
   h.kz = h.kz && typeof h.kz === 'object' ? { pavia: Math.max(0, h.kz.pavia | 0), wien: Math.max(0, h.kz.wien | 0) } : {};
   h.fsw = h.fsw && typeof h.fsw === 'object' ? Object.fromEntries(['muehle', 'karten', 'kegeln', 'ringen'].map(k => [k, Math.max(0, h.fsw[k] | 0)])) : {};
   h.tal = h.tal && typeof h.tal === 'object' ? Object.fromEntries(Object.entries(h.tal).filter(([l, id]) => MEISTER_BY[id] && MEISTER_BY[id].lvl === +l && h.lvl >= +l)) : {};

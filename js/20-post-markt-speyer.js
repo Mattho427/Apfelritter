@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 20 von 28: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Altmünster und Fluss.
+/* Der Apfelritter, Teil 20 von 29: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus, Altmünster und Fluss.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Mehrspieler über die Zeit: Botenpost, Marktplatz, Länderwettstreit, Ordenshaus ============
    Jeder Ritter schreibt nur in sein eigenes Dokument der Ruhmeshalle (heroes/<id>), alle anderen lesen es mit.

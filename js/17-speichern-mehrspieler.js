@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 17 von 28: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
+/* Der Apfelritter, Teil 17 von 29: Speichern, Ruhmeshalle, andere Ritter, Mehrspieler.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Speichern: im Browser und, wo möglich, im Konto ============ */
 const cloud = { db:null, uid:null, user:null, room:null, saving:false, last:'', nextT:0, noWrite:false, fameLast:'', fameBusy:false, fameNoWrite:false, fameT:0, loaded:false };
@@ -112,6 +112,7 @@ function sendPresence(force){
   cloud.room.presence(pr).catch(() => {});
 }
 function sendChat(text){
+  if (text[0] === '/' && olCommand(text)) return;   // Flüstern, Gesten, Aufgeben (Teil 28)
   const om = /^\/o\s+/i.test(text) && HERO.or ? text.replace(/^\/o\s+/i, '') : null;   // „/o …“: nur an den eigenen Orden
   if (om !== null && !om) return;
   if (om === null){ G.say = text; G.sayT = nowS() + 6; }
@@ -125,12 +126,12 @@ function logChat(nm, text, me){
 function setupRoom(room){
   if (!room) return;
   cloud.room = room;
-  $('btnChat').hidden = false;
+  $('btnChat').hidden = false; $('btnRitter').hidden = false;
   room.onPeers(ch => {
     const live = new Set();
     for (const p of ch.peers){ if (p.sameTab) NET.me = p.peer; if (p.sameTab || p.kind !== 'viewer') continue; if (readPeer(p)) live.add(p.peer); }
     for (const id of [...PEERS.keys()]) if (!live.has(id)) PEERS.delete(id);
-    for (const p of ch.joined) if (!p.sameTab && p.kind === 'viewer' && p.presence && p.presence.nm && G && G.mode !== 'title') logLine(cleanName(p.presence.nm) + ' ist im Königsland.', '#9cc8ff');
+    olPeers(ch.peers);   // wer neu ins Land kommt (Teil 28)
     const n = ch.peers.filter(p => p.kind === 'viewer').length;
     $('online').textContent = Math.max(1, n); $('onlineWrap').hidden = n < 2;
   }, () => { PEERS.clear(); $('onlineWrap').hidden = true; renderParty(); });
@@ -140,6 +141,7 @@ function setupRoom(room){
     if (!t) return;
     if (d.or && (!HERO || !HERO.or || d.or !== HERO.or.id)) return;   // Ordensgespräch eines anderen Ordens
     const q = PEERS.get(msg.peer), nm = q ? q.nm : (cleanName(d.nm) || 'Ritter');
+    if (d.to){ if (d.to === NET.me && HERO) olHeard(msg.peer, nm, t); return; }   // geflüstert: nur für den Angesprochenen
     if (q && !d.or){ q.say = t; q.sayT = nowS() + 6; }
     logChat(d.or ? '[' + HERO.or.kz + '] ' + nm : nm, t, false); Sound.chat();
   }, () => {});
@@ -209,8 +211,8 @@ const partyList = () => NET.pt ? [...PEERS.values()].filter(inParty).sort((a, b)
 /* Gruppenmitglieder in der Nähe (für Erfahrung und Beute) */
 const partyNear = () => partyList().filter(q => samePlace(q) && !q.dead && peerDist(q) < 900);
 const nearLists = (x, y) => LISTS && Math.hypot(x - LISTS.x, y - LISTS.y) < 620;
-/* Gebiete, in denen nicht gekämpft wird; Lindach nur, solange keine Raubritter im Dorf sind */
-const isSafe = z => !!SAFE[z] && !((z === 'weiler' && EVT.raid) || STY.unsafe === z);
+/* Gebiete, in denen nicht gekämpft wird; Lindach nur, solange keine Raubritter im Dorf sind, eine Burg nur, solange sie nicht belagert wird */
+const isSafe = z => !!SAFE[z] && !((EVT.raid && z === EVT.raid) || STY.unsafe === z);
 
 /* ---------- Anwesenheit: lesen und schreiben ---------- */
 function netRead(q, p, s){
@@ -223,6 +225,7 @@ function netRead(q, p, s){
   q.bz = typeof s.bz === 'string' ? s.bz.slice(0, 2) : ''; q.rr = typeof s.rr === 'string' ? s.rr.slice(0, 1) : '';
   q.or = orClean(s.or);
   q.gt = obj(s.gt); q.bk = !!s.bk;
+  q.zk = obj(s.zk); geSeen(q, obj(s.ge)); q.gs = typeof s.gs === 'string' && GS[s.gs] ? s.gs : '';   // Zweikampf, Geste, Gesuch (Teil 28)
   q.wa = ehHas(WAPPEN, s.wa) ? s.wa : null; q.ht = ehHas(HT, s.ht) ? s.ht : null;
   q.hl = Number.isInteger(s.hl) ? s.hl : null; q.go = Array.isArray(s.go) ? s.go.filter(Number.isInteger).slice(0, 8) : null; q.dd = obj(s.dd);
   const kx = obj(s.kx); q.kx = kx ? { n: Math.max(0, kx.n | 0), s: Math.max(0, +kx.s || 0), l: num(kx.l, 1, MAX_LVL + 3, 1) } : null;
@@ -242,7 +245,8 @@ function netPres(){
   o.go = M && M.openG.length ? M.openG : DG_ON && DG_ON.kz ? kzGo(DG_ON) : null;   // Kriegszüge: Tore und Hebel
   o.dd = M ? { k: M.id + ':' + dgDay(), d: Math.round(M.bossDmg || 0) } : null;
   o.rr = rrPres() || null;
-  o.bz = G.joust ? 'j' : G.fgame ? 'f' : rrBusy() ? 'p' : NET.tr ? 'h' : NET.dc ? 'w' : '';
+  o.bz = G.joust ? 'j' : G.fgame ? 'f' : rrBusy() ? 'p' : NET.tr ? 'h' : NET.dc ? 'w' : NET.zk ? 'z' : '';
+  o.zk = NET.zk ? zkPres() : null; o.ge = NET.ge || null; o.gs = NET.gs || null;
   o.jo = NET.jo ? duelPres() : null;
   o.tr = NET.tr ? tradePres() : null;
   o.dc = NET.dc ? dicePres() : null;
@@ -264,7 +268,7 @@ function netAsk(q, kind, x){
 function netBusy(kind, q, mine){
   const who = mine ? q.nm : 'Ihr';
   if (G.mode !== 'play' && G.mode !== 'menu') return 'Gerade nicht.';
-  if (kind !== 'party' && (G.joust || G.fgame || NET.tr || NET.dc || NET.jo || rrBusy())) return 'Ihr seid gerade beschäftigt.';
+  if (kind !== 'party' && (G.joust || G.fgame || NET.tr || NET.dc || NET.jo || NET.zk || rrBusy())) return 'Ihr seid gerade beschäftigt.';
   if (mine && kind !== 'party' && q.bz) return q.nm + ' ist gerade beschäftigt.';
   if (kind === 'party' && mine && q.pt && NET.pt && q.pt.id === NET.pt.id) return q.nm + ' ist schon in Eurer Gruppe.';
   if (kind === 'party' && mine && NET.pt && partyList().length >= PARTY_MAX - 1) return 'Eure Gruppe ist voll.';
@@ -277,6 +281,9 @@ function netBusy(kind, q, mine){
   if (kind === 'order' && mine && q.or && q.or.id === HERO.or.id) return q.nm + ' ist schon in Eurem Orden.';
   if (kind === 'order' && !mine && !(q.or && q.or.id === q.rq.x)) return 'Gerade nicht.';
   if (kind === 'trade' && (!samePlace(q) || peerDist(q) > 260)) return who === 'Ihr' ? 'Zu weit weg.' : q.nm + ' ist zu weit weg.';
+  if (kind === 'zk' && (DG_ON || G.inside || q.in || !samePlace(q))) return 'Gefochten wird unter freiem Himmel.';
+  if (kind === 'zk' && peerDist(q) > ZK_NEAR + 40) return who === 'Ihr' ? 'Zu weit weg.' : q.nm + ' ist zu weit weg.';
+  if (kind === 'zk' && (q.dead || G.mode === 'dying' || G.mode === 'dead')) return 'Gerade nicht.';
   if (kind === 'dice'){
     if (!G.inside || G.inside.church || !samePlace(q)) return 'Gewürfelt wird im Gasthaus.';
     const st = mine ? NET.diceStake || 0 : +q.rq.x || 0;
@@ -298,6 +305,7 @@ function netBegin(kind, q, r, asker){
   else if (kind === 'duel') startDuel(q, r.n, asker);
   else if (kind === 'trade') startTrade(q, r.n);
   else if (kind === 'dice') startDicePvp(q, r.n, +r.x || 0);
+  else if (kind === 'zk') zkStart(q, r.n, asker);
   else if (kind === 'tourn' && asker){
     if (HERO.gold >= TN_FEE){ HERO.gold -= TN_FEE; updateHud(); markDirty(true); }
     NET.tj = { id: r.x, host: q.peer, paid: true };
@@ -342,6 +350,7 @@ function netTick(){
   if (NET.dc) diceTick(t);
   tnTick(t);
   evTick(t);
+  olTick(t);
   sendPresence();
 }
 /* Anfrage an mich: Kästchen oben mit Annehmen und Ablehnen (Tasten Y und N) */
@@ -378,6 +387,7 @@ function peerView(view, body, opts){
   if (view === 'trade') return tradeView(body, opts, q);
   if (view === 'dicepvp') return diceViewPvp(body, opts, q);
   if (view === 'party') return partyView(body, opts);
+  if (view === 'ritter' || view === 'gesten' || view === 'gesuch') return olView(view, body, opts);
   if (!q){ $('talkText').textContent = 'Der Ritter ist fortgeritten.'; opts.append(btn('Lebt wohl', closePanel, 'opt')); body.append(opts); return; }
   if (view === 'dicestake'){
     $('talkText').textContent = 'Drei Würfel, einmal nachwerfen, wer mehr hat, gewinnt den Einsatz des anderen. Ihr habt ' + HERO.gold + ' Gulden.';
@@ -395,6 +405,7 @@ function peerView(view, body, opts){
     ask(okL ? 'Zum Tjost fordern' : 'Zum Tjost fordern (nur auf der Turnierwiese)', 'duel', 0, okL ? (q.bz ? 'beschäftigt' : '') : 'Beide müssen auf der Turnierwiese vor dem Osttor stehen.');
   }
   ask('Handeln', 'trade', 0, q.bz ? 'beschäftigt' : '');
+  olPeerOpts(q, opts, ask);
   if (HERO.or && !(q.or && q.or.id === HERO.or.id)) ask('In Euren Orden aufnehmen (' + HERO.or.kz + ')', 'order', HERO.or.id, '');
   if (G.inside && !G.inside.church){ const b = btn('Würfeln', () => renderTalk('dicestake'), 'opt'); b.disabled = !!q.bz; opts.append(b); }
   else opts.append(el('p', 'hint', 'Gewürfelt wird im Gasthaus. Den Tjost reitet Ihr auf der Turnierwiese vor dem Osttor der Königsstadt.'));
@@ -486,6 +497,7 @@ $('btnParty').addEventListener('click', () => { Sound.init(); G.mode === 'menu' 
 /* ---------- Gemeinsamer Kampf: Hiebe und Lanzen der Mitspieler treffen die Monster hier ---------- */
 function peerHits(){
   if (G.inside || G.mode === 'title') return;
+  zkFrame();
   const here = hereId();
   for (const q of PEERS.values()){
     if ((q.in || 0) !== here || q.dead) continue;

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 18 von 28: Weltereignisse, Ritterorden, Großes Turnier, Start.
+/* Der Apfelritter, Teil 18 von 29: Weltereignisse, Ritterorden, Großes Turnier, Start.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Weltereignisse: für alle Ritter zur selben Stunde ============
    Die Uhr der Welt bestimmt, wann etwas geschieht: um 9 Uhr überfallen Raubritter das Dorf Lindach, um 22 Uhr zieht
@@ -10,6 +10,7 @@
 const EV_N = 96;
 const EV_DEFS = [
   { id: 'ueberfall', kind: 'raid', name: 'Überfall auf Lindach', at: 9, len: 5, boss: 'raubritter', bossName: 'Eppelein von Rabeneck', where: 'in Dorf Lindach',
+    zone: 'weiler', unsafe: 'Raubritter im Dorf!', enter: 'Ihr betretet Lindach. Raubritter plündern das Dorf!',
     siteAt: [2530, 690, 'Dorf Lindach'], bossAt: [2540, 700], goal: [2530, 690, 150, 110], wave: [5, 25, 14], need: [20, 8, 60], hpf: .5, unit: 'Räubern vertrieben',
     pick: R => R() < .32 ? 'armbrust' : 'pluend',
     soon: 'In Lindach läutet die Sturmglocke: Eine Raubritterbande zieht heran!', start: 'Raubritter überfallen Dorf Lindach! Vertreibt die Bande, dann stellt sich ihr Hauptmann.',
@@ -37,7 +38,7 @@ const EV_KAISER = [[1900, 600], [1904, 700], [1940, 744], [1970, 790], [1946, 83
 const EV_AMBUSH = [.24, .5, .77], EV_KSPEED = 34;
 const EV_JAGD = [['den Finsterwald', 640, 600], ['das Moor', 430, 2600], ['den Galgenberg', 3760, 1150]];
 const EV_RAID_IN = [[2700, 700], [2610, 850], [2380, 650], [2530, 500]];
-const EVT = { cur: null, raid: false, soonId: '', art: {} };
+const EVT = { cur: null, raid: '', soonId: '', art: {} };   // raid: das Gebiet, in dem gerade gekämpft wird (Lindach, eine belagerte Burg)
 const evArt = k => EVT.art[k] || (EVT.art[k] = ghostArt(artOf(k)));
 /* Wann ist was? Letzter Beginn vor jetzt; läuft es noch, oder kommt es in der nächsten Spielstunde? */
 function evInfo(d, now){
@@ -77,9 +78,11 @@ function evTick(dt){
   if (act && (!EVT.cur || EVT.cur.id !== act.id)) evBegin(act, now);
   if (!act && EVT.cur){ if (!EVT.cur.over) evEnd(false); EVT.cur = null; renderTracker(); }
   if (EVT.cur) evRun(dt, now);
-  const raid = !!(EVT.cur && EVT.cur.d.id === 'ueberfall' && !EVT.cur.over);
+  const raid = EVT.cur && !EVT.cur.over && EVT.cur.d.zone || '';
   if (raid !== EVT.raid){ EVT.raid = raid; if (!DG_ON) updateZone(false); }
 }
+/* Ereignis, das ein sicheres Gebiet gerade unsicher macht */
+const evUnsafe = z => EVT.raid && EVT.raid === z && EVT.cur ? EVT.cur.d : null;
 function evBegin(a, now){
   if (EVT.cur) evClear(EVT.cur);
   const d = a.d, E = EVT.cur = { d, id: a.id, t0: a.t0, t1: a.t0 + d.len * 60, site: evSite(d, a.t0), killed: new Uint8Array(EV_N), all: new Uint8Array(EV_N),
@@ -104,7 +107,7 @@ function evSpawn(E, i, w){
   if (d.kind === 'raid'){
     const ins = d.ins || EV_RAID_IN, kind = d.pick(R), e = ins[(w + i) % ins.length], gl = d.goal;
     const p = gNear(e[0] + (R() - .5) * 60, e[1] + (R() - .5) * 50), goal = gNear(gl[0] + (R() - .5) * gl[2], gl[1] + (R() - .5) * gl[3]);
-    m = createMonster(kind, p.x, p.y, clamp(HERO.lvl + (R() < .3 ? 1 : 0), 3, MAX_LVL), null);
+    m = createMonster(kind, p.x, p.y, clamp(HERO.lvl + (R() < .3 ? 1 : 0) + (d.lvOff || 0), 3, MAX_LVL), null);
     m.hx = goal.x; m.hy = goal.y; m.tx = goal.x; m.ty = goal.y; m.walking = true; m.wT = 40; m.march = true;
     m.nm = d.mobs[kind];
   } else if (d.kind === 'escort'){
@@ -148,7 +151,7 @@ function evRun(dt, now){
   E.killedN = killed; E.parts = parts.length;
   if (d.kind === 'raid'){
     E.need = window.__evNeed || Math.min(d.need[2], d.need[0] + d.need[1] * (parts.length - 1));   // __evNeed: zum Ausprobieren
-    if (E.phase === 'raid' && killed >= E.need){ E.phase = 'boss'; if (G.mode === 'play'){ showBanner(d.bossName, d.ratKing ? 'kriecht aus dem Kornspeicher' : 'Der Hauptmann der Bande stellt sich'); logLine(d.ratKing ? 'Der Boden bebt, die Ratten fliehen in alle Richtungen: Der Rattenkönig kommt!' : 'Die Bande weicht! Da reitet ihr Hauptmann heran: ' + d.bossName + '.', '#ff9a8a'); Sound.horn(); } }
+    if (E.phase === 'raid' && killed >= E.need){ E.phase = 'boss'; if (G.mode === 'play'){ showBanner(d.bossName, d.ratKing ? 'kriecht aus dem Kornspeicher' : d.bossSub || 'Der Hauptmann der Bande stellt sich'); logLine(d.ratKing ? 'Der Boden bebt, die Ratten fliehen in alle Richtungen: Der Rattenkönig kommt!' : (d.bossLine || 'Die Bande weicht! Da reitet ihr Hauptmann heran: ') + d.bossName + '.', '#ff9a8a'); Sound.horn(); } }
     const [wn, wt, wc] = d.wave;
     if (near) for (let w = 0; w < wc; w++){
       if (now < E.t0 + 10 + w * wt || (E.phase !== 'raid' && !d.ratKing)) break;
@@ -353,6 +356,7 @@ function evEnd(won){
     showBanner(d.won, gold + ' Gulden, ' + xp + ' EP und ' + itN);
     logLine(d.won + '! Ihr erhaltet ' + gold + ' Gulden, zwei Heiltränke und ' + itN + (E.parts > 2 ? '. Mit Euch ' + (d.kind === 'fire' ? 'halfen ' : 'kämpften ') + (E.parts - 1) + ' Ritter.' : E.parts === 2 ? '. Ein zweiter Ritter ' + (d.kind === 'fire' ? 'half' : 'kämpfte') + ' mit Euch.' : '.'), '#ffd98a');
     logItem('Lohn: ', it);
+    if (d.siege) hbSiegeWon(d);
     gainXp(xp); Sound.levelUp(); Sound.cheer(1); G.flash = .3;
     burst(k.x, k.y - KBODY, ['#c9a227', '#ecd27a', '#ffffff'], 36, 120, true);
     updateHud(); pushFame(); markDirty(true);
@@ -407,7 +411,7 @@ function fameExtra(){
   if (J.pw || J.pl){ o.je = J.elo || 1000; o.jw = J.pw || 0; o.jl = J.pl || 0; }
   if (HERO.tw) o.tw = HERO.tw;
   for (const r of FREC){ const v = HERO.frec && HERO.frec[r.id]; if (v) o[r.f] = v; }
-  return ehFameDoc(asFame(o));
+  return ehFameDoc(asFame(zkFame(o)));
 }
 /* bester Wert aller bekannten Ritter für ein Festspiel */
 function festBest(id){
@@ -438,6 +442,7 @@ function renderFameTab(){
   const rows = (cloud.allRows || []).filter(r => r.id !== (cloud.uid || 'local')).concat(mine ? [mine] : []);
   if (fameTab === 'laender'){ asFameLw(box); return; }
   if (fameTab === 'ehre'){ ehFameTab(box, rows); return; }
+  if (fameTab === 'zweikampf'){ zkFameTab(box, rows); return; }
   if (fameTab === 'orden'){
     const L = orKnown().slice(0, 12);
     if (!L.length){ box.append(el('li', 'empty', 'Noch steht kein Orden in der Wappenrolle. Gegründet wird beim Herold vor der Königsstadt.')); return; }
