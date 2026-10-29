@@ -1,4 +1,4 @@
-// Mehr Online-Spiel (Version 32): Ritter im Land, Freunde, Flüstern, Gesten, Gesuche, Zweikampf zu Fuß (Sieg, Aufgeben, Zuschauer), Ruhmeshalle
+// Mehr Online-Spiel (Version 32): Ritter im Land, Freunde, Flüstern, Gesten, Gesuche, Zweikampf zu Fuß (Sieg, Aufgeben, Fenster offen, Zuschauer), Ruhmeshalle
 import { launch, wait, OUT } from './harness.mjs';
 import { zeigeTafel, schliesseTafel } from '../pfad.mjs';
 const H = await launch(3, { init: { fn: () => { window.__wx = 'klar'; window.__skyShift = (0.5 - (Date.now() / 1000 / 1440 % 1)) * 1440; }, arg: 0 } });
@@ -121,7 +121,14 @@ await ev(A, () => sendChat('/aufgeben'));
 await wait(2500);
 const g2 = await ev(B, () => NET.zk && NET.zk.res), h2 = await ev(A, () => NET.zk && NET.zk.res);
 ok(g2 === 1 && h2 === 0, 'Aufgeben: Grete gewinnt, Hans verliert');
-// beschäftigt: während des Zweikampfs keine neue Anfrage
+await wait(6500);
+// ---- dritter Zweikampf: Hans öffnet den Rucksack und lässt die Waffen zu lange ruhen
+await ev(B, () => netAsk([...PEERS.values()].find(p => p.nm === 'Hans'), 'zk'));
+await wait(900); await ev(A, () => $('askYes').click()); await wait(1200);
+await ev(A, () => openBag());
+await wait(8500);
+ok(await ev(A, () => G.mode === 'menu' && NET.zk && NET.zk.res === 0) && await ev(B, () => NET.zk && NET.zk.res === 1), 'Fenster zu lange offen: Hans gibt auf');
+await ev(A, () => closePanel());
 await wait(6500);
 
 // ---- Ruhmeshalle: Zweikampf
@@ -142,7 +149,7 @@ const fl = await logOf(A, /Euer Freund/);
 ok(fl.length === 1 && /^Grete, Euer Freund, ist im Königsland\.$/.test(fl[0]), 'Hans erfährt, dass Grete kommt: ' + fl[0]);
 ok((await logOf(C, /^Grete ist im Königsland\.$/)).length >= 1, 'Kunz bekommt die gewöhnliche Meldung');
 // Spielstand
-ok(await ev(A, () => { const c = JSON.parse(JSON.stringify(HERO)); cleanHero(c); return c.frd.length === 1 && c.frd[0].nm === 'Grete' && c.zk.w + c.zk.l + c.zk.d === 2; }), 'Freunde und Zweikampf im Spielstand');
+ok(await ev(A, () => { const c = JSON.parse(JSON.stringify(HERO)); cleanHero(c); return c.frd.length === 1 && c.frd[0].nm === 'Grete' && c.zk.w + c.zk.l + c.zk.d === 3; }), 'Freunde und Zweikampf im Spielstand');
 console.log(H.errors().join('\n') || 'keine Fehler');
 console.log(fehl ? 'FEHL ' + fehl : 'alles gut');
 await H.done();
