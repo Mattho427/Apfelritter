@@ -21,7 +21,7 @@ function zkStart(q, id, asker){
   HERO.zk = HERO.zk || { e: 1000, w: 0, l: 0, d: 0 };
   NET.zk = { id, w: q.peer, nm: q.nm, h: mx, mx, cx: (k.x + q.x) / 2, cy: (k.y + q.y) / 2, t0: nowS(), seen: nowS(), end: 0, done: 0, oh: null, hitSw: q.sw, sec: 0, asker };
   showBanner('Zweikampf', HERO.name + ' gegen ' + q.nm); Sound.horn();
-  logLine('Der Zweikampf gegen ' + q.nm + ' beginnt! Gefochten wird im Kreis, bis einer am Boden liegt oder aufgibt, längstens zwei Minuten. Um Euer Leben geht es nicht.', '#ffd98a');
+  logLine('Der Zweikampf gegen ' + q.nm + ' beginnt! Gefochten wird im Kreis, bis einer am Boden liegt oder aufgibt, längstens zwei Minuten. Um Euer Leben geht es nicht. Wer länger als ein paar Augenblicke ein Fenster offen hält, gibt auf.', '#ffd98a');
   renderTracker(); sendPresence(true);
 }
 function zkPres(){ const Z = NET.zk; return { id: Z.id, w: Z.w, h: Math.round(Z.h), mx: Z.mx, e: HERO.zk ? HERO.zk.e : 1000, end: Z.end ? 1 : 0 }; }
@@ -82,7 +82,9 @@ function zkTick(t){
     if (oh !== Z.oh){ Z.oh = oh; renderTracker(); }
   } else if (t - Z.seen > 5 && t - Z.t0 > 6){ zkDone(null, (q ? q.nm : Z.nm) + ' ist fort. Der Zweikampf endet ohne Sieger.'); return; }
   if (!Z.end){
+    Z.away = PAUSED[G.mode] ? (Z.away || 0) + clamp(t - (Z.lastT || t), 0, 1) : 0; Z.lastT = t;   // Fenster offen oder angehalten: der Gegner ficht weiter
     if (t - Z.t0 > ZK_T) zkStop('Die Zeit ist um. Wer mehr Kraft übrig hat, gewinnt.');
+    else if (Z.away > 6) zkStop('Wer im Zweikampf die Waffen zu lange ruhen lässt, gibt auf.', true);
     else if (G.mode === 'dying' || G.mode === 'dead' || G.inside || DG_ON || G.joust || G.fgame) zkStop('Ihr verlasst den Kampfplatz und gebt den Zweikampf verloren.', true);
     else if (th && th.end) zkStop();
   }
