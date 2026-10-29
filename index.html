@@ -522,6 +522,7 @@ input:focus-visible{outline:3px dashed var(--ghost); outline-offset:2px;}
 .opts .btn,.opts .tbtn{justify-self:start;}
 .shoprow{display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; background:var(--stone-lo); padding:5px 8px;}
 .shoprow img{width:36px; height:36px; image-rendering:pixelated; background:var(--ink);}
+.shoprow .racts{grid-column:2 / -1; display:flex; flex-wrap:wrap; gap:4px;} .shoprow .racts .tbtn{font-size:18px; padding:4px 10px 3px;}
 .stx{min-width:0;}
 .stx b{display:block; font-weight:400; font-size:19px; line-height:1.05;}
 .stx small{display:block; font-size:15px; line-height:1.1; color:var(--parchment-lo);}
@@ -658,7 +659,7 @@ body{margin:0; padding:0;}
     <img class="seal" id="sealTop" alt="">
     <p class="eyebrow">Ein Ritterspiel aus unruhigen Zeiten</p>
     <h1>Der Apfelritter</h1>
-    <p class="lede">Ein Königreich in unruhigen Zeiten. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter vom Haus des Adlers, der Lilie, der Löwen oder der Türme durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre vom Wanderprediger auf dem Hoftag bis zum Aufstand der Bauern und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum König auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den König, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der königlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Hauses.</p>
+    <p class="lede">Ein Königreich in unruhigen Zeiten. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter vom Haus des Adlers, der Lilie, der Löwen oder der Türme durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre vom Wanderprediger auf dem Hoftag bis zum Aufstand der Bauern und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum König auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den König, tjostiert im Großen Turnier, fechtet Zweikämpfe zu Fuß, verteidigt die Burgen der Häuser gegen Söldner, handelt und würfelt miteinander, flüstert euch zu und merkt euch Freunde. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der königlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Hauses.</p>
   </header>
 
   <section class="cabinet" aria-label="Spiel">
@@ -677,6 +678,7 @@ body{margin:0; padding:0;}
         <button class="ibtn" id="btnQuests" type="button">Aufträge</button>
         <button class="ibtn" id="btnMap" type="button">Karte</button>
         <button class="ibtn" id="btnChat" type="button" hidden>Sagen</button>
+        <button class="ibtn" id="btnRitter" type="button" hidden aria-label="Ritter im Land: Freunde, Flüstern, Gesuche, Gesten">Ritter</button>
         <button class="ibtn" id="btnParty" type="button" hidden>Gruppe</button>
         <button class="ibtn" id="btnPause" type="button" aria-label="Menü: Spiel anhalten, Tafeln und Hilfe, Steuerung">Menü</button>
         <button class="ibtn" id="btnSound" type="button" aria-pressed="true">Ton an</button>
@@ -781,6 +783,7 @@ body{margin:0; padding:0;}
         <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
         <dt class="kbd-only"><kbd>Y</kbd><kbd>N</kbd></dt><dd class="kbd-only">Anfrage eines Ritters annehmen oder ablehnen</dd>
         <dt class="kbd-only"><kbd>T</kbd></dt><dd class="kbd-only">Eure Gruppe</dd>
+        <dt class="kbd-only"><kbd>O</kbd></dt><dd class="kbd-only">Ritter im Land: Freunde, Flüstern, Gesuche, Gesten</dd>
         <dt class="kbd-only"><kbd>↑</kbd><kbd>↓</kbd><kbd>1</kbd>–<kbd>9</kbd></dt><dd class="kbd-only">in Fenstern wählen, <kbd>Enter</kbd> bestätigt, <kbd>⌫</kbd> zurück</dd>
         <dt class="kbd-only"><kbd>P</kbd><kbd>Esc</kbd></dt><dd class="kbd-only">Pause, Fenster schließen; Zwischenszene überspringen</dd>
         <dt class="kbd-only"><kbd>M</kbd></dt><dd class="kbd-only">Ton an oder aus</dd>
@@ -853,7 +856,7 @@ body{margin:0; padding:0;}
           <section class="notes" id="notes">
             <div class="note" id="noteIntro">
               <h3>Über das Spiel</h3>
-              <p>Ein Königreich in unruhigen Zeiten. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter vom Haus des Adlers, der Lilie, der Löwen oder der Türme durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre vom Wanderprediger auf dem Hoftag bis zum Aufstand der Bauern und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum König auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den König, tjostiert im Großen Turnier, handelt und würfelt miteinander. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der königlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Hauses.</p>
+              <p>Ein Königreich in unruhigen Zeiten. Krieg, Pest und Hunger gehen um, über dem Land hängt grauer Himmel. Zieh als Ritter vom Haus des Adlers, der Lilie, der Löwen oder der Türme durch ein weites Land: Erlebe in der Hauptgeschichte die unruhigen Jahre vom Wanderprediger auf dem Hoftag bis zum Aufstand der Bauern und entscheide selbst, auf welcher Seite du stehst. Erschlage Monster, sammle ihre Beute, jage Wild, steig in Keller und Grüfte hinab, feiere die Feste im Jahreslauf, nimm Aufträge vom Vogt und vom Bürgermeister an und steige vom Knappen bis zum König auf. Andere Ritter, die gerade spielen, siehst du im Land: Reitet in Gruppen und Ritterorden, kämpft gemeinsam gegen Raubritter, die Wilde Jagd und den Bergdrachen, löscht Brände, geleitet den König, tjostiert im Großen Turnier, fechtet Zweikämpfe zu Fuß, verteidigt die Burgen der Häuser gegen Söldner, handelt und würfelt miteinander, flüstert euch zu und merkt euch Freunde. Auch wer nicht zur selben Zeit spielt, bleibt verbunden: Schreibt euch Briefe mit der königlichen Post, kauft und verkauft auf dem Markt, baut gemeinsam ein Ordenshaus und streitet jede Woche um den Ruhm eures Hauses.</p>
               <p class="tip">Diese Tafeln findet Ihr jederzeit im Menü (oben rechts) unter „Tafeln und Hilfe“.</p>
             </div>
             <div class="note">
@@ -864,7 +867,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Die Burgen der Häuser</h3>
               <ul class="list" id="hbList"></ul>
-              <p class="tip">Jedes Haus hat seine Burg in Stein, Dach und Fahne seiner Farben. Das Oberhaupt empfängt die Ritter des eigenen Hauses: einmal am Spieltag die Gunst des Hauses (30 Minuten +10 % Erfahrung und Gulden), Tribut für den Wettstreit (100 Gulden für 10 Punkte, dreimal am Tag), Rasten und der Stand im Wettstreit. Gäste anderer Häuser sind willkommen, Gunst und Rast gibt es für sie nicht. Wer alle vier Burgen besucht, verdient die Trophäe „Gast aller Häuser“.</p>
+              <p class="tip">Jedes Haus hat seine Burg in Stein, Dach und Fahne seiner Farben. Das Oberhaupt empfängt die Ritter des eigenen Hauses: einmal am Spieltag die Gunst des Hauses (30 Minuten +10 % Erfahrung und Gulden), Tribut für den Wettstreit (100 Gulden für 10 Punkte, dreimal am Tag), Rasten und der Stand im Wettstreit. Gäste anderer Häuser sind willkommen, Gunst und Rast gibt es für sie nicht. Wer alle vier Burgen besucht, verdient die Trophäe „Gast aller Häuser“. Im Morgengrauen berennt die Schwarze Schar, eine Söldnerkompanie, an jedem Spieltag eine andere Burg (siehe Weltereignisse).</p>
             </div>
             <div class="note">
               <h3>Das Königsland</h3>
@@ -931,7 +934,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Mit anderen Rittern</h3>
               <ul class="list" id="mpList"></ul>
-              <p class="tip">Geht zu einem anderen Ritter und drückt E oder tippt ihn an. Anfragen erscheinen oben im Bild. Die Gruppe bleibt bestehen, solange Ihr spielt, auch nach einem Neuladen der Seite für eine halbe Stunde.</p>
+              <p class="tip">Geht zu einem anderen Ritter und drückt E oder tippt ihn an. Anfragen erscheinen oben im Bild. Die Gruppe bleibt bestehen, solange Ihr spielt, auch nach einem Neuladen der Seite für eine halbe Stunde. Unter „Ritter“ (Taste O) stehen alle, die gerade spielen. Im Gespräch flüstert „/w Name Nachricht“ nur diesem Ritter zu, „/r“ antwortet; Gesten gehen auch mit „/verneigen“, „/winken“, „/jubeln“, „/knien“, „/tanzen“.</p>
             </div>
             <div class="note">
               <h3>Weltereignisse</h3>
@@ -1004,9 +1007,9 @@ body{margin:0; padding:0;}
             </div>
             <div class="note">
               <h3>Ruhmeshalle</h3>
-              <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="ehre" aria-selected="false">Ehre</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button><button type="button" role="tab" data-ft="laender" aria-selected="false">Häuser</button></div>
+              <div class="ftabs" role="tablist" aria-label="Ruhmeshalle"><button type="button" role="tab" data-ft="ritter" class="on" aria-selected="true">Ritter</button><button type="button" role="tab" data-ft="ehre" aria-selected="false">Ehre</button><button type="button" role="tab" data-ft="tjost" aria-selected="false">Turnier</button><button type="button" role="tab" data-ft="zweikampf" aria-selected="false">Zweikampf</button><button type="button" role="tab" data-ft="feste" aria-selected="false">Feste</button><button type="button" role="tab" data-ft="orden" aria-selected="false">Orden</button><button type="button" role="tab" data-ft="laender" aria-selected="false">Häuser</button></div>
               <ol class="fame" id="fameList"></ol>
-              <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Ehre“ Ehrenstufen, Trophäen, Wappen und Titel, unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Feste“ die besten Festspiele.</p>
+              <p class="tip">Die stärksten Ritter aller Spieler, ein Kreuz für jeden bezwungenen Anführer. Unter „Ehre“ Ehrenstufen, Trophäen, Wappen und Titel, unter „Turnier“ die Wertung im Tjost gegen andere Ritter, unter „Zweikampf“ die Wertung im Zweikampf zu Fuß, unter „Feste“ die besten Festspiele.</p>
             </div>
             <div class="note">
               <h3>Steuerung</h3>
@@ -1021,6 +1024,7 @@ body{margin:0; padding:0;}
                 <dt class="kbd-only"><kbd>Enter</kbd></dt><dd class="kbd-only">etwas sagen, andere Ritter lesen mit</dd>
                 <dt class="kbd-only"><kbd>Y</kbd><kbd>N</kbd></dt><dd class="kbd-only">Anfrage eines Ritters annehmen oder ablehnen</dd>
                 <dt class="kbd-only"><kbd>T</kbd></dt><dd class="kbd-only">Eure Gruppe</dd>
+        <dt class="kbd-only"><kbd>O</kbd></dt><dd class="kbd-only">Ritter im Land: Freunde, Flüstern, Gesuche, Gesten</dd>
                 <dt class="kbd-only"><kbd>↑</kbd><kbd>↓</kbd><kbd>1</kbd>–<kbd>9</kbd></dt><dd class="kbd-only">in Fenstern wählen, <kbd>Enter</kbd> bestätigt, <kbd>⌫</kbd> zurück</dd>
                 <dt class="kbd-only"><kbd>P</kbd><kbd>Esc</kbd></dt><dd class="kbd-only">Pause, Fenster schließen; Zwischenszene überspringen</dd>
                 <dt class="kbd-only"><kbd>M</kbd></dt><dd class="kbd-only">Ton an oder aus</dd>
@@ -1070,4 +1074,5 @@ body{margin:0; padding:0;}
 <script src="js/25-feste-spiele.js"></script>
 <script src="js/26-recht-ruf.js"></script>
 <script src="js/27-hausburgen.js"></script>
-<script src="js/28-waffen-bibel-start.js"></script>
+<script src="js/28-zweikampf-freunde.js"></script>
+<script src="js/29-waffen-bibel-start.js"></script>

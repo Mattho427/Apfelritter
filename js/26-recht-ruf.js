@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 26 von 28: Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld,
+/* Der Apfelritter, Teil 26 von 29: Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld,
    Stadtwachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Schwarzeck; die Glaubensentscheidung in Goldbrunn.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 

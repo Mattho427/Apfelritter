@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 22 von 28: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
+/* Der Apfelritter, Teil 22 von 29: Kirchen, Priester und Glaube: begehbare Kirchen, Segen, Beichte, Kerzen, Ablass, Wallfahrt, Messe.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Kirchen, Priester und Glaube ============

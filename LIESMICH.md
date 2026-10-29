@@ -4,7 +4,7 @@ Das Spiel ist ein einziges Artefakt (gleicher Link, gleiche Spielstände), beste
 
 - `index.html` – Seite, Aussehen (CSS), Menü und die Tafeln (im Fenster „Tafeln und Hilfe“); lädt am Ende die Teile aus `js/`.
   Das Spiel füllt das ganze Fenster; die Bildgröße richtet sich beim Laden nach dem Seitenverhältnis (höchstens 960 × 540).
-- `js/01-…js` bis `js/27-…js` – der Spielcode, nach Themen geteilt. Die Teile werden **in der Reihenfolge der Nummern**
+- `js/01-…js` bis `js/29-…js` – der Spielcode, nach Themen geteilt. Die Teile werden **in der Reihenfolge der Nummern**
   geladen und teilen sich alle Namen der obersten Ebene (wie früher in der einen Datei).
 
 ## Regeln beim Ändern
@@ -25,10 +25,10 @@ Das Spiel ist ein einziges Artefakt (gleicher Link, gleiche Spielstände), beste
 Die Tests steuern das Spiel in einem echten Browser (Playwright mit Chromium). Mehrspieler-Tests öffnen mehrere Ritter
 in getrennten Browserfenstern, die über einen nachgebauten Raum verbunden sind (`tests/mehrspieler/harness.mjs`).
 
-- `bash tests/alle.sh` – alle Tests nacheinander (etwa 53 Minuten), zeigt je Test die Ergebniszeilen.
+- `bash tests/alle.sh` – alle Tests nacheinander (etwa 57 Minuten), zeigt je Test die Ergebniszeilen.
 - `tests/einzel/` – Einzelspieler: Welt, Kampf, Gewölbe, Jagd, Feste, Tastatur, Jahreszeiten, Tjost.
-- `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen, zwei Ritter im Kriegszug, Kopfgeld und Pranger unter Rittern.
-- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Silberberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Rabenfurt und Steinwacht, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Schwarzecker Fehde, Glaube), die Burgen der vier Häuser (Oberhaupt, Gunst, Tribut, Rasten, Gäste).
+- `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen, zwei Ritter im Kriegszug, Kopfgeld und Pranger unter Rittern, Ritter im Land, Freunde, Flüstern, Gesten, Gesuche und Zweikampf zu Fuß.
+- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Silberberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Rabenfurt und Steinwacht, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Schwarzecker Fehde, Glaube), die Burgen der vier Häuser (Oberhaupt, Gunst, Tribut, Rasten, Gäste) und ihre Belagerung durch die Schwarze Schar.
 - `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden, `karte.mjs` speichert die Weltkarte, `orte.mjs name:x,y …` Bilder an Weltorten, `gegnerbilder.mjs art …` einen Bildbogen der Gegner, `bauten.mjs art …` einen Bogen der Bauten und Dinge.
 
 Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
@@ -63,5 +63,6 @@ Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 | `js/24-ostlande.js` | Die Ostlande: Leute in Schwanstedt, Burgfelden und Goldbrunn, Aufträge, Fuhrmann, Thesen, Kriegszüge nach Rabenfurt und Steinwacht, Tafel |
 | `js/25-feste-spiele.js` | Feste und Spiele: Ostern, Schützenfest, Martini, Fastnacht mit ihren Spielen; Mühle, Einunddreißig, Kegeln und Ringen im Gasthaus |
 | `js/26-recht-ruf.js` | Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld, Wachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Schwarzeck; die Glaubensentscheidung in Goldbrunn |
-| `js/27-hausburgen.js` | Die Burgen der vier Häuser: Oberhäupter, Torwachen, Kämmerer, Gunst des Hauses, Tribut, Tafel |
-| `js/28-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |
+| `js/27-hausburgen.js` | Die Burgen der vier Häuser: Oberhäupter, Torwachen, Kämmerer, Gunst des Hauses, Tribut, Belagerung durch die Schwarze Schar, Tafel |
+| `js/28-zweikampf-freunde.js` | Mehr Spiel mit anderen Rittern: Zweikampf zu Fuß, Gesten, Flüstern, Freunde, Ritter im Land, Gesuche |
+| `js/29-waffen-bibel-start.js` | Waffenarten im Kampf, Zeugmeister, Kleine Bibel, Spielstart |

@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 2 von 28: Der Ritter (Haus, Harnisch, Schwert, Aussehen) und die Pferde.
+/* Der Apfelritter, Teil 2 von 29: Der Ritter (Haus, Harnisch, Schwert, Aussehen) und die Pferde.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Der Ritter: Harnisch, Wappenrock in der Farbe seines Hauses, Helm mit Helmzier, Dreiecksschild ============ */
 const kn_PAL = {

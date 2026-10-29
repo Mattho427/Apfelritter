@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 5 von 28: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
+/* Der Apfelritter, Teil 5 von 29: Bäume, Häuser, Kirchen und Klöster, Stromland-Bauten.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Bäume ============ */
 wp_P.sbark = wp_rmp(['#1d1613', '#2e241e', '#40322a', '#544237', '#685446']);                  // Fichtenrinde
