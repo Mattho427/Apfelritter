@@ -7,6 +7,145 @@ function shadow(x, y, w, a){
   const x0 = Math.round(x - w / 2), y0 = Math.round(y), e = Math.min(3, w >> 2);
   ctx.fillRect(x0 + e, y0 - 1, w - e * 2, 1); ctx.fillRect(x0, y0, w, 2); ctx.fillRect(x0 + e, y0 + 2, w - e * 2, 1);
 }
+/* ============ Schlagschatten (Version 33) ============
+   Jede Requisite und jede Gestalt wirft einen Schatten, der mit der Sonne wandert: morgens lang nach Westen, mittags kurz nach Norden,
+   abends lang nach Osten, im Winter länger. Bei Wolken, Regen und Nebel wird er blass, nachts bleibt ein Hauch vom Mond. Bäume, Türme und
+   Häuser werfen ihr Schattenbild schräg, am Fuß angeheftet; Mauerstreifen, die in die Tiefe gehen, ihr Bild verschoben; Ritter, Leute,
+   Tiere und Monster einen länglichen Fleck. Dazu dunkelt das Hanglicht die von der Sonne abgewandten Hänge.
+   Weil sich Requisiten nicht bewegen, liegen ihre Schatten in Kacheln (256 Spielpixel, halbe Auflösung = Weltpixel, deckend, also ohne
+   doppelt dunkle Überlappungen). Je vier Kacheln werden mit der Schattenstärke in eine Kopie des Bodenstücks (512 Spielpixel)
+   eingerechnet, die der Boden dann statt des Originals zeigt: Im laufenden Bild kostet das nichts. Neu gerechnet wird, wenn die Sonne
+   ein Stück weiterwandert, die Stärke sich ändert oder Bilder fertig gemalt sind, höchstens ein Bodenstück je Bild; bis dahin bleibt
+   das alte stehen. Nur die Flecken der Gestalten kommen jedes Bild frisch dazu. */
+const SUN = { a: 0, dx: 0, dy: 0, L: 0, key: '' }, SHADE_COL = '#16122a';
+function sunNow(){
+  const h = SKY.hour, th = clamp((h - 5.5) / 13.5, 0, 1) * Math.PI, el = Math.sin(th);
+  const day = clamp(1 - SKY.night * 1.15, 0, 1), wx = 1 - clamp(SKY.cloud * .8 + SKY.fog + SKY.rain * .4 + SKY.snow * .3, 0, .95);
+  if (day > .02){
+    SUN.dx = -Math.cos(th) * .95 + .12; SUN.dy = -(.22 + .38 * el);
+    SUN.L = clamp(.42 + (1 - el) * .75, .42, 1.15) * (SEA.cur === 3 ? 1.25 : SEA.cur === 1 ? .92 : 1);
+    SUN.a = .42 * day * wx * (.55 + .45 * Math.min(1, el * 3));
+  } else { SUN.dx = .25; SUN.dy = -.45; SUN.L = .7; SUN.a = (SKY.night > .6 ? (SKY.night - .6) * .25 : 0) * wx; }   // Mondschatten
+  if (window.__noShade) SUN.a = 0;
+  SUN.key = Math.round(SUN.dx * 40) + ',' + Math.round(SUN.dy * 40) + ',' + Math.round(SUN.L * 40);
+  SHT.f++;   // ein Bild weiter: neues Malbudget für Bodenstücke
+  return SUN;
+}
+/* Schattenbild in halber Auflösung, einmal je Bild */
+const silOf = img => img.__sil || (img.__sil = (() => {
+  const c = canvasOf(Math.max(1, Math.ceil(img.width / 2)), Math.max(1, Math.ceil(img.height / 2))), g = c.getContext('2d');
+  g.imageSmoothingEnabled = false; g.drawImage(img, 0, 0, c.width, c.height);
+  g.globalCompositeOperation = 'source-in'; g.fillStyle = SHADE_COL; g.fillRect(0, 0, c.width, c.height);
+  return c; })());
+function castProp(g, p, at){
+  const img = p.img; if (p.lz || !img || img.height < 8) return;
+  const S = SUN, ax = p.ax, ay = p.ay, deep = ay > 420 || p.kind === 'mauer';
+  if (deep){ const D = S.L * 110; g.setTransform(.5, 0, 0, .5, (p.x - ax - at.x + S.dx * D) * .5, (p.y - ay - at.y + S.dy * D) * .5); }
+  else {
+    // Bildpunkt (u, v) fällt auf den Boden bei x = p.x − ax + u + (ay − v)·L·dx·k, y = p.y + (ay − v)·L·dy·k
+    const k = ay > 260 ? (260 + (ay - 260) * .4) / ay : 1, c = -S.L * S.dx * k, d = -S.L * S.dy * k;
+    g.setTransform(.5, 0, .5 * c, .5 * d, (p.x - ax - at.x - ay * c) * .5, (p.y - at.y - ay * d) * .5);
+  }
+  g.drawImage(silOf(img), 0, 0, img.width, img.height);
+}
+/* Hanglicht einer Kachel: von der Sonne abgewandte Hänge und Senken dunkler, je Höhenzelle (16 Spielpixel) ein Bildpunkt, weich vergrößert */
+const REL = (() => { const n = 256 / 16 + 2, cv = canvasOf(n, n), g = cv.getContext('2d'), id = g.createImageData(n, n); for (let q = 0; q < id.data.length; q += 4){ id.data[q] = 22; id.data[q + 1] = 18; id.data[q + 2] = 42; } return { n, cv, g, id }; })();
+function reliefTile(g, X, Y){
+  const S = SUN, n = REL.n, D = REL.id.data, c0 = X / 16 - 1, r0 = Y / 16 - 1, ln = Math.hypot(S.dx, S.dy) || 1, lx = -S.dx / ln, ly = -S.dy / ln;
+  for (let j = 0; j < n; j++){
+    const cj = clamp(r0 + j, 1, wo_CH - 1);
+    for (let i = 0; i < n; i++){
+      const ci = clamp(c0 + i, 1, wo_CW - 1), o = cj * wo_SW + ci, h = wo_HGT[o];
+      const s = (wo_HGT[o + 1] - wo_HGT[o - 1]) * lx * 11 + (wo_HGT[o + wo_SW] - wo_HGT[o - wo_SW]) * ly * 11 - clamp((h - .15) * .3, -.2, .25);
+      D[(j * n + i) * 4 + 3] = s > 0 ? Math.round(Math.min(1, s) * 170) : 0;
+    }
+  }
+  REL.g.putImageData(REL.id, 0, 0);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = true;
+  g.drawImage(REL.cv, -12, -12, n * 8, n * 8);   // Zelle i liegt bei (i − 1)·16 Spielpixel, ihr Mittelpunkt 8 weiter, halbe Auflösung
+  g.imageSmoothingEnabled = false;
+}
+/* eine Schattenkachel malen: Hanglicht, dann alle Requisiten, deren Schatten hineinreicht */
+const SHT = { tiles: new Map(), sea: -1, f: 0 }, SHT_S = 256;
+function shadeTile(tx, ty){
+  const id = tx + ',' + ty; let T = SHT.tiles.get(id);
+  if (!T){ T = { cv: canvasOf(SHT_S / 2, SHT_S / 2), key: '', lz: false, t: 0, v: 0, u: 0 }; T.g = T.cv.getContext('2d'); SHT.tiles.set(id, T); }
+  T.u = SHT.f;
+  if (T.key !== SUN.key || (T.lz && nowS() - T.t > 1)) shadeTilePaint(T, tx, ty);
+  return T;
+}
+function shadeTilePaint(T, tx, ty){
+  const g = T.g, X = tx * SHT_S, Y = ty * SHT_S, S = SUN, R = S.L * 340, at = { x: X, y: Y };
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, T.cv.width, T.cv.height); g.imageSmoothingEnabled = false;
+  const c0 = Math.max(0, (X - Math.max(0, S.dx) * R - 260) / PCELL | 0), c1 = Math.min(PCOLS - 1, (X + SHT_S + Math.max(0, -S.dx) * R + 260) / PCELL | 0);
+  const r0 = Math.max(0, (Y - 200) / PCELL | 0), r1 = Math.min(PROWS - 1, (Y + SHT_S - S.dy * R + 420) / PCELL | 0);
+  T.lz = false;
+  reliefTile(g, X, Y);
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) for (const i of propGrid[r * PCOLS + c]){
+    const p = GPROPS[i], img = p.img; if (!img) continue;
+    const ext = S.L * Math.min(p.ay, 340), x0 = p.x - p.ax, x1 = x0 + img.width;
+    if (Math.min(x0, x0 + S.dx * ext) > X + SHT_S || Math.max(x1, x1 + S.dx * ext) < X || p.y + S.dy * ext - 40 > Y + SHT_S || p.y - p.ay + img.height < Y) continue;
+    if (p.lz){ T.lz = true; continue; }
+    castProp(g, p, at);
+  }
+  T.key = S.key; T.t = nowS(); T.v++;
+}
+/* Bodenstück mit eingerechneten Schatten (aus drawGround, Teil 8); höchstens eines je Bild neu, sonst das alte oder das Original */
+const SGC = { m: new Map(), pool: [], f: -1, n: 0 };
+function shadeGround(e, c, r){
+  const S = SUN; if (S.a < .015 || G.inside || DG_ON) return e.c;
+  if (SEA.cur !== SHT.sea){ SHT.sea = SEA.cur; SHT.tiles.clear(); for (const s of SGC.m.values()) SGC.pool.push(s.cv); SGC.m.clear(); }
+  if (SGC.f !== SHT.f){ SGC.f = SHT.f; SGC.n = 0; }
+  const id = c + ',' + r, aq = Math.round(S.a * 60), s = SGC.m.get(id), want = S.key + ':' + aq;
+  if (s){ s.u = SHT.f; const same = s.src === e; if (same && s.key === want && !s.lz) return s.cv; if (SGC.n >= 1) return same ? s.cv : e.c; }   // neu gemalter Boden: lieber ohne Schatten als alt
+  else if (SGC.n >= 1 && SGC.m.size) return e.c;
+  SGC.n++;
+  const T = [shadeTile(c * 2, r * 2), shadeTile(c * 2 + 1, r * 2), shadeTile(c * 2, r * 2 + 1), shadeTile(c * 2 + 1, r * 2 + 1)];
+  const o = s || { cv: SGC.pool.pop() || canvasOf(wo_CP, wo_CP), key: '', u: SHT.f };
+  const g = o.cv.getContext('2d');
+  g.globalAlpha = 1; g.drawImage(e.c, 0, 0); g.globalAlpha = S.a; g.imageSmoothingEnabled = false;
+  T.forEach((t, i) => g.drawImage(t.cv, (i & 1) * SHT_S, (i >> 1) * SHT_S, SHT_S, SHT_S));
+  g.globalAlpha = 1;
+  o.key = want; o.lz = T.some(t => t.lz); o.src = e;
+  if (!s) SGC.m.set(id, o);
+  if (SGC.m.size > 9){ const old = [...SGC.m.entries()].sort((a, b) => a[1].u - b[1].u)[0]; SGC.pool.push(old[1].cv); SGC.m.delete(old[0]); }
+  if (SHT.tiles.size > 64){ const old = [...SHT.tiles.entries()].sort((a, b) => a[1].u - b[1].u).slice(0, SHT.tiles.size - 48); for (const [k] of old) SHT.tiles.delete(k); }
+  return o.cv;
+}
+/* länglicher Fleck einer Gestalt (Fuß bei x, y; Höhe h, Breite w), in Spielpixeln aufs Bild */
+function castBlob(x, y, h, w){
+  const S = SUN, len = h * S.L, ex = S.dx * len, ey = S.dy * len;
+  ctx.beginPath(); ctx.ellipse(x + ex * .5, y + ey * .5, Math.max(w * .5, Math.hypot(ex, ey) * .5), w * .5, Math.atan2(ey, ex), 0, Math.PI * 2); ctx.fill();
+}
+function drawCastShadows(cam, k, title, lifeL){
+  const S = SUN;
+  if (S.a < .015 || G.inside || DG_ON) return;
+  ctx.globalAlpha = S.a; ctx.fillStyle = SHADE_COL;
+  const near = (x, y) => x > cam.x - 200 && x < cam.x + W + 200 && y > cam.y - 120 && y < cam.y + H + 200;
+  if (!title) castBlob(k.x, k.y, KS.ay + (k.ride ? 15 : 0), k.ride ? 30 : 16);
+  for (const p of PEERS.values()) if (!p.in && near(p.x, p.y)) castBlob(p.x, p.y, KS.ay + (p.ride ? 15 : 0), p.ride ? 30 : 16);
+  for (const n of NPCS) if (near(n.x, n.y)) castBlob(n.x, n.y, n.art ? n.art.ay : 44, 14);
+  for (const m of G.mons){ if (MON[m.k].fly || !near(m.x, m.y) || (m.alpha != null && m.alpha < .3)) continue; const A = artOf(m.k); castBlob(m.x, m.y, A.ay || A.h, Math.max(10, A.w * .45)); }
+  for (const e of lifeL){ if (e.st === 'fly' || (e.K && e.K.c === 'swim') || e.clip) continue; const A = e.art; castBlob(e.x, e.y, e.person ? 40 : Math.max(6, (A.ay || A.h || 12) * .9), e.person ? 13 : Math.max(5, A.w * .5)); }
+  ctx.globalAlpha = 1;
+}
+/* Fußschatten: dunkler Saum am Fuß von Häusern, Mauern, Türmen, Ständen und Felsen (unabhängig von der Sonne) */
+const AO_SKIP = new Set(['fichte', 'schneefichte', 'kiefer', 'buche', 'eiche', 'birke', 'weide', 'apfelbaum', 'toter_baum', 'wacholder', 'busch', 'maibaum', 'banner', 'adler_banner', 'lilie_banner', 'loewe_banner', 'turm_banner', 'wegweiser', 'wegkreuz', 'vogelscheuche', 'zaun_h', 'zaun_v', 'rebzeile', 'kahn', 'mauer', 'netze', 'spiesse']);
+const AO_IMG = (() => { const c = canvasOf(1, 16), g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 16);
+  gr.addColorStop(0, 'rgba(18,14,32,.5)'); gr.addColorStop(.3, 'rgba(18,14,32,.34)'); gr.addColorStop(1, 'rgba(18,14,32,0)'); g.fillStyle = gr; g.fillRect(0, 0, 1, 16); return c; })();
+function drawAO(props){
+  if (G.inside || DG_ON) return;
+  ctx.imageSmoothingEnabled = true;
+  for (const p of props){
+    const img = p.img; if (p.lz || !img || img.width < 40 || AO_SKIP.has(p.kind) || (!p.occl && p.ay < 60)) continue;
+    const w = img.width * .9, bot = Math.min(p.y, p.y - p.ay + img.height);
+    ctx.drawImage(AO_IMG, Math.round(p.x - p.ax + img.width * .05), Math.round(bot - 5), Math.round(w), 14);
+  }
+  ctx.imageSmoothingEnabled = false;
+}
+/* Rand etwas dunkler (eine Ebene über der Leinwand, im Gasthaus und im Gewölbe aus): lenkt den Blick zur Mitte und gibt dem Bild Tiefe */
+const VIG = { on: null };
+function drawVignette(){ const on = !(G.inside || DG_ON); if (on !== VIG.on){ VIG.on = on; $('vignette').hidden = !on; } }
 const underProp = (p, o) => o.y < p.y && o.x > p.occl[0] && o.x < p.occl[2] && o.y > p.occl[1] && o.y < p.occl[3];
 /* Bild einer Requisite nachmalen (aus dem Zwischenspeicher der Maße gesetzt) */
 function propLazy(p){
@@ -302,7 +441,7 @@ function drawBubble(x, y, text){
 }
 
 function render(){
-  updateClock();
+  updateClock(); sunNow(); drawVignette();
   if (G.inside){ renderInn(); return; }
   if (DG_ON){ renderDungeon(); return; }
   if (G.joust){ renderJoust(); return; }
@@ -315,6 +454,9 @@ function render(){
   ctx.setTransform(1, 0, 0, 1, sx - cam.x, sy - cam.y);
   const title = G.mode === 'title';
   drawPrints(cam);
+  const lifeL = lifeEnts(cam, []), vis = propsInView(cam);
+  drawCastShadows(cam, k, title, lifeL);
+  drawAO(vis);
 
   for (const a of G.loot) if (inView(a.x, a.y, cam)) shadow(a.x, a.y - 1, a.z > 3 ? 4 : 8, a.z > 3 ? .2 : .3);
   const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 44 : 26) : 18;
@@ -322,7 +464,6 @@ function render(){
   for (const p of PEERS.values()) if (!p.in && inView(p.x, p.y, cam)) shadow(p.x, p.y - 1, shW(p), .38);
   if (!title) zkRing(cam);
   for (const n of NPCS) if (inView(n.x, n.y, cam)) shadow(n.x, n.y - 1, 14, .38);
-  const lifeL = lifeEnts(cam, []);
   for (const e of lifeL) lifeShadow(e);
   for (const m of G.mons){
     if (!inView(m.x, m.y, cam)) continue;
@@ -340,7 +481,7 @@ function render(){
   }
 
   const list = [];
-  for (const p of propsInView(cam)) list.push({ y: p.y, d: () => drawProp(p) });
+  for (const p of vis) list.push({ y: p.y, d: () => drawProp(p) });
   for (const a of G.loot) if (inView(a.x, a.y, cam)) list.push({ y: a.y, d: () => drawLoot(a) });
   for (const m of G.mons) if (!MON[m.k].fly && inView(m.x, m.y, cam, 120)) list.push({ y: m.y + .1, d: () => drawMon(m) });
   for (const n of NPCS) if (inView(n.x, n.y, cam)) list.push({ y: n.y + .15, d: () => drawNpc(n) });

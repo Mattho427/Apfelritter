@@ -844,7 +844,7 @@ function drawGround(g, camX, camY){
       const f = (now - e.f0) / 900;
       if (f >= 1){ wo_POOL.push(e.prev); e.prev = null; g.drawImage(e.c, X, Y); }
       else { g.drawImage(e.prev, X, Y); g.globalAlpha = f; g.drawImage(e.c, X, Y); g.globalAlpha = 1; }
-    } else g.drawImage(e.c, X, Y);
+    } else g.drawImage(shadeGround(e, c, r), X, Y);   // mit eingerechneten Schatten (Teil 15)
   }
   if (miss){ const t0 = performance.now(), B = G && G.mode === 'title' ? 14 : 22; while (performance.now() - t0 < B){ if (wo_jobStep(miss[0], miss[1])) break; } return; }
   if (made){ wo_JOB = null; return; }
