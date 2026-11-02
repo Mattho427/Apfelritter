@@ -13,13 +13,13 @@ for (const k of ['wolf', 'schrat', 'kobold', 'grubengeist', 'doppelsoeldner', 'h
     const lair = LAIRS[k], s = lair ? { x: lair.x, y: lair.y } : SPAWN_SLOTS.find(q => q.kind === k), kn = G.knight;
     G.mons.length = 0; G.shots.length = 0; kn.x = s.x - 90; kn.y = s.y + 6; updateZone(true);
     const m = createMonster(k, s.x, s.y, 28, null); engage(m);
-    const sts = new Set(); let hits = 0, hp0 = kn.hp;
+    const sts = new Set(); let hits = 0;
     const iv = setInterval(() => { sts.add(m.st); }, 50);
-    const hurt0 = G.knight.hp;
-    setTimeout(() => { clearInterval(iv); const alive = G.mons.includes(m); res({ st: [...sts].join(','), alive, dist: Math.round(Math.hypot(m.x - kn.x, m.y - kn.y)) }); }, 3500);
+    const h0 = window.hurt; window.hurt = function(from){ if (from === m) hits++; return h0.apply(this, arguments); };   // Treffer dieses Gegners zählen
+    setTimeout(() => { clearInterval(iv); window.hurt = h0; const alive = G.mons.includes(m); res({ st: [...sts].join(','), alive, dist: Math.round(Math.hypot(m.x - kn.x, m.y - kn.y)), hits }); }, 3500);
   }), k);
   await (await p.$('canvas')).screenshot({ path: OUT + 'bk_' + k + '.png' });
-  const ok = r.alive && (r.st.split(',').length > 1 || r.dist < 40);   // Berührungsangreifer (Schrat, Kobold, Geist, Licht) kennen nur „gehen“
+  const ok = r.alive && (r.st.split(',').length > 1 || r.dist < 40 || r.hits > 0);   // Berührungsangreifer (Schrat, Kobold, Geist, Licht) kennen nur „gehen“; ihr Treffer stößt den Ritter zurück
   if (!ok) fehl++;
   console.log((ok ? 'ok   ' : 'FEHL ') + k.padEnd(16), JSON.stringify(r));
 }
