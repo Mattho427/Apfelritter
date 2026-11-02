@@ -85,6 +85,7 @@ body{
   display:block; width:100%; max-width:100%; aspect-ratio:16/9; height:auto; margin-inline:auto;
   image-rendering:pixelated; image-rendering:crisp-edges; touch-action:none;
 }
+.vignette{position:absolute; inset:0; pointer-events:none; background:radial-gradient(ellipse 72% 78% at 50% 46%, rgba(10,8,22,0) 58%, rgba(10,8,22,.32) 100%);}
 .overlay{
   position:absolute; inset:0; z-index:3; display:grid; place-items:center; padding:10px; line-height:1.2;
   background:color-mix(in srgb, var(--night) 62%, transparent);
@@ -692,6 +693,7 @@ body{margin:0; padding:0;}
     <div class="field">
       <div class="stagebox" id="stageBox"><div class="stage" id="stage">
         <canvas id="game" width="960" height="540" aria-label="Spielfeld: das Königsland um die Königsburg"></canvas>
+        <div class="vignette" id="vignette" aria-hidden="true"></div>
         <div class="boss" id="bossBar" hidden>
           <span id="bossName">Raubritter</span>
           <div class="bossbar" aria-hidden="true"><span id="bossFill"></span></div>
@@ -909,7 +911,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Tag, Nacht und Wetter</h3>
               <ul class="list" id="dayList"></ul>
-              <p class="tip">Ein Tag im Königsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu.</p>
+              <p class="tip">Ein Tag im Königsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu. Die Schatten wandern mit der Sonne: morgens fallen sie lang nach Westen, mittags kurz nach Norden, abends lang nach Osten, im Winter sind sie länger. Hänge, die von der Sonne abgewandt sind, liegen im Halbdunkel; bei Wolken, Regen und Nebel wird das Licht weich, nachts bleibt ein Hauch vom Mond.</p>
             </div>
             <div class="note">
               <h3>Jahreszeiten</h3>

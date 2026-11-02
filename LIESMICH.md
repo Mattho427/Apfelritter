@@ -28,7 +28,7 @@ in getrennten Browserfenstern, die über einen nachgebauten Raum verbunden sind 
 - `bash tests/alle.sh` – alle Tests nacheinander (etwa 57 Minuten), zeigt je Test die Ergebniszeilen.
 - `tests/einzel/` – Einzelspieler: Welt, Kampf, Gewölbe, Jagd, Feste, Tastatur, Jahreszeiten, Tjost.
 - `tests/mehrspieler/` – Gruppen, Handel, Orden, Turnier, Ereignisse, Post und Markt, Hauptgeschichte, zwei Ritter in Kirchen, zwei Ritter im Kriegszug, Kopfgeld und Pranger unter Rittern, Ritter im Land, Freunde, Flüstern, Gesten, Gesuche und Zweikampf zu Fuß.
-- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Silberberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Rabenfurt und Steinwacht, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Schwarzecker Fehde, Glaube), die Burgen der vier Häuser (Oberhaupt, Gunst, Tribut, Rasten, Gäste) und ihre Belagerung durch die Schwarze Schar.
+- `tests/funktionen/` – Waffenarten, Kleine Bibel, Handy-Ansicht, Vollbild auf fünf Geräten, Tafeln mit der Tastatur, Kirchen (Räume, Dienste, Messe, Handy), Bergland (Silberberg, Gegner, Anführer), Stufen bis 30 und Meisterschaften, Gegenstände bis Stufe 32, Ostlande (Städte, Fuhrmann, Aufträge, Thesen, Gegner und Anführer), Kriegszüge nach Rabenfurt und Steinwacht, die Feste und Spiele der Version 27 (Kalender, vier Feste mit ihren Spielen, Mühle, Einunddreißig, Kegeln, Ringen), Recht und Ruf der Version 28 (Ansehen, Diebstahl, Wilderei, Wachen, Gericht, Pranger, Kerker, Steckbriefe, Schwarzecker Fehde, Glaube), die Burgen der vier Häuser (Oberhaupt, Gunst, Tribut, Rasten, Gäste) und ihre Belagerung durch die Schwarze Schar, die Tiefe im Bild (Schatten nach Uhrzeit, Jahreszeit und Wetter, Hanglicht, Fußschatten, Randabdunklung).
 - `tests/werkzeuge/` – `ladezeit.mjs <Seite> [Drosselung]` misst die Ladezeit, `fehler.mjs` zeigt Fehler beim Laden, `karte.mjs` speichert die Weltkarte, `orte.mjs name:x,y …` Bilder an Weltorten, `gegnerbilder.mjs art …` einen Bildbogen der Gegner, `bauten.mjs art …` einen Bogen der Bauten und Dinge.
 
 Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
@@ -51,7 +51,7 @@ Bildschirmfotos der Tests landen in `tests/ausgabe/` (nicht im Repository).
 | `js/12-leben-tag-nacht.js` | Leben im Königsland, Tag und Nacht, Wetter |
 | `js/13-spiel-kampf.js` | Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung |
 | `js/14-turnier-gewoelbe-feste.js` | Tjost, Gewölbe, Feste im Jahreslauf |
-| `js/15-zeichnen.js` | Zeichnen des Spielbilds |
+| `js/15-zeichnen.js` | Zeichnen des Spielbilds; Schlagschatten mit dem Sonnenstand, Hanglicht, Fußschatten (in die Bodenstücke eingerechnet) |
 | `js/16-oberflaeche.js` | Pferd, Schmied, Wegweiser, Oberfläche |
 | `js/17-speichern-mehrspieler.js` | Speichern, Ruhmeshalle, andere Ritter, Mehrspieler |
 | `js/18-ereignisse-orden-turnier.js` | Weltereignisse, Ritterorden, Großes Turnier, Start |
