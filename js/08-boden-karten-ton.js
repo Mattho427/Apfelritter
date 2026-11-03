@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 8 von 29: Boden, Karten, Ton und Musik.
+/* Der Apfelritter, Teil 8 von 30: Boden, Karten, Ton und Musik.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Boden ============ */
 /* Paletten je Bodenart: 4 Kanäle zu je 12 Tönen (dunkel..hell) */
@@ -953,24 +953,30 @@ const MINIMAP = (() => {
   return c;
 })();
 
-/* Übersichtskarte im Stil einer alten Landkarte (Pergament, Tinte, Baumzeichen, Schraffen) */
-const FULLMAP = (() => {
-  const MW = WW >> 3, MH = WH >> 3, c = canvasOf(MW, MH), g = c.getContext('2d'), id = g.createImageData(MW, MH), D = new Uint32Array(id.data.buffer);
+/* Übersichtskarte im Stil einer alten Landkarte (Pergament, Tinte, Baumzeichen, Schraffen).
+   mapPaint malt einen Ausschnitt der Welt ab (X0, Y0) in MW × MH Kartenpunkten zu je S Weltpixeln: S = 8 die ganze Übersicht (mit Rahmen und
+   Windrose), S = 4 und S = 2 die Detailkacheln der großen Karte (Teil 29), dort mit Wegen in ihrer Breite, allen Bäumen und Dächern. */
+function mapPaint(X0, Y0, MW, MH, S, whole){
+  const c = canvasOf(MW, MH), g = c.getContext('2d'), id = g.createImageData(MW, MH), D = new Uint32Array(id.data.buffer);
   const PARCH = wo_ramp(['#8f7a52', '#ad9768', '#c2ad7f', '#d2bf92', '#dccca2'], 10);
   const INK = wo_c('#3b2e20'), INK2 = wo_c('#5a4a34'), WAT = wo_ramp(['#4c6a70', '#6a8a8a', '#88a29c', '#a3b5a8'], 6);
   const GRN = wo_ramp(['#4e5a34', '#68744a', '#848c60', '#a0a477'], 6), BRN = wo_c('#7a4a2e'), RED = wo_c('#8a3a28');
-  const cls = new Array(MW * MH);
+  const fine = S < 8, cls = new Array(MW * MH), OW = WW / 8, OH = WH / 8;
+  const wx = i => X0 + i * S + S / 2, wy = j => Y0 + j * S + S / 2;
+  const brs = wo_BRIDGES.filter(b => b.x1 >= X0 && b.x0 <= X0 + MW * S && b.y1 >= Y0 && b.y0 <= Y0 + MH * S);   // nur die Brücken im Ausschnitt prüfen
+  const mapCls = (x, y) => { if (wo_wsd(x, y) < 0) return 'w'; for (const b of brs) if (x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1) return 'b'; if (wo_rsd(x, y) < 2) return wo_RT[wo_gidx(x, y)] === 3 ? 'p' : 'r'; return ZONES[wo_zid(x, y)].id; };
   for (let j = 0; j < MH; j++) for (let i = 0; i < MW; i++){
-    const x = i * 8 + 4, y = j * 8 + 4, k = wo_mapClass(x, y); cls[j * MW + i] = k;
-    const edge = Math.min(i, j, MW - 1 - i, MH - 1 - j), stain = wo_lo(i * 23, j * 23), fib = wo_fin(i * 3, j * 3);
+    const x = wx(i), y = wy(j), k = mapCls(x, y), oi = x / 8, oj = y / 8; cls[j * MW + i] = k;
+    const edge = Math.min(oi, oj, OW - 1 - oi, OH - 1 - oj), stain = wo_lo(oi * 23, oj * 23), fib = wo_fin(i * 3, j * 3);
     let v = 7.2 + (stain - .5) * 3 + (fib - .5) * 1.2 - Math.max(0, (24 - edge) / 24) * 3.2;
     let cc = PARCH[clamp(Math.floor(v + dither(i, j)), 0, 9)];
-    if (k === 'wald' || k === 'schwarzwald' || k === 'reichswald') cc = wo_mix(cc, GRN[k === 'wald' ? 3 : 2], .3);
+    if (k === 'wald' || k === 'schwarzwald' || k === 'reichswald' || k === 'auwald') cc = wo_mix(cc, GRN[k === 'wald' || k === 'auwald' ? 3 : 2], .3);
     else if (k === 'heide') cc = wo_mix(cc, wo_c('#9a7a8a'), .18); else if (k === 'donauried') cc = wo_mix(cc, wo_c('#7a7a58'), .3);
     else if (k === 'hochgebirge') cc = wo_mix(cc, wo_hgt(x, y) > 1.05 ? wo_c('#eef0f0') : wo_c('#8a8478'), wo_hgt(x, y) > 1.05 ? .55 : .35);
     else if (k === 'silberrevier') cc = wo_mix(cc, wo_c('#8a8070'), .22); else if (k === 'moor') cc = wo_mix(cc, wo_c('#7a7a58'), .35);
     else if (k === 'schlachtfeld') cc = wo_mix(cc, wo_c('#9a7a58'), .2); else if (k === 'dorf' || k === 'obstgarten' || k === 'fluss') cc = wo_mix(cc, GRN[3], .14);
-    const sh = wo_SHD[(j) * wo_SW + i];
+    else if (k === 'r' && fine) cc = wo_mix(cc, wo_c('#b89a6a'), .5); else if (k === 'p' && fine) cc = wo_mix(cc, wo_c('#9a948a'), .55);
+    const sh = fine ? wo_shade(x, y) : wo_SHD[(j) * wo_SW + i];
     if (k !== 'w' && Math.abs(sh) > .5 && ((i + j * 2) % 4 === 0)) cc = wo_mix(cc, INK2, Math.min(.5, Math.abs(sh) * .22));   // Schraffen am Hang
     D[j * MW + i] = cc;
   }
@@ -978,70 +984,94 @@ const FULLMAP = (() => {
   for (let j = 1; j < MH - 1; j++) for (let i = 1; i < MW - 1; i++){
     if (cls[j * MW + i] !== 'w') continue;
     const n = cls[(j - 1) * MW + i] !== 'w' || cls[(j + 1) * MW + i] !== 'w' || cls[j * MW + i - 1] !== 'w' || cls[j * MW + i + 1] !== 'w';
-    const dep = -wo_wsd(i * 8 + 4, j * 8 + 4);
+    const dep = -wo_wsd(wx(i), wy(j));
     D[j * MW + i] = n ? INK2 : WAT[clamp(4 - (dep / 10 | 0), 1, 4)];
     if (!n && (i + (j % 6 < 3 ? 0 : 3)) % 6 === 0 && j % 3 === 0) D[j * MW + i] = WAT[1];
   }
+  const inR = (x0, y0, x1, y1) => x1 >= X0 && x0 <= X0 + MW * S && y1 >= Y0 && y0 <= Y0 + MH * S;
+  const M = v => (v - X0) / S, N = v => (v - Y0) / S;
   // Felder als Streifen
-  for (const f of wo_FIELDS) for (let y = f.y0 >> 3; y < f.y1 >> 3; y++) for (let x = f.x0 >> 3; x < f.x1 >> 3; x++){
-    const u = f.vert ? x : y;
-    D[y * MW + x] = u % 2 ? wo_mix(D[y * MW + x], f.crop === 'burn' ? INK : wo_c('#a08a4a'), .45) : D[y * MW + x];
-  }
-  // Wege als gestrichelte Doppellinie
-  const ink = (x, y, c2) => { if (x >= 0 && y >= 0 && x < MW && y < MH) D[(y | 0) * MW + (x | 0)] = c2; };
-  for (const r of wo_ROADS){
-    for (let k = 0; k < r.p.length; k++){
-      const [x, y] = r.p[k];
-      if (r.t === 1 && (k >> 1) % 2) continue;
-      const mx = x / 8, my = y / 8;
-      ink(mx, my, r.t === 3 ? INK2 : r.t === 2 ? INK : BRN);
+  for (const f of wo_FIELDS){
+    if (!inR(f.x0, f.y0, f.x1, f.y1)) continue;
+    const step = Math.max(1, Math.round(8 / S));
+    for (let y = Math.max(0, Math.floor(N(f.y0))); y < Math.min(MH, N(f.y1)); y++) for (let x = Math.max(0, Math.floor(M(f.x0))); x < Math.min(MW, M(f.x1)); x++){
+      const u = Math.floor((f.vert ? x * S + X0 : y * S + Y0) / 8);
+      if (u % 2) D[y * MW + x] = wo_mix(D[y * MW + x], f.crop === 'burn' ? INK : wo_c('#a08a4a'), .45);
+      void step;
     }
   }
-  // Baumzeichen
+  const ink = (x, y, c2) => { if (x >= 0 && y >= 0 && x < MW && y < MH) D[(y | 0) * MW + (x | 0)] = c2; };
+  // Wege (Übersicht): gestrichelt in Tinte
+  if (!fine) for (const r of wo_ROADS) for (let k = 0; k < r.p.length; k++){
+    const [x, y] = r.p[k];
+    if (r.t === 1 && (k >> 1) % 2) continue;
+    ink(M(x), N(y), r.t === 3 ? INK2 : r.t === 2 ? INK : BRN);
+  }
+  // Baumzeichen (Übersicht ein Teil, Detail alle)
   for (const q of wo_PI){
     const p = q.p;
-    if (!wo_TREEK[p.kind] || wo_h(p.x, p.y, 91) > .45) continue;
-    const mx = p.x / 8 | 0, my = p.y / 8 | 0, fir = p.kind === 'fichte' || p.kind === 'schneefichte' || p.kind === 'kiefer';
-    if (fir){ ink(mx, my - 3, INK); ink(mx - 1, my - 2, GRN[0]); ink(mx, my - 2, GRN[1]); ink(mx + 1, my - 2, GRN[0]); ink(mx - 1, my - 1, GRN[1]); ink(mx, my - 1, GRN[2]); ink(mx + 1, my - 1, GRN[0]); ink(mx, my, INK); }
+    if (!wo_TREEK[p.kind] || (!fine && wo_h(p.x, p.y, 91) > .45) || !inR(p.x - 8, p.y - 8, p.x + 8, p.y + 8)) continue;
+    const mx = M(p.x) | 0, my = N(p.y) | 0, fir = p.kind === 'fichte' || p.kind === 'schneefichte' || p.kind === 'kiefer';
+    if (fir){ ink(mx, my - 3, INK); ink(mx - 1, my - 2, GRN[0]); ink(mx, my - 2, GRN[1]); ink(mx + 1, my - 2, GRN[0]); ink(mx - 1, my - 1, GRN[1]); ink(mx, my - 1, GRN[2]); ink(mx + 1, my - 1, GRN[0]); ink(mx, my, INK); if (S <= 2){ ink(mx - 2, my - 1, INK); ink(mx + 2, my - 1, INK); ink(mx, my - 4, INK); } }
     else if (p.kind === 'toter_baum'){ ink(mx, my, INK); ink(mx, my - 1, INK); ink(mx - 1, my - 2, INK); ink(mx + 1, my - 2, INK); }
-    else { ink(mx - 1, my - 2, GRN[1]); ink(mx, my - 2, GRN[2]); ink(mx + 1, my - 2, GRN[1]); ink(mx - 1, my - 1, GRN[0]); ink(mx, my - 1, GRN[1]); ink(mx + 1, my - 1, GRN[0]); ink(mx, my - 3, GRN[1]); ink(mx, my, INK); if (p.apple) ink(mx + 1, my - 2, RED); }
+    else { ink(mx - 1, my - 2, GRN[1]); ink(mx, my - 2, GRN[2]); ink(mx + 1, my - 2, GRN[1]); ink(mx - 1, my - 1, GRN[0]); ink(mx, my - 1, GRN[1]); ink(mx + 1, my - 1, GRN[0]); ink(mx, my - 3, GRN[1]); ink(mx, my, INK); if (p.apple) ink(mx + 1, my - 2, RED);
+      if (S <= 2){ ink(mx - 2, my - 2, GRN[0]); ink(mx + 2, my - 2, GRN[0]); ink(mx - 1, my - 3, GRN[2]); ink(mx + 1, my - 3, GRN[2]); ink(mx, my - 4, GRN[1]); } }
   }
-  // Gebäude als rote Blöcke mit Tintenrand, Mauern grau
+  // Gebäude als rote Blöcke mit Tintenrand, Mauern grau; im Detail mit Dachfirst
   for (const q of wo_PI){
     const p = q.p;
     if (!wo_BUILDK[p.kind]) continue;
     const wall = /mauer|turm|tor|bergfried/.test(p.kind);
     for (const f of q.feet){
-      const x0 = f[0] >> 3, y0 = f[1] >> 3, x1 = Math.max(x0 + 1, f[2] >> 3), y1 = Math.max(y0 + 1, f[3] >> 3);
-      for (let y = y0 - (wall ? 0 : 1); y <= y1; y++) for (let x = x0; x <= x1; x++){
-        const e = x === x0 || x === x1 || y === y1 || y === y0 - (wall ? 0 : 1);
-        ink(x, y, e ? INK : wall ? wo_c('#8a8270') : p.kind === 'zelt' ? wo_c('#c8b890') : p.kind.includes('ruine') ? wo_c('#5a4a3a') : RED);
+      if (!inR(f[0] - 8, f[1] - 8, f[2] + 8, f[3] + 8)) continue;
+      const x0 = Math.floor(M(f[0])), y0 = Math.floor(N(f[1])), x1 = Math.max(x0 + 1, Math.floor(M(f[2]))), y1 = Math.max(y0 + 1, Math.floor(N(f[3]))), top = y0 - (wall ? 0 : fine ? Math.round(6 / S) : 1);
+      for (let y = top; y <= y1; y++) for (let x = x0; x <= x1; x++){
+        const e = x === x0 || x === x1 || y === y1 || y === top;
+        ink(x, y, e ? INK : wall ? wo_c('#8a8270') : p.kind === 'zelt' ? wo_c('#c8b890') : p.kind.includes('ruine') ? wo_c('#5a4a3a') : (fine && y === Math.round((top + y1) / 2)) ? wo_c('#6a2a1c') : RED);
       }
     }
   }
-  for (const b of wo_BRIDGES) for (let y = b.y0 >> 3; y <= b.y1 >> 3; y++) for (let x = b.x0 >> 3; x <= b.x1 >> 3; x++) ink(x, y, x === b.x0 >> 3 || x === b.x1 >> 3 || y === b.y0 >> 3 || y === b.y1 >> 3 ? INK : wo_c('#a08a62'));
+  for (const b of wo_BRIDGES){ if (!inR(b.x0, b.y0, b.x1, b.y1)) continue; const bx0 = Math.floor(M(b.x0)), bx1 = Math.floor(M(b.x1)), by0 = Math.floor(N(b.y0)), by1 = Math.floor(N(b.y1)); for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) ink(x, y, x === bx0 || x === bx1 || y === by0 || y === by1 ? INK : wo_c('#a08a62')); }
   // Zeichen: Galgen, gekreuzte Schwerter, Kreuze, Zelte
-  const glyph = (cx, cy, rows) => { rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === '#') ink(cx - (row.length >> 1) + i, cy - rows.length + j, INK); else if (row[i] === 'r') ink(cx - (row.length >> 1) + i, cy - rows.length + j, RED); }); };
-  glyph(3720 / 8, 1196 / 8, ['#####', '#...#', '#...#', '#...#']);
-  glyph(3700 / 8, 2560 / 8, ['#...#', '.#.#.', '..#..', '.#.#.', '#...#']);
-  glyph(3500 / 8, 2860 / 8, ['#...#', '.#.#.', '..#..', '.#.#.', '#...#']);
-  for (const g2 of wo_GRAVES) if (wo_h(g2.x, g2.y, 5) < .3) glyph(g2.x / 8, g2.y / 8, ['.#.', '###', '.#.']);
-  glyph(1900 / 8, 300 / 8, ['.r.', 'rrr', '.#.', '.#.']);
-  // Windrose (ohne Schrift)
-  const rx = MW - 42, ry = MH - 40;
-  for (let k = -12; k <= 12; k++){ ink(rx + k, ry, INK2); ink(rx, ry + k, INK2); }
-  for (let k = -6; k <= 6; k++){ ink(rx + k, ry + k, INK2); ink(rx + k, ry - k, INK2); }
-  for (let k = 0; k < 10; k++){ ink(rx - 1, ry - 12 + k, INK); ink(rx + 1, ry - 12 + k, INK); }
-  ink(rx, ry - 14, INK); ink(rx - 1, ry - 13, INK); ink(rx + 1, ry - 13, INK); ink(rx, ry - 15, RED);
-  for (let a = 0; a < 6.283; a += .05){ ink(rx + Math.cos(a) * 7, ry + Math.sin(a) * 7, INK2); }
-  // Rahmen: doppelte Linie
-  for (let i = 0; i < MW; i++){ for (const y of [3, 6, MH - 4, MH - 7]) ink(i, y, y === 3 || y === MH - 4 ? INK : INK2); }
-  for (let j = 0; j < MH; j++){ for (const x of [3, 6, MW - 4, MW - 7]) ink(x, j, x === 3 || x === MW - 4 ? INK : INK2); }
-  for (let i = 8; i < MW - 8; i += 8){ ink(i, 4, RED); ink(i, MH - 5, RED); }
-  for (let j = 8; j < MH - 8; j += 8){ ink(4, j, RED); ink(MW - 5, j, RED); }
+  const glyph = (cx, cy, rows) => { cx = M(cx); cy = N(cy); rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === '#') ink(cx - (row.length >> 1) + i, cy - rows.length + j, INK); else if (row[i] === 'r') ink(cx - (row.length >> 1) + i, cy - rows.length + j, RED); }); };
+  glyph(3720, 1196, ['#####', '#...#', '#...#', '#...#']);
+  glyph(3700, 2560, ['#...#', '.#.#.', '..#..', '.#.#.', '#...#']);
+  glyph(3500, 2860, ['#...#', '.#.#.', '..#..', '.#.#.', '#...#']);
+  for (const g2 of wo_GRAVES) if (fine || wo_h(g2.x, g2.y, 5) < .3) glyph(g2.x, g2.y, ['.#.', '###', '.#.']);
+  glyph(1900, 300, ['.r.', 'rrr', '.#.', '.#.']);
+  if (whole){
+    // Windrose (ohne Schrift)
+    const rx = MW - 42, ry = MH - 40;
+    for (let k = -12; k <= 12; k++){ ink(rx + k, ry, INK2); ink(rx, ry + k, INK2); }
+    for (let k = -6; k <= 6; k++){ ink(rx + k, ry + k, INK2); ink(rx + k, ry - k, INK2); }
+    for (let k = 0; k < 10; k++){ ink(rx - 1, ry - 12 + k, INK); ink(rx + 1, ry - 12 + k, INK); }
+    ink(rx, ry - 14, INK); ink(rx - 1, ry - 13, INK); ink(rx + 1, ry - 13, INK); ink(rx, ry - 15, RED);
+    for (let a = 0; a < 6.283; a += .05){ ink(rx + Math.cos(a) * 7, ry + Math.sin(a) * 7, INK2); }
+    // Rahmen: doppelte Linie
+    for (let i = 0; i < MW; i++){ for (const y of [3, 6, MH - 4, MH - 7]) ink(i, y, y === 3 || y === MH - 4 ? INK : INK2); }
+    for (let j = 0; j < MH; j++){ for (const x of [3, 6, MW - 4, MW - 7]) ink(x, j, x === 3 || x === MW - 4 ? INK : INK2); }
+    for (let i = 8; i < MW - 8; i += 8){ ink(i, 4, RED); ink(i, MH - 5, RED); }
+    for (let j = 8; j < MH - 8; j += 8){ ink(4, j, RED); ink(MW - 5, j, RED); }
+  }
   g.putImageData(id, 0, 0);
+  // Wege im Detail: in ihrer Breite, mit Tintenrand
+  if (fine){
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    for (const pass of [0, 1]) for (const r of wo_ROADS){
+      const w = (r.t === 3 ? 14 : r.t === 2 ? 18 : 10) / S;
+      g.beginPath(); let on = false, any = false;   // nur die Stücke im Ausschnitt
+      for (const [x, y] of r.p){ const inn = inR(x - 30, y - 30, x + 30, y + 30); if (inn){ if (on) g.lineTo(M(x), N(y)); else g.moveTo(M(x), N(y)); any = true; } on = inn; }
+      if (!any) continue;
+      g.strokeStyle = pass ? (r.t === 3 ? '#a49c8c' : r.t === 2 ? '#b89668' : '#c4a676') : '#4a3a28';
+      g.lineWidth = pass ? Math.max(1, w - 1.5) : w + 1;
+      if (!pass && r.t === 1) g.setLineDash([4, 3]); else g.setLineDash([]);
+      g.stroke();
+    }
+    g.setLineDash([]);
+  }
   return c;
-})();
+}
+const FULLMAP = mapPaint(0, 0, WW >> 3, WH >> 3, 8, true);
 const MAP_LABELS = ZONES.map(z => ({ x: z.label.x, y: z.label.y, name: z.name })).concat([
   { x: 2470, y: 1640, name: 'Mühle' }, { x: 620, y: 1160, name: 'Köhlerei' }, { x: 1360, y: 2640, name: 'Kloster' }, { x: 2966, y: 1810, name: 'Steinbrücke' },
   { x: 5300, y: 1000, name: 'Dom' }, { x: 5230, y: 1780, name: 'Hafen' }, { x: 5000, y: 1830, name: 'Schiffbrücke' }, { x: 5900, y: 1630, name: 'Zollturm' }, { x: 5300, y: 250, name: 'Wallfahrtskapelle' },

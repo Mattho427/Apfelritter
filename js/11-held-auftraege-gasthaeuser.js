@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 11 von 29: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
+/* Der Apfelritter, Teil 11 von 30: Aufträge, der Held, Erscheinungsorte, Gasthäuser.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Aufträge ============ */
 /* kind + zone: so viele dieser Monster in diesem Gebiet; boss: den Anführer erschlagen */

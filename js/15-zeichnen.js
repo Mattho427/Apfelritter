@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 15 von 29: Zeichnen des Spielbilds.
+/* Der Apfelritter, Teil 15 von 30: Zeichnen des Spielbilds.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Zeichnen ============ */
 function shadow(x, y, w, a){
@@ -898,5 +898,22 @@ function drawMiniMap1(g, k, cam, mx, my){
   for (const inn of INNS) dot(inn.dx, inn.y, '#ff9a40', 2);
   for (const p of PEERS.values()){ const at = peerAt(p); dot(at ? at.x : p.x, at ? at.y + 4 : p.y, inParty(p) ? '#7fe08a' : '#9cc8ff', 2); }
   const es = evMark2(); if (es && (G.t * 3 | 0) % 2){ const q = P(es.x, es.y); if (inMM(q)){ g.fillStyle = '#ff4030'; g.fillRect(q[0] - 1, q[1] - 2, 3, 3); g.fillStyle = OUT; g.fillRect(q[0] - 2, q[1] - 3, 1, 5); } }
-  const q = P(k.x, k.y); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3); g.fillStyle = OUT; g.fillRect(q[0], q[1], 1, 1);
+  // Ziele außerhalb: Pfeil am Rand (Hauptgeschichte gold, Auftragsgebiete gelb, Weltereignis rot); Auftragsgebiete innen als Ring
+  const edge = (x, y, c) => {
+    const q = P(x, y); if (inMM(q)) return false;
+    const cx = mx + MM_W / 2, cy = my + MM_H / 2, dx = q[0] - cx, dy = q[1] - cy, f = Math.min((MM_W / 2 - 2) / Math.abs(dx || 1e-6), (MM_H / 2 - 2) / Math.abs(dy || 1e-6));
+    const ex = Math.round(cx + dx * f), ey = Math.round(cy + dy * f), a = Math.atan2(dy, dx), ux = Math.round(Math.cos(a)), uy = Math.round(Math.sin(a));
+    g.fillStyle = OUT; g.fillRect(ex - 2, ey - 2, 5, 5); g.fillStyle = c; g.fillRect(ex - 1, ey - 1, 3, 3); g.fillRect(ex + ux * 2, ey + uy * 2, 1, 1);
+    return true;
+  };
+  for (const qq of HERO.quests){ const d = qInfo(qq), z = d && qq.n < d.need && ZONE_BY_ID[d.zone]; if (!z) continue; const zx = z.label.x * WS, zy = z.label.y * WS;
+    if (!edge(zx, zy, '#ffd541')){ const c2 = P(zx, zy); g.fillStyle = '#ffd541'; for (const [ox, oy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1]]) g.fillRect(c2[0] + ox, c2[1] + oy, 1, 1); } }
+  if (stm) edge(stm.x, stm.y, '#ffe27a');
+  if (es) edge(es.x, es.y, '#ff4030');
+  // der eigene Ritter mit Blickrichtung, oben ein N für Norden
+  const q = P(k.x, k.y), [fx, fy] = DIRV[k.dir] || [0, 1];
+  g.fillStyle = OUT; g.fillRect(q[0] - 2, q[1] - 2, 5, 5); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3); g.fillStyle = '#ffd541'; g.fillRect(q[0] + fx * 2, q[1] + fy * 2, 1, 1); g.fillStyle = '#b0242a'; g.fillRect(q[0], q[1], 1, 1);
+  const nx = mx + MM_W / 2 - 2, ny = my - 1;
+  g.fillStyle = OUT; g.fillRect(nx - 1, ny - 1, 6, 6); g.fillStyle = '#ecd27a';
+  ['X..X', 'XX.X', 'X.XX', 'X..X'].forEach((row, j) => { for (let i = 0; i < 4; i++) if (row[i] === 'X') g.fillRect(nx + i, ny + j, 1, 1); });
 }
