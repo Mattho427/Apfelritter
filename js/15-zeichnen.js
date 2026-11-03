@@ -182,10 +182,12 @@ function nlDraw(g, x, y, r, a, id, cam){
   if (G.inside || DG_ON || window.__noNightShade) return false;
   const S = Math.ceil(r), now = nowS();
   let e = NLS.m.get(id);
-  if (id === 'k'){   // die eigene Laterne: jedes Bild neu
-    if (!e){ e = { cv: canvasOf(S, S) }; NLS.m.set(id, e); }
-    if (e.cv.width !== S){ e.cv.width = e.cv.height = S; }
-    nlStamp(e.cv, x, y, r, a, null, 18);
+  if (id === 'k'){   // die eigene Laterne: neu geschnitten, wenn der Ritter weitergeht (beim Gehen jedes zweite Bild, die Schatten bleiben dabei höchstens ein paar Punkte zurück)
+    if (!e){ e = { cv: canvasOf(S, S), lx: -1e9, ly: 0, f: -9 }; NLS.m.set(id, e); }
+    if (e.cv.width !== S){ e.cv.width = e.cv.height = S; e.lx = -1e9; }
+    const mv = Math.abs(x - e.lx) + Math.abs(y - e.ly), key = SEA.cur + ':' + a.toFixed(2);
+    if (mv > 40 || e.key !== key || (mv >= 1 && NLS.f - e.f >= 2) || NLS.f - e.f > 30){ nlStamp(e.cv, x, y, r, a, null, 18); e.lx = x; e.ly = y; e.f = NLS.f; e.key = key; }
+    else { x = e.lx; y = e.ly; }
   } else {
     const key = SEA.cur + ':' + r + ':' + a.toFixed(2);
     if (!e || e.key !== key || (e.lz && now - e.t > 1)){
@@ -229,19 +231,19 @@ function nlFigures(g, lights, cam){
    Bäume, Häuser, Boote, Ritter und Leute am Ufer erscheinen kopfüber im Wasser: um ihre Fußlinie gespiegelt, auf die Wasserfläche
    beschnitten (Maske je Bodenstück, einmal berechnet, ohne Brücken), blass und in Streifen leicht gewellt, bei Regen unruhiger.
    Nachts spiegeln sich die erleuchteten Fenster mit. Im Winter ist das Wasser zugefroren. */
-const WMK = new Map(), RFL = { cv: null, g: null };
+const WMK = new Map(), RFL = { cv: null, g: null, st: null };
 function waterMask(ci, cj){
   const key = cj * wo_NCX + ci; let m = WMK.get(key); if (m){ m.u = SHT.f; return m; }
   const N = 128, cv = canvasOf(N, N), g = cv.getContext('2d'), id = g.createImageData(N, N), D = id.data, X0 = ci * 256, Y0 = cj * 256;
   const br = wo_BRIDGES.filter(b => b.x1 >= X0 && b.x0 <= X0 + 256 && b.y1 >= Y0 && b.y0 <= Y0 + 256);
-  let has = false;
+  let has = false, i0 = N, i1 = -1, j0 = N, j1 = -1;
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
     const wx = X0 + i * 2 + 1, wy = Y0 + j * 2 + 1;
     if (wo_wsd(wx, wy) >= 0 || br.some(b => wx >= b.x0 && wx <= b.x1 && wy >= b.y0 && wy <= b.y1)) continue;
-    D[(j * N + i) * 4 + 3] = 255; has = true;
+    D[(j * N + i) * 4 + 3] = 255; has = true; if (i < i0) i0 = i; if (i > i1) i1 = i; if (j < j0) j0 = j; if (j > j1) j1 = j;
   }
   g.putImageData(id, 0, 0);
-  m = { cv, has, u: SHT.f }; WMK.set(key, m);
+  m = { cv, has, u: SHT.f, i0, i1, j0, j1 }; WMK.set(key, m);   // i0…j1: Rahmen der Wasserfläche in Maskenpunkten
   if (WMK.size > 40){ const old = [...WMK.entries()].sort((a, b) => a[1].u - b[1].u)[0]; WMK.delete(old[0]); }
   return m;
 }
@@ -252,41 +254,79 @@ function nearWater(p){
   for (let y = y0; y <= y1; y += 8) for (let x = x0; x <= x1; x += 8) if (wo_wsd(x, y) < 0) return (p.nw = true);
   return (p.nw = false);
 }
-function drawReflections(cam, sx, sy){
-  if (G.inside || DG_ON || wo_GSEA === 3 || window.__noReflect) return;
-  const c0 = Math.max(0, Math.floor(cam.x / wo_CP)), c1 = Math.min(wo_NCX - 1, Math.floor((cam.x + W - 1) / wo_CP)), r0 = Math.max(0, Math.floor(cam.y / wo_CP)), r1 = Math.min(wo_NCY - 1, Math.floor((cam.y + H - 1) / wo_CP));
-  const masks = [];
-  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++){ const m = waterMask(c, r); if (m.has) masks.push([c, r, m]); }
-  if (!masks.length) return;
-  const RW = Math.ceil(W / 2), RH = Math.ceil(H / 2);
-  if (!RFL.cv || RFL.cv.width !== RW || RFL.cv.height !== RH){ RFL.cv = canvasOf(RW, RH); RFL.g = RFL.cv.getContext('2d'); RFL.mv = canvasOf(RW, RH); RFL.mg = RFL.mv.getContext('2d'); }
-  const g = RFL.g, night = clamp(SKY.night * 1.3, 0, 1);
-  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, RW, RH); g.imageSmoothingEnabled = false;
+/* der feste Teil (Bäume, Häuser, Boote, nachts ihre Fenster): an der Welt verankert, mit einem Rand um das Bild, schon auf das Wasser
+   beschnitten; neu erst, wenn das Bild den Rand verlässt oder sich Nacht und Jahreszeit ändern */
+function rflStatic(cam){
+  const st = RFL.st || (RFL.st = { cv: null, n: 0 }), MG = 256, night = clamp(SKY.night * 1.3, 0, 1), key = SEA.cur + ':' + Math.round(night * 10);
+  if (st.cv && st.key === key && cam.x >= st.ox && cam.y >= st.oy && cam.x + W <= st.ox + st.w && cam.y + H <= st.oy + st.h) return st;
+  const w = W + 2 * MG, h = H + 2 * MG, CW = Math.ceil(w / 2), CH = Math.ceil(h / 2);
+  if (!st.cv || st.cv.width !== CW || st.cv.height !== CH){ st.cv = canvasOf(CW, CH); st.g = st.cv.getContext('2d'); st.mv = canvasOf(CW, CH); st.mg = st.mv.getContext('2d'); }
+  const ox = st.ox = Math.floor((cam.x - MG) / 2) * 2, oy = st.oy = Math.floor((cam.y - MG) / 2) * 2; st.w = w; st.h = h; st.key = key; st.has = false; st.n++;
+  const g = st.g, M = st.mg;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, CW, CH); g.imageSmoothingEnabled = false;
+  M.setTransform(1, 0, 0, 1, 0, 0); M.clearRect(0, 0, CW, CH); M.imageSmoothingEnabled = true;
+  // Wasser im Ausschnitt: Masken der Bodenstücke und ihr Rahmen
+  const c0 = Math.max(0, Math.floor(ox / wo_CP)), c1 = Math.min(wo_NCX - 1, Math.floor((ox + w - 1) / wo_CP)), r0 = Math.max(0, Math.floor(oy / wo_CP)), r1 = Math.min(wo_NCY - 1, Math.floor((oy + h - 1) / wo_CP));
+  let wx0 = CW, wx1 = 0, wy0 = CH, wy1 = 0;
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++){
+    const m = waterMask(c, r); if (!m.has) continue;
+    const px = (c * wo_CP - ox) / 2, py = (r * wo_CP - oy) / 2, q = wo_CP / 256;
+    M.drawImage(m.cv, px, py, wo_CP / 2, wo_CP / 2);
+    wx0 = Math.min(wx0, px + m.i0 * q); wx1 = Math.max(wx1, px + (m.i1 + 1) * q); wy0 = Math.min(wy0, py + m.j0 * q); wy1 = Math.max(wy1, py + (m.j1 + 1) * q);
+  }
+  st.water = wx1 > wx0 ? [wx0, wy0, wx1, wy1] : null;
+  if (!st.water) return st;
   // Requisiten: Bildpunkt (u, v) erscheint bei y = p.y + ay − v
-  const PC0 = Math.max(0, (cam.x - 300) / PCELL | 0), PC1 = Math.min(PCOLS - 1, (cam.x + W + 300) / PCELL | 0), PR0 = Math.max(0, (cam.y - 600) / PCELL | 0), PR1 = Math.min(PROWS - 1, (cam.y + H) / PCELL | 0);
+  let bx0 = CW, bx1 = 0, by0 = CH, by1 = 0;
+  const PC0 = Math.max(0, (ox - 300) / PCELL | 0), PC1 = Math.min(PCOLS - 1, (ox + w + 300) / PCELL | 0), PR0 = Math.max(0, (oy - 600) / PCELL | 0), PR1 = Math.min(PROWS - 1, (oy + h) / PCELL | 0);
   for (let r = PR0; r <= PR1; r++) for (let c = PC0; c <= PC1; c++) for (const i of propGrid[r * PCOLS + c]){
     const p = GPROPS[i], img = p.img; if (!img || p.lz || p.ay < 10) continue;
-    if (p.x - p.ax > cam.x + W || p.x - p.ax + img.width < cam.x || p.y > cam.y + H || p.y + p.ay < cam.y || !nearWater(p)) continue;
-    g.setTransform(.5, 0, 0, -.5, (p.x - p.ax - cam.x) * .5, (p.y + p.ay - cam.y) * .5);
-    g.drawImage(img, 0, 0);
+    if (p.x - p.ax > ox + w || p.x - p.ax + img.width < ox || p.y > oy + h || p.y + p.ay < oy || !nearWater(p)) continue;
+    const X = (p.x - p.ax - ox) * .5, Y = (p.y + p.ay - oy) * .5;
+    g.setTransform(.5, 0, 0, -.5, X, Y); g.drawImage(img, 0, 0);
     if (p.nimg && night > .05){ g.globalAlpha = night; g.drawImage(p.nimg, 0, 0); g.globalAlpha = 1; }
+    bx0 = Math.min(bx0, X); bx1 = Math.max(bx1, X + img.width * .5); by0 = Math.min(by0, Y - img.height * .5); by1 = Math.max(by1, Y);
   }
-  // Ritter und Leute am Ufer (nur das Körperbild, ohne Waffe)
-  const fig = (img, x, y, ax, ay) => { if (wo_wsd(x / WS, y / WS + 6) > 10) return; g.setTransform(.5, 0, 0, -.5, (x - ax - cam.x) * .5, (y + ay - cam.y) * .5); g.drawImage(img, 0, 0); };
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const X0 = Math.max(0, Math.floor(Math.max(wx0, bx0)) - 2), X1 = Math.min(CW, Math.ceil(Math.min(wx1, bx1)) + 2), Y0 = Math.max(0, Math.floor(Math.max(wy0, by0))), Y1 = Math.min(CH, Math.ceil(Math.min(wy1, by1)) + 1);
+  if (X1 <= X0 || Y1 <= Y0) return st;
+  st.box = [X0, Y0, X1, Y1]; st.has = true;
+  g.save(); g.beginPath(); g.rect(X0, Y0, X1 - X0, Y1 - Y0); g.clip(); g.globalCompositeOperation = 'destination-in'; g.drawImage(st.mv, 0, 0); g.restore();
+  return st;
+}
+function drawReflections(cam, sx, sy){
+  if (G.inside || DG_ON || wo_GSEA === 3 || window.__noReflect) return;
+  const st = rflStatic(cam); if (!st.water) return;
+  const RW = Math.ceil(W / 2), RH = Math.ceil(H / 2), dx0 = (st.ox - cam.x) / 2, dy0 = (st.oy - cam.y) / 2;   // Lage des festen Teils im Bild
+  // Gestalten am Ufer (nur das Körperbild, ohne Waffe)
+  const figs = [], fig = (img, x, y, ax, ay) => { if (img && wo_wsd(x / WS, y / WS + 6) <= 10) figs.push([img, (x - ax - cam.x) * .5, (y + ay - cam.y) * .5]); };
   const knightImg = o => { const set = knightSet(o.f || HERO.f, o === G.knight ? lookOf(HERO.eq) : o.lk || undefined), fr = set.walk[o.dir] && set.walk[o.dir][o.moving ? 1 + ((o.anim | 0) % 4) : 0]; return fr && fr.img; };
   const k = G.knight;
-  if (G.mode !== 'title' && !k.ride){ const im = knightImg(k); if (im) fig(im, k.x, k.y, KS.ax, KS.ay); }
-  for (const p of PEERS.values()) if (!p.in && !p.ride && inView(p.x, p.y, cam)){ const im = knightImg(p); if (im) fig(im, p.x, p.y, KS.ax, KS.ay); }
+  if (G.mode !== 'title' && !k.ride) fig(knightImg(k), k.x, k.y, KS.ax, KS.ay);
+  for (const p of PEERS.values()) if (!p.in && !p.ride && inView(p.x, p.y, cam)) fig(knightImg(p), p.x, p.y, KS.ax, KS.ay);
   for (const n of NPCS) if (!n.act && inView(n.x, n.y, cam)) fig(n.art.frames[0], n.x, n.y, n.art.ax, n.art.ay);
-  // auf die Wasserfläche beschneiden: erst alle Masken in eine Ebene, dann einmal ausstanzen
-  const M = RFL.mg; M.setTransform(1, 0, 0, 1, 0, 0); M.clearRect(0, 0, RW, RH); M.imageSmoothingEnabled = true;
-  for (const [c, r, m] of masks) M.drawImage(m.cv, (c * wo_CP - cam.x) / 2, (r * wo_CP - cam.y) / 2, wo_CP / 2, wo_CP / 2);
-  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'destination-in'; g.drawImage(RFL.mv, 0, 0);
-  g.globalCompositeOperation = 'source-over';
+  if (!st.has && !figs.length) return;
+  // Rahmen im Bild: fester Teil und Gestalten
+  let X0 = RW, X1 = 0, Y0 = RH, Y1 = 0;
+  if (st.has){ const [a, b, c, d] = st.box; X0 = a + dx0; Y0 = b + dy0; X1 = c + dx0; Y1 = d + dy0; }
+  for (const [im, x, y] of figs){ X0 = Math.min(X0, x); X1 = Math.max(X1, x + im.width * .5); Y0 = Math.min(Y0, y - im.height * .5); Y1 = Math.max(Y1, y); }
+  X0 = Math.max(0, Math.floor(X0) - 2); X1 = Math.min(RW, Math.ceil(X1) + 2); Y0 = Math.max(0, Math.floor(Y0 / 2) * 2); Y1 = Math.min(RH, Math.ceil(Y1) + 1);
+  if (X1 <= X0 || Y1 <= Y0) return;
+  if (!RFL.cv || RFL.cv.width !== RW || RFL.cv.height !== RH){ RFL.cv = canvasOf(RW, RH); RFL.g = RFL.cv.getContext('2d'); }
+  const g = RFL.g, bw = X1 - X0, bh = Y1 - Y0;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.imageSmoothingEnabled = false; g.clearRect(X0, Y0, bw, bh);
+  if (st.has) g.drawImage(st.cv, X0 - dx0, Y0 - dy0, bw, bh, X0, Y0, bw, bh);
+  for (const [im, x, y] of figs){
+    g.setTransform(.5, 0, 0, -.5, x, y); g.drawImage(im, 0, 0); g.setTransform(1, 0, 0, 1, 0, 0);
+    // nur die Gestalt auf das Wasser beschneiden (der feste Teil darunter ist es schon)
+    const fx = Math.floor(x) - 1, fy = Math.floor(y - im.height * .5) - 1, fw = Math.ceil(im.width * .5) + 2, fh = Math.ceil(im.height * .5) + 2;
+    g.save(); g.beginPath(); g.rect(fx, fy, fw, fh); g.clip(); g.globalCompositeOperation = 'destination-in'; g.drawImage(st.mv, fx - dx0, fy - dy0, fw, fh, fx, fy, fw, fh); g.restore();
+  }
+  RFL.box = [X0, Y0, X1, Y1];
   // blass und in Streifen gewellt aufs Bild
-  const t = RM ? 0 : G.t, amp = 1 + SKY.rain * 2 + SKY.gust;
+  const night = clamp(SKY.night * 1.3, 0, 1), t = RM ? 0 : G.t, amp = 1 + SKY.rain * 2 + SKY.gust;
   ctx.save(); ctx.setTransform(1, 0, 0, 1, sx, sy); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = .34 + night * .1;
-  for (let y = 0; y < RH; y += 2){ const dx = Math.round(Math.sin(y * .45 + t * 2.2) * amp); ctx.drawImage(RFL.cv, 0, y, RW, 2, dx, y * 2, RW * 2, 4); }
+  for (let y = Y0; y < Y1; y += 2){ const dx = Math.round(Math.sin(y * .45 + t * 2.2) * amp), h = Math.min(2, RH - y); ctx.drawImage(RFL.cv, X0, y, bw, h, X0 * 2 + dx, y * 2, bw * 2, h * 2); }
   ctx.restore();
 }
 /* ============ Nässe, Pfützen und Hochwasser (Version 34) ============
