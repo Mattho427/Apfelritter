@@ -714,16 +714,20 @@ const CLOUD_TEX = (() => {
 const LIGHT_CV = canvasOf(Math.ceil(W / 2), Math.ceil(H / 2)), LIGHT_G = LIGHT_CV.getContext('2d');
 function skyLights(cam){
   const L = [], k = G.knight, v = (x, y, m) => x > cam.x - m && x < cam.x + W + m && y > cam.y - m && y < cam.y + H + m;
-  if (G.mode !== 'title') L.push([k.x, k.y - 22, 210, .9, 0]);
+  if (G.mode !== 'title') L.push([k.x, k.y - 22, 210, .9, 0, 'k']);   // sechstes Feld: Licht mit Schatten (Teil 15)
   for (const p of PEERS.values()) if (!p.in && v(p.x, p.y, 200)) L.push([p.x, p.y - 22, 170, .8, 0]);
   evLights(v, L);
-  for (const f of GFIRES) if (v(f.x, f.y, 260)) L.push([f.x, f.y - 8, f.big ? 300 : 210, 1, 1]);
-  for (const inn of INNS) if (v(inn.dx, inn.y, 200)) L.push([inn.dx, inn.y - 30, 150, .85, 1]);
+  GFIRES.forEach((f, i) => { if (v(f.x, f.y, 260)) L.push([f.x, f.y - 8, f.big ? 300 : 210, 1, 1, 'f' + i]); });
+  for (const inn of INNS) if (v(inn.dx, inn.y, 200)) L.push([inn.dx, inn.y - 30, 150, .85, 1, 'i' + inn.id]);
   for (const p of propsInView(cam)) if (p.lights && p.lights.length){
-    if (p.lights.length === 1){ L.push([p.lights[0][0], p.lights[0][1], 96, .6, 1]); continue; }
+    if (p.lights.length === 1){ L.push([p.lights[0][0], p.lights[0][1], 96, .6, 1, p]); continue; }
     let sx = 0, sy = 0, d = 0; for (const [x, y] of p.lights){ sx += x; sy += y; } sx /= p.lights.length; sy /= p.lights.length;
     for (const [x, y] of p.lights) d = Math.max(d, Math.hypot(x - sx, y - sy));
-    L.push([sx, sy, 96 + d * .9, Math.min(.85, .6 + p.lights.length * .04), 1]);
+    L.push([sx, sy, 96 + d * .9, Math.min(.85, .6 + p.lights.length * .04), 1, p]);
+  }
+  // erleuchtete Fenster spiegeln sich im Wasser (Teil 15): Lichtpunkt um die Fußlinie des Hauses gespiegelt
+  if (wo_GSEA !== 3) for (const p of propsInView(cam)) if (p.lights && p.lights.length && nearWater(p)) for (const [x, y] of p.lights){
+    const my = 2 * p.y - y; if (wo_wsd(x / WS, my / WS) < 0) L.push([x, my, 70, .45, 1]);
   }
   for (const m of G.mons){
     if (aiK(m.k) === 'irrlicht' && v(m.x, m.y, 120)) L.push([m.x, m.y - 26, 130, .9, 2]);
@@ -754,13 +758,15 @@ function drawSkyLight(cam){
   g.fillRect(0, 0, lw, lh);
   g.globalCompositeOperation = 'destination-out';
   const nl = clamp(SKY.night * 1.3, 0, 1);
-  for (const [x, y, r, kk, c] of lights){
+  for (const [x, y, r, kk, c, id] of lights){
     const px = (x - cam.x) / 2, py = (y - cam.y) / 2, rr = r / 2, a = kk * (c === 0 ? .55 + .45 * nl : 1);
     if (px < -rr || py < -rr || px > lw + rr || py > lh + rr) continue;
+    if (id && nlDraw(g, x, y, r, a, id, cam)) continue;   // Licht mit Schatten der Bäume und Häuser (Teil 15)
     const gr = g.createRadialGradient(px, py, 0, px, py, rr);
     gr.addColorStop(0, 'rgba(0,0,0,' + a.toFixed(2) + ')'); gr.addColorStop(.55, 'rgba(0,0,0,' + (a * .55).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = gr; g.fillRect(px - rr, py - rr, rr * 2, rr * 2);
   }
+  g.globalCompositeOperation = 'source-over'; nlFigures(g, lights, cam);   // Schatten der Gestalten im Licht (Teil 15)
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(LIGHT_CV, 0, 0, lw * 2, lh * 2);
   // warmer Schein um Feuer, Fenster und Irrlichter
