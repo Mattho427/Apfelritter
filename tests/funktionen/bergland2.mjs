@@ -19,7 +19,8 @@ for (const k of ['wolf', 'schrat', 'kobold', 'grubengeist', 'doppelsoeldner', 'h
     setTimeout(() => { clearInterval(iv); window.hurt = h0; const alive = G.mons.includes(m); res({ st: [...sts].join(','), alive, dist: Math.round(Math.hypot(m.x - kn.x, m.y - kn.y)), hits }); }, 3500);
   }), k);
   await (await p.$('canvas')).screenshot({ path: OUT + 'bk_' + k + '.png' });
-  const ok = r.alive && (r.st.split(',').length > 1 || r.dist < 40 || r.hits > 0);   // Berührungsangreifer (Schrat, Kobold, Geist, Licht) kennen nur „gehen“; ihr Treffer stößt den Ritter zurück
+  const ok = r.alive && (r.st.split(',').length > 1 || r.dist < 60 || r.hits > 0);   // Berührungsangreifer (Schrat, Kobold, Geist, Licht) kennen nur „gehen“; ihr Treffer stößt den Ritter zurück.
+  // Start 90 Schritt entfernt: der langsame Schrat bleibt je nach Tageszeit im dichten Tann an Stämmen hängen, deutlich näher gekommen genügt
   if (!ok) fehl++;
   console.log((ok ? 'ok   ' : 'FEHL ') + k.padEnd(16), JSON.stringify(r));
 }

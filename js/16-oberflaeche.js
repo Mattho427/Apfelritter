@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 16 von 29: Pferd, Schmied, Wegweiser, Oberfläche.
+/* Der Apfelritter, Teil 16 von 30: Pferd, Schmied, Wegweiser, Oberfläche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Pferd: Aufsitzen, Absitzen ============ */
 ICONS.horse = (() => { const c = canvasOf(16, 16), sp = horseSet('klepper', 'reich').left[4].under; c.getContext('2d').drawImage(sp, 1, 0, 18, 18, -1, -1, 18, 18); return c; })();
@@ -360,11 +360,6 @@ for (const z of ZONES){
   const li = el('li'), bn = el('b', null, z.name), lv = el('span', 'lv', zoneLvText(z.id));
   li.append(bn, ' ', lv, el('br'), ZONE_INFO[z.id] || ''); $('zoneList').append(li);
 }
-for (const l of MAP_LABELS){
-  const sp = el('span', null, l.name), z = ZONES.find(q => q.name === l.name);
-  if (z && zoneLvText(z.id)) sp.append(el('small', null, zoneLvText(z.id)));
-  sp.style.left = (l.x / WW * 100) + '%'; sp.style.top = (l.y / WH * 100) + '%'; $('mapLabels').append(sp);
-}
 RARITY.forEach((r, i) => {
   const li = el('li'), sw = el('span', 'swatch'); sw.style.background = r.c;
   li.append(sw, el('span', null, r.n[0].toUpperCase() + r.n.slice(1)), el('small', null, ['ohne Zusätze', 'ein Zusatz', 'zwei Zusätze', 'drei Zusätze, berühmter Name', 'nur von Anführern'][i]));
@@ -558,27 +553,7 @@ function closePanel(){
   showOverlay(null); blurActive();
 }
 
-/* ---------- Karte ---------- */
-function drawFullMap(){
-  const c = $('mapCv'), g = c.getContext('2d'), s = GW / c.width, k = G.knight, P = v => v / s | 0;
-  g.imageSmoothingEnabled = false; g.drawImage(FULLMAP, 0, 0, c.width, c.height);
-  for (const [kind, p] of Object.entries(LAIRS)){ g.fillStyle = '#5a1012'; g.fillRect(P(p.x) - 4, P(p.y) - 4, 9, 9); g.fillStyle = HERO.bosses[kind] ? '#7a6a5a' : '#c8343c'; g.fillRect(P(p.x) - 3, P(p.y) - 3, 7, 7); g.fillStyle = '#ecd27a'; g.fillRect(P(p.x) - 1, P(p.y) - 1, 3, 3); }
-  for (const n of NPCS){ g.fillStyle = '#16120f'; g.fillRect(P(n.x) - 3, P(n.y) - 3, 7, 7); g.fillStyle = npcMark(n) ? '#ffd541' : '#5ac85a'; g.fillRect(P(n.x) - 2, P(n.y) - 2, 5, 5); }
-  for (const q of HERO.quests){
-    const d = qInfo(q); if (!d || q.n >= d.need) continue;
-    const z = ZONE_BY_ID[d.zone]; if (!z) continue;
-    g.strokeStyle = '#c9a227'; g.lineWidth = 2; g.setLineDash([4, 3]); g.beginPath(); g.arc(P(z.label.x * WS), P(z.label.y * WS) + 14, 22, 0, Math.PI * 2); g.stroke(); g.setLineDash([]);
-  }
-  for (const m of G.mons){ g.fillStyle = MON[m.k].boss ? '#8e1b1b' : '#3a1014'; g.fillRect(P(m.x) - 1, P(m.y) - 1, 3, 3); }
-  for (const inn of INNS){ g.fillStyle = '#16120f'; g.fillRect(P(inn.dx) - 3, P(inn.y) - 3, 7, 7); g.fillStyle = '#e0823a'; g.fillRect(P(inn.dx) - 2, P(inn.y) - 2, 5, 5); }
-  for (const p of PEERS.values()){ const at = peerAt(p), px = P(at ? at.x : p.x) + (at ? 5 : 0), py = P(at ? at.y : p.y); g.fillStyle = '#16120f'; g.fillRect(px - 3, py - 3, 7, 7); g.fillStyle = inParty(p) ? '#7fe08a' : '#6a9ae0'; g.fillRect(px - 2, py - 2, 5, 5); if (inParty(p)){ g.font = '12px monospace'; g.fillStyle = '#16120f'; g.fillText(p.nm, px + 6, py + 5); g.fillStyle = '#cfeec2'; g.fillText(p.nm, px + 5, py + 4); } }
-  const stm = stTarget(); if (stm){ const sx = P(stm.x), sy = P(stm.y); g.fillStyle = '#16120f'; g.beginPath(); g.moveTo(sx, sy - 8); g.lineTo(sx + 7, sy); g.lineTo(sx, sy + 8); g.lineTo(sx - 7, sy); g.fill(); g.fillStyle = '#ffd541'; g.beginPath(); g.moveTo(sx, sy - 6); g.lineTo(sx + 5, sy); g.lineTo(sx, sy + 6); g.lineTo(sx - 5, sy); g.fill(); }
-  const es = evMark2(); if (es){ const ex = P(es.x), ey = P(es.y); g.fillStyle = '#16120f'; g.fillRect(ex - 1, ey - 14, 3, 16); g.fillRect(ex + 1, ey - 15, 10, 8); g.fillStyle = '#d0343c'; g.fillRect(ex + 2, ey - 14, 8, 6); g.fillStyle = '#e8dcbc'; g.fillRect(ex, ey - 13, 1, 14); }
-  rrMap(g, P);
-  const kx = P(k.x), ky = P(k.y);
-  g.fillStyle = '#16120f'; g.fillRect(kx - 4, ky - 4, 9, 9); g.fillStyle = '#ecd27a'; g.fillRect(kx - 3, ky - 3, 7, 7); g.fillStyle = '#b0242a'; g.fillRect(kx - 1, ky - 1, 3, 3);
-}
-function openMap(){ if (G.inside || !openPanel('ovMap')) return; drawFullMap(); $('btnMapClose').focus({ preventScroll: true }); }
+/* ---------- Karte: Teil 29 ---------- */
 
 /* ---------- Rucksack und Ausrüstung ---------- */
 const STAT_ROWS = [['hp', 'Leben'], ['dmg', 'Schaden'], ['arm', 'Rüstung'], ['crit', '% Volltreffer'], ['spd', '% Hiebtempo'], ['block', '% Abwehr'], ['xp', '% Erfahrung'], ['gold', '% Gulden'], ['holy', '% gegen Untote'], ['leech', '% Lebensraub']];

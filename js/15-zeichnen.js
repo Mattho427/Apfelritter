@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 15 von 29: Zeichnen des Spielbilds.
+/* Der Apfelritter, Teil 15 von 30: Zeichnen des Spielbilds.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Zeichnen ============ */
 function shadow(x, y, w, a){
@@ -93,17 +93,24 @@ function shadeTilePaint(T, tx, ty){
 /* Bodenstück mit eingerechneten Schatten (aus drawGround, Teil 8); höchstens eines je Bild neu, sonst das alte oder das Original */
 const SGC = { m: new Map(), pool: [], f: -1, n: 0 };
 function shadeGround(e, c, r){
-  const S = SUN; if (S.a < .015 || G.inside || DG_ON) return e.c;
+  const S = SUN, Wt = WET, wq = Math.round(Wt.w * 12), fq = Math.round(Wt.f * 12), sh = S.a >= .015;
+  if ((!sh && !wq && !fq) || G.inside || DG_ON) return e.c;
   if (SEA.cur !== SHT.sea){ SHT.sea = SEA.cur; SHT.tiles.clear(); for (const s of SGC.m.values()) SGC.pool.push(s.cv); SGC.m.clear(); }
   if (SGC.f !== SHT.f){ SGC.f = SHT.f; SGC.n = 0; }
-  const id = c + ',' + r, aq = Math.round(S.a * 60), s = SGC.m.get(id), want = S.key + ':' + aq;
+  const id = c + ',' + r, aq = sh ? Math.round(S.a * 60) : 0, s = SGC.m.get(id), want = (sh ? S.key : '-') + ':' + aq + ':' + wq + ':' + fq;
   if (s){ s.u = SHT.f; const same = s.src === e; if (same && s.key === want && !s.lz) return s.cv; if (SGC.n >= 1) return same ? s.cv : e.c; }   // neu gemalter Boden: lieber ohne Schatten als alt
   else if (SGC.n >= 1 && SGC.m.size) return e.c;
   SGC.n++;
-  const T = [shadeTile(c * 2, r * 2), shadeTile(c * 2 + 1, r * 2), shadeTile(c * 2, r * 2 + 1), shadeTile(c * 2 + 1, r * 2 + 1)];
+  const T = sh ? [shadeTile(c * 2, r * 2), shadeTile(c * 2 + 1, r * 2), shadeTile(c * 2, r * 2 + 1), shadeTile(c * 2 + 1, r * 2 + 1)] : [];
   const o = s || { cv: SGC.pool.pop() || canvasOf(wo_CP, wo_CP), key: '', u: SHT.f };
   const g = o.cv.getContext('2d');
-  g.globalAlpha = 1; g.drawImage(e.c, 0, 0); g.globalAlpha = S.a; g.imageSmoothingEnabled = false;
+  g.globalAlpha = 1; g.drawImage(e.c, 0, 0);
+  if ((wq || fq) && wo_GSEA !== 3){   // Pfützen und überflutete Ufer, weich vergrößert
+    const M = wetMasks(c, r); g.imageSmoothingEnabled = true;
+    if (M.p && wq){ g.globalAlpha = Wt.w * .62; g.drawImage(M.p, 0, 0, wo_CP, wo_CP); }
+    if (M.f && fq){ g.globalAlpha = Wt.f * .9; g.drawImage(M.f, 0, 0, wo_CP, wo_CP); }
+  }
+  g.globalAlpha = S.a; g.imageSmoothingEnabled = false;
   T.forEach((t, i) => g.drawImage(t.cv, (i & 1) * SHT_S, (i >> 1) * SHT_S, SHT_S, SHT_S));
   g.globalAlpha = 1;
   o.key = want; o.lz = T.some(t => t.lz); o.src = e;
@@ -127,6 +134,302 @@ function drawCastShadows(cam, k, title, lifeL){
   for (const n of NPCS) if (near(n.x, n.y)) castBlob(n.x, n.y, n.art ? n.art.ay : 44, 14);
   for (const m of G.mons){ if (MON[m.k].fly || !near(m.x, m.y) || (m.alpha != null && m.alpha < .3)) continue; const A = artOf(m.k); castBlob(m.x, m.y, A.ay || A.h, Math.max(10, A.w * .45)); }
   for (const e of lifeL){ if (e.st === 'fly' || (e.K && e.K.c === 'swim') || e.clip) continue; const A = e.art; castBlob(e.x, e.y, e.person ? 40 : Math.max(6, (A.ay || A.h || 12) * .9), e.person ? 13 : Math.max(5, A.w * .5)); }
+  ctx.globalAlpha = 1;
+}
+/* ============ Nachtlicht mit Schatten (Version 34) ============
+   Feuer, Fenster, Gasthaustüren und die Laterne des Ritters schneiden ihr Licht aus der Dunkelheit (Teil 12). Hier bekommt jedes dieser
+   Lichter einen Stempel: der Lichtkreis, aus dem die Schatten der Bäume, Häuser, Mauern und Felsen ringsum herausgeschnitten sind, vom
+   Licht weg und umso länger, je näher sie am Licht stehen. Die angestrahlte Seite bleibt hell, steht das Licht dahinter, liegt sie im
+   Dunkeln. Feste Lichter behalten ihren Stempel (Feuer flackern beim Aufsetzen), die Laterne des Ritters wandert mit und wird jedes Bild
+   neu geschnitten. Gestalten im Licht werfen einen länglichen Schatten vom hellsten Licht weg. Alles in halber Auflösung wie die Dunkelheit. */
+const NLS = { m: new Map(), f: 0 };
+const nlGrad = (d, r, a) => { const t = d / r; return t >= 1 ? 0 : t < .55 ? a * (1 - .45 * t / .55) : a * .55 * (1 - (t - .55) / .45); };
+function nlStamp(cv, lx, ly, r, a, own, max){
+  const S = cv.width, g = cv.getContext('2d'), h = S / 2;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, S, S);
+  const gr = g.createRadialGradient(h, h, 0, h, h, h);
+  gr.addColorStop(0, 'rgba(0,0,0,' + a.toFixed(2) + ')'); gr.addColorStop(.55, 'rgba(0,0,0,' + (a * .55).toFixed(2) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, S, S);
+  // Requisiten im Lichtkreis, die nahen zuerst
+  const occ = [], c0 = Math.max(0, (lx - r - 200) / PCELL | 0), c1 = Math.min(PCOLS - 1, (lx + r + 200) / PCELL | 0), r0 = Math.max(0, (ly - r) / PCELL | 0), r1 = Math.min(PROWS - 1, (ly + r + 400) / PCELL | 0);
+  let lz = false;
+  for (let rr = r0; rr <= r1; rr++) for (let cc = c0; cc <= c1; cc++) for (const i of propGrid[rr * PCOLS + cc]){
+    const p = GPROPS[i], img = p.img; if (!img || p === own || p.ay < 24) continue;
+    const d = Math.hypot(p.x - lx, p.y - ly); if (d > r * .95 || d < 6) continue;
+    if (lx > p.x - p.ax && lx < p.x - p.ax + img.width && ly > p.y - p.ay && ly < p.y + 4) continue;   // das Licht hängt an diesem Bau
+    if (p.lz){ lz = true; continue; }
+    occ.push([d, p]);
+  }
+  occ.sort((x, y) => x[0] - y[0]); if (occ.length > max) occ.length = max;
+  g.globalCompositeOperation = 'destination-out';
+  for (const [d, p] of occ){
+    const img = p.img, ux = (p.x - lx) / d, uy = (p.y - ly) / d, L = clamp(r * .5 / Math.max(d, 24), .7, 2.6), k = p.ay > 260 ? 260 / p.ay : 1, c = -L * ux * k, dd = -L * uy * k;
+    g.setTransform(.5, 0, .5 * c, .5 * dd, (p.x - p.ax - lx - p.ay * c) * .5 + h, (p.y - ly - p.ay * dd) * .5 + h);
+    g.drawImage(silOf(img), 0, 0, img.width, img.height);
+  }
+  // die angestrahlte Seite wieder hell, im Gegenlicht dunkel
+  g.globalCompositeOperation = 'source-over';
+  for (const [d, p] of occ){
+    const front = clamp(.5 + (ly - p.y) / 60, .2, 1), v = nlGrad(d, r, a) * front; if (v < .02) continue;
+    g.globalAlpha = v; g.setTransform(.5, 0, 0, .5, (p.x - p.ax - lx) * .5 + h, (p.y - p.ay - ly) * .5 + h);
+    g.drawImage(silOf(p.img), 0, 0, p.img.width, p.img.height);
+  }
+  g.globalAlpha = 1; g.setTransform(1, 0, 0, 1, 0, 0);
+  return lz;
+}
+/* ein Licht mit Schatten in die Dunkelheit schneiden (aus drawSkyLight, Teil 12); false: wie bisher als einfacher Kreis */
+function nlDraw(g, x, y, r, a, id, cam){
+  if (G.inside || DG_ON || window.__noNightShade) return false;
+  const S = Math.ceil(r), now = nowS();
+  let e = NLS.m.get(id);
+  if (id === 'k'){   // die eigene Laterne: neu geschnitten, wenn der Ritter weitergeht (beim Gehen jedes zweite Bild, die Schatten bleiben dabei höchstens ein paar Punkte zurück)
+    if (!e){ e = { cv: canvasOf(S, S), lx: -1e9, ly: 0, f: -9 }; NLS.m.set(id, e); }
+    if (e.cv.width !== S){ e.cv.width = e.cv.height = S; e.lx = -1e9; }
+    const mv = Math.abs(x - e.lx) + Math.abs(y - e.ly), key = SEA.cur + ':' + a.toFixed(2);
+    if (mv > 40 || e.key !== key || (mv >= 1 && NLS.f - e.f >= 2) || NLS.f - e.f > 30){ nlStamp(e.cv, x, y, r, a, null, 18); e.lx = x; e.ly = y; e.f = NLS.f; e.key = key; }
+    else { x = e.lx; y = e.ly; }
+  } else {
+    const key = SEA.cur + ':' + r + ':' + a.toFixed(2);
+    if (!e || e.key !== key || (e.lz && now - e.t > 1)){
+      if (!e){ e = { cv: canvasOf(S, S) }; NLS.m.set(id, e); }
+      if (e.cv.width !== S){ e.cv.width = e.cv.height = S; }
+      e.lz = nlStamp(e.cv, x, y, r, a, typeof id === 'object' ? id : null, 30); e.key = key; e.t = now;
+    }
+  }
+  e.u = NLS.f;
+  const fire = typeof id === 'string' && id[0] === 'f', s = fire ? 1 + .035 * Math.sin(now * 11 + x * .13) + .02 * Math.sin(now * 23 + y * .07) : 1, w = S * s;
+  g.globalCompositeOperation = 'destination-out';
+  g.drawImage(e.cv, (x - cam.x) / 2 - w / 2, (y - cam.y) / 2 - w / 2, w, w);
+  if (NLS.m.size > 80){ const old = [...NLS.m.entries()].filter(([k]) => k !== 'k').sort((p, q) => p[1].u - q[1].u).slice(0, NLS.m.size - 60); for (const [k] of old) NLS.m.delete(k); }
+  return true;
+}
+/* Gestalten im Licht: länglicher Schatten vom hellsten nahen Licht weg (dunkelt die Dunkelheitsebene wieder ein) */
+function nlFigures(g, lights, cam){
+  NLS.f++;
+  if (G.inside || DG_ON || window.__noNightShade || SKY.dark < .05) return;
+  const k = G.knight, figs = [], v = (x, y) => x > cam.x - 40 && x < cam.x + W + 40 && y > cam.y - 40 && y < cam.y + H + 80;
+  if (G.mode !== 'title') figs.push([k.x, k.y, KS.ay + (k.ride ? 15 : 0), k.ride ? 26 : 14, k]);
+  for (const p of PEERS.values()) if (!p.in && v(p.x, p.y)) figs.push([p.x, p.y, KS.ay, 14, p]);
+  for (const n of NPCS) if (v(n.x, n.y)) figs.push([n.x, n.y, n.art ? n.art.ay : 44, 12, n]);
+  for (const m of G.mons) if (!MON[m.k].fly && v(m.x, m.y)){ const A = artOf(m.k); figs.push([m.x, m.y, A.ay || A.h, Math.max(10, A.w * .4), m]); }
+  for (const s of LIFE_SPOTS) if (s.act) for (const e of s.ents) if (e.person && !e.clip && v(e.x, e.y)) figs.push([e.x, e.y, 40, 12, e]);
+  g.fillStyle = 'rgba(8,10,28,1)';
+  for (const [fx, fy, fh, fw, who] of figs){
+    let best = null, bv = .08;
+    for (const L of lights){
+      if (Math.abs(L[0] - fx) < 6 && Math.abs(L[1] + 22 - fy) < 6) continue;   // die eigene Laterne
+      const d = Math.hypot(fx - L[0], fy - L[1]), val = nlGrad(d, L[2], L[3]); if (val > bv){ bv = val; best = [L, d]; }
+    }
+    if (!best) continue;
+    const [L, d] = best, ux = (fx - L[0]) / Math.max(d, 1), uy = (fy - L[1]) / Math.max(d, 1), len = fh * clamp(L[2] * .4 / Math.max(d, 20), .8, 2.4);
+    g.globalAlpha = Math.min(.85, SKY.dark * bv * 1.4);
+    g.beginPath(); g.ellipse((fx + ux * len * .5 - cam.x) / 2, (fy + uy * len * .5 - cam.y) / 2, Math.max(fw, len) / 4, fw / 4, Math.atan2(uy, ux), 0, Math.PI * 2); g.fill();
+  }
+  g.globalAlpha = 1;
+}
+/* ============ Spiegelungen im Wasser (Version 34) ============
+   Bäume, Häuser, Boote, Ritter und Leute am Ufer erscheinen kopfüber im Wasser: um ihre Fußlinie gespiegelt, auf die Wasserfläche
+   beschnitten (Maske je Bodenstück, einmal berechnet, ohne Brücken), blass und in Streifen leicht gewellt, bei Regen unruhiger.
+   Nachts spiegeln sich die erleuchteten Fenster mit. Im Winter ist das Wasser zugefroren. */
+const WMK = new Map(), RFL = { cv: null, g: null, st: null };
+function waterMask(ci, cj){
+  const key = cj * wo_NCX + ci; let m = WMK.get(key); if (m){ m.u = SHT.f; return m; }
+  const N = 128, cv = canvasOf(N, N), g = cv.getContext('2d'), id = g.createImageData(N, N), D = id.data, X0 = ci * 256, Y0 = cj * 256;
+  const br = wo_BRIDGES.filter(b => b.x1 >= X0 && b.x0 <= X0 + 256 && b.y1 >= Y0 && b.y0 <= Y0 + 256);
+  let has = false, i0 = N, i1 = -1, j0 = N, j1 = -1;
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+    const wx = X0 + i * 2 + 1, wy = Y0 + j * 2 + 1;
+    if (wo_wsd(wx, wy) >= 0 || br.some(b => wx >= b.x0 && wx <= b.x1 && wy >= b.y0 && wy <= b.y1)) continue;
+    D[(j * N + i) * 4 + 3] = 255; has = true; if (i < i0) i0 = i; if (i > i1) i1 = i; if (j < j0) j0 = j; if (j > j1) j1 = j;
+  }
+  g.putImageData(id, 0, 0);
+  m = { cv, has, u: SHT.f, i0, i1, j0, j1 }; WMK.set(key, m);   // i0…j1: Rahmen der Wasserfläche in Maskenpunkten
+  if (WMK.size > 40){ const old = [...WMK.entries()].sort((a, b) => a[1].u - b[1].u)[0]; WMK.delete(old[0]); }
+  return m;
+}
+/* reicht die Spiegelung einer Requisite ins Wasser? (einmal je Requisite) */
+function nearWater(p){
+  if (p.nw !== undefined) return p.nw;
+  const x0 = (p.x - p.ax) / WS, x1 = x0 + p.img.width / WS, y0 = p.y / WS, y1 = y0 + Math.min(p.ay, 300) / WS;
+  for (let y = y0; y <= y1; y += 8) for (let x = x0; x <= x1; x += 8) if (wo_wsd(x, y) < 0) return (p.nw = true);
+  return (p.nw = false);
+}
+/* der feste Teil (Bäume, Häuser, Boote, nachts ihre Fenster): an der Welt verankert, mit einem Rand um das Bild, schon auf das Wasser
+   beschnitten; neu erst, wenn das Bild den Rand verlässt oder sich Nacht und Jahreszeit ändern */
+function rflStatic(cam){
+  const st = RFL.st || (RFL.st = { cv: null, n: 0 }), MG = 256, night = clamp(SKY.night * 1.3, 0, 1), key = SEA.cur + ':' + Math.round(night * 10);
+  if (st.cv && st.key === key && cam.x >= st.ox && cam.y >= st.oy && cam.x + W <= st.ox + st.w && cam.y + H <= st.oy + st.h) return st;
+  const w = W + 2 * MG, h = H + 2 * MG, CW = Math.ceil(w / 2), CH = Math.ceil(h / 2);
+  if (!st.cv || st.cv.width !== CW || st.cv.height !== CH){ st.cv = canvasOf(CW, CH); st.g = st.cv.getContext('2d'); st.mv = canvasOf(CW, CH); st.mg = st.mv.getContext('2d'); }
+  const ox = st.ox = Math.floor((cam.x - MG) / 2) * 2, oy = st.oy = Math.floor((cam.y - MG) / 2) * 2; st.w = w; st.h = h; st.key = key; st.has = false; st.n++;
+  const g = st.g, M = st.mg;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, CW, CH); g.imageSmoothingEnabled = false;
+  M.setTransform(1, 0, 0, 1, 0, 0); M.clearRect(0, 0, CW, CH); M.imageSmoothingEnabled = true;
+  // Wasser im Ausschnitt: Masken der Bodenstücke und ihr Rahmen
+  const c0 = Math.max(0, Math.floor(ox / wo_CP)), c1 = Math.min(wo_NCX - 1, Math.floor((ox + w - 1) / wo_CP)), r0 = Math.max(0, Math.floor(oy / wo_CP)), r1 = Math.min(wo_NCY - 1, Math.floor((oy + h - 1) / wo_CP));
+  let wx0 = CW, wx1 = 0, wy0 = CH, wy1 = 0;
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++){
+    const m = waterMask(c, r); if (!m.has) continue;
+    const px = (c * wo_CP - ox) / 2, py = (r * wo_CP - oy) / 2, q = wo_CP / 256;
+    M.drawImage(m.cv, px, py, wo_CP / 2, wo_CP / 2);
+    wx0 = Math.min(wx0, px + m.i0 * q); wx1 = Math.max(wx1, px + (m.i1 + 1) * q); wy0 = Math.min(wy0, py + m.j0 * q); wy1 = Math.max(wy1, py + (m.j1 + 1) * q);
+  }
+  st.water = wx1 > wx0 ? [wx0, wy0, wx1, wy1] : null;
+  if (!st.water) return st;
+  // Requisiten: Bildpunkt (u, v) erscheint bei y = p.y + ay − v
+  let bx0 = CW, bx1 = 0, by0 = CH, by1 = 0;
+  const PC0 = Math.max(0, (ox - 300) / PCELL | 0), PC1 = Math.min(PCOLS - 1, (ox + w + 300) / PCELL | 0), PR0 = Math.max(0, (oy - 600) / PCELL | 0), PR1 = Math.min(PROWS - 1, (oy + h) / PCELL | 0);
+  for (let r = PR0; r <= PR1; r++) for (let c = PC0; c <= PC1; c++) for (const i of propGrid[r * PCOLS + c]){
+    const p = GPROPS[i], img = p.img; if (!img || p.lz || p.ay < 10) continue;
+    if (p.x - p.ax > ox + w || p.x - p.ax + img.width < ox || p.y > oy + h || p.y + p.ay < oy || !nearWater(p)) continue;
+    const X = (p.x - p.ax - ox) * .5, Y = (p.y + p.ay - oy) * .5;
+    g.setTransform(.5, 0, 0, -.5, X, Y); g.drawImage(img, 0, 0);
+    if (p.nimg && night > .05){ g.globalAlpha = night; g.drawImage(p.nimg, 0, 0); g.globalAlpha = 1; }
+    bx0 = Math.min(bx0, X); bx1 = Math.max(bx1, X + img.width * .5); by0 = Math.min(by0, Y - img.height * .5); by1 = Math.max(by1, Y);
+  }
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const X0 = Math.max(0, Math.floor(Math.max(wx0, bx0)) - 2), X1 = Math.min(CW, Math.ceil(Math.min(wx1, bx1)) + 2), Y0 = Math.max(0, Math.floor(Math.max(wy0, by0))), Y1 = Math.min(CH, Math.ceil(Math.min(wy1, by1)) + 1);
+  if (X1 <= X0 || Y1 <= Y0) return st;
+  st.box = [X0, Y0, X1, Y1]; st.has = true;
+  g.save(); g.beginPath(); g.rect(X0, Y0, X1 - X0, Y1 - Y0); g.clip(); g.globalCompositeOperation = 'destination-in'; g.drawImage(st.mv, 0, 0); g.restore();
+  return st;
+}
+function drawReflections(cam, sx, sy){
+  if (G.inside || DG_ON || wo_GSEA === 3 || window.__noReflect) return;
+  const st = rflStatic(cam); if (!st.water) return;
+  const RW = Math.ceil(W / 2), RH = Math.ceil(H / 2), dx0 = (st.ox - cam.x) / 2, dy0 = (st.oy - cam.y) / 2;   // Lage des festen Teils im Bild
+  // Gestalten am Ufer (nur das Körperbild, ohne Waffe)
+  const figs = [], fig = (img, x, y, ax, ay) => { if (img && wo_wsd(x / WS, y / WS + 6) <= 10) figs.push([img, (x - ax - cam.x) * .5, (y + ay - cam.y) * .5]); };
+  const knightImg = o => { const set = knightSet(o.f || HERO.f, o === G.knight ? lookOf(HERO.eq) : o.lk || undefined), fr = set.walk[o.dir] && set.walk[o.dir][o.moving ? 1 + ((o.anim | 0) % 4) : 0]; return fr && fr.img; };
+  const k = G.knight;
+  if (G.mode !== 'title' && !k.ride) fig(knightImg(k), k.x, k.y, KS.ax, KS.ay);
+  for (const p of PEERS.values()) if (!p.in && !p.ride && inView(p.x, p.y, cam)) fig(knightImg(p), p.x, p.y, KS.ax, KS.ay);
+  for (const n of NPCS) if (!n.act && inView(n.x, n.y, cam)) fig(n.art.frames[0], n.x, n.y, n.art.ax, n.art.ay);
+  if (!st.has && !figs.length) return;
+  // Rahmen im Bild: fester Teil und Gestalten
+  let X0 = RW, X1 = 0, Y0 = RH, Y1 = 0;
+  if (st.has){ const [a, b, c, d] = st.box; X0 = a + dx0; Y0 = b + dy0; X1 = c + dx0; Y1 = d + dy0; }
+  for (const [im, x, y] of figs){ X0 = Math.min(X0, x); X1 = Math.max(X1, x + im.width * .5); Y0 = Math.min(Y0, y - im.height * .5); Y1 = Math.max(Y1, y); }
+  X0 = Math.max(0, Math.floor(X0) - 2); X1 = Math.min(RW, Math.ceil(X1) + 2); Y0 = Math.max(0, Math.floor(Y0 / 2) * 2); Y1 = Math.min(RH, Math.ceil(Y1) + 1);
+  if (X1 <= X0 || Y1 <= Y0) return;
+  if (!RFL.cv || RFL.cv.width !== RW || RFL.cv.height !== RH){ RFL.cv = canvasOf(RW, RH); RFL.g = RFL.cv.getContext('2d'); }
+  const g = RFL.g, bw = X1 - X0, bh = Y1 - Y0;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.imageSmoothingEnabled = false; g.clearRect(X0, Y0, bw, bh);
+  if (st.has) g.drawImage(st.cv, X0 - dx0, Y0 - dy0, bw, bh, X0, Y0, bw, bh);
+  for (const [im, x, y] of figs){
+    g.setTransform(.5, 0, 0, -.5, x, y); g.drawImage(im, 0, 0); g.setTransform(1, 0, 0, 1, 0, 0);
+    // nur die Gestalt auf das Wasser beschneiden (der feste Teil darunter ist es schon)
+    const fx = Math.floor(x) - 1, fy = Math.floor(y - im.height * .5) - 1, fw = Math.ceil(im.width * .5) + 2, fh = Math.ceil(im.height * .5) + 2;
+    g.save(); g.beginPath(); g.rect(fx, fy, fw, fh); g.clip(); g.globalCompositeOperation = 'destination-in'; g.drawImage(st.mv, fx - dx0, fy - dy0, fw, fh, fx, fy, fw, fh); g.restore();
+  }
+  RFL.box = [X0, Y0, X1, Y1];
+  // blass und in Streifen gewellt aufs Bild
+  const night = clamp(SKY.night * 1.3, 0, 1), t = RM ? 0 : G.t, amp = 1 + SKY.rain * 2 + SKY.gust;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, sx, sy); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = .34 + night * .1;
+  for (let y = Y0; y < Y1; y += 2){ const dx = Math.round(Math.sin(y * .45 + t * 2.2) * amp), h = Math.min(2, RH - y); ctx.drawImage(RFL.cv, X0, y, bw, h, X0 * 2 + dx, y * 2, bw * 2, h * 2); }
+  ctx.restore();
+}
+/* ============ Nässe, Pfützen und Hochwasser (Version 34) ============
+   Wie nass das Land ist, folgt aus dem Wetter der letzten Spielstunden (für alle Ritter gleich, weil das Wetter für alle gleich ist):
+   Regen macht in einer Stunde Pfützen, danach trocknen sie in acht Stunden. Ein Gewitter lässt Strom und Bäche über die Ufer treten,
+   das Hochwasser geht erst nach einem halben Tag zurück. Pfützen und überflutete Ufer sind in die Bodenstücke eingerechnet wie die
+   Schatten. Im Winter friert alles. */
+const WET = { w: 0, f: 0, t: -1, said: false };
+function wetNow(){
+  const t = skyNow(), q = Math.floor(t / 5); if (q === WET.t) return WET;
+  WET.t = q;
+  const slot0 = Math.floor(t / WX_SLOT) - 4; let w = 0, f = 0;
+  for (let s = slot0 * WX_SLOT; s < t; s += 10){
+    const K = WX_KIND[wxAt(Math.floor(s / WX_SLOT))] || WX_KIND.klar, cold = seaAt(s) === 3;
+    if (K.rain > .3 && !cold) w = Math.min(1, w + 10 / 60 * K.rain); else w = Math.max(0, w - 10 / 480);
+    if (K.storm > .5 && !cold) f = Math.min(1, f + 10 / 150); else if (K.rain > .6 && !cold) f = Math.min(1, f + 10 / 900); else f = Math.max(0, f - 10 / 720);
+  }
+  WET.w = window.__wet != null ? window.__wet : w; WET.f = window.__flood != null ? window.__flood : f;
+  if (WET.f > .5 && !WET.said && G && G.mode === 'play'){ WET.said = true; logLine('Nach dem Gewitter führen der Strom und die Bäche Hochwasser, die Ufer stehen unter Wasser.', '#9cc8ff'); }
+  if (WET.f < .2) WET.said = false;
+  return WET;
+}
+/* Pfützen: in Mulden auf Wegen und Plätzen häufiger als auf der Wiese */
+const puddleV = (wx, wy) => { if (wo_wsd(wx, wy) < 6) return 0; const road = wo_rsd(wx, wy) < 0; return clamp((wo_mid(wx * 14, wy * 14) * .7 + wo_fin(wx * .7, wy * .7) * .3 - (road ? .62 : .74)) * 12, 0, 1); };
+const puddleAt = (x, y) => WET.w > .2 && puddleV(x / WS, y / WS) > .3;
+const PDM = new Map();
+function wetMasks(ci, cj){
+  const key = cj * wo_NCX + ci; let m = PDM.get(key); if (m){ m.u = SHT.f; return m; }
+  const N = 128, X0 = ci * 256, Y0 = cj * 256, mk = col => { const cv = canvasOf(N, N), g = cv.getContext('2d'); return { cv, g, id: g.createImageData(N, N), col: wo_c(col) }; };
+  const P = mk('#2e4250'), F = mk('#3c5862');
+  const br = wo_BRIDGES.filter(b => b.x1 >= X0 - 20 && b.x0 <= X0 + 276 && b.y1 >= Y0 - 20 && b.y0 <= Y0 + 276);
+  let hp = false, hf = false;
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+    const wx = X0 + i * 2 + 1, wy = Y0 + j * 2 + 1, o = (j * N + i) * 4, wsd = wo_wsd(wx, wy);
+    if (br.some(b => wx >= b.x0 - 4 && wx <= b.x1 + 4 && wy >= b.y0 - 4 && wy <= b.y1 + 4)) continue;
+    const pv = puddleV(wx, wy); if (pv > 0){ P.id.data[o] = 46; P.id.data[o + 1] = 66; P.id.data[o + 2] = 80; P.id.data[o + 3] = Math.round(pv * 255); hp = true; }
+    if (wsd >= 0 && wsd < 16){ F.id.data[o] = 60; F.id.data[o + 1] = 88; F.id.data[o + 2] = 98; F.id.data[o + 3] = Math.round((1 - wsd / 16) ** .6 * 255); hf = true; }
+  }
+  P.g.putImageData(P.id, 0, 0); F.g.putImageData(F.id, 0, 0);
+  m = { p: hp ? P.cv : null, f: hf ? F.cv : null, u: SHT.f }; PDM.set(key, m);
+  if (PDM.size > 40){ const old = [...PDM.entries()].sort((a, b) => a[1].u - b[1].u)[0]; PDM.delete(old[0]); }
+  return m;
+}
+
+/* ============ Funkenflug und Glühwürmchen ============ */
+const FFLY = [];
+function fx34(dt){
+  if (!G || G.mode === 'title' || G.inside || DG_ON) return;
+  wetNow();
+  const cam = camOf(G.knight), near = (x, y, m) => x > cam.x - m && x < cam.x + W + m && y > cam.y - m && y < cam.y + H + m, nt = clamp(SKY.night * 1.3, 0, 1);
+  rainRings(dt, cam);
+  if (G.parts.length < 460 && !RM){
+    // Funken aus Feuern: vom Wind getragen, nachts mehr
+    for (const f of GFIRES) if (near(f.x, f.y, 60) && Math.random() < dt * (f.big ? 3 : 1.6) * (1 + nt * 1.5))
+      G.parts.push({ x: f.x + rand(-4, 4), y: f.y - 10, vx: rand(-14, 14) + SKY.wind * .5, vy: rand(-110, -55), life: rand(.9, 1.8), c: Math.random() < .6 ? '#ffb040' : '#fff0a0', g: 22, glow: true });
+    // Schmiede: Funkenregen vom Amboss
+    for (const n of NPCS) if (/schmied/.test(n.id) && near(n.x, n.y, 40)){
+      n.fxT = (n.fxT || rand(.5, 2)) - dt;
+      if (n.fxT <= 0){ n.fxT = rand(1.4, 3.2); for (let i = 0; i < 12; i++) G.parts.push({ x: n.x + 26, y: n.y - 14, vx: rand(-70, 70), vy: rand(-120, -30), life: rand(.3, .7), c: Math.random() < .5 ? '#ffd060' : '#ff8a30', g: 260, glow: true }); }
+    }
+    // Hochwasser und Pfützen: es spritzt beim Gehen
+    const k = G.knight;
+    if (k.moving && (WET.f > .3 || WET.w > .3) && Math.random() < dt * 6){
+      const wsd = wo_wsd(k.x / WS, k.y / WS), wet = (WET.f > .3 && wsd >= 0 && wsd < 14 * WET.f) || (WET.w > .3 && puddleV(k.x / WS, k.y / WS) > .4);
+      if (wet) for (let i = 0; i < 5; i++) G.parts.push({ x: k.x + rand(-6, 6), y: k.y - 1, vx: rand(-30, 30), vy: rand(-50, -20), life: rand(.25, .45), c: Math.random() < .5 ? '#c8dce4' : '#8eaab6', g: 220 });
+    }
+  }
+  // Glühwürmchen: in Sommernächten über Wiesen, an Bächen und im Auwald
+  const want = SEA.cur === 1 && nt > .6 && SKY.rain < .2 && /obstgarten|fluss|auwald|weiler|dorf|burg|fischerdorf|weinberge|donauried|lechfeld|krautland/.test(G.zone) ? 26 : 0;
+  while (FFLY.length < want) FFLY.push({ x: cam.x + Math.random() * W, y: cam.y + Math.random() * H, a: Math.random() * 6.28, p: Math.random() * 6.28, s: rand(8, 18) });
+  if (FFLY.length > want) FFLY.length = want;
+  for (const f of FFLY){
+    f.a += rand(-1.5, 1.5) * dt; f.x += Math.cos(f.a) * f.s * dt; f.y += Math.sin(f.a) * f.s * .6 * dt; f.p += dt * rand(1.5, 3);
+    if (!near(f.x, f.y, 40)){ f.x = cam.x + Math.random() * W; f.y = cam.y + Math.random() * H; }
+  }
+}
+function drawFireflies(cam){
+  if (!FFLY.length || G.inside || DG_ON) return;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const f of FFLY){
+    const a = Math.max(0, Math.sin(f.p)) ** 2; if (a < .05) continue;
+    const x = Math.round(f.x - cam.x), y = Math.round(f.y - cam.y);
+    ctx.globalAlpha = a * .35; ctx.fillStyle = '#b8f070'; ctx.fillRect(x - 2, y - 2, 5, 5);
+    ctx.globalAlpha = a; ctx.fillStyle = '#f0ffb0'; ctx.fillRect(x, y, 2, 2);
+  }
+  ctx.restore();
+}
+/* Regen auf dem Wasser: kleine Ringe, die sich ausbreiten und vergehen */
+function rainRings(dt, cam){
+  const R = G.rings || (G.rings = []);
+  if (SKY.rain > .15 && !G.inside && !DG_ON && wo_GSEA !== 3 && !RM){
+    const n = SKY.rain * 40 * dt + (Math.random() < (SKY.rain * 40 * dt) % 1 ? 1 : 0);
+    for (let i = 0; i < n && R.length < 90; i++){
+      const x = cam.x + Math.random() * W, y = cam.y + Math.random() * H;
+      if (wo_wsd(x / WS, y / WS) < -1 || puddleAt(x, y)) R.push({ x, y, t: 0, m: rand(.5, .9) });
+    }
+  }
+  for (let i = R.length - 1; i >= 0; i--){ R[i].t += dt; if (R[i].t > R[i].m) R.splice(i, 1); }
+}
+function drawRings(){
+  const R = G.rings; if (!R || !R.length) return;
+  ctx.strokeStyle = '#c8d8e0'; ctx.lineWidth = 1;
+  for (const r of R){ const f = r.t / r.m; ctx.globalAlpha = (1 - f) * .55; ctx.beginPath(); ctx.ellipse(Math.round(r.x), Math.round(r.y), 1 + f * 7, .5 + f * 3, 0, 0, Math.PI * 2); ctx.stroke(); }
   ctx.globalAlpha = 1;
 }
 /* Fußschatten: dunkler Saum am Fuß von Häusern, Mauern, Türmen, Ständen und Felsen (unabhängig von der Sonne) */
@@ -450,13 +753,14 @@ function render(){
   const sh = G.shake > 0 && !RM ? 2 : 0, sx = sh ? Math.round(rand(-sh, sh)) : 0, sy = sh ? Math.round(rand(-sh, sh)) : 0;
   ctx.setTransform(1, 0, 0, 1, sx, sy);
   drawGround(ctx, cam.x, cam.y);
+  drawReflections(cam, sx, sy);
   drawWaterFx(ctx, cam.x, cam.y, G.t);
   ctx.setTransform(1, 0, 0, 1, sx - cam.x, sy - cam.y);
   const title = G.mode === 'title';
   drawPrints(cam);
   const lifeL = lifeEnts(cam, []), vis = propsInView(cam);
   drawCastShadows(cam, k, title, lifeL);
-  drawAO(vis);
+  drawAO(vis); drawRings();
 
   for (const a of G.loot) if (inView(a.x, a.y, cam)) shadow(a.x, a.y - 1, a.z > 3 ? 4 : 8, a.z > 3 ? .2 : .3);
   const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 44 : 26) : 18;
@@ -506,7 +810,7 @@ function render(){
   ctx.globalAlpha = 1;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  drawSkyLight(cam);
+  drawSkyLight(cam); drawFireflies(cam);
   const mist = SKY.hour > 4 && SKY.hour < 8.5 ? .06 * Math.sin((SKY.hour - 4) / 4.5 * Math.PI) : 0;
   const fogA = (FOG_BY_ZONE[G.zone] || .07) + SKY.fog * .3 + mist, fx = Math.round(G.fogX * 1.8) % (W * 2);
   ctx.globalAlpha = fogA;
@@ -634,5 +938,22 @@ function drawMiniMap1(g, k, cam, mx, my){
   for (const inn of INNS) dot(inn.dx, inn.y, '#ff9a40', 2);
   for (const p of PEERS.values()){ const at = peerAt(p); dot(at ? at.x : p.x, at ? at.y + 4 : p.y, inParty(p) ? '#7fe08a' : '#9cc8ff', 2); }
   const es = evMark2(); if (es && (G.t * 3 | 0) % 2){ const q = P(es.x, es.y); if (inMM(q)){ g.fillStyle = '#ff4030'; g.fillRect(q[0] - 1, q[1] - 2, 3, 3); g.fillStyle = OUT; g.fillRect(q[0] - 2, q[1] - 3, 1, 5); } }
-  const q = P(k.x, k.y); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3); g.fillStyle = OUT; g.fillRect(q[0], q[1], 1, 1);
+  // Ziele außerhalb: Pfeil am Rand (Hauptgeschichte gold, Auftragsgebiete gelb, Weltereignis rot); Auftragsgebiete innen als Ring
+  const edge = (x, y, c) => {
+    const q = P(x, y); if (inMM(q)) return false;
+    const cx = mx + MM_W / 2, cy = my + MM_H / 2, dx = q[0] - cx, dy = q[1] - cy, f = Math.min((MM_W / 2 - 2) / Math.abs(dx || 1e-6), (MM_H / 2 - 2) / Math.abs(dy || 1e-6));
+    const ex = Math.round(cx + dx * f), ey = Math.round(cy + dy * f), a = Math.atan2(dy, dx), ux = Math.round(Math.cos(a)), uy = Math.round(Math.sin(a));
+    g.fillStyle = OUT; g.fillRect(ex - 2, ey - 2, 5, 5); g.fillStyle = c; g.fillRect(ex - 1, ey - 1, 3, 3); g.fillRect(ex + ux * 2, ey + uy * 2, 1, 1);
+    return true;
+  };
+  for (const qq of HERO.quests){ const d = qInfo(qq), z = d && qq.n < d.need && ZONE_BY_ID[d.zone]; if (!z) continue; const zx = z.label.x * WS, zy = z.label.y * WS;
+    if (!edge(zx, zy, '#ffd541')){ const c2 = P(zx, zy); g.fillStyle = '#ffd541'; for (const [ox, oy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1]]) g.fillRect(c2[0] + ox, c2[1] + oy, 1, 1); } }
+  if (stm) edge(stm.x, stm.y, '#ffe27a');
+  if (es) edge(es.x, es.y, '#ff4030');
+  // der eigene Ritter mit Blickrichtung, oben ein N für Norden
+  const q = P(k.x, k.y), [fx, fy] = DIRV[k.dir] || [0, 1];
+  g.fillStyle = OUT; g.fillRect(q[0] - 2, q[1] - 2, 5, 5); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3); g.fillStyle = '#ffd541'; g.fillRect(q[0] + fx * 2, q[1] + fy * 2, 1, 1); g.fillStyle = '#b0242a'; g.fillRect(q[0], q[1], 1, 1);
+  const nx = mx + MM_W / 2 - 2, ny = my - 1;
+  g.fillStyle = OUT; g.fillRect(nx - 1, ny - 1, 6, 6); g.fillStyle = '#ecd27a';
+  ['X..X', 'XX.X', 'X.XX', 'X..X'].forEach((row, j) => { for (let i = 0; i < 4; i++) if (row[i] === 'X') g.fillRect(nx + i, ny + j, 1, 1); });
 }

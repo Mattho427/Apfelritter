@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 13 von 29: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
+/* Der Apfelritter, Teil 13 von 30: Spielzustand, Eingabe, Monster, Kampf, Jagd, Erfahrung, Aktualisierung.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 /* ============ Spielzustand der Sitzung ============ */
 const KS = KNIGHT_SIZE, KBODY = Math.round(KS.ay * .45), SWING = .3;
@@ -1031,6 +1031,7 @@ function updateKnight(dt){
   if (G.buffT > 0){ G.buffT -= dt; if (Math.random() < dt * 14) G.parts.push({ x: k.x + rand(-9, 9), y: k.y - rand(4, 40), vx: 0, vy: -24, life: .5, c: Math.random() < .5 ? '#ecd27a' : '#fff3c0', g: 0, glow: true }); }
 }
 function updateFx(dt){
+  fx34(dt);   // Nässe, Regenringe, Funken, Glühwürmchen (Teil 15)
   for (let i = G.parts.length - 1; i >= 0; i--){
     const p = G.parts[i];
     p.life -= dt; p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt;

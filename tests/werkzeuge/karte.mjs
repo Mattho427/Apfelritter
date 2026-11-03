@@ -6,7 +6,7 @@ await p.goto(PAGE);
 await p.waitForFunction(() => typeof G !== 'undefined' && G && G.mode === 'title', null, { timeout: 60000 });
 await p.evaluate(() => { const h = freshHero('Hans', 'reich'); startGame(h); $('banner').hidden = true; });
 await p.waitForTimeout(500);
-const r = await p.evaluate(() => { openMap(); const c = $('ovMap').querySelector('canvas'); return c ? [c.width, c.height] : null; });
+const r = await p.evaluate(() => { openMap(); MV.z = 1; MF.gebiete = true; drawFullMap(); const c = $('ovMap').querySelector('canvas'); return c ? [c.width, c.height] : null; });
 await p.waitForTimeout(500);
 await (await p.$('#ovMap canvas')).screenshot({ path: process.argv[2] || OUT + 'karte.png' });
 console.log('Karte', r);

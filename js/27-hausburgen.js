@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 27 von 29: Die Burgen der vier Häuser: Adlerhorst, Schloss Lilienthal, Löwenburg und Turmfeste mit ihren Oberhäuptern,
+/* Der Apfelritter, Teil 27 von 30: Die Burgen der vier Häuser: Adlerhorst, Schloss Lilienthal, Löwenburg und Turmfeste mit ihren Oberhäuptern,
    Torwachen und Kämmerern; Gunst des Hauses, Tribut für den Wettstreit, Rasten, Besuch aller vier Burgen, Belagerung, Tafel.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 

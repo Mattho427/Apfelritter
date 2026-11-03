@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 26 von 29: Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld,
+/* Der Apfelritter, Teil 26 von 30: Recht und Ruf: Ansehen bei Fürsten, Städten, Bauern und Kirche; Diebstahl, Wilderei, Kopfgeld,
    Stadtwachen, Gericht, Pranger und Kerker; Steckbriefe; die Fehde gegen Schwarzeck; die Glaubensentscheidung in Goldbrunn.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
@@ -702,8 +702,9 @@ function rrTarget(){
   if (F && F.st < 3 && !FD_ZONES[G.zone]){ const z = ZONE_BY_ID.reichswald; return { x: z.label.x * WS, y: z.label.y * WS, label: 'Fehde: Königsforst' }; }
   return null;
 }
-function rrMap(g, P){
-  const S = HERO.stb, mark = (x, y, c) => { const px = P(x), py = P(y); g.fillStyle = '#16120f'; g.fillRect(px - 5, py - 5, 11, 11); g.fillStyle = c; g.fillRect(px - 4, py - 4, 9, 9); g.fillStyle = '#16120f'; g.fillRect(px - 1, py - 3, 3, 4); g.fillRect(px - 1, py + 2, 3, 2); };
+function rrMap(g, P, Q){
+  Q = Q || P;
+  const S = HERO.stb, mark = (x, y, c) => { const px = P(x), py = Q(y); g.fillStyle = '#16120f'; g.fillRect(px - 5, py - 5, 11, 11); g.fillStyle = c; g.fillRect(px - 4, py - 4, 9, 9); g.fillStyle = '#16120f'; g.fillRect(px - 1, py - 3, 3, 4); g.fillRect(px - 1, py + 2, 3, 2); };
   if (S && !S.st) mark(S.x, S.y, '#d0343c');
   if (fdStep() === 3){ const c = gNear(FD_CAMP[0], FD_CAMP[1]); mark(c.x, c.y, '#a8241e'); }
 }

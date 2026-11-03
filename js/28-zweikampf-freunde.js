@@ -1,5 +1,5 @@
 "use strict";
-/* Der Apfelritter, Teil 28 von 29: Mehr Spiel mit anderen Rittern: Zweikampf zu Fuß, Gesten, Flüstern, Freunde, die Ritter im Land und Gesuche.
+/* Der Apfelritter, Teil 28 von 30: Mehr Spiel mit anderen Rittern: Zweikampf zu Fuß, Gesten, Flüstern, Freunde, die Ritter im Land und Gesuche.
    Die Teile werden in der Reihenfolge der Nummern geladen und teilen sich alle Namen der obersten Ebene. */
 
 /* ============ Zweikampf zu Fuß (Version 32) ============
