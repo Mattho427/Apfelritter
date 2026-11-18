@@ -485,7 +485,7 @@ function drawTufts(cam){
 const LEAF = [], LEAF_COL = [['#f4e8f0', '#f0c8d8', '#ffffff'], ['#5a7a2a', '#7a9a3a', '#4a6a24'], ['#c8782a', '#d8a040', '#a04a20', '#8a6a30', '#c0502a'], null];
 let LASTVIS = [];
 function fx35(dt){
-  windNow();
+  windNow(); cloudPace(dt);
   if (!G || G.mode === 'title' || G.inside || DG_ON){ LEAF.length = 0; return; }
   const cam = camOf(G.knight), col = LEAF_COL[SEA.cur], A = WIND.a;
   if (col && !RM && LASTVIS.length){
@@ -508,9 +508,17 @@ function drawLeaves(){
   for (const l of LEAF){ const w = l.y < l.gy && Math.sin(l.t * 6 + l.ph) > 0; ctx.globalAlpha = clamp(l.life - l.t, 0, 1); ctx.fillStyle = l.c; ctx.fillRect(Math.round(l.x), Math.round(l.y), w ? 1 : 2, w ? 2 : 1); }
   ctx.globalAlpha = 1;
 }
-/* Wolkenschatten: ein kachelbares Muster aus weichem Rauschen, 2048 Spielpixel groß, mit dem Wind gezogen; am stärksten bei heiterem
-   Himmel mit einzelnen Wolken, schwächer bei Bedeckung, nachts und im Nebel gar nicht */
-const CLOUD = { tex: null };
+/* Wolkenschatten: ein kachelbares Muster aus weichem Rauschen, einmal auf 1024 Spielpixel vergrößert und dann nur noch in Originalgröße
+   kopiert (ohne Glätten je Bild, das spart auf langsamen Geräten viel), mit dem Wind gezogen; nur bei heiterem Himmel mit einzelnen
+   Wolken (bei klarem Himmel gibt es keine, bei Bedeckung, Regen und Nebel keine deutlichen Schatten), nachts nicht */
+const CLOUD = { tex: null, ema: 1 / 60, slowT: 0, off: 0 };
+/* läuft das Spiel länger als drei Sekunden unter 40 Bildern je Sekunde, ruhen die Wolkenschatten eine Minute lang */
+function cloudPace(dt){
+  CLOUD.ema += (dt - CLOUD.ema) * .05;
+  if (CLOUD.off > 0){ CLOUD.off -= dt; return; }
+  CLOUD.slowT = CLOUD.ema > 1 / 40 ? CLOUD.slowT + dt : 0;
+  if (CLOUD.slowT > 3){ CLOUD.off = 60; CLOUD.slowT = 0; }
+}
 function cloudTex(){
   if (CLOUD.tex) return CLOUD.tex;
   const N = 128, cv = canvasOf(N, N), g = cv.getContext('2d'), id = g.createImageData(N, N), D = id.data;
@@ -524,17 +532,17 @@ function cloudTex(){
     D[o] = 14; D[o + 1] = 18; D[o + 2] = 32; D[o + 3] = Math.round(a * a * (3 - 2 * a) * 255);
   }
   g.putImageData(id, 0, 0);
-  const big = canvasOf(512, 512), bg = big.getContext('2d'); bg.imageSmoothingEnabled = true; bg.drawImage(cv, 0, 0, 512, 512);
+  const big = canvasOf(1024, 1024), bg = big.getContext('2d'); bg.imageSmoothingEnabled = true; bg.imageSmoothingQuality = 'high'; bg.drawImage(cv, 0, 0, 1024, 1024);
   return (CLOUD.tex = big);
 }
 function drawCloudShadows(cam){
-  if (G.inside || DG_ON || window.__noClouds) return;
-  const day = 1 - clamp(SKY.night * 1.6, 0, 1), c = SKY.cloud, a = .22 * day * (.3 + .7 * (1 - Math.abs(c - .5) * 2)) * (1 - SKY.fog * .8);
+  if (G.inside || DG_ON || window.__noClouds || CLOUD.off > 0) return;
+  const day = 1 - clamp(SKY.night * 1.6, 0, 1), c = SKY.cloud, a = .24 * day * clamp(1 - Math.abs(c - .45) / .32, 0, 1) * (1 - SKY.fog) * (1 - SKY.rain);   // nur bei einzelnen Wolken
   if (a < .02) return;
-  const T = cloudTex(), S = 2048, sp = RM ? 0 : G.t * (10 + WIND.a * 70), ox = sp * WIND.vx + 300, oy = sp * WIND.vy;
-  const x0 = -((((cam.x - ox) % S) + S) % S), y0 = -((((cam.y - oy) % S) + S) % S);
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.imageSmoothingEnabled = true;
-  for (let y = y0; y < H; y += S) for (let x = x0; x < W; x += S) ctx.drawImage(T, x, y, S, S);
+  const T = cloudTex(), S = T.width, sp = RM ? 0 : G.t * (10 + WIND.a * 70), ox = sp * WIND.vx + 300, oy = sp * WIND.vy;
+  const x0 = -Math.round((((cam.x - ox) % S) + S) % S), y0 = -Math.round((((cam.y - oy) % S) + S) % S);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.imageSmoothingEnabled = false;
+  for (let y = y0; y < H; y += S) for (let x = x0; x < W; x += S) ctx.drawImage(T, x, y);
   ctx.restore();
 }
 /* Regen auf dem Wasser: kleine Ringe, die sich ausbreiten und vergehen */
