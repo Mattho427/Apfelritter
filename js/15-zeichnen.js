@@ -414,6 +414,129 @@ function drawFireflies(cam){
   }
   ctx.restore();
 }
+/* ============ Wind und lebendige Natur (Version 35) ============
+   Der Wind kommt aus dem Wetter (Teil 12): bei Flaute ein Hauch, bei Sturm kräftig, meist aus Westen, langsam drehend. Baumkronen und
+   Büsche wiegen sich pixelgenau: je Bildvariante bis zu vier vorberechnete Neigungen, die Krone verschoben, der Stamm fest. Grasbüschel auf
+   Wiese, Dorfflur, Heide und Moor nicken mit, Laub und Blüten wehen von den Bäumen (im Herbst viel), der Rauch aus den Schornsteinen zieht mit
+   dem Wind, Wolkenschatten wandern über das Land. Wer im Browser „Bewegung reduzieren“ eingestellt hat, sieht alles still. */
+const WIND = { a: 0, vx: 1, vy: 0 };
+function windNow(){
+  const d = Math.sin(nowS() / 340) * .45;
+  WIND.a = RM ? 0 : clamp((SKY.wind - 12) / 46, 0, 1); WIND.vx = Math.cos(d); WIND.vy = Math.sin(d) * .35;
+  return WIND;
+}
+const SWAY_KIND = { fichte: .8, schneefichte: .7, kiefer: .9, birke: 1.2, weide: 1.1, eiche: 1, buche: 1, apfelbaum: .9, toter_baum: .5, wacholder: .6, busch: .55 };
+const SWAY = new WeakMap();
+/* Bild mit geneigter Krone: k Pixel an der Spitze (−2 … 2), unten fest; 2 Pixel Rand links und rechts */
+function swayImg(img, k){
+  let f = SWAY.get(img); if (!f){ f = []; SWAY.set(img, f); }
+  if (f[k + 2]) return f[k + 2];
+  const w = img.width, h = img.height, cv = canvasOf(w + 4, h), g = cv.getContext('2d'), top = h * .08, base = h * .78;
+  const off = y => Math.round(k * Math.pow(clamp((base - y) / (base - top), 0, 1), 1.3));
+  let y0 = 0, o0 = off(0);
+  for (let y = 1; y <= h; y++){
+    const o = y < h ? off(y) : null;
+    if (o !== o0){ g.drawImage(img, 0, y0, w, y - y0, 2 + o0, y0, w, y - y0); y0 = y; o0 = o; }
+  }
+  return (f[k + 2] = cv);
+}
+/* Neigung einer Pflanze jetzt: Wellen laufen übers Land, Böen, bei Sturm Schräglage mit dem Wind */
+function swayK(x, y, s, fast){
+  const A = WIND.a, ph = x * .0123 + y * .0071, t = G.t * (fast || 1);
+  const v = Math.sin(t * (1.1 + A * 1.6) + ph) * .65 + Math.sin(t * .47 + ph * .6) * .35;
+  return clamp(Math.round(((.55 + A * 2.1) * v + A * 1.1 * WIND.vx) * s), -2, 2);
+}
+/* Grasbüschel: fest verteilt (je Feld zu 36 Spielpixeln höchstens eins), nur wo Gras wächst */
+const TUFT = { img: new Map(), cell: new Map() };
+const TUFT_PAL = [['#24361a', '#3e6a24', '#68a03a', '#9ccf5a'], ['#24341a', '#3c5c22', '#5e8432', '#86ac46'], ['#3a3218', '#6a5c26', '#94803a', '#bca458']];   // Frühling, Sommer, Herbst und Heide
+const TUFT_BIO = { 0: 1, 2: 1, 3: 1, 6: 1, 8: 1, 11: 1 };
+function tuftImg(v, pal, k){
+  const key = v * 100 + pal * 10 + k + 2; let cv = TUFT.img.get(key); if (cv) return cv;
+  cv = canvasOf(18, 14); const g = cv.getContext('2d'), P = TUFT_PAL[pal], R = (a, b) => wo_h(v * 31 + a, b, 77);
+  for (let i = 0, n = 4 + v % 3; i < n; i++){
+    const bx = 4 + Math.round(R(i, 1) * 9), hgt = 6 + Math.round(R(i, 2) * 6), lean = (R(i, 3) - .5) * 3;
+    for (let y = 0; y < hgt; y++){ const f = y / hgt; g.fillStyle = y < 2 ? P[0] : f > .8 ? P[3] : f > .45 ? P[2] : P[1]; g.fillRect(Math.round(bx + lean * f + k * f * f), 13 - y, 1, 1); }
+  }
+  TUFT.img.set(key, cv); return cv;
+}
+function tuftAt(ci, cj){
+  const key = cj * 4096 + ci; let v = TUFT.cell.get(key);
+  if (v !== undefined) return v;
+  v = null;
+  if (wo_h(ci, cj, 501) < .3){
+    const gx = Math.round(ci * 36 + wo_h(ci, cj, 502) * 30), gy = Math.round(cj * 36 + wo_h(ci, cj, 503) * 30), wx = gx / WS | 0, wy = gy / WS | 0;
+    if (wx > 4 && wy > 4 && wx < WW - 4 && wy < WH - 4 && !wo_COL[(wy >> 3) * wo_CW + (wx >> 3)] && wo_rsd(wx, wy) > 4 && wo_wsd(wx, wy) > 5 && !SAFE[ZONES[wo_zid(wx, wy)].id]){
+      const b = wo_biome(wx, wy); if (TUFT_BIO[b]) v = { x: gx, y: gy, v: (wo_h(ci, cj, 504) * 4) | 0, heath: b === 3 || b === 11 };
+    }
+  }
+  if (TUFT.cell.size > 30000) TUFT.cell.clear();
+  TUFT.cell.set(key, v); return v;
+}
+function drawTufts(cam){
+  if (SEA.cur === 3 || G.inside || DG_ON || window.__noTufts) return;
+  const c0 = Math.floor((cam.x - 20) / 36), c1 = Math.floor((cam.x + W + 20) / 36), r0 = Math.floor(cam.y / 36), r1 = Math.floor((cam.y + H + 14) / 36);
+  for (let j = r0; j <= r1; j++) for (let i = c0; i <= c1; i++){
+    const tf = tuftAt(i, j); if (!tf) continue;
+    const pal = tf.heath || SEA.cur === 2 ? 2 : SEA.cur === 0 ? 0 : 1;
+    ctx.drawImage(tuftImg(tf.v, pal, RM ? 0 : swayK(tf.x, tf.y, 1.4, 1.5)), tf.x - 9, tf.y - 13);
+  }
+}
+/* Laub und Blüten: von den Bäumen im Bild, mit dem Wind; am Boden bleiben sie kurz liegen */
+const LEAF = [], LEAF_COL = [['#f4e8f0', '#f0c8d8', '#ffffff'], ['#5a7a2a', '#7a9a3a', '#4a6a24'], ['#c8782a', '#d8a040', '#a04a20', '#8a6a30', '#c0502a'], null];
+let LASTVIS = [];
+function fx35(dt){
+  windNow();
+  if (!G || G.mode === 'title' || G.inside || DG_ON){ LEAF.length = 0; return; }
+  const cam = camOf(G.knight), col = LEAF_COL[SEA.cur], A = WIND.a;
+  if (col && !RM && LASTVIS.length){
+    const rate = (SEA.cur === 2 ? 9 : SEA.cur === 0 ? 5 : 1.2) * (.25 + A * 1.8), n = Math.floor(rate * dt + Math.random());
+    for (let i = 0; i < n; i++){
+      const p = LASTVIS[(Math.random() * LASTVIS.length) | 0]; if (!p || !p.img || !SWAY_KIND[p.kind] || p.kind === 'busch' || p.kind === 'toter_baum' || /fichte|kiefer/.test(p.kind)) continue;
+      if (SEA.cur === 0 && p.kind !== 'apfelbaum' && Math.random() < .8) continue;   // im Frühling vor allem Apfelblüten
+      LEAF.push({ x: p.x - p.ax + rand(.2, .8) * p.img.width, y: p.y - p.ay + rand(.12, .5) * p.img.height, gy: p.y + rand(-10, 46), vx: 0, vy: rand(10, 22), c: col[(Math.random() * col.length) | 0], t: 0, ph: rand(0, 6.28), life: rand(4, 8) });
+    }
+  }
+  for (let i = LEAF.length - 1; i >= 0; i--){
+    const l = LEAF[i]; l.t += dt;
+    if (l.y < l.gy){ l.vx += (WIND.vx * (14 + A * 110) - l.vx) * dt * 1.4; l.x += (l.vx + Math.sin(l.t * 3 + l.ph) * 12) * dt; l.y += (l.vy + Math.cos(l.t * 2.3 + l.ph) * 9 + WIND.vy * A * 30) * dt; }
+    else if (A > .45) l.x += WIND.vx * A * 50 * dt;
+    if (l.t > l.life || l.x < cam.x - 240 || l.x > cam.x + W + 240 || l.y > cam.y + H + 120) LEAF.splice(i, 1);
+  }
+  if (LEAF.length > 140) LEAF.splice(0, LEAF.length - 140);
+}
+function drawLeaves(){
+  for (const l of LEAF){ const w = l.y < l.gy && Math.sin(l.t * 6 + l.ph) > 0; ctx.globalAlpha = clamp(l.life - l.t, 0, 1); ctx.fillStyle = l.c; ctx.fillRect(Math.round(l.x), Math.round(l.y), w ? 1 : 2, w ? 2 : 1); }
+  ctx.globalAlpha = 1;
+}
+/* Wolkenschatten: ein kachelbares Muster aus weichem Rauschen, 2048 Spielpixel groß, mit dem Wind gezogen; am stärksten bei heiterem
+   Himmel mit einzelnen Wolken, schwächer bei Bedeckung, nachts und im Nebel gar nicht */
+const CLOUD = { tex: null };
+function cloudTex(){
+  if (CLOUD.tex) return CLOUD.tex;
+  const N = 128, cv = canvasOf(N, N), g = cv.getContext('2d'), id = g.createImageData(N, N), D = id.data;
+  const nz = (n, seed) => { const q = new Float32Array(n * n); for (let i = 0; i < n * n; i++) q[i] = wo_h(i, n, seed);
+    return (x, y) => { const gx = x / N * n, gy = y / N * n, xi = Math.floor(gx), yi = Math.floor(gy), fx = gx - xi, fy = gy - yi, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+      const a = q[(yi % n) * n + xi % n], b = q[(yi % n) * n + (xi + 1) % n], c = q[((yi + 1) % n) * n + xi % n], d = q[((yi + 1) % n) * n + (xi + 1) % n];
+      return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy; }; };
+  const n1 = nz(5, 611), n2 = nz(10, 612), n3 = nz(20, 613);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++){
+    const v = n1(x, y) * .55 + n2(x, y) * .3 + n3(x, y) * .15, a = clamp((v - .5) / .17, 0, 1), o = (y * N + x) * 4;
+    D[o] = 14; D[o + 1] = 18; D[o + 2] = 32; D[o + 3] = Math.round(a * a * (3 - 2 * a) * 255);
+  }
+  g.putImageData(id, 0, 0);
+  const big = canvasOf(512, 512), bg = big.getContext('2d'); bg.imageSmoothingEnabled = true; bg.drawImage(cv, 0, 0, 512, 512);
+  return (CLOUD.tex = big);
+}
+function drawCloudShadows(cam){
+  if (G.inside || DG_ON || window.__noClouds) return;
+  const day = 1 - clamp(SKY.night * 1.6, 0, 1), c = SKY.cloud, a = .22 * day * (.3 + .7 * (1 - Math.abs(c - .5) * 2)) * (1 - SKY.fog * .8);
+  if (a < .02) return;
+  const T = cloudTex(), S = 2048, sp = RM ? 0 : G.t * (10 + WIND.a * 70), ox = sp * WIND.vx + 300, oy = sp * WIND.vy;
+  const x0 = -((((cam.x - ox) % S) + S) % S), y0 = -((((cam.y - oy) % S) + S) % S);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = a; ctx.imageSmoothingEnabled = true;
+  for (let y = y0; y < H; y += S) for (let x = x0; x < W; x += S) ctx.drawImage(T, x, y, S, S);
+  ctx.restore();
+}
 /* Regen auf dem Wasser: kleine Ringe, die sich ausbreiten und vergehen */
 function rainRings(dt, cam){
   const R = G.rings || (G.rings = []);
@@ -472,9 +595,10 @@ function drawProp(p){
   if (p.lz) propLazy(p);
   const off = p.shake > 0 ? ((G.t * 30 | 0) % 2 ? 1 : -1) : 0;
   const see = G.mode !== 'title' && p.occl && (underProp(p, G.knight) || G.mons.some(m => !MON[m.k].fly && underProp(p, m)));
-  const a0 = see ? .45 : 1;
+  const a0 = see ? .45 : 1, sw = SWAY_KIND[p.kind], k = sw && !RM && !window.__noSway ? swayK(p.x, p.y, sw) : 0;   // im Wind (Version 35)
   ctx.globalAlpha = a0;
-  ctx.drawImage(p.img, Math.round(p.x - p.ax) + off, Math.round(p.y - p.ay));
+  if (k) ctx.drawImage(swayImg(p.img, k), Math.round(p.x - p.ax) + off - 2, Math.round(p.y - p.ay));
+  else ctx.drawImage(p.img, Math.round(p.x - p.ax) + off, Math.round(p.y - p.ay));
   if (p.nimg && SKY.night > .05){ ctx.globalAlpha = a0 * clamp(SKY.night * 1.3, 0, 1); ctx.drawImage(p.nimg, Math.round(p.x - p.ax) + off, Math.round(p.y - p.ay)); }
   ctx.globalAlpha = 1;
 }
@@ -758,9 +882,9 @@ function render(){
   ctx.setTransform(1, 0, 0, 1, sx - cam.x, sy - cam.y);
   const title = G.mode === 'title';
   drawPrints(cam);
-  const lifeL = lifeEnts(cam, []), vis = propsInView(cam);
+  const lifeL = lifeEnts(cam, []), vis = propsInView(cam); LASTVIS = vis;
   drawCastShadows(cam, k, title, lifeL);
-  drawAO(vis); drawRings(); wayGround(cam);
+  drawAO(vis); drawRings(); drawTufts(cam); wayGround(cam);
 
   for (const a of G.loot) if (inView(a.x, a.y, cam)) shadow(a.x, a.y - 1, a.z > 3 ? 4 : 8, a.z > 3 ? .2 : .3);
   const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 44 : 26) : 18;
@@ -798,6 +922,7 @@ function render(){
   list.sort((p, q) => p.y - q.y);
   for (const it of list) it.d();
   festOverlay(cam); drawFgameWorld(cam); rrOverlay();
+  drawCloudShadows(cam);
   for (const m of G.mons) if (MON[m.k].fly && inView(m.x, m.y, cam, 100)) drawMon(m);
   drawSky(cam);
   for (const s of G.shots) if (s.k === 'bolt' || s.k === 'ball') drawShot(s);
@@ -807,6 +932,7 @@ function render(){
     ctx.globalAlpha = p.s ? Math.min(.6, p.life * .5) : .85;
     ctx.fillStyle = p.c; ctx.fillRect(p.x | 0, p.y | 0, p.s || 1, p.s || 1);
   }
+  drawLeaves();
   ctx.globalAlpha = 1;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);

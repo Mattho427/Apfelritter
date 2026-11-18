@@ -1031,10 +1031,10 @@ function updateKnight(dt){
   if (G.buffT > 0){ G.buffT -= dt; if (Math.random() < dt * 14) G.parts.push({ x: k.x + rand(-9, 9), y: k.y - rand(4, 40), vx: 0, vy: -24, life: .5, c: Math.random() < .5 ? '#ecd27a' : '#fff3c0', g: 0, glow: true }); }
 }
 function updateFx(dt){
-  fx34(dt);   // Nässe, Regenringe, Funken, Glühwürmchen (Teil 15)
+  fx34(dt); fx35(dt);   // Nässe, Regenringe, Funken, Glühwürmchen; Wind, Laub (Teil 15)
   for (let i = G.parts.length - 1; i >= 0; i--){
     const p = G.parts[i];
-    p.life -= dt; p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    p.life -= dt; p.vy += p.g * dt; if (p.wx !== undefined) p.vx += (p.wx - p.vx) * dt * .7; p.x += p.vx * dt; p.y += p.vy * dt;   // wx: vom Wind getragen
     if (p.life <= 0) G.parts.splice(i, 1);
   }
   for (let i = G.floats.length - 1; i >= 0; i--){
@@ -1045,8 +1045,10 @@ function updateFx(dt){
   if (G.parts.length < 420 && !G.inside && !DG_ON){
     for (const f of GFIRES) if (near(f.x, f.y) && Math.random() < dt * (f.big ? 8 : 4))
       G.parts.push({ x: f.x + rand(-3, 3), y: f.y - 6, vx: rand(-6, 6), vy: rand(-40, -20), life: rand(.6, 1.2), c: Math.random() < .5 ? '#e0782a' : '#ffd36a', g: -6, glow: true });
-    for (const s of GSMOKES) if (near(s.x, s.y) && Math.random() < dt * 5)
-      G.parts.push({ x: s.x + rand(-6, 6), y: s.y, vx: rand(4, 14), vy: rand(-26, -14), life: rand(1.8, 3), c: Math.random() < .5 ? '#6e6a70' : '#56525a', g: -2, s: 3 });
+    // Rauch aus den Schornsteinen: im Winter und am Abend mehr, steigt bei Flaute gerade auf und zieht mit dem Wind (Teil 15)
+    const sm = 5 * (1 + (SEA.cur === 3 ? .8 : 0) + clamp(SKY.night * 1.3, 0, 1) * .5);
+    for (const s of GSMOKES) if (near(s.x, s.y) && Math.random() < dt * sm)
+      G.parts.push({ x: s.x + rand(-4, 4), y: s.y, vx: rand(-3, 3) + WIND.vx * 3, wx: WIND.vx * (5 + WIND.a * 80), vy: rand(-28, -16) * (1 - WIND.a * .4), life: rand(2, 3.4), c: Math.random() < .5 ? '#6e6a70' : '#56525a', g: -2, s: 3 });
   }
   for (const p of GPROPS) if (p.shake > 0) p.shake -= dt;
   if (G.shake > 0) G.shake -= dt;
