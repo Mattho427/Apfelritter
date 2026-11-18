@@ -202,6 +202,15 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
 .maptip{position:absolute; z-index:2; pointer-events:none; max-width:260px; padding:5px 8px; line-height:1.25; background:#e8d8b0; color:#2a1c12; border:2px solid #3b2e20; box-shadow:2px 2px 0 rgba(0,0,0,.35); font-family:var(--f-body); font-size:14px;}
 .maptip b{display:block; font-family:var(--f-display); font-weight:normal; font-size:17px;}
 .maptip small{display:block; color:#4a3422; font-size:13px;}
+.mappop{position:absolute; z-index:3; max-width:300px; padding:6px 8px 7px; line-height:1.25; background:#e8d8b0; color:#2a1c12; border:2px solid #3b2e20; box-shadow:2px 2px 0 rgba(0,0,0,.35); font-family:var(--f-body); font-size:14px; text-align:left;}
+.mappop b{display:block; font-family:var(--f-display); font-weight:normal; font-size:17px;}
+.mappop small{display:block; color:#4a3422; font-size:13px;}
+.mprow{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;}
+.mprow .tbtn{font-size:16px; padding:3px 8px 2px;}
+.mprow .mpx{margin-left:auto; min-width:30px;}
+.mpin{display:block; width:100%; box-sizing:border-box; margin-top:5px; font-family:var(--f-body); font-size:16px; padding:3px 5px; border:2px solid #3b2e20; background:#f4ecd8; color:#2a1c12;}
+.panel .mexpl{flex:1 0 100%; margin:0; font-size:14px; color:#ecd27a; max-width:none;}
+.panel .mkey{max-width:none;}
 .maplegend{display:flex; flex-wrap:wrap; gap:4px 6px; margin:8px 0 2px; align-items:center;}
 .mchip{display:inline-flex; align-items:center; gap:6px; font-family:var(--f-body); font-size:15px; color:var(--parchment); background:var(--stone-lo); border:1px solid rgba(201,162,39,.45); padding:3px 8px; cursor:pointer;}
 .mchip[aria-pressed="false"]{opacity:.45; text-decoration:line-through;}
@@ -815,9 +824,9 @@ body{margin:0; padding:0;}
       <div class="panel map">
         <div class="maphead"><h2>Karte des Königslandes</h2>
           <div class="mapbtns"><button class="tbtn" id="mapZin" type="button" aria-label="Näher heran" title="Näher heran (+)">+</button><button class="tbtn" id="mapZout" type="button" aria-label="Weiter weg" title="Weiter weg (−)">−</button><button class="tbtn" id="mapMe" type="button" title="Zu Euch (Leertaste)">Zu mir</button><button class="tbtn" id="mapAll" type="button" title="Ganzes Land (0)">Ganzes Land</button></div></div>
-        <div class="mapbox"><canvas id="mapCv" width="1152" height="576" aria-label="Karte des Königslandes: ziehen zum Verschieben, Rad oder zwei Finger zum Zoomen"></canvas><div class="maptip" id="mapTip" hidden></div></div>
+        <div class="mapbox"><canvas id="mapCv" width="1152" height="576" aria-label="Karte des Königslandes: ziehen zum Verschieben, Rad oder zwei Finger zum Zoomen"></canvas><div class="maptip" id="mapTip" hidden></div><div class="mappop" id="mapPop" role="dialog" aria-label="Ziel und Notiz" hidden></div></div>
         <div class="maplegend" id="mapLegend"></div>
-        <p class="hint">Ziehen verschiebt, Rad, zwei Finger oder Doppelklick zoomen; zeigt oder tippt auf ein Zeichen für einen Hinweis. Tasten: <kbd>+</kbd> <kbd>−</kbd>, Pfeile, Leertaste zu Euch, <kbd>0</kbd> ganzes Land. Gelber Pfeil: Ihr · Raute: Hauptgeschichte · Kreis: Auftragsgebiet · rote Fahne: Weltereignis.</p>
+        <p class="hint">Ziehen verschiebt, Rad, zwei Finger oder Doppelklick zoomen; zeigt auf ein Zeichen für einen Hinweis. Ein Tippen oder Klick öffnet ein Fenster: Ziel setzen (ein goldener Weg und ein heller Pfeil führen Euch hin) oder eine Notiz auf die Karte schreiben. Unerkundetes liegt unter Pergamentnebel. Tasten: <kbd>+</kbd> <kbd>−</kbd>, Pfeile, Leertaste zu Euch, <kbd>0</kbd> ganzes Land, <kbd>Entf</kbd> Ziel löschen. Gelber Pfeil: Ihr · Raute: Hauptgeschichte · Kreis: Auftragsgebiet · rote Fahne: Weltereignis.</p>
         <button class="btn" id="btnMapClose" type="button">Zurück</button>
       </div>
     </div>
@@ -892,7 +901,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Das Königsland</h3>
               <ul class="zones" id="zoneList"></ul>
-              <p class="tip">Unten rechts zeigt die kleine Karte die Umgebung; Pfeile am Rand weisen zu Auftrag, Geschichte und Weltereignis. Mit K oder einem Tippen auf die kleine Karte öffnet sich die große Karte: ziehen, zoomen bis zu einzelnen Häusern und Bäumen, Zeichen antippen für Gasthäuser, Schmiede, Gewölbe und Anführer; die Farbe der Gebietsnamen sagt, wie gefährlich sie für Eure Stufe sind. Monster wachsen an ihren Lagern nach. Wer ihnen zu weit davonläuft, den lassen sie ziehen.</p>
+              <p class="tip">Unten rechts zeigt die kleine Karte die Umgebung; Pfeile am Rand weisen zu Auftrag, Geschichte und Weltereignis. Mit K oder einem Tippen auf die kleine Karte öffnet sich die große Karte: ziehen, zoomen bis zu einzelnen Häusern und Bäumen, Zeichen antippen für Gasthäuser, Schmiede, Gewölbe und Anführer; die Farbe der Gebietsnamen sagt, wie gefährlich sie für Eure Stufe sind. Ein Tippen auf die Karte setzt ein Ziel: Ein goldener Weg über Straßen und Brücken führt hin, am Boden liegen goldene Rauten, ein heller Pfeil zeigt die Richtung. Dort lassen sich auch Notizen hinterlassen. Was Ihr noch nicht gesehen habt, liegt unter Pergamentnebel; für jedes Gebiet, das Ihr zu drei Vierteln erkundet, gibt es Erfahrung und Gulden. Monster wachsen an ihren Lagern nach. Wer ihnen zu weit davonläuft, den lassen sie ziehen.</p>
             </div>
             <div class="note">
               <h3>Beute und Ausrüstung</h3>
@@ -929,7 +938,7 @@ body{margin:0; padding:0;}
             <div class="note">
               <h3>Tag, Nacht und Wetter</h3>
               <ul class="list" id="dayList"></ul>
-              <p class="tip">Ein Tag im Königsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu. Die Schatten wandern mit der Sonne: morgens fallen sie lang nach Westen, mittags kurz nach Norden, abends lang nach Osten, im Winter sind sie länger. Hänge, die von der Sonne abgewandt sind, liegen im Halbdunkel; bei Wolken, Regen und Nebel wird das Licht weich, nachts bleibt ein Hauch vom Mond. Nachts werfen Bäume, Häuser und Gestalten Schatten vom Feuer weg; Eure Laterne leuchtet mit, und Lagerfeuer flackern und sprühen Funken. Stilles Wasser spiegelt Bäume, Häuser, Ritter und die Fenster am Ufer (im Winter ist es zugefroren). Nach Regen stehen Pfützen auf Wegen und in Mulden, nach einem Gewitter führen Strom und Bäche Hochwasser und treten über die Ufer. Im Regen ziehen Tropfen Ringe auf dem Wasser, in Sommernächten tanzen Glühwürmchen an Wiesen und Bächen.</p>
+              <p class="tip">Ein Tag im Königsland dauert 24 Minuten und ist für alle Ritter derselbe. Uhrzeit, Jahreszeit und Wetter stehen oben rechts. Nachts leuchten Fenster, Feuer und die Fackeln der Wachen, Händler und Bauern sind daheim. Werwölfe, Irrlichter und Wiedergänger schlagen dann um ein Viertel härter zu. Die Schatten wandern mit der Sonne: morgens fallen sie lang nach Westen, mittags kurz nach Norden, abends lang nach Osten, im Winter sind sie länger. Hänge, die von der Sonne abgewandt sind, liegen im Halbdunkel; bei Wolken, Regen und Nebel wird das Licht weich, nachts bleibt ein Hauch vom Mond. Nachts werfen Bäume, Häuser und Gestalten Schatten vom Feuer weg; Eure Laterne leuchtet mit, und Lagerfeuer flackern und sprühen Funken. Stilles Wasser spiegelt Bäume, Häuser, Ritter und die Fenster am Ufer (im Winter ist es zugefroren). Nach Regen stehen Pfützen auf Wegen und in Mulden, nach einem Gewitter führen Strom und Bäche Hochwasser und treten über die Ufer. Im Regen ziehen Tropfen Ringe auf dem Wasser, in Sommernächten tanzen Glühwürmchen an Wiesen und Bächen. Der Wind folgt dem Wetter: Baumkronen und Gras wiegen sich, bei Sturm kräftig, Laub und Apfelblüten wehen, der Rauch aus den Schornsteinen zieht mit, und Wolkenschatten wandern über das Land. Zu hören sind Eure Schritte auf Gras, Laub, Pflaster, Holz, Kies und Schnee, das Plätschern am Wasser und zur vollen Stunde die nächste Kirchenglocke, aus der Ferne leiser; in Kirchen und Gewölben hallt es.</p>
             </div>
             <div class="note">
               <h3>Jahreszeiten</h3>

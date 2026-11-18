@@ -115,7 +115,7 @@ function cleanHero(h){
   if (h.frec){ const o = {}; for (const r of FREC.map(q => q.id)) if (+h.frec[r] > 0) o[r] = Math.round(+h.frec[r]); h.frec = o; }
   for (const key of ['evDone', 'evFirst', 'evCur']) if (h[key] && typeof h[key] !== 'object') h[key] = null;
   if (h.story) h.story = stCleanStory(h.story);
-  asHero(h); strHero(h); ehHero(h); rrHero(h);
+  asHero(h); strHero(h); ehHero(h); rrHero(h); kaHero(h);   // Ziel, Notizen, Erkundung (Teil 29)
   return h;
 }
 let HERO = null;
