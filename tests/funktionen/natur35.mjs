@@ -31,8 +31,7 @@ await T('Grasbüschel', () => { const cam = camOf(G.knight); let n = 0; for (let
 await T('Im Winter kein Gras', () => { const c = SEA.cur, f0 = window.tuftAt; let n = 0; window.tuftAt = (i, j) => { n++; return f0(i, j); }; SEA.cur = 3; drawTufts(camOf(G.knight)); SEA.cur = c; window.tuftAt = f0; return n; }, r => r === 0);
 await p.screenshot({ path: OUT + 'n35_sturm.png' });
 // Laub im Herbststurm
-await p.evaluate(() => { SEA.cur = 2; LEAF.length = 0; }); await p.waitForTimeout(2500);
-await T('Laub im Herbststurm', () => ({ n: LEAF.length, cols: [...new Set(LEAF.map(l => l.c))].length }), r => r.n >= 6 && r.cols >= 2);
+await T('Laub im Herbststurm', () => { SEA.cur = 2; LEAF.length = 0; for (let i = 0; i < 80; i++) fx35(.05); return { n: LEAF.length, cols: [...new Set(LEAF.map(l => l.c))].length }; }, r => r.n >= 6 && r.cols >= 2);
 await p.evaluate(() => { SEA.cur = 1; });
 // Rauch zieht mit dem Wind
 await T('Rauch im Sturm', () => { const s = GSMOKES[0]; goW(s.x / WS, s.y / WS + 40); G.parts.length = 0; for (let i = 0; i < 60; i++) updateFx(.05); const sm = G.parts.filter(q => q.wx !== undefined); return { n: sm.length, wx: sm.length ? Math.round(sm[0].wx) : 0 }; }, r => r.n >= 3 && Math.abs(r.wx) > 40);
