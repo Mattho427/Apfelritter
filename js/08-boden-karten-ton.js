@@ -1163,7 +1163,7 @@ const Sound = {
     o.type = type; o.frequency.setValueAtTime(f, t);
     if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
     g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
-    o.connect(g); g.connect(this.ac.destination); o.start(t); o.stop(t + d + .03);
+    o.connect(g); g.connect(this.out ? this.out() : this.ac.destination); o.start(t); o.stop(t + d + .03);   // über den Hallbus (Teil 12)
   },
   noise(d, v = .08, lowpass = 0, delay = 0){
     if (!this.on || !this.ac) return;
@@ -1173,7 +1173,7 @@ const Sound = {
     src.buffer = buf; g.gain.value = v;
     let node = src;
     if (lowpass){ const f = this.ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lowpass; src.connect(f); node = f; }
-    node.connect(g); g.connect(this.ac.destination); src.start(this.ac.currentTime + delay);
+    node.connect(g); g.connect(this.out ? this.out() : this.ac.destination); src.start(this.ac.currentTime + delay);
   },
   bell(delay = 0){ [196, 392, 523, 784].forEach((f, i) => this.tone(f, 2.4 - i * .4, 'sine', [.05, .025, .015, .01][i], 0, delay)); },
   pick(combo){ const b = 520 * Math.pow(2, (Math.min(combo, 5) - 1) * 2 / 12); this.tone(b, .07, 'square', .04); this.tone(b * 1.5, .1, 'square', .035, 0, .055); },

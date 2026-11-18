@@ -1061,6 +1061,7 @@ function update(dt){
   const hideT = !!(G.joust || G.fgame); if (hideT !== !!G.trackHidden){ G.trackHidden = hideT; $('tracker').style.visibility = hideT ? 'hidden' : ''; }
   if (PAUSED[G.mode]) return;
   G.t += dt; G.fogX = (G.fogX + dt * 6) % 512;
+  ambTick(dt);   // Schritte, Hall, Wasser, Wind, Glocken (Teil 12)
   if ((G.musT = (G.musT || 0) - dt) <= 0){ G.musT = 1; Sound.setTune(musicFor()); }   // Musik nach Ort und Zeit
   if (G.mode === 'scene'){ stUpdate(dt); updateLife(dt); updateFx(dt); skyEvents(dt); sendPresence(); return; }   // Zwischenszene
   if (G.mode === 'title'){

@@ -579,9 +579,8 @@ function skyEvents(dt){
   if (G.bolt){ G.bolt.t -= dt; if (G.bolt.t <= 0) G.bolt = null; }
   Sound.setRain(Math.max(SKY.rain, SKY.gust * .45));
   seaPrints();
-  // Glocken um 6, 12 und 18 Uhr in Stadt, Burg und Dorf
+  // Glocken zur vollen Stunde: ambTick (Version 35)
   const hr = Math.floor(SKY.hour);
-  if (G.lastHour !== undefined && hr !== G.lastHour && (hr === 6 || hr === 12 || hr === 18) && SAFE[G.zone]) Sound.chime();
   if (G.lastHour !== undefined && hr !== G.lastHour) chHour(hr);   // Glocken zur Messe
   G.lastHour = hr;
   G.nightT = (G.nightT || 1) - dt;
@@ -817,4 +816,135 @@ function drawSkyHud(){
   ctx.drawImage(night ? SKY_ICON.mond : SKY_ICON.sonne, x - 24, y - 1);
   if (SKY.cloud > .6) ctx.drawImage(SKY_ICON.wolke, x - 22, y + 4);
   ctx.drawImage(im, x, y);
+}
+
+/* ============ Klangkulisse (Version 35) ============
+   Alle Laute laufen über einen Bus mit Nachhall (ein Faltungshall aus abklingendem Rauschen): im Gasthaus ein wenig, in Kirchen lang und
+   hell, in Gewölben dunkel. Schritte klingen nach dem Boden unter den Füßen (Gras, Laub, Erde, Pflaster, Holz, Kies, Schnee, Wasser), ebenso
+   die Hufe. Regen trommelt, am Wasser plätschert es, bei Sturm heult der Wind, und zur vollen Stunde schlägt die nächste Kirchenglocke, aus
+   der Ferne leiser und dumpfer. */
+Object.assign(Sound, {
+  bus: null, room: 'aussen', wbuf: null,
+  out(){
+    if (this.bus) return this.bus.inp;
+    const ac = this.ac, inp = ac.createGain(), dry = ac.createGain(), wet = ac.createGain(), conv = ac.createConvolver();
+    inp.connect(dry); dry.connect(ac.destination); inp.connect(conv); conv.connect(wet); wet.connect(ac.destination); wet.gain.value = 0;
+    this.bus = { inp, dry, wet, conv, ir: {} };
+    return inp;
+  },
+  impulse(sec, decay, damp){
+    const ac = this.ac, n = Math.floor(ac.sampleRate * sec), b = ac.createBuffer(2, n, ac.sampleRate);
+    for (let c = 0; c < 2; c++){ const d = b.getChannelData(c); let lp = 0; for (let i = 0; i < n; i++){ const t = i / n; lp += (Math.random() * 2 - 1 - lp) * (1 - damp * t); d[i] = lp * Math.pow(1 - t, decay); } }
+    return b;
+  },
+  setRoom(r){
+    if (!this.ac || r === this.room) return;
+    this.room = r; this.out();
+    const B = this.bus, R = { gasthaus: [.16, .7, 3, .3], kirche: [.42, 3.2, 2.2, .5], gewoelbe: [.34, 1.9, 2.6, .75] }[r] || [0];
+    if (R[0]){ if (!B.ir[r]) B.ir[r] = this.impulse(R[1], R[2], R[3]); if (B.conv.buffer !== B.ir[r]) B.conv.buffer = B.ir[r]; }
+    B.wet.gain.setTargetAtTime(R[0], this.ac.currentTime, .3); B.dry.gain.setTargetAtTime(1 - R[0] * .3, this.ac.currentTime, .3);
+  },
+  white(){ if (!this.wbuf){ const n = this.ac.sampleRate, b = this.ac.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; this.wbuf = b; } return this.wbuf; },
+  /* gefiltertes Rauschen: type lowpass, highpass oder bandpass */
+  nz(d, v, type, f, q, delay, dest){
+    if (!this.on || !this.ac) return;
+    const ac = this.ac, t = ac.currentTime + (delay || 0), src = ac.createBufferSource(), fl = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = this.white(); fl.type = type; fl.frequency.value = f; fl.Q.value = q || .8;
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    src.connect(fl); fl.connect(g); g.connect(dest || this.out()); src.start(t, Math.random() * .8, d + .03);
+    AMB.n++;
+  },
+  foot(s, v = 1){
+    const r = .85 + Math.random() * .3, V = v * r; AMB.last = s;
+    switch (s){
+      case 'gras': this.nz(.07, .022 * V, 'lowpass', 1600 * r); this.nz(.04, .007 * V, 'highpass', 5000, .7, .01); break;
+      case 'laub': this.nz(.09, .02 * V, 'bandpass', 2600 * r, .6); for (let i = 0; i < 3; i++) this.nz(.012, .011 * V, 'highpass', 3500, .7, .01 + i * .025); break;
+      case 'erde': this.nz(.06, .03 * V, 'lowpass', 520 * r); this.tone(85 * r, .06, 'sine', .02 * V, -25); break;
+      case 'stein': this.nz(.025, .028 * V, 'highpass', 2600 * r, .9); this.tone(1700 * r, .018, 'triangle', .007 * V); this.tone(110, .05, 'sine', .016 * V, -30); break;
+      case 'holz': this.tone(190 * r, .07, 'triangle', .028 * V, -50); this.nz(.03, .014 * V, 'bandpass', 900 * r, 1.2); break;
+      case 'kies': for (let i = 0; i < 4; i++) this.nz(.018, .015 * V, 'bandpass', 2400 + Math.random() * 2000, 1.4, i * .018); break;
+      case 'schnee': for (let i = 0; i < 5; i++) this.nz(.03, .013 * V, 'bandpass', 900 + Math.random() * 900, 1.1, i * .022); break;
+      case 'wasser': this.nz(.16, .03 * V, 'bandpass', 1400 * r, .7); this.tone(500 * r, .08, 'sine', .009 * V, 500, .02); break;
+    }
+  },
+  /* Hufe nach dem Boden: auf Pflaster und Bohlen ein heller Schlag */
+  hoof(){
+    const s = AMB.surf;
+    if (s === 'stein' || s === 'holz'){ this.nz(.03, .04, 'bandpass', s === 'holz' ? 900 : 1900, 1.3); this.tone(s === 'holz' ? 160 : 240, .04, 'triangle', .022, -60); }
+    else if (s === 'wasser') this.nz(.1, .04, 'bandpass', 1300, .8);
+    else if (s === 'schnee') this.nz(.06, .035, 'bandpass', 1100, 1);
+    else { this.noise(.035, .045, 700); this.tone(150, .04, 'triangle', .02, -50); }
+  },
+  /* Glockenschläge: n Schläge, Lautstärke v (0..1), dumpfer mit der Entfernung */
+  toll(n, v, lp){
+    if (!this.on || !this.ac) return;
+    const ac = this.ac, f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; f.connect(this.out());
+    for (let i = 0; i < n; i++){
+      const t = ac.currentTime + .1 + i * 1.7;
+      for (const [m, d, a] of [[.5, 3.4, .7], [1, 2.8, 1], [1.2, 2.2, .45], [1.5, 1.8, .35], [2, 1.4, .3], [2.7, .9, .14]]){
+        const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.value = 262 * m;
+        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(.0002, a * v * .05), t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+        o.connect(g); g.connect(f); o.start(t); o.stop(t + d + .05);
+      }
+    }
+    AMB.tolls.push({ n, v: +v.toFixed(2), lp: Math.round(lp) });
+  },
+  /* Wind als Dauerrauschen mit wanderndem Filter */
+  windSrc: null, windF: null, windG: null,
+  setWind(v, t){
+    if (!this.ac) return;
+    if (!this.on) v = 0;
+    if (!this.windSrc){
+      if (v <= 0) return;
+      const src = this.ac.createBufferSource(), f = this.ac.createBiquadFilter(), g = this.ac.createGain();
+      src.buffer = this.white(); src.loop = true; f.type = 'bandpass'; f.Q.value = 1.6; f.frequency.value = 500; g.gain.value = 0;
+      src.connect(f); f.connect(g); g.connect(this.ac.destination); src.start();
+      this.windSrc = src; this.windF = f; this.windG = g;
+    }
+    this.windG.gain.setTargetAtTime(v * .05, this.ac.currentTime, .9);
+    this.windF.frequency.setTargetAtTime(380 + Math.sin(t * .7) * 140 + Math.sin(t * 1.9) * 60 + v * 420, this.ac.currentTime, .4);
+  }
+});
+const AMB = { surf: 'gras', step: -1, hour: null, waterT: 0, patT: 0, n: 0, last: null, tolls: [] };
+/* Boden unter den Füßen */
+function surfAt(){
+  if (G.inside) return G.inside.church ? 'stein' : 'holz';
+  if (DG_ON) return 'stein';
+  const k = G.knight, wx = k.x / WS, wy = k.y / WS;
+  if (wo_BRIDGES.some(b => wx >= b.x0 && wx <= b.x1 && wy >= b.y0 && wy <= b.y1)) return 'holz';
+  const wsd = wo_wsd(wx, wy);
+  if (wsd < 0 && !wo_ICE) return 'wasser';
+  if ((WET.f > .3 && wsd >= 0 && wsd < 14 * WET.f) || (WET.w > .3 && puddleV(wx, wy) > .4)) return 'wasser';
+  if (wo_rsd(wx, wy) < 0){ const t = wo_RT[wo_gidx(wx, wy)]; return wo_GSEA === 3 && t !== 3 ? 'schnee' : t === 3 ? 'stein' : t === 2 ? 'holz' : 'erde'; }
+  if (wo_GSEA === 3) return 'schnee';
+  const b = wo_biome(wx | 0, wy | 0);
+  return b === 1 || b === 12 ? 'laub' : b === 9 ? 'kies' : b === 10 ? 'schnee' : b === 4 || b === 7 ? 'erde' : 'gras';
+}
+/* jedes Bild (Teil 13): Raum, Schritte, Wasser, Regen, Wind, Glocken */
+function ambTick(dt){
+  if (!G || G.mode === 'title' || !Sound.ac) return;
+  Sound.setRoom(G.inside ? (G.inside.church ? 'kirche' : 'gasthaus') : DG_ON ? 'gewoelbe' : 'aussen');
+  const k = G.knight, out = !G.inside && !DG_ON;
+  // Schritte zu Fuß: zwei je Gehzyklus (das Gehbild hat vier Stellungen)
+  if (k.moving && !k.ride && G.mode === 'play'){
+    const st = Math.floor(k.anim / 2);
+    if (st !== AMB.step){ AMB.step = st; AMB.surf = surfAt(); Sound.foot(AMB.surf, G.inside ? .8 : 1); }
+  } else { AMB.step = -1; if (k.ride && (AMB.surfT = (AMB.surfT || 0) - dt) <= 0){ AMB.surfT = .3; AMB.surf = surfAt(); } }
+  if (out && Sound.on){
+    // am Wasser plätschert es
+    const wsd = wo_wsd(k.x / WS, k.y / WS), nearW = wo_GSEA === 3 && wo_ICE ? 0 : clamp(1 - Math.abs(wsd) / 70, 0, 1);
+    if (nearW > 0 && (AMB.waterT -= dt) <= 0){ AMB.waterT = rand(.08, .3); Sound.nz(rand(.04, .12), .012 * nearW, 'bandpass', rand(500, 1700), 4); }
+    // Regen trommelt: feine Schläge über dem Rauschen
+    if (SKY.rain > .25 && (AMB.patT -= dt) <= 0){ AMB.patT = rand(.02, .09) / SKY.rain; Sound.nz(.012, .01 * SKY.rain, 'highpass', rand(3000, 6000), .9); }
+  }
+  Sound.setWind(out ? clamp((WIND.a - .3) / .7, 0, 1) : 0, G.t);
+  // zur vollen Stunde: die nächste Kirchenglocke (von 6 bis 21 Uhr), aus der Ferne leiser und dumpfer
+  const hr = Math.floor(SKY.hour);
+  if (AMB.hour !== null && hr !== AMB.hour && hr >= 6 && hr <= 21 && !G.scene){
+    const me = G.inside ? { x: G.inside.dx, y: G.inside.dy } : DG_ON ? DG_ON.door : k;
+    let best = null, bd = 1e9; for (const c of CHURCHES){ const d = Math.hypot(c.dx - me.x, c.dy - me.y); if (d < bd){ bd = d; best = c; } }
+    if (G.inside && G.inside.church) bd = 0;
+    if (best && bd < 3600){ const q = 1 - bd / 3600; Sound.toll(Math.min(12, hr % 12 || 12), .25 + .75 * q ** 1.5, 500 + 6000 * q * q); }
+  }
+  AMB.hour = hr;
 }
