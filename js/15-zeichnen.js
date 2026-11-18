@@ -760,7 +760,7 @@ function render(){
   drawPrints(cam);
   const lifeL = lifeEnts(cam, []), vis = propsInView(cam);
   drawCastShadows(cam, k, title, lifeL);
-  drawAO(vis); drawRings();
+  drawAO(vis); drawRings(); wayGround(cam);
 
   for (const a of G.loot) if (inView(a.x, a.y, cam)) shadow(a.x, a.y - 1, a.z > 3 ? 4 : 8, a.z > 3 ? .2 : .3);
   const shW = o => o.ride ? (o.dir === 'left' || o.dir === 'right' ? 44 : 26) : 18;
@@ -875,7 +875,7 @@ function render(){
     ctx.fillStyle = o.boss ? '#ecd27a' : '#d0343c'; ctx.fillRect(x - 4, y - 4, 9, 9);
     if (o.boss){ ctx.fillStyle = '#d0343c'; ctx.fillRect(x - 2, y - 2, 5, 5); }
   }
-  if (!title && !G.scene){ drawQuestArrow(k); drawQuestArrow(k, rrTarget(), true); drawMiniMap(k, cam); drawSkyHud(); duelWatch(); }
+  if (!title && !G.scene){ drawQuestArrow(k); drawQuestArrow(k, rrTarget(), true); drawQuestArrow(k, wayTarget(), 'way'); drawMiniMap(k, cam); drawSkyHud(); duelWatch(); }
   stOverlay(cam);
   if (G.fgame) drawFgameUI();
   rrUi();
@@ -925,6 +925,7 @@ function drawMiniMap1(g, k, cam, mx, my){
   g.fillStyle = '#7d6414'; g.fillRect(mx - 1, my - 1, MM_W + 2, MM_H + 2);
   g.drawImage(MINIMAP, sx0, sy0, MM_W, MM_H, mx, my, MM_W, MM_H);
   if (SEA.cur === 3){ g.fillStyle = 'rgba(232,238,246,.34)'; g.fillRect(mx, my, MM_W, MM_H); }
+  if (EX.bits){ const f = MM_S / WS / 64; g.imageSmoothingEnabled = true; g.drawImage(exFog(), sx0 * f, sy0 * f, MM_W * f, MM_H * f, mx, my, MM_W, MM_H); g.imageSmoothingEnabled = false; }   // Unerkundetes (Teil 29)
   const P = (x, y) => [mx + (x / MM_S | 0) - sx0, my + (y / MM_S | 0) - sy0];
   const inMM = ([x, y]) => x >= mx && y >= my && x < mx + MM_W && y < my + MM_H;
   const dot = (x, y, c, s) => { const q = P(x, y); if (inMM(q)){ g.fillStyle = c; g.fillRect(q[0], q[1], s || 1, s || 1); } };
@@ -950,6 +951,23 @@ function drawMiniMap1(g, k, cam, mx, my){
     if (!edge(zx, zy, '#ffd541')){ const c2 = P(zx, zy); g.fillStyle = '#ffd541'; for (const [ox, oy] of [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1]]) g.fillRect(c2[0] + ox, c2[1] + oy, 1, 1); } }
   if (stm) edge(stm.x, stm.y, '#ffe27a');
   if (es) edge(es.x, es.y, '#ff4030');
+  // Weg zum Ziel golden, das Ziel als Fähnchen (am Rand ein heller Pfeil), Notizen als rote Punkte (Teil 29)
+  for (const n of HERO.notes) dot(n.x, n.y, '#d0343c', 2);
+  const wy = HERO.way;
+  if (wy){
+    if (WAY.pts){
+      g.fillStyle = '#ffd541';
+      const pts = [{ x: k.x, y: k.y }, ...WAY.pts.slice(WAY.i + 1)];
+      for (let i = 1; i < pts.length; i++){
+        const a = P(pts[i - 1].x, pts[i - 1].y), b = P(pts[i].x, pts[i].y), n = Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]), 1);
+        if ((a[0] < mx - MM_W || a[0] > mx + MM_W * 2 || a[1] < my - MM_H || a[1] > my + MM_H * 2) && (b[0] < mx - MM_W || b[0] > mx + MM_W * 2 || b[1] < my - MM_H || b[1] > my + MM_H * 2)) continue;
+        for (let t = 0; t <= n; t++){ const x = Math.round(a[0] + (b[0] - a[0]) * t / n), y = Math.round(a[1] + (b[1] - a[1]) * t / n); if (inMM([x, y])) g.fillRect(x, y, 1, 1); }
+      }
+    }
+    const q = P(wy.x, wy.y);
+    if (inMM(q)){ g.fillStyle = OUT; g.fillRect(q[0] - 1, q[1] - 5, 1, 6); g.fillRect(q[0], q[1] - 6, 5, 4); g.fillStyle = '#ffd541'; g.fillRect(q[0], q[1] - 5, 4, 2); }
+    else edge(wy.x, wy.y, '#f4ecd8');
+  }
   // der eigene Ritter mit Blickrichtung, oben ein N für Norden
   const q = P(k.x, k.y), [fx, fy] = DIRV[k.dir] || [0, 1];
   g.fillStyle = OUT; g.fillRect(q[0] - 2, q[1] - 2, 5, 5); g.fillStyle = '#ffffff'; g.fillRect(q[0] - 1, q[1] - 1, 3, 3); g.fillStyle = '#ffd541'; g.fillRect(q[0] + fx * 2, q[1] + fy * 2, 1, 1); g.fillStyle = '#b0242a'; g.fillRect(q[0], q[1], 1, 1);

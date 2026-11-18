@@ -1094,7 +1094,7 @@ function update(dt){
   const z = gZone(G.knight.x, G.knight.y).id;
   if (z !== G.zone){ G.zone = z; updateZone(true); }
   updateSpawns(dt);
-  stTick(dt); fishTick(dt); rrTick(dt);
+  stTick(dt); fishTick(dt); rrTick(dt); wayTick(); exTick(dt);   // Weg zum Ziel, Erkundung (Teil 29)
   updateLoot(dt);
   if (G.mode === 'play') updateMons(dt);
   if (G.mode === 'play') updateShots(dt);

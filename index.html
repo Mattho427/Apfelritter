@@ -202,6 +202,15 @@ kbd{font-family:var(--f-body); font-size:18px; background:var(--ink); color:var(
 .maptip{position:absolute; z-index:2; pointer-events:none; max-width:260px; padding:5px 8px; line-height:1.25; background:#e8d8b0; color:#2a1c12; border:2px solid #3b2e20; box-shadow:2px 2px 0 rgba(0,0,0,.35); font-family:var(--f-body); font-size:14px;}
 .maptip b{display:block; font-family:var(--f-display); font-weight:normal; font-size:17px;}
 .maptip small{display:block; color:#4a3422; font-size:13px;}
+.mappop{position:absolute; z-index:3; max-width:300px; padding:6px 8px 7px; line-height:1.25; background:#e8d8b0; color:#2a1c12; border:2px solid #3b2e20; box-shadow:2px 2px 0 rgba(0,0,0,.35); font-family:var(--f-body); font-size:14px; text-align:left;}
+.mappop b{display:block; font-family:var(--f-display); font-weight:normal; font-size:17px;}
+.mappop small{display:block; color:#4a3422; font-size:13px;}
+.mprow{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;}
+.mprow .tbtn{font-size:16px; padding:3px 8px 2px;}
+.mprow .mpx{margin-left:auto; min-width:30px;}
+.mpin{display:block; width:100%; box-sizing:border-box; margin-top:5px; font-family:var(--f-body); font-size:16px; padding:3px 5px; border:2px solid #3b2e20; background:#f4ecd8; color:#2a1c12;}
+.panel .mexpl{flex:1 0 100%; margin:0; font-size:14px; color:#ecd27a; max-width:none;}
+.panel .mkey{max-width:none;}
 .maplegend{display:flex; flex-wrap:wrap; gap:4px 6px; margin:8px 0 2px; align-items:center;}
 .mchip{display:inline-flex; align-items:center; gap:6px; font-family:var(--f-body); font-size:15px; color:var(--parchment); background:var(--stone-lo); border:1px solid rgba(201,162,39,.45); padding:3px 8px; cursor:pointer;}
 .mchip[aria-pressed="false"]{opacity:.45; text-decoration:line-through;}
@@ -815,9 +824,9 @@ body{margin:0; padding:0;}
       <div class="panel map">
         <div class="maphead"><h2>Karte des Königslandes</h2>
           <div class="mapbtns"><button class="tbtn" id="mapZin" type="button" aria-label="Näher heran" title="Näher heran (+)">+</button><button class="tbtn" id="mapZout" type="button" aria-label="Weiter weg" title="Weiter weg (−)">−</button><button class="tbtn" id="mapMe" type="button" title="Zu Euch (Leertaste)">Zu mir</button><button class="tbtn" id="mapAll" type="button" title="Ganzes Land (0)">Ganzes Land</button></div></div>
-        <div class="mapbox"><canvas id="mapCv" width="1152" height="576" aria-label="Karte des Königslandes: ziehen zum Verschieben, Rad oder zwei Finger zum Zoomen"></canvas><div class="maptip" id="mapTip" hidden></div></div>
+        <div class="mapbox"><canvas id="mapCv" width="1152" height="576" aria-label="Karte des Königslandes: ziehen zum Verschieben, Rad oder zwei Finger zum Zoomen"></canvas><div class="maptip" id="mapTip" hidden></div><div class="mappop" id="mapPop" role="dialog" aria-label="Ziel und Notiz" hidden></div></div>
         <div class="maplegend" id="mapLegend"></div>
-        <p class="hint">Ziehen verschiebt, Rad, zwei Finger oder Doppelklick zoomen; zeigt oder tippt auf ein Zeichen für einen Hinweis. Tasten: <kbd>+</kbd> <kbd>−</kbd>, Pfeile, Leertaste zu Euch, <kbd>0</kbd> ganzes Land. Gelber Pfeil: Ihr · Raute: Hauptgeschichte · Kreis: Auftragsgebiet · rote Fahne: Weltereignis.</p>
+        <p class="hint">Ziehen verschiebt, Rad, zwei Finger oder Doppelklick zoomen; zeigt auf ein Zeichen für einen Hinweis. Ein Tippen oder Klick öffnet ein Fenster: Ziel setzen (ein goldener Weg und ein heller Pfeil führen Euch hin) oder eine Notiz auf die Karte schreiben. Unerkundetes liegt unter Pergamentnebel. Tasten: <kbd>+</kbd> <kbd>−</kbd>, Pfeile, Leertaste zu Euch, <kbd>0</kbd> ganzes Land, <kbd>Entf</kbd> Ziel löschen. Gelber Pfeil: Ihr · Raute: Hauptgeschichte · Kreis: Auftragsgebiet · rote Fahne: Weltereignis.</p>
         <button class="btn" id="btnMapClose" type="button">Zurück</button>
       </div>
     </div>

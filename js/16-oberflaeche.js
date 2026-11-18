@@ -58,11 +58,11 @@ const QARROW = [];
 function drawQuestArrow(k, t0, red){   // red: der rote Pfeil zu Gesuchten und zur Fehde (Teil 26)
   const t = t0 === undefined ? questTarget() : t0; if (!t) return;
   const dx = t.x - k.x, dy = t.y - k.y;
-  if (Math.hypot(dx, dy) < 220) return;
+  if (Math.hypot(dx, dy) < (t.always ? 110 : 220)) return;
   const a = Math.atan2(dy, dx), c = Math.cos(a), s = Math.sin(a);
   const sc = Math.min((W / 2 - 30) / Math.abs(c || 1e-6), (H / 2 - 30) / Math.abs(s || 1e-6));
   const cx = Math.round(W / 2 + c * sc), cy = Math.round(H / 2 + s * sc);
-  const pulse = (G.t * 3 | 0) % 2, ai = ((Math.round(a / (Math.PI * 2) * 64) % 64) + 64) % 64, key = ai + pulse * 64 + (red ? 128 : 0);
+  const pulse = (G.t * 3 | 0) % 2, ai = ((Math.round(a / (Math.PI * 2) * 64) % 64) + 64) % 64, vr = red === 'way' ? 2 : red ? 1 : 0, key = ai + pulse * 64 + vr * 128;   // way: der helle Pfeil zum eigenen Ziel (Teil 29)
   let img = QARROW[key];
   if (!img){
     const aq = ai / 64 * Math.PI * 2, qc = Math.cos(aq), qs = Math.sin(aq), cg = (img = QARROW[key] = canvasOf(33, 33)).getContext('2d');
@@ -70,12 +70,12 @@ function drawQuestArrow(k, t0, red){   // red: der rote Pfeil zu Gesuchten und z
       const u = (x * qc + y * qs) / 1.4, v = (-x * qs + y * qc) / 1.4;     // u entlang, v quer
       const inside = u <= 9 && u >= -5 && Math.abs(v) <= (9 - u) * .5;
       const edge = u <= 9.8 && u >= -5.8 && Math.abs(v) <= (9.8 - u) * .55 + .45;
-      if (inside){ cg.fillStyle = u > 3 ? (pulse ? '#ffffff' : red ? '#ffc8b8' : '#fff0a0') : red ? '#e0483c' : '#ffd541'; cg.fillRect(x + 16, y + 16, 1, 1); }
+      if (inside){ cg.fillStyle = vr === 2 ? (u > 3 ? (pulse ? '#ffd541' : '#fff0a0') : '#f4ecd8') : u > 3 ? (pulse ? '#ffffff' : red ? '#ffc8b8' : '#fff0a0') : red ? '#e0483c' : '#ffd541'; cg.fillRect(x + 16, y + 16, 1, 1); }
       else if (edge){ cg.fillStyle = OUT; cg.fillRect(x + 16, y + 16, 1, 1); }
     }
   }
   ctx.drawImage(img, cx - 16, cy - 16);
-  drawText(t.label, clamp(cx - c * 30, 60, W - 60), clamp(cy - s * 24 - 6, 6, H - 18), red ? '#ff9a8a' : '#ffd541');
+  drawText(t.label, clamp(cx - c * 30, 60, W - 60), clamp(cy - s * 24 - 6 + (vr === 2 ? 14 : 0), 6, H - 18), vr === 2 ? '#f4ecd8' : red ? '#ff9a8a' : '#ffd541');
 }
 
 /* ============ Oberfläche ============ */
